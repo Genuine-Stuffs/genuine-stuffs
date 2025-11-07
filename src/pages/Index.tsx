@@ -51,12 +51,12 @@ const Index = () => {
 
   const testimonials = [
     {
-      quote: "BuildMaster's material guidance saved us 35% on maintenance costs over 5 years. Their expertise transformed how we approach material selection.",
+      quote: "Genuine Stuffs' material guidance and marketplace advisory saved us 35% on maintenance costs over 5 years. Their expertise transformed how we approach material selection and supplier verification.",
       author: "David Okonkwo",
       role: "Project Manager, Premium Developments",
     },
     {
-      quote: "The lifecycle performance modeling helped us justify the investment in quality materials to stakeholders. The ROI has been exceptional.",
+      quote: "The lifecycle performance modeling and consultancy helped us justify the investment in quality materials to stakeholders. The ROI has been exceptional.",
       author: "Amina Bello",
       role: "Construction Director, Metro Builders Ltd",
     },

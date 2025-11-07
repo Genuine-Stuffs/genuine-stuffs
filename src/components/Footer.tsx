@@ -10,12 +10,12 @@ const Footer = () => {
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
               <div className="w-10 h-10 bg-primary rounded flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-xl">BM</span>
+                <span className="text-primary-foreground font-bold text-xl">GS</span>
               </div>
-              <span className="font-bold text-lg">BuildMaster</span>
+              <span className="font-bold text-lg">Genuine Stuffs Ltd</span>
             </div>
             <p className="text-sm text-muted-foreground">
-              Expert consulting for construction materials quality, durability, and lifecycle performance.
+              Expert advisory and consultancy for building materials marketplace, quality assessment, and industry guidance.
             </p>
           </div>
 
@@ -63,22 +63,25 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Mail className="w-4 h-4" />
-                <span>info@buildmaster.com</span>
+                <span>contact@genuinestuffs.com</span>
               </li>
               <li className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Phone className="w-4 h-4" />
-                <span>+234 (0) 123 456 7890</span>
+                <span>+234 (0) 101 233</span>
               </li>
-              <li className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Linkedin className="w-4 h-4" />
-                <a href="#" className="hover:text-primary transition-colors">LinkedIn</a>
+              <li className="flex items-start space-x-2 text-sm text-muted-foreground">
+                <Linkedin className="w-4 h-4 mt-0.5" />
+                <div>
+                  <a href="#" className="hover:text-primary transition-colors block">LinkedIn</a>
+                  <span className="block mt-1">No 8 Milverton Road, Ikoyi, Lagos, Nigeria</span>
+                </div>
               </li>
             </ul>
           </div>
         </div>
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} BuildMaster Consulting. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} Genuine Stuffs Ltd. All rights reserved.</p>
         </div>
       </div>
     </footer>

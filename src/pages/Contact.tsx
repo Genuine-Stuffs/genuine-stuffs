@@ -209,8 +209,8 @@ const Contact = () => {
                       <Mail className="w-5 h-5 text-primary mr-3 mt-0.5" />
                       <div>
                         <p className="font-medium">Email</p>
-                        <a href="mailto:info@buildmaster.com" className="text-muted-foreground hover:text-primary transition-colors">
-                          info@buildmaster.com
+                        <a href="mailto:contact@genuinestuffs.com" className="text-muted-foreground hover:text-primary transition-colors">
+                          contact@genuinestuffs.com
                         </a>
                       </div>
                     </div>
@@ -219,8 +219,8 @@ const Contact = () => {
                       <Phone className="w-5 h-5 text-primary mr-3 mt-0.5" />
                       <div>
                         <p className="font-medium">Phone</p>
-                        <a href="tel:+2341234567890" className="text-muted-foreground hover:text-primary transition-colors">
-                          +234 (0) 123 456 7890
+                        <a href="tel:+234101233" className="text-muted-foreground hover:text-primary transition-colors">
+                          +234 (0) 101 233
                         </a>
                       </div>
                     </div>
@@ -230,7 +230,7 @@ const Contact = () => {
                       <div>
                         <p className="font-medium">LinkedIn</p>
                         <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
-                          BuildMaster Consulting
+                          Genuine Stuffs Ltd
                         </a>
                       </div>
                     </div>
@@ -240,7 +240,8 @@ const Contact = () => {
                       <div>
                         <p className="font-medium">Office</p>
                         <p className="text-muted-foreground">
-                          Lagos, Nigeria<br />
+                          No 8 Milverton Road<br />
+                          Ikoyi, Lagos, Nigeria<br />
                           Available for projects nationwide
                         </p>
                       </div>

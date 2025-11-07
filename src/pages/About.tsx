@@ -53,10 +53,10 @@ const About = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              About BuildMaster Consulting
+              About Genuine Stuffs Ltd
             </h1>
             <p className="text-xl text-muted-foreground">
-              Expert guidance for construction professionals who understand that the right materials today mean better buildings tomorrow.
+              Expert advisory and consultancy partner for building materials marketplace, providing guidance for construction professionals and industry leaders.
             </p>
           </div>
         </div>
@@ -69,16 +69,16 @@ const About = () => {
             <div>
               <h2 className="text-3xl md:text-4xl font-bold mb-6">Our Mission</h2>
               <p className="text-lg text-muted-foreground mb-6">
-                BuildMaster Consulting exists to bridge the knowledge gap between material specifications and real-world construction outcomes. We empower builders, project owners, and construction professionals with the expertise needed to make informed material decisions that enhance project quality, reduce lifecycle costs, and maximize asset value.
+                Genuine Stuffs Ltd serves as a strategic advisory and consultancy partner for the building materials marketplace ecosystem. We bridge the knowledge gap between material specifications and real-world construction outcomes, empowering industry professionals with expert guidance to make informed decisions that enhance project quality, reduce lifecycle costs, and maximize asset value.
               </p>
               <p className="text-lg text-muted-foreground mb-6">
-                Too often, construction projects compromise on material quality due to budget pressures or lack of understanding about long-term implications. Our consulting services provide the technical knowledge and data-driven insights needed to justify quality material investments and avoid costly mistakes.
+                As a digital-forward thought leader in Nigeria's construction industry, we provide transparent, data-driven insights that transform how professionals connect with verified suppliers and select quality materials. Our consultancy services establish new standards for marketplace integrity and material excellence.
               </p>
               <div className="space-y-4">
                 <div>
                   <h3 className="text-xl font-semibold mb-2">Our Vision</h3>
                   <p className="text-muted-foreground">
-                    To become the trusted authority on construction material quality across Africa, setting new standards for durability, compliance, and lifecycle value in the built environment.
+                    To become the leading advisory authority for building materials marketplace platforms across Africa, setting new standards for transparency, quality assurance, and lifecycle value in the digital construction economy.
                   </p>
                 </div>
               </div>
@@ -86,7 +86,7 @@ const About = () => {
             <div className="rounded-lg overflow-hidden shadow-xl">
               <img
                 src={consultationImage}
-                alt="BuildMaster consulting team meeting with clients"
+                alt="Genuine Stuffs consulting team meeting with clients"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -152,7 +152,7 @@ const About = () => {
       <section className="py-20 bg-secondary/30">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Why Choose BuildMaster?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Why Choose Genuine Stuffs Ltd?</h2>
             
             <div className="space-y-6">
               <Card className="border-2">
