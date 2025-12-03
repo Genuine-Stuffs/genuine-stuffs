@@ -9,9 +9,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-12 h-12" />
-              <span className="font-bold text-lg">Genuine Stuffs Ltd</span>
+            <div className="flex items-center space-x-3">
+              <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-30 h-24" />
+              <span className="font-bold text-xl">Genuine Stuffs Ltd</span>
             </div>
             <p className="text-sm text-muted-foreground">
               Expert advisory and consultancy for building materials marketplace, quality assessment, and industry guidance.

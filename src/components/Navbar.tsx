@@ -21,9 +21,9 @@ const Navbar = () => {
   return (
     <nav className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-2">
-            <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-12 h-12" />
+        <div className="flex items-center justify-between h-20">
+          <Link to="/" className="flex items-center space-x-3">
+            <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-[70px] h-[72px]" />
             <span className="font-bold text-xl hidden sm:block">Genuine Stuffs Ltd</span>
           </Link>
 
