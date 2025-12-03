@@ -80,7 +80,7 @@ const Index = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-2xl">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Build Smarter. Build Longer. Choose the Right Materials.
+              Build Faster. Build Smarter. Choose the Right Materials.
             </h1>
             <p className="text-xl md:text-2xl text-muted-foreground mb-8">
               We help you understand the material decisions that determine your project's success and lifespan.
