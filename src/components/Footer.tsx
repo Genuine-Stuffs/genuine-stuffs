@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone, Linkedin } from "lucide-react";
-import logoIcon from "@/assets/logo-icon.png";
+import logoIcon from "@/assets/logo-icon.svg";
 
 const Footer = () => {
   return (
@@ -10,7 +10,7 @@ const Footer = () => {
           {/* Company Info */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-10 h-10" />
+              <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-12 h-12" />
               <span className="font-bold text-lg">Genuine Stuffs Ltd</span>
             </div>
             <p className="text-sm text-muted-foreground">
