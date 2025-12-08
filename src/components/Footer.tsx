@@ -72,7 +72,7 @@ const Footer = () => {
                 <Linkedin className="w-4 h-4 mt-0.5" />
                 <div>
                   <a href="#" className="hover:text-primary transition-colors block">LinkedIn</a>
-                  <span className="block mt-1">No 8 Milverton Road, Ikoyi, Lagos, Nigeria</span>
+                  <span className="block mt-1">Ikoyi, Lagos, Nigeria</span>
                 </div>
               </li>
             </ul>
