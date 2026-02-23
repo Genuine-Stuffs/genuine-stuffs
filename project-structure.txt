@@ -1,0 +1,55 @@
+.
+├── README.md
+├── bun.lockb
+├── components.json
+├── eslint.config.js
+├── index.html
+├── package-lock.json
+├── package.json
+├── postcss.config.js
+├── project-structure.txt
+├── public
+│   ├── favicon.ico
+│   ├── favicon.png
+│   ├── logo-192.png
+│   ├── logo-512.png
+│   ├── placeholder.svg
+│   └── robots.txt
+├── src
+│   ├── App.css
+│   ├── App.tsx
+│   ├── assets
+│   │   ├── consultation-meeting.jpg
+│   │   ├── hero-construction.jpg
+│   │   ├── logo-full.svg
+│   │   ├── logo-icon.png
+│   │   ├── logo-icon.svg
+│   │   └── materials-quality.jpg
+│   ├── components
+│   │   ├── Footer.tsx
+│   │   ├── NavLink.tsx
+│   │   ├── Navbar.tsx
+│   │   └── ui
+│   ├── hooks
+│   │   ├── use-mobile.tsx
+│   │   └── use-toast.ts
+│   ├── index.css
+│   ├── integrations
+│   ├── lib
+│   │   └── utils.ts
+│   ├── main.tsx
+│   ├── pages
+│   │   ├── About.tsx
+│   │   ├── Contact.tsx
+│   │   ├── Index.tsx
+│   │   ├── NotFound.tsx
+│   │   ├── Resources.tsx
+│   │   └── Services.tsx
+│   └── vite-env.d.ts
+├── tailwind.config.ts
+├── tsconfig.app.json
+├── tsconfig.json
+├── tsconfig.node.json
+└── vite.config.ts
+
+10 directories, 43 files

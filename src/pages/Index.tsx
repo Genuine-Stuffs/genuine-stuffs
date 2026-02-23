@@ -1,7 +1,23 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckCircle2, TrendingDown, Shield, TrendingUp, ClipboardCheck } from "lucide-react";
+import {
+  CheckCircle2,
+  TrendingDown,
+  Shield,
+  TrendingUp,
+  ClipboardCheck,
+  Search,
+  Hammer,
+  Truck,
+  HardHat,
+  Cpu,
+  Layers,
+  Construction,
+  Wrench,
+  PencilRuler,
+  Users
+} from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import heroImage from "@/assets/hero-construction.jpg";
@@ -62,37 +78,94 @@ const Index = () => {
     },
   ];
 
+  const categories = [
+    { title: "Cement & Aggregates", icon: Construction, color: "bg-blue-500/10 text-blue-600" },
+    { title: "Steel & Rebars", icon: Layers, color: "bg-orange-500/10 text-orange-600" },
+    { title: "Roofing & Ceiling", icon: Hammer, color: "bg-green-500/10 text-green-600" },
+    { title: "Electrical & Plumbing", icon: Wrench, color: "bg-purple-500/10 text-purple-600" },
+    { title: "Finishing & Tiles", icon: Layers, color: "bg-pink-500/10 text-pink-600" },
+    { title: "Architecture / AI Studio", icon: Cpu, color: "bg-cyan-500/10 text-cyan-600", link: "/pro/ai-studio" },
+    { title: "Hire Professionals", icon: Users, color: "bg-indigo-500/10 text-indigo-600" },
+    { title: "Tools & Equipment", icon: Hammer, color: "bg-amber-500/10 text-amber-600" },
+  ];
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-slate-50/30">
       <Navbar />
 
-      {/* Hero Section */}
-      <section className="relative min-h-[600px] flex items-center">
+      {/* Hero Section - Search First & Industry Transformation */}
+      <section className="relative pt-24 pb-16 overflow-hidden">
         <div className="absolute inset-0 z-0">
           <img
             src={heroImage}
-            alt="Professional construction site"
-            className="w-full h-full object-cover"
+            alt="Industry Transformation"
+            className="w-full h-full object-cover opacity-20 grayscale"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/80 to-background/40" />
+          <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/80 to-slate-50/50" />
         </div>
 
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight">
-              Build Faster. Build Smarter. Choose the Right Materials.
-            </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-8">
-              We help you understand the material decisions that determine your project's success and lifespan.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button asChild size="lg" className="text-lg">
-                <Link to="/contact">Schedule Free Consultation</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="text-lg">
-                <Link to="/resources">Download Materials Checklist</Link>
+        <div className="container mx-auto px-4 relative z-10 text-center max-w-4xl">
+          <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 tracking-tight">
+            Building Industry <span className="text-primary">Transformation</span>
+          </h1>
+          <p className="text-xl md:text-2xl text-muted-foreground mb-10 font-medium">
+            Bridging High-End Technical Innovation with the Global Building Materials Marketplace.
+          </p>
+
+          {/* Search Box - Jiji Inspired */}
+          <div className="relative max-w-2xl mx-auto mb-12 shadow-2xl rounded-2xl overflow-hidden group">
+            <div className="flex bg-white p-2">
+              <div className="flex-1 flex items-center px-4">
+                <Search className="w-6 h-6 text-muted-foreground mr-3" />
+                <input
+                  type="text"
+                  placeholder="What are you looking for? (e.g. Structural Steel, BIM Models, Cement...)"
+                  className="w-full h-12 bg-transparent border-none focus:outline-none text-lg"
+                />
+              </div>
+              <Button size="lg" className="h-14 px-10 text-lg font-bold rounded-xl">
+                SEARCH
               </Button>
             </div>
+          </div>
+
+          {/* Quick Stats/Links */}
+          <div className="flex flex-wrap justify-center gap-4 text-sm font-semibold uppercase tracking-wider">
+            <Link to="/register/vendor" className="flex items-center text-primary hover:underline">
+              <Truck className="w-4 h-4 mr-2" /> How to Sell
+            </Link>
+            <span className="text-muted-foreground">|</span>
+            <Link to="/marketplace" className="flex items-center text-primary hover:underline">
+              <HardHat className="w-4 h-4 mr-2" /> How to Buy
+            </Link>
+            <span className="text-muted-foreground">|</span>
+            <Link to="/pro-portal" className="flex items-center text-primary hover:underline">
+              <PencilRuler className="w-4 h-4 mr-2" /> Join as Pro
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* Category Grid Section - Jiji Inspired */}
+      <section className="py-10">
+        <div className="container mx-auto px-4">
+          <h2 className="text-2xl font-bold mb-6 flex items-center">
+            <span className="w-2 h-8 bg-primary mr-3 rounded-full"></span>
+            Browse by Innovation & Category
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
+            {categories.map((cat, index) => (
+              <Link key={index} to={cat.link || "/marketplace"} className="group">
+                <Card className="aspect-square border-none shadow-sm hover:shadow-md transition-all group-hover:-translate-y-1 bg-white">
+                  <CardContent className="p-4 flex flex-col items-center justify-center h-full text-center">
+                    <div className={`p-4 rounded-2xl mb-3 transition-colors ${cat.color} group-hover:bg-primary group-hover:text-white`}>
+                      <cat.icon className="w-8 h-8" />
+                    </div>
+                    <span className="text-sm font-bold leading-tight line-clamp-2">{cat.title}</span>
+                  </CardContent>
+                </Card>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

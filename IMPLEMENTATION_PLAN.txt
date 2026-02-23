@@ -1,0 +1,53 @@
+IMPLEMENTATION PLAN - Building Industry Transformation Platform
+
+GOAL DESCRIPTION
+Transform the existing "Material Insight Pros" website from a simple marketing/marketplace launchpad into a comprehensive Building Industry Transformation Platform. 
+The goal is to move the "marketplace" aspect to a secondary feature and prioritize Industry Innovation tools: Technical Resources, Interactive Calculators, and Professional Portals.
+The system will be restructured to be Mobile-First and support high-fidelity technical data (CAD/BIM) alongside standard e-commerce features.
+
+USER REVIEW REQUIRED
+Architecture Change: The current homepage (Index.tsx) will be refocused primarily on the "Transformation Agenda." The actual marketplace functionality (product listings) will be moved to/created at a new dedicated /marketplace route.
+
+Authentication Check: The "Professional Account Portal" feature implies user login. I will scaffold the UI for this at /pro-portal, but full Supabase Auth integration is assumed to be a separate or subsequent task unless existing auth is found.
+
+PROPOSED CHANGES
+
+1. Core Architecture & Routing
+Refactor the application routing to support the new "Platform" structure.
+- Add new routes:
+    - /marketplace: The e-commerce section.
+    - /calculators: Industry tools.
+    - /pro-portal: Professional user dashboard.
+    - /visualizer: placeholder for AR/2D visual tools.
+
+2. Feature Implementation
+
+Index.tsx Refactor:
+- Refactor Hero Section: Change messaging to "Industry Transformation" and "Building the Future."
+- New Sections: Add specific entry points (Cards/Grid) for "Technical Resources," "Project Tools," and "Pro Access" to guide different user personas immediately.
+- De-emphasize Marketplace: Move direct product selling language to be one of the features, not the main focus.
+
+Resources.tsx Upgrade:
+- Upgrade to "Technical Resource Center":
+    - Add UI filters for "Document Type" (CAD, BIM, Safety Data Sheets).
+    - Refactor the list to look more like a technical library than a blog.
+
+New Pages:
+- Calculators.tsx: Create a hub for industry calculators and implement a Concrete Volume Calculator MVP.
+- ProDashboard.tsx: Create a mock "Professional Portal" dashboard with Project Lists, Recurring Orders, and Volume Pricing UI.
+- Marketplace.tsx: A dedicated landing page for the e-commerce functionality.
+
+3. Mobile-First Design System
+- Ensure base accessibility styles (minimum touch targets of 44px).
+- Add utility class overrides for high contrast on mobile job sites.
+
+VERIFICATION PLAN
+
+Automated Tests:
+- Run 'npm run build' to ensure no TypeScript or Routing errors.
+
+Manual Verification:
+- Home Page: Verify focus on "Industry Transformation" and functional links to all new hubs.
+- Resource Center: Verify new filter UI.
+- Calculators: Verify mathematical correctness of the Concrete Calculator.
+- Mobile: Verify 44px touch targets and one-handed navigation ease.
