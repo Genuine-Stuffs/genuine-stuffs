@@ -109,7 +109,7 @@ const Index = () => {
 
         <div className="container mx-auto px-4 relative z-10 text-center max-w-4xl">
           <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 tracking-tight leading-[1.1]">
-            Trust-Driven <span className="text-primary italic">Construction Ecosystem</span> Platform
+            Welcome To A <span className="text-primary italic">Trust-Driven Construction Ecosystem</span>
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-10 font-medium max-w-3xl mx-auto">
             Restoring confidence, quality, and long-term value in the built environment through verification and expert guidance.
@@ -161,6 +161,31 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Browse By Innovation & Category - Restored */}
+      <section className="py-12 bg-white border-b border-slate-100">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-2 h-8 bg-primary rounded-full" />
+            <h2 className="text-2xl font-black text-slate-900">Browse by Innovation & Category</h2>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            {categories.map((cat, i) => (
+              <Link
+                key={i}
+                to={cat.link || `/marketplace?category=${encodeURIComponent(cat.title)}`}
+                className="group flex flex-col items-center p-6 rounded-2xl border border-slate-50 bg-slate-50/50 hover:bg-white hover:border-primary hover:shadow-xl transition-all duration-300"
+              >
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 ${cat.color} group-hover:scale-110 transition-transform shadow-sm`}>
+                  <cat.icon className="w-7 h-7" />
+                </div>
+                <span className="text-[10px] font-black text-center text-slate-700 leading-tight group-hover:text-primary uppercase tracking-tighter">{cat.title}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Brand Values / Why We Exist - New Section */}
       <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
@@ -186,7 +211,7 @@ const Index = () => {
               </div>
             </div>
             <div className="order-1 lg:order-2 rounded-3xl overflow-hidden shadow-2xl relative aspect-square lg:aspect-video">
-              <img src={materialsImage} alt="Verified construction materials" className="w-full h-full object-cover" />
+              <img src="/images/materials/steel.png" alt="Verified construction materials on site" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
               <div className="absolute bottom-8 left-8 right-8">
                 <p className="text-white text-xl font-bold italic">"We exist to ensure users do not just build, but build right."</p>
@@ -302,8 +327,8 @@ const Index = () => {
             </div>
             <div className="rounded-lg overflow-hidden shadow-lg">
               <img
-                src={materialsImage}
-                alt="High-quality building materials"
+                src="/images/materials/cement.png"
+                alt="High-quality building materials on a construction site"
                 className="w-full h-full object-cover"
               />
             </div>
