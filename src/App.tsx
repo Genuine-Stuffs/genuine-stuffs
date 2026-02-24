@@ -11,11 +11,11 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import AIStudio from "./pages/AIStudio";
 import Marketplace from "./pages/Marketplace";
+import VendorRegister from "./pages/VendorRegister";
+import Calculators from "./pages/Calculators";
 
 // New Page Placeholders (Will be created in next steps)
-const Calculators = () => <div className="p-20 text-center">Calculators Hub Coming Soon</div>;
 const ProDashboard = () => <div className="p-20 text-center">Professional Dashboard Coming Soon</div>;
-const VendorRegister = () => <div className="p-20 text-center">Vendor Registration Flow</div>;
 const ProRegister = () => <div className="p-20 text-center">Pro Registration Flow</div>;
 
 const queryClient = new QueryClient();
