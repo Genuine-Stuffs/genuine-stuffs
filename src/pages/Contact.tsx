@@ -215,7 +215,7 @@ const Contact = () => {
                       </div>
                     </div>
 
-                    <div className="flex items-start">
+                    {/* <div className="flex items-start">
                       <Phone className="w-5 h-5 text-primary mr-3 mt-0.5" />
                       <div>
                         <p className="font-medium">Phone</p>
@@ -223,7 +223,7 @@ const Contact = () => {
                           +234 (0) 101 233
                         </a>
                       </div>
-                    </div>
+                    </div> */}
 
                     <div className="flex items-start">
                       <Linkedin className="w-5 h-5 text-primary mr-3 mt-0.5" />

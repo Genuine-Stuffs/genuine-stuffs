@@ -64,10 +64,10 @@ const Footer = () => {
                 <Mail className="w-4 h-4" />
                 <span>contact@genuinestuffs.com</span>
               </li>
-              <li className="flex items-center space-x-2 text-sm text-muted-foreground">
+              {/* <li className="flex items-center space-x-2 text-sm text-muted-foreground">
                 <Phone className="w-4 h-4" />
                 <span>+234 81 89 675 921</span>
-              </li>
+              </li> */}
               <li className="flex items-start space-x-2 text-sm text-muted-foreground">
                 <Linkedin className="w-4 h-4 mt-0.5" />
                 <div>
