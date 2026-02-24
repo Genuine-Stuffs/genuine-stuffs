@@ -1,127 +1,141 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { FileText, Video, Download, BookOpen, AlertTriangle, TrendingUp } from "lucide-react";
+import { FileText, Video, Download, BookOpen, AlertTriangle, TrendingUp, Lock, Cpu, Layers, HardHat, ShieldCheck, Sparkles } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useState } from "react";
 
 const Resources = () => {
+  const [activeFilter, setActiveFilter] = useState("all");
+
+  const resourceFilters = [
+    { id: "all", label: "All Resources", icon: BookOpen },
+    { id: "cad", label: "CAD/BIM Models", icon: Cpu },
+    { id: "standards", label: "Quality Standards", icon: ShieldCheck },
+    { id: "guides", label: "Technical Guides", icon: FileText },
+  ];
+
   const articles = [
+    {
+      icon: Cpu,
+      category: "BIM MODEL",
+      title: "Commercial High-Rise Structural Skeleton (.rvt)",
+      description: "Complete Revit model for a 15-story structural frame with clash detection notes.",
+      readTime: "Pro Members Only",
+      isPro: true,
+    },
     {
       icon: AlertTriangle,
       category: "Case Study",
       title: "10 Material Failures Common in Tropical Climates",
-      description: "Learn from real-world examples of how climate-specific material failures impact construction projects in tropical regions.",
+      description: "Learn from real-world examples of how climate-specific material failures impact projects.",
       readTime: "8 min read",
+      isPro: false,
+    },
+    {
+      icon: Layers,
+      category: "Technical",
+      title: "Reinforced Concrete Detail Library (.dwg)",
+      description: "Comprehensive CAD files for various foundation and beam reinforcement scenarios.",
+      readTime: "Pro Members Only",
+      isPro: true,
     },
     {
       icon: TrendingUp,
       category: "Analysis",
       title: "How to Compare Material Lifespans",
-      description: "A practical guide to evaluating and comparing the long-term performance and cost-effectiveness of different building materials.",
+      description: "A practical guide to evaluating and comparing long-term performance and cost-effectiveness.",
       readTime: "6 min read",
-    },
-    {
-      icon: BookOpen,
-      category: "Guide",
-      title: "Impact of Structural Materials on Asset Resale Value",
-      description: "Discover how material quality directly affects property valuations and investment returns over time.",
-      readTime: "10 min read",
-    },
-    {
-      icon: FileText,
-      category: "Report",
-      title: "Steel vs. Concrete: A Lifecycle Cost Analysis",
-      description: "Comprehensive comparison of two primary structural materials including durability, maintenance, and long-term value.",
-      readTime: "12 min read",
-    },
-    {
-      icon: AlertTriangle,
-      category: "Best Practices",
-      title: "Quality Control Protocols for Construction Materials",
-      description: "Essential quality control measures to ensure material compliance and performance on construction sites.",
-      readTime: "7 min read",
-    },
-    {
-      icon: BookOpen,
-      category: "Technical",
-      title: "Understanding Material Certifications and Standards",
-      description: "Navigate ISO, ASTM, and local building code requirements for construction materials with confidence.",
-      readTime: "9 min read",
+      isPro: false,
     },
   ];
 
   const downloads = [
     {
       title: "Material Quality Checklist for Project Owners",
-      description: "A comprehensive PDF checklist covering essential material quality considerations for construction projects.",
+      description: "A comprehensive PDF checklist covering essential material quality considerations.",
       icon: Download,
       format: "PDF",
+      isPro: false,
     },
     {
-      title: "Lifecycle Cost Curve: Quality vs Cheap Materials",
-      description: "Infographic showing the true cost comparison of quality materials versus cheap alternatives over 20+ years.",
-      icon: Download,
-      format: "Infographic",
+      title: "BIM Protocol & Standards Handbook (2026)",
+      description: "Industry standard operating procedures for digital construction modeling and handover.",
+      icon: Lock,
+      format: "PRO ONLY",
+      isPro: true,
     },
     {
       title: "Material Compliance Quick Reference Guide",
       description: "Essential reference document for building codes, standards, and certification requirements.",
       icon: Download,
       format: "PDF",
-    },
-  ];
-
-  const videos = [
-    {
-      title: "Introduction to Material Lifecycle Planning",
-      duration: "15:30",
-      description: "Learn the fundamentals of planning for material performance throughout a building's lifespan.",
-    },
-    {
-      title: "Case Study: Preventing Premature Material Failure",
-      duration: "12:45",
-      description: "Real-world example of how proper material selection prevented costly structural issues.",
+      isPro: false,
     },
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-slate-50/50">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="py-20 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Resources & Insights
+      <section className="py-20 relative overflow-hidden bg-slate-900 text-white">
+        <div className="absolute top-0 right-0 p-20 bg-primary/20 rounded-full blur-3xl" />
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-3xl">
+            <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tight">
+              Technical <span className="text-primary italic">Resource</span> Center
             </h1>
-            <p className="text-xl text-muted-foreground">
-              Expert knowledge to help you make informed decisions about construction materials, quality, and lifecycle performance.
+            <p className="text-xl text-slate-400 font-medium">
+              High-fidelity CAD/BIM models, industry standards, and precision guides for the modern construction team.
             </p>
           </div>
         </div>
       </section>
 
+      {/* Filter Bar */}
+      <div className="sticky top-20 z-40 bg-white border-b py-2 shadow-sm">
+        <div className="container mx-auto px-4 flex gap-2 overflow-x-auto no-scrollbar">
+          {resourceFilters.map((filter) => (
+            <Button
+              key={filter.id}
+              variant={activeFilter === filter.id ? "ghost" : "ghost"} // Simplified for now
+              onClick={() => setActiveFilter(filter.id)}
+              className={`rounded-full gap-2 whitespace-nowrap ${activeFilter === filter.id ? 'bg-primary text-white hover:bg-primary/90' : ''}`}
+            >
+              <filter.icon className="w-4 h-4" /> {filter.label}
+            </Button>
+          ))}
+        </div>
+      </div>
+
       {/* Articles Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Educational Articles</h2>
-            <p className="text-xl text-muted-foreground">
-              In-depth guides and analyses on material quality, durability, and best practices.
-            </p>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {articles.map((article, index) => (
-              <Card key={index} className="border-2 hover:border-primary transition-all hover:shadow-lg cursor-pointer">
-                <CardContent className="pt-6">
-                  <article.icon className="w-10 h-10 text-primary mb-4" />
-                  <div className="text-sm text-primary font-medium mb-2">{article.category}</div>
-                  <h3 className="text-xl font-semibold mb-3">{article.title}</h3>
-                  <p className="text-muted-foreground mb-4">{article.description}</p>
-                  <div className="text-sm text-muted-foreground">{article.readTime}</div>
+              <Card key={index} className={`group border-none shadow-sm hover:shadow-xl transition-all relative overflow-hidden bg-white ${article.isPro ? 'ring-2 ring-primary/10' : ''}`}>
+                {article.isPro && (
+                  <div className="absolute top-4 right-4 z-10">
+                    <div className="bg-primary text-white p-2 rounded-full shadow-lg">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                  </div>
+                )}
+                <CardContent className="pt-8">
+                  <div className={`p-4 rounded-2xl w-fit mb-4 ${article.isPro ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-600'}`}>
+                    <article.icon className="w-8 h-8" />
+                  </div>
+                  <div className="text-xs text-primary font-bold uppercase tracking-widest mb-2">{article.category}</div>
+                  <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">{article.title}</h3>
+                  <p className="text-muted-foreground mb-6 line-clamp-2">{article.description}</p>
+                  <div className="flex justify-between items-center text-sm font-bold">
+                    <span className={article.isPro ? 'text-primary' : 'text-slate-400'}>{article.readTime}</span>
+                    <Button variant="ghost" size="sm" className="gap-2 group-hover:bg-primary/5">
+                      Explore <TrendingUp className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -130,89 +144,34 @@ const Resources = () => {
       </section>
 
       {/* Downloadable Resources */}
-      <section className="py-20 bg-secondary/30">
+      <section className="py-20 bg-slate-900 text-white">
         <div className="container mx-auto px-4">
-          <div className="mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Downloadable Resources</h2>
-            <p className="text-xl text-muted-foreground">
-              Free tools and guides to support your material quality decisions.
-            </p>
+          <div className="mb-12 text-center">
+            <h2 className="text-4xl font-black mb-4">Technical Assets</h2>
+            <p className="text-xl text-slate-400">Direct access to verified construction documentation.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {downloads.map((download, index) => (
-              <Card key={index} className="border-2 hover:border-primary transition-colors">
-                <CardContent className="pt-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <download.icon className="w-12 h-12 text-primary" />
-                    <span className="text-xs font-medium px-3 py-1 bg-primary/10 text-primary rounded-full">
+              <Card key={index} className="border-none bg-white/5 backdrop-blur hover:bg-white/10 transition-all group">
+                <CardContent className="pt-8">
+                  <div className="flex justify-between items-start mb-6">
+                    <div className="p-4 rounded-2xl bg-white/10 group-hover:bg-primary transition-colors">
+                      <download.icon className="w-8 h-8 text-white" />
+                    </div>
+                    <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${download.isPro ? 'bg-primary text-white' : 'bg-slate-700 text-slate-300'}`}>
                       {download.format}
                     </span>
                   </div>
-                  <h3 className="text-xl font-semibold mb-3">{download.title}</h3>
-                  <p className="text-muted-foreground mb-6">{download.description}</p>
-                  <Button asChild className="w-full">
-                    <Link to="/contact">
-                      <Download className="w-4 h-4 mr-2" />
-                      Download Free
-                    </Link>
+                  <h3 className="text-xl font-bold mb-3">{download.title}</h3>
+                  <p className="text-slate-400 mb-8">{download.description}</p>
+                  <Button className={`w-full h-12 gap-2 font-bold ${download.isPro ? 'bg-primary' : 'bg-white text-slate-900 hover:bg-slate-100'}`}>
+                    {download.isPro ? <Sparkles className="w-4 h-4" /> : <Download className="w-4 h-4" />}
+                    {download.isPro ? "Upgrade to Access" : "Download Now"}
                   </Button>
                 </CardContent>
               </Card>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Video Resources */}
-      <section className="py-20">
-        <div className="container mx-auto px-4">
-          <div className="mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Video Library</h2>
-            <p className="text-xl text-muted-foreground">
-              Visual guides and case studies from our expert consultants.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {videos.map((video, index) => (
-              <Card key={index} className="border-2 hover:border-primary transition-colors">
-                <CardContent className="pt-6">
-                  <div className="aspect-video bg-secondary/50 rounded-lg mb-4 flex items-center justify-center">
-                    <Video className="w-16 h-16 text-muted-foreground" />
-                  </div>
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-xl font-semibold">{video.title}</h3>
-                    <span className="text-sm text-muted-foreground">{video.duration}</span>
-                  </div>
-                  <p className="text-muted-foreground">{video.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Newsletter CTA */}
-      <section className="py-20 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Stay Updated on Material Quality Insights
-            </h2>
-            <p className="text-xl mb-8 opacity-90">
-              Subscribe to our newsletter for regular updates on construction materials, quality standards, and industry best practices.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <input
-                type="email"
-                placeholder="Enter your email"
-                className="px-6 py-3 rounded-lg text-foreground flex-1 max-w-md"
-              />
-              <Button size="lg" variant="secondary">
-                Subscribe
-              </Button>
-            </div>
           </div>
         </div>
       </section>
