@@ -13,8 +13,8 @@ const Footer = () => {
               <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-30 h-24" />
               <span className="font-bold text-xl">Genuine Stuffs Ltd</span>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Expert advisory and consultancy for building materials marketplace, quality assessment, and industry guidance.
+            <p className="text-sm text-slate-500 leading-relaxed font-medium">
+              A Trust-Driven Construction Ecosystem built to restore confidence, quality, and long-term value in the built environment.
             </p>
           </div>
 
@@ -45,14 +45,20 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Services */}
+          {/* Specialties */}
           <div>
-            <h3 className="font-semibold mb-4">Services</h3>
+            <h3 className="font-bold text-slate-900 mb-4">Our Specialties</h3>
             <ul className="space-y-2">
-              <li className="text-sm text-muted-foreground">Materials Audit</li>
-              <li className="text-sm text-muted-foreground">Lifecycle Modeling</li>
-              <li className="text-sm text-muted-foreground">Compliance Review</li>
-              <li className="text-sm text-muted-foreground">Training & Workshops</li>
+              {[
+                "Verified Materials Marketplace",
+                "Professionals & Artisans Directory",
+                "Supplier & Pro Verification",
+                "Construction & Property Advisory",
+                "Value Assurance Services",
+                "Training & Knowledge Hub"
+              ].map((specialty, i) => (
+                <li key={i} className="text-sm text-slate-500 font-medium">{specialty}</li>
+              ))}
             </ul>
           </div>
 

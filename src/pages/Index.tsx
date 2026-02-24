@@ -108,11 +108,11 @@ const Index = () => {
         </div>
 
         <div className="container mx-auto px-4 relative z-10 text-center max-w-4xl">
-          <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 tracking-tight">
-            Building Industry <span className="text-primary">Transformation</span>
+          <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 tracking-tight leading-[1.1]">
+            Trust-Driven <span className="text-primary italic">Construction Ecosystem</span> Platform
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-10 font-medium">
-            Bridging High-End Technical Innovation with the Global Building Materials Marketplace.
+          <p className="text-xl md:text-2xl text-muted-foreground mb-10 font-medium max-w-3xl mx-auto">
+            Restoring confidence, quality, and long-term value in the built environment through verification and expert guidance.
           </p>
 
           {/* Search Box - Jiji Inspired */}
@@ -154,33 +154,44 @@ const Index = () => {
               </Link>
             ) : (
               <Link to="/register/pro" className="flex items-center text-primary hover:underline">
-                <PencilRuler className="w-4 h-4 mr-2" /> Join as Pro
+                <Shield className="w-4 h-4 mr-2" /> Verified Professionals
               </Link>
             )}
           </div>
         </div>
       </section>
 
-      {/* Category Grid Section - Jiji Inspired */}
-      <section className="py-10">
+      {/* Brand Values / Why We Exist - New Section */}
+      <section className="py-20 bg-white">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-6 flex items-center">
-            <span className="w-2 h-8 bg-primary mr-3 rounded-full"></span>
-            Browse by Innovation & Category
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-4">
-            {categories.map((cat, index) => (
-              <Link key={index} to={cat.link || "/marketplace"} className="group">
-                <Card className="aspect-square border-none shadow-sm hover:shadow-md transition-all group-hover:-translate-y-1 bg-white">
-                  <CardContent className="p-4 flex flex-col items-center justify-center h-full text-center">
-                    <div className={`p-4 rounded-2xl mb-3 transition-colors ${cat.color} group-hover:bg-primary group-hover:text-white`}>
-                      <cat.icon className="w-8 h-8" />
-                    </div>
-                    <span className="text-sm font-bold leading-tight line-clamp-2">{cat.title}</span>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div className="order-2 lg:order-1">
+              <div className="inline-block p-2 bg-primary/10 rounded-lg text-primary text-xs font-black uppercase tracking-widest mb-6">Our Purpose</div>
+              <h2 className="text-4xl font-black mb-8 leading-tight">Solving Fragmented <span className="text-primary italic">Supply Chains</span></h2>
+              <p className="text-lg text-slate-600 mb-6 leading-relaxed">
+                The construction industry suffers from unverified professionals, substandard materials, and limited practical guidance—resulting in project failures and cost overruns.
+              </p>
+              <div className="space-y-4">
+                {[
+                  "Verification: Strict screening for suppliers & artisans",
+                  "Quality: Restoring confidence in material standards",
+                  "Advisory: Over 20 years of real-world site experience",
+                  "Transparency: Data-driven material selection"
+                ].map((text, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-primary" />
+                    <span className="font-bold text-slate-800">{text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="order-1 lg:order-2 rounded-3xl overflow-hidden shadow-2xl relative aspect-square lg:aspect-video">
+              <img src={materialsImage} alt="Verified construction materials" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
+              <div className="absolute bottom-8 left-8 right-8">
+                <p className="text-white text-xl font-bold italic">"We exist to ensure users do not just build, but build right."</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -232,6 +243,32 @@ const Index = () => {
                 {index < steps.length - 1 && (
                   <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-0.5 bg-border" />
                 )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Specialties Section - LinkedIn Style */}
+      <section className="py-24 bg-slate-50 border-y border-slate-100">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-black mb-4">Our <span className="text-primary italic">Specialties</span></h2>
+            <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">Focused on restoring confidence and protecting long-term property value.</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+            {[
+              "Verified Building Materials Marketplace",
+              "Construction Professionals & Artisans Directory",
+              "Supplier & Professional Verification",
+              "Construction & Property Advisory Services",
+              "Property Development & Value Assurance",
+              "Training & Knowledge Hub",
+              "Quality-Focused Construction Enablement"
+            ].map((specialty, i) => (
+              <div key={i} className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-primary hover:shadow-md transition-all group">
+                <div className="w-2 h-2 rounded-full bg-primary group-hover:scale-150 transition-all" />
+                <span className="font-bold text-slate-800 group-hover:text-primary transition-colors">{specialty}</span>
               </div>
             ))}
           </div>

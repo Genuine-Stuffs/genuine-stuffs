@@ -9,51 +9,51 @@ const Services = () => {
   const services = [
     {
       icon: FileCheck,
-      title: "Pre-Construction Materials Audit",
-      description: "Comprehensive assessment of material specifications, sourcing strategies, and budget optimization before construction begins.",
+      title: "Material & Supplier Verification",
+      description: "Screening and profiling building materials suppliers to ensure compliance with quality standards and project requirements.",
       features: [
-        "Review of architectural and structural specifications",
-        "Material sourcing evaluation and vendor assessment",
-        "Budget analysis and cost-benefit comparisons",
-        "Climate and site-specific material recommendations",
+        "Supplier background checks & profiling",
+        "Material quality standard verification",
+        "Price authenticity auditing",
+        "Inventory reliability assessment",
       ],
-      whyItMatters: "Projects that undergo pre-construction material audits experience 25-35% fewer material-related delays and cost overruns during construction.",
+      whyItMatters: "Verification is the first line of defense against substandard materials and fragmented supply chains that cause 90% of budget overruns.",
     },
     {
       icon: TrendingUp,
-      title: "Lifecycle Performance Modeling",
-      description: "Data-driven forecasting of how different material choices will perform, age, and affect maintenance requirements over time.",
+      title: "Construction & Property Advisory",
+      description: "Over two decades of site-level experience protecting property value through strategic material selection and cost efficiency.",
       features: [
-        "20+ year performance projections",
-        "Maintenance schedule and cost forecasting",
-        "Environmental impact and durability analysis",
-        "ROI calculations for material investment decisions",
+        "Architectural & structural review",
+        "Cost-efficiency & value modeling",
+        "Asset durability forecasting",
+        "Procurement strategy development",
       ],
-      whyItMatters: "Buildings using sub-standard materials can incur up to 40% higher maintenance costs over 20 years. Our modeling helps you avoid these hidden expenses.",
+      whyItMatters: "Our practical foundation ensures you don't just build, but build right, maximizing long-term asset value.",
     },
     {
       icon: AlertCircle,
-      title: "Compliance & Durability Review",
-      description: "Ensure all materials meet required standards, building codes, and site-specific environmental conditions for optimal long-term performance.",
+      title: "Compliance & Value Assurance",
+      description: "Safeguarding your investment through rigorous regulatory awareness and quality-focused construction enablement.",
       features: [
-        "Building code compliance verification",
-        "International standards certification (ISO, ASTM, etc.)",
-        "Site-specific durability testing",
-        "Quality control and material testing protocols",
+        "Regulatory compliance awareness",
+        "Verification of professionals & artisans",
+        "Structural integrity oversight",
+        "Quality-focused project coordination",
       ],
-      whyItMatters: "Non-compliant materials are the leading cause of structural failures and legal disputes in construction, with costs averaging 3-5x the original material investment.",
+      whyItMatters: "Value assurance prevents structural failures and legal disputes, protecting your investment for generations.",
     },
     {
       icon: GraduationCap,
-      title: "Training & Workshops",
-      description: "Empower your team with expert knowledge on selecting, managing, and specifying quality materials for superior project outcomes.",
+      title: "Training & Knowledge Hub",
+      description: "Empowering new industry entrants and property owners through structured knowledge, training, and guidance.",
       features: [
-        "On-site training for project teams",
-        "Material selection workshops for architects and engineers",
-        "Quality control training for site supervisors",
-        "Custom workshops for specific material types or projects",
+        "Artisan skills training & screening",
+        "Material selection workshops",
+        "Regulatory & standards education",
+        "Best practices for project owners",
       ],
-      whyItMatters: "Educated teams make better decisions. Our training reduces material-related errors by up to 60% and improves overall project efficiency.",
+      whyItMatters: "Knowledge reduces risk. Empowered stakeholders make informed decisions that eliminate costly construction errors.",
     },
   ];
 
@@ -62,16 +62,15 @@ const Services = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="py-20 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              Material-Quality Consulting for Construction Projects
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              Expert guidance to ensure your building materials deliver maximum value, durability, and performance throughout the project lifecycle.
-            </p>
-          </div>
+      <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
+        <div className="absolute bottom-0 left-0 p-40 bg-primary/10 rounded-full blur-3xl opacity-50" />
+        <div className="container mx-auto px-4 relative z-10 text-center max-w-4xl">
+          <h1 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
+            Value-Focused <span className="text-primary italic">Construction</span> Guidance
+          </h1>
+          <p className="text-xl md:text-2xl text-slate-400 font-medium leading-relaxed">
+            Enabling informed decision-making and protecting long-term property value through trust, verification, and knowledge.
+          </p>
         </div>
       </section>
 
@@ -80,36 +79,36 @@ const Services = () => {
         <div className="container mx-auto px-4">
           <div className="space-y-16">
             {services.map((service, index) => (
-              <Card key={index} className="border-2 hover:border-primary transition-colors">
+              <Card key={index} className="border-2 hover:border-primary transition-colors overflow-hidden rounded-3xl">
                 <CardContent className="p-8">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Column - Icon & Title */}
                     <div className="lg:col-span-1">
                       <service.icon className="w-16 h-16 text-primary mb-4" />
-                      <h2 className="text-2xl md:text-3xl font-bold mb-4">{service.title}</h2>
-                      <p className="text-muted-foreground">{service.description}</p>
+                      <h2 className="text-2xl md:text-3xl font-black mb-4">{service.title}</h2>
+                      <p className="text-slate-500 font-medium">{service.description}</p>
                     </div>
 
                     {/* Middle Column - Features */}
                     <div className="lg:col-span-1">
-                      <h3 className="text-lg font-semibold mb-4">What's Included:</h3>
+                      <h3 className="text-lg font-black mb-4">What's Included:</h3>
                       <ul className="space-y-3">
                         {service.features.map((feature, idx) => (
                           <li key={idx} className="flex items-start">
                             <CheckCircle2 className="w-5 h-5 text-primary mr-3 flex-shrink-0 mt-0.5" />
-                            <span>{feature}</span>
+                            <span className="font-medium text-slate-700">{feature}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
                     {/* Right Column - Why It Matters */}
-                    <div className="lg:col-span-1 bg-secondary/50 p-6 rounded-lg">
-                      <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <div className="lg:col-span-1 bg-slate-50 p-6 rounded-2xl border border-slate-100">
+                      <h3 className="text-lg font-black mb-4 flex items-center">
                         <AlertCircle className="w-5 h-5 mr-2 text-primary" />
                         Why It Matters
                       </h3>
-                      <p className="text-muted-foreground">{service.whyItMatters}</p>
+                      <p className="text-slate-600 font-medium">{service.whyItMatters}</p>
                     </div>
                   </div>
                 </CardContent>
@@ -120,29 +119,29 @@ const Services = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-secondary/30">
+      <section className="py-20 bg-slate-50 border-y border-slate-100">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl font-black mb-4 text-slate-900">
               The Cost of Poor Material Choices
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
               Data-driven insights on why material quality cannot be compromised.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="text-5xl font-bold text-primary mb-2">40%</div>
-              <p className="text-lg">Higher maintenance costs over 20 years with sub-standard materials</p>
+            <div className="text-center p-8 rounded-3xl bg-white shadow-sm">
+              <div className="text-5xl font-black text-primary mb-2 italic">40%</div>
+              <p className="text-lg font-bold text-slate-800">Higher maintenance costs with sub-standard materials</p>
             </div>
-            <div className="text-center">
-              <div className="text-5xl font-bold text-primary mb-2">3-5x</div>
-              <p className="text-lg">Average cost multiplier for fixing non-compliant material failures</p>
+            <div className="text-center p-8 rounded-3xl bg-white shadow-sm">
+              <div className="text-5xl font-black text-primary mb-2 italic">3-5x</div>
+              <p className="text-lg font-bold text-slate-800">Average cost multiplier for fixing material failures</p>
             </div>
-            <div className="text-center">
-              <div className="text-5xl font-bold text-primary mb-2">25-35%</div>
-              <p className="text-lg">Reduction in delays with proper pre-construction material audits</p>
+            <div className="text-center p-8 rounded-3xl bg-white shadow-sm">
+              <div className="text-5xl font-black text-primary mb-2 italic">35%</div>
+              <p className="text-lg font-bold text-slate-800">Reduction in delays with proper material audits</p>
             </div>
           </div>
         </div>
@@ -151,14 +150,14 @@ const Services = () => {
       {/* CTA Section */}
       <section className="py-20">
         <div className="container mx-auto px-4">
-          <div className="bg-primary text-primary-foreground rounded-2xl p-12 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-6">
-              Let's Discuss Your Project's Material Needs
+          <div className="bg-primary text-primary-foreground rounded-[2rem] p-12 text-center shadow-2xl shadow-primary/20">
+            <h2 className="text-3xl md:text-5xl font-black mb-6">
+              Build Right, Build Secure.
             </h2>
-            <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-              Schedule a free consultation to discover how our services can optimize your material selection and project outcomes.
+            <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90 font-medium">
+              Schedule a consultation to discover how our verified ecosystem can optimize your project outcomes.
             </p>
-            <Button asChild size="lg" variant="secondary" className="text-lg">
+            <Button asChild size="lg" variant="secondary" className="text-lg font-black h-14 px-10 rounded-xl">
               <Link to="/contact">Schedule Free Consultation</Link>
             </Button>
           </div>
@@ -167,6 +166,10 @@ const Services = () => {
 
       <Footer />
     </div>
+  );
+};
+
+export default Services;
   );
 };
 

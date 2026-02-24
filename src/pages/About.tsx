@@ -49,36 +49,38 @@ const About = () => {
       <Navbar />
 
       {/* Hero Section */}
-      <section className="py-20 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
-              About Genuine Stuffs Ltd
+      <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-40 bg-primary/10 rounded-full blur-3xl" />
+        <div className="container mx-auto px-4 relative z-10 text-center">
+          <div className="max-w-4xl mx-auto">
+            <div className="inline-block px-4 py-1.5 bg-primary/20 rounded-full text-primary text-xs font-black uppercase tracking-widest mb-6 border border-primary/30">Since 2004</div>
+            <h1 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
+              A Trust-Driven <span className="text-primary italic">Construction</span> Ecosystem
             </h1>
-            <p className="text-xl text-muted-foreground">
-              Expert advisory and consultancy partner for building materials marketplace, providing guidance for construction professionals and industry leaders.
+            <p className="text-xl md:text-2xl text-slate-400 font-medium leading-relaxed">
+              Built to restore confidence, quality, and long-term value in the built environment.
             </p>
           </div>
         </div>
       </section>
 
       {/* Mission & Vision */}
-      <section className="py-20">
+      <section className="py-24">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">Our Mission</h2>
-              <p className="text-lg text-muted-foreground mb-6">
-                Genuine Stuffs Ltd serves as a strategic advisory and consultancy partner for the building materials marketplace ecosystem. We bridge the knowledge gap between material specifications and real-world construction outcomes, empowering industry professionals with expert guidance to make informed decisions that enhance project quality, reduce lifecycle costs, and maximize asset value.
+              <h2 className="text-4xl font-black mb-8">We Exist to Change the Industry.</h2>
+              <p className="text-xl text-slate-600 mb-8 leading-relaxed font-medium">
+                Our platform serves as a verified hub where building materials suppliers, construction professionals, artisans, knowledge resources, and advisory services converge.
               </p>
-              <p className="text-lg text-muted-foreground mb-6">
-                As a digital-forward thought leader in Nigeria's construction industry, we provide transparent, data-driven insights that transform how professionals connect with verified suppliers and select quality materials. Our consultancy services establish new standards for marketplace integrity and material excellence.
-              </p>
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">Our Vision</h3>
-                  <p className="text-muted-foreground">
-                    To become the leading advisory authority for building materials marketplace platforms across Africa, setting new standards for transparency, quality assurance, and lifecycle value in the digital construction economy.
+              <div className="space-y-6">
+                <p className="text-lg text-slate-500 leading-relaxed">
+                  This platform is founded on <span className="font-bold text-slate-900">over two decades of real-world experience</span> across construction and real estate—from site supervision to property management.
+                </p>
+                <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100">
+                  <h3 className="text-xl font-black mb-4">Our Mission</h3>
+                  <p className="text-slate-600 leading-relaxed font-medium italic">
+                    "Our mission is to enable informed decision-making, reduce construction risk, and protect long-term property value through trust, verification, and knowledge."
                   </p>
                 </div>
               </div>
@@ -153,7 +155,7 @@ const About = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Why Choose Genuine Stuffs Ltd?</h2>
-            
+
             <div className="space-y-6">
               <Card className="border-2">
                 <CardContent className="pt-6">
