@@ -1,5 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/context/AuthContext";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +20,9 @@ import {
 import { Input } from "@/components/ui/input";
 
 const VendorDashboard = () => {
+    const { role } = useAuth();
+    const isVendor = role === "vendor";
+
     const stats = [
         { title: "Total Sales", value: "₦ 12,450,000", icon: DollarSign, trend: "+12.5%", color: "text-green-600" },
         { title: "Active Orders", value: "24", icon: ShoppingCart, trend: "+4", color: "text-blue-600" },
@@ -30,10 +35,18 @@ const VendorDashboard = () => {
             <Navbar />
 
             <main className="container mx-auto px-4 py-8">
+                {!isVendor && (
+                    <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-2xl flex items-center justify-between">
+                        <p className="text-orange-800 font-medium">You are viewing this as a <span className="font-bold">{role}</span>. Some vendor features are restricted.</p>
+                        <Button variant="ghost" className="text-orange-800 hover:bg-orange-100 font-bold" asChild>
+                            <Link to="/">Go Home</Link>
+                        </Button>
+                    </div>
+                )}
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight">Vendor Dashboard</h1>
-                        <p className="text-muted-foreground">Manage your materials and track your sales performance.</p>
+                        <p className="text-muted-foreground mr-1">Manage your materials and track your sales performance. <span className="font-bold text-slate-700 capitalize">Partner Account</span></p>
                     </div>
                     <div className="flex gap-2">
                         <Button className="gap-2">
@@ -100,7 +113,7 @@ const VendorDashboard = () => {
                                         </div>
                                         <div className="text-right">
                                             <p className={`text-xs font-bold uppercase tracking-wider mb-1 ${order.status === 'Delivered' ? 'text-green-600' :
-                                                    order.status === 'Shipped' ? 'text-blue-600' : 'text-orange-600'
+                                                order.status === 'Shipped' ? 'text-blue-600' : 'text-orange-600'
                                                 }`}>
                                                 {order.status}
                                             </p>

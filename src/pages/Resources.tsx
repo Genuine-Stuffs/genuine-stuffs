@@ -5,9 +5,12 @@ import { FileText, Video, Download, BookOpen, AlertTriangle, TrendingUp, Lock, C
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 
 const Resources = () => {
   const [activeFilter, setActiveFilter] = useState("all");
+  const { role } = useAuth();
+  const isPro = role === "pro" || role === "vendor"; // Vendors also get pro access for technical data
 
   const resourceFilters = [
     { id: "all", label: "All Resources", icon: BookOpen },
@@ -132,8 +135,17 @@ const Resources = () => {
                   <p className="text-muted-foreground mb-6 line-clamp-2">{article.description}</p>
                   <div className="flex justify-between items-center text-sm font-bold">
                     <span className={article.isPro ? 'text-primary' : 'text-slate-400'}>{article.readTime}</span>
-                    <Button variant="ghost" size="sm" className="gap-2 group-hover:bg-primary/5">
-                      Explore <TrendingUp className="w-4 h-4" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-2 group-hover:bg-primary/5"
+                      asChild={article.isPro && !isPro}
+                    >
+                      {article.isPro && !isPro ? (
+                        <Link to="/register/pro">Upgrade <Lock className="w-3 h-3" /></Link>
+                      ) : (
+                        <span>Explore <TrendingUp className="w-4 h-4" /></span>
+                      )}
                     </Button>
                   </div>
                 </CardContent>
@@ -165,9 +177,20 @@ const Resources = () => {
                   </div>
                   <h3 className="text-xl font-bold mb-3">{download.title}</h3>
                   <p className="text-slate-400 mb-8">{download.description}</p>
-                  <Button className={`w-full h-12 gap-2 font-bold ${download.isPro ? 'bg-primary' : 'bg-white text-slate-900 hover:bg-slate-100'}`}>
-                    {download.isPro ? <Sparkles className="w-4 h-4" /> : <Download className="w-4 h-4" />}
-                    {download.isPro ? "Upgrade to Access" : "Download Now"}
+                  <Button
+                    className={`w-full h-12 gap-2 font-bold ${download.isPro ? 'bg-primary' : 'bg-white text-slate-900 hover:bg-slate-100'}`}
+                    asChild={download.isPro && !isPro}
+                  >
+                    {download.isPro && !isPro ? (
+                      <Link to="/register/pro">
+                        <Sparkles className="w-4 h-4" /> Upgrade to Access
+                      </Link>
+                    ) : (
+                      <>
+                        {download.isPro ? <Sparkles className="w-4 h-4" /> : <Download className="w-4 h-4" />}
+                        {download.isPro ? "Download Pro Asset" : "Download Now"}
+                      </>
+                    )}
                   </Button>
                 </CardContent>
               </Card>

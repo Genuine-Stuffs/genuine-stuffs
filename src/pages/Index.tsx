@@ -16,14 +16,17 @@ import {
   Construction,
   Wrench,
   PencilRuler,
-  Users
+  Users,
+  LayoutDashboard
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/context/AuthContext";
 import heroImage from "@/assets/hero-construction.jpg";
 import materialsImage from "@/assets/materials-quality.jpg";
 
 const Index = () => {
+  const { role } = useAuth();
   const benefits = [
     {
       icon: TrendingDown,
@@ -131,17 +134,29 @@ const Index = () => {
 
           {/* Quick Stats/Links */}
           <div className="flex flex-wrap justify-center gap-4 text-sm font-semibold uppercase tracking-wider">
-            <Link to="/register/vendor" className="flex items-center text-primary hover:underline">
-              <Truck className="w-4 h-4 mr-2" /> How to Sell
-            </Link>
+            {role === 'vendor' ? (
+              <Link to="/vendor-dashboard" className="flex items-center text-primary hover:underline">
+                <LayoutDashboard className="w-4 h-4 mr-2" /> Vendor Dashboard
+              </Link>
+            ) : (
+              <Link to="/register/vendor" className="flex items-center text-primary hover:underline">
+                <Truck className="w-4 h-4 mr-2" /> How to Sell
+              </Link>
+            )}
             <span className="text-muted-foreground">|</span>
             <Link to="/marketplace" className="flex items-center text-primary hover:underline">
               <HardHat className="w-4 h-4 mr-2" /> How to Buy
             </Link>
             <span className="text-muted-foreground">|</span>
-            <Link to="/pro-portal" className="flex items-center text-primary hover:underline">
-              <PencilRuler className="w-4 h-4 mr-2" /> Join as Pro
-            </Link>
+            {role === 'pro' ? (
+              <Link to="/pro-portal" className="flex items-center text-primary hover:underline">
+                <PencilRuler className="w-4 h-4 mr-2" /> Pro Dashboard
+              </Link>
+            ) : (
+              <Link to="/register/pro" className="flex items-center text-primary hover:underline">
+                <PencilRuler className="w-4 h-4 mr-2" /> Join as Pro
+              </Link>
+            )}
           </div>
         </div>
       </section>

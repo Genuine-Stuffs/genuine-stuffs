@@ -1,5 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { useAuth } from "@/context/AuthContext";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,6 +20,9 @@ import {
 } from "lucide-react";
 
 const ProDashboard = () => {
+    const { role } = useAuth();
+    const isPro = role === "pro";
+
     const activeProjects = [
         { title: "Lekki Residential Villa", type: "Architectural Drawing", status: "In AI Review", progress: 65, lastEdit: "10 mins ago" },
         { title: "Mainland Health Plaza", type: "Quantity Surveying", status: "Awaiting Market Prices", progress: 40, lastEdit: "2 hours ago" },
@@ -29,10 +34,18 @@ const ProDashboard = () => {
             <Navbar />
 
             <main className="container mx-auto px-4 py-8">
+                {!isPro && (
+                    <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-2xl flex items-center justify-between">
+                        <p className="text-primary font-medium">You are viewing this as a <span className="font-bold">{role}</span>. Full Pro features require a professional account.</p>
+                        <Button variant="ghost" className="text-primary hover:bg-primary/10 font-bold" asChild>
+                            <Link to="/register/pro">Upgrade Now</Link>
+                        </Button>
+                    </div>
+                )}
                 <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight">Professional Portal</h1>
-                        <p className="text-muted-foreground">Access your AI tools and manage your active project workflows.</p>
+                        <p className="text-muted-foreground">Access your AI tools and manage your active project workflows. <span className="font-bold text-slate-700 capitalize">{role} Account</span></p>
                     </div>
                     <div className="flex gap-2">
                         <Button className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 transition-all">
@@ -84,7 +97,7 @@ const ProDashboard = () => {
 
                                             <div className="flex justify-between items-center">
                                                 <span className={`text-xs font-bold ${project.status === 'Clash Detected' ? 'text-red-600' :
-                                                        project.status === 'In AI Review' ? 'text-primary' : 'text-orange-600'
+                                                    project.status === 'In AI Review' ? 'text-primary' : 'text-orange-600'
                                                     }`}>
                                                     {project.status}
                                                 </span>

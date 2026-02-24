@@ -2,9 +2,13 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Calculator, BookOpen, Sparkles, Wand2, FileText, Share2, CheckCircle2 } from "lucide-react";
+import { Calculator, BookOpen, Sparkles, Wand2, FileText, Share2, CheckCircle2, Lock } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { Link } from "react-router-dom";
 
 const AIStudio = () => {
+    const { role } = useAuth();
+    const isPro = role === "pro";
     return (
         <div className="min-h-screen bg-slate-50/30">
             <Navbar />
@@ -36,7 +40,15 @@ const AIStudio = () => {
                                         Describe your building vision in detail and let AI generate professional conceptual plans.
                                     </CardDescription>
                                 </div>
-                                <span className="px-3 py-1 bg-primary text-primary-foreground text-xs font-bold rounded-full uppercase">Subscription Required</span>
+                                {isPro ? (
+                                    <span className="px-3 py-1 bg-green-500 text-white text-xs font-bold rounded-full uppercase flex items-center gap-1">
+                                        <CheckCircle2 className="w-3 h-3" /> Pro Access Active
+                                    </span>
+                                ) : (
+                                    <Button variant="outline" size="sm" className="rounded-full border-primary text-primary hover:bg-primary hover:text-white font-bold" asChild>
+                                        <Link to="/register/pro">Upgrade <Lock className="w-3 h-3 ml-1" /></Link>
+                                    </Button>
+                                )}
                             </div>
                         </CardHeader>
                         <CardContent className="space-y-6">
@@ -47,12 +59,12 @@ const AIStudio = () => {
                                     </div>
                                     <div className="flex gap-2">
                                         <input
-                                            disabled
-                                            placeholder="Prompt your building idea..."
-                                            className="flex-1 px-4 py-3 rounded-lg border bg-slate-50 text-muted-foreground"
+                                            disabled={!isPro}
+                                            placeholder={isPro ? "Prompt your building idea..." : "Upgrade to unlock AI Prompting"}
+                                            className="flex-1 px-4 py-3 rounded-lg border bg-slate-50 text-slate-900 focus:bg-white transition-all outline-none focus:ring-2 focus:ring-primary/20"
                                         />
-                                        <Button disabled className="gap-2">
-                                            <Sparkles className="w-4 h-4" /> Generate
+                                        <Button disabled={!isPro} className="gap-2 font-bold px-6">
+                                            <Sparkles className="w-4 h-4 text-yellow-400" /> Generate
                                         </Button>
                                     </div>
                                 </div>
@@ -119,8 +131,16 @@ const AIStudio = () => {
                                     <span>Interactive Phase Scheduling (Foundations, Shell, Finishing).</span>
                                 </li>
                             </ul>
-                            <Button size="lg" className="px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-primary/20 transition-all">
-                                Upload Project Blueprint
+                            <Button
+                                size="lg"
+                                className="px-8 py-6 text-lg rounded-xl shadow-lg hover:shadow-primary/20 transition-all font-bold"
+                                asChild={!isPro}
+                            >
+                                {!isPro ? (
+                                    <Link to="/register/pro">Become a Pro to Upload</Link>
+                                ) : (
+                                    <span>Upload Project Blueprint</span>
+                                )}
                             </Button>
                         </div>
                         <div className="rounded-2xl overflow-hidden shadow-2xl bg-white p-2 border">
