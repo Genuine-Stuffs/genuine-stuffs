@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, ChevronRight, User, Briefcase, Building2, ShieldCheck } from "lucide-react";
+import { Check, ChevronRight, User, Briefcase, Building2, ShieldCheck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,12 +9,62 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
+import { supabase } from "backend/supabaseClient";
+import { toast } from "sonner";
+
 const ProRegister = () => {
     const [submitted, setSubmitted] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        fullName: "",
+        email: "",
+        proType: "",
+        password: "",
+        registrationType: "individual"
+    });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleInputChange = (field: string, value: string) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setSubmitted(true);
+        setIsLoading(true);
+
+        try {
+            // 1. Sign up user
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: formData.email,
+                password: formData.password,
+                options: {
+                    data: {
+                        full_name: formData.fullName,
+                        role: 'professional'
+                    }
+                }
+            });
+
+            if (authError) throw authError;
+
+            // 2. Create professional profile
+            if (authData.user) {
+                const { error: profileError } = await supabase.from('professionals').insert({
+                    id: authData.user.id,
+                    full_name: formData.fullName,
+                    specialty: formData.proType,
+                });
+
+                if (profileError) throw profileError;
+            }
+
+            toast.success("Professional account created!");
+            setSubmitted(true);
+        } catch (err: any) {
+            toast.error(err.message || "Registration failed");
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -47,22 +97,27 @@ const ProRegister = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="firstName">Full Name</Label>
-                                                <Input id="firstName" placeholder="Jane Doe" required />
+                                                <Input id="firstName" placeholder="Jane Doe" required value={formData.fullName} onChange={(e) => handleInputChange('fullName', e.target.value)} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="proType">Professional Discipline</Label>
-                                                <Input id="proType" placeholder="e.g. Architect, QS, Engineer" required />
+                                                <Input id="proType" placeholder="e.g. Architect, QS, Engineer" required value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} />
                                             </div>
                                         </div>
 
                                         <div className="space-y-2">
                                             <Label htmlFor="email">Email Address</Label>
-                                            <Input id="email" type="email" placeholder="jane@studio.com" required />
+                                            <Input id="email" type="email" placeholder="jane@studio.com" required value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} />
                                         </div>
 
                                         <div className="space-y-3 pt-4 border-t">
                                             <Label className="text-base font-bold">Registration Type</Label>
-                                            <RadioGroup defaultValue="individual" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <RadioGroup
+                                                defaultValue="individual"
+                                                value={formData.registrationType}
+                                                onValueChange={(val) => handleInputChange('registrationType', val)}
+                                                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                                            >
                                                 <div>
                                                     <RadioGroupItem value="individual" id="individual" className="peer sr-only" />
                                                     <Label
@@ -88,11 +143,15 @@ const ProRegister = () => {
 
                                         <div className="space-y-2">
                                             <Label htmlFor="password">Password</Label>
-                                            <Input id="password" type="password" required />
+                                            <Input id="password" type="password" required value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} />
                                         </div>
 
-                                        <Button type="submit" className="w-full h-12 text-lg gap-2" size="lg">
-                                            Create Professional Account <Check className="w-5 h-5" />
+                                        <Button type="submit" className="w-full h-12 text-lg gap-2" size="lg" disabled={isLoading}>
+                                            {isLoading ? (
+                                                <>Creating Account... <Loader2 className="w-5 h-5 animate-spin" /></>
+                                            ) : (
+                                                <>Create Professional Account <Check className="w-5 h-5" /></>
+                                            )}
                                         </Button>
 
                                         <p className="text-center text-sm text-muted-foreground mt-4">

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, ChevronRight, ChevronLeft, Upload, Building2, User, FileText, CheckCircle2 } from "lucide-react";
+import { Check, ChevronRight, ChevronLeft, Upload, Building2, User, FileText, CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,11 +9,89 @@ import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 
+import { supabase } from "backend/supabaseClient";
+import { toast } from "sonner";
+
 const VendorRegister = () => {
     const [step, setStep] = useState(1);
+    const [isLoading, setIsLoading] = useState(false);
     const totalSteps = 4;
 
-    const handleNext = () => setStep((prev) => Math.min(prev + 1, totalSteps + 1));
+    const [formData, setFormData] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        password: "",
+        companyName: "",
+        bizRegNumber: "",
+        address: "",
+        city: "",
+        phone: "",
+        categories: [] as string[]
+    });
+
+    const handleInputChange = (field: string, value: any) => {
+        setFormData(prev => ({ ...prev, [field]: value }));
+    };
+
+    const handleCategoryToggle = (cat: string) => {
+        setFormData(prev => ({
+            ...prev,
+            categories: prev.categories.includes(cat)
+                ? prev.categories.filter(c => c !== cat)
+                : [...prev.categories, cat]
+        }));
+    };
+
+    const handleSubmit = async () => {
+        setIsLoading(true);
+        try {
+            // 1. Sign up user
+            const { data: authData, error: authError } = await supabase.auth.signUp({
+                email: formData.email,
+                password: formData.password,
+                options: {
+                    data: {
+                        first_name: formData.firstName,
+                        last_name: formData.lastName,
+                        role: 'vendor'
+                    }
+                }
+            });
+
+            if (authError) throw authError;
+
+            // 2. Create vendor profile
+            if (authData.user) {
+                const { error: profileError } = await supabase.from('vendors').insert({
+                    id: authData.user.id,
+                    company_name: formData.companyName,
+                    address: `${formData.address}, ${formData.city}`,
+                    cac_number: formData.bizRegNumber,
+                    phone: formData.phone,
+                    categories: formData.categories
+                });
+
+                if (profileError) throw profileError;
+            }
+
+            toast.success("Registration successful!");
+            setStep(totalSteps + 1);
+        } catch (err: any) {
+            toast.error(err.message || "Registration failed");
+            console.error(err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleNext = () => {
+        if (step === totalSteps) {
+            handleSubmit();
+        } else {
+            setStep((prev) => Math.min(prev + 1, totalSteps + 1));
+        }
+    };
     const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
 
     const steps = [
@@ -45,10 +123,10 @@ const VendorRegister = () => {
                                     <div key={s.id} className="flex items-center">
                                         <div
                                             className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${step === s.id
-                                                    ? "bg-primary text-primary-foreground"
-                                                    : step > s.id
-                                                        ? "bg-green-500 text-white"
-                                                        : "bg-slate-300 text-slate-500"
+                                                ? "bg-primary text-primary-foreground"
+                                                : step > s.id
+                                                    ? "bg-green-500 text-white"
+                                                    : "bg-slate-300 text-slate-500"
                                                 }`}
                                         >
                                             {step > s.id ? <Check className="w-4 h-4" /> : s.id}
@@ -81,20 +159,20 @@ const VendorRegister = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
                                                 <Label htmlFor="firstName">First Name</Label>
-                                                <Input id="firstName" placeholder="e.g. David" />
+                                                <Input id="firstName" placeholder="e.g. David" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="lastName">Last Name</Label>
-                                                <Input id="lastName" placeholder="e.g. Okonkwo" />
+                                                <Input id="lastName" placeholder="e.g. Okonkwo" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="email">Email Address</Label>
-                                            <Input id="email" type="email" placeholder="you@company.com" />
+                                            <Input id="email" type="email" placeholder="you@company.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="password">Password</Label>
-                                            <Input id="password" type="password" />
+                                            <Input id="password" type="password" value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} />
                                         </div>
                                     </div>
                                 )}
@@ -106,24 +184,24 @@ const VendorRegister = () => {
                                         </h2>
                                         <div className="space-y-2">
                                             <Label htmlFor="companyName">Registered Company Name</Label>
-                                            <Input id="companyName" placeholder="e.g. Metro Builders Materials Ltd" />
+                                            <Input id="companyName" placeholder="e.g. Metro Builders Materials Ltd" value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="bizRegNumber">Business Registration Number (e.g. CAC)</Label>
-                                            <Input id="bizRegNumber" placeholder="RC Number" />
+                                            <Input id="bizRegNumber" placeholder="RC Number" value={formData.bizRegNumber} onChange={(e) => handleInputChange('bizRegNumber', e.target.value)} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="address">Official Business Address</Label>
-                                            <Input id="address" placeholder="Street Address" />
+                                            <Input id="address" placeholder="Street Address" value={formData.address} onChange={(e) => handleInputChange('address', e.target.value)} />
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
                                                 <Label htmlFor="city">City / State</Label>
-                                                <Input id="city" placeholder="Lagos" />
+                                                <Input id="city" placeholder="Lagos" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="phone">Business Phone Number</Label>
-                                                <Input id="phone" placeholder="+234 XXX XXX XXXX" />
+                                                <Input id="phone" placeholder="+234 XXX XXX XXXX" value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
                                             </div>
                                         </div>
                                     </div>
@@ -140,7 +218,11 @@ const VendorRegister = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             {["Cement & Aggregates", "Steel & Rebars", "Roofing & Ceiling", "Electrical & Plumbing", "Timber & Wood", "Paints & Chemicals", "Tiles & Flooring", "Doors & Windows"].map((cat) => (
                                                 <div key={cat} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-slate-50 cursor-pointer">
-                                                    <Checkbox id={`cat-${cat}`} />
+                                                    <Checkbox
+                                                        id={`cat-${cat}`}
+                                                        checked={formData.categories.includes(cat)}
+                                                        onCheckedChange={() => handleCategoryToggle(cat)}
+                                                    />
                                                     <Label htmlFor={`cat-${cat}`} className="flex-1 cursor-pointer font-medium">{cat}</Label>
                                                 </div>
                                             ))}
@@ -181,9 +263,15 @@ const VendorRegister = () => {
                                     >
                                         <ChevronLeft className="w-4 h-4" /> Back
                                     </Button>
-                                    <Button onClick={handleNext} className="gap-2 px-8" size="lg">
-                                        {step === totalSteps ? "Complete Registration" : "Continue"}
-                                        {step !== totalSteps && <ChevronRight className="w-4 h-4" />}
+                                    <Button onClick={handleNext} className="gap-2 px-8" size="lg" disabled={isLoading}>
+                                        {isLoading ? (
+                                            <>Processing... <Loader2 className="w-4 h-4 animate-spin" /></>
+                                        ) : (
+                                            <>
+                                                {step === totalSteps ? "Complete Registration" : "Continue"}
+                                                {step !== totalSteps && <ChevronRight className="w-4 h-4" />}
+                                            </>
+                                        )}
                                     </Button>
                                 </div>
                             </div>
