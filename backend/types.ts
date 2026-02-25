@@ -112,6 +112,8 @@ export type Database = {
           bio: string | null
           avatar_url: string | null
           is_verified: boolean
+          credits: number
+          subscription_status: 'trial' | 'active' | 'expired'
           created_at: string
         }
         Insert: {
@@ -123,6 +125,8 @@ export type Database = {
           bio?: string | null
           avatar_url?: string | null
           is_verified?: boolean
+          credits?: number
+          subscription_status?: 'trial' | 'active' | 'expired'
           created_at?: string
         }
         Update: {
@@ -134,6 +138,8 @@ export type Database = {
           bio?: string | null
           avatar_url?: string | null
           is_verified?: boolean
+          credits?: number
+          subscription_status?: 'trial' | 'active' | 'expired'
           created_at?: string
         }
         Relationships: []

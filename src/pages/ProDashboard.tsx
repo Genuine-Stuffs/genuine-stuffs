@@ -16,12 +16,40 @@ import {
     Bell,
     Clock,
     ArrowRight,
-    Cpu
+    Cpu,
+    Loader2
 } from "lucide-react";
+import { useState, useEffect } from "react";
+import { supabase } from "backend/supabaseClient";
+import CreditInfo from "@/components/CreditInfo";
 
 const ProDashboard = () => {
-    const { role } = useAuth();
+    const { user, role } = useAuth();
     const isPro = role === "pro";
+    const [credits, setCredits] = useState<number | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchProData = async () => {
+            if (!user) return;
+            try {
+                const { data, error } = await supabase
+                    .from('professionals')
+                    .select('credits')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error) throw error;
+                setCredits(data?.credits ?? 0);
+            } catch (err) {
+                console.error("Error fetching credits:", err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProData();
+    }, [user]);
 
     const activeProjects = [
         { title: "Lekki Residential Villa", type: "Architectural Drawing", status: "In AI Review", progress: 65, lastEdit: "10 mins ago" },
@@ -144,26 +172,14 @@ const ProDashboard = () => {
 
                     {/* Side Info / Resources */}
                     <div className="space-y-8">
-                        <Card className="border-none shadow-2xl bg-slate-900 dark:bg-black text-white overflow-hidden relative rounded-[2.5rem] transition-colors">
-                            <div className="absolute top-[-20px] right-[-20px] p-12 bg-primary/20 rounded-full blur-3xl" />
-                            <CardHeader className="p-8 pb-4">
-                                <CardTitle className="text-3xl text-primary font-black uppercase tracking-tighter italic">PRO PLAN</CardTitle>
-                                <CardDescription className="text-slate-400 font-medium italic">Advanced tools active.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="p-8 pt-0">
-                                <ul className="space-y-5 mb-10">
-                                    {["Full AI Studio Access", "Unlimited Projects", "Clash Detection Hub", "Priority 24/7 Support"].map((item, i) => (
-                                        <li key={i} className="flex items-center gap-4 text-xs font-black uppercase tracking-widest">
-                                            <div className="p-1 rounded-full bg-primary/20 text-primary">
-                                                <Plus className="w-3.5 h-3.5" />
-                                            </div>
-                                            {item}
-                                        </li>
-                                    ))}
-                                </ul>
-                                <Button className="w-full bg-primary hover:bg-primary/90 text-white border-none h-14 font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-primary/20">Manage Access</Button>
-                            </CardContent>
-                        </Card>
+                        {isLoading ? (
+                            <Card className="border-none shadow-xl dark:bg-card rounded-3xl p-12 flex flex-col items-center justify-center text-center">
+                                <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading Trial Data...</p>
+                            </Card>
+                        ) : (
+                            <CreditInfo credits={credits ?? 0} />
+                        )}
 
                         <Card className="border-none shadow-sm dark:bg-card transition-colors rounded-[2.5rem]">
                             <CardHeader className="p-8 pb-4">

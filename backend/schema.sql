@@ -41,6 +41,8 @@ CREATE TABLE IF NOT EXISTS professionals (
   bio TEXT,
   avatar_url TEXT,
   is_verified BOOLEAN DEFAULT false,
+  credits INTEGER DEFAULT 10,
+  subscription_status TEXT CHECK (subscription_status IN ('trial', 'active', 'expired')) DEFAULT 'trial',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 

@@ -2,11 +2,19 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Search, Filter, Grid, List, ArrowUpDown, ShoppingCart, Info, Leaf, DollarSign, User, Loader2 } from "lucide-react";
+import { Search, Filter, Grid, List, ArrowUpDown, ShoppingCart, Info, Leaf, DollarSign, User, Loader2, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet";
 import { supabase } from "backend/supabaseClient";
 import type { Database } from "backend/types";
 
@@ -16,7 +24,9 @@ const Marketplace = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [viewMode, setViewMode] = useState<"grid-4" | "grid-5" | "list">("grid-4");
+    const [mobileView, setMobileView] = useState<"grid" | "list">("grid");
     const [priceRange, setPriceRange] = useState({ min: "", max: "" });
+    const [isFilterOpen, setIsFilterOpen] = useState(false);
 
     const { data: dbMaterials = [], isLoading, error } = useQuery<MaterialRow[]>({
         queryKey: ['materials'],
@@ -50,22 +60,24 @@ const Marketplace = () => {
     return (
         <div className="min-h-screen bg-background transition-colors duration-300">
             <Navbar />
-            <div className="bg-white dark:bg-slate-950/50 backdrop-blur-md border-b dark:border-white/10 sticky top-20 z-30 shadow-sm transition-colors duration-300">
-                <div className="container mx-auto px-4 py-4">
-                    <div className="flex flex-col md:flex-row gap-4 items-center">
-                        <div className="flex items-center gap-4 bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-xl border border-slate-100 dark:border-white/5 flex-1 w-full transition-colors duration-300">
-                            <Search className="w-5 h-5 text-slate-400" />
+            <div className="bg-white dark:bg-slate-950/50 backdrop-blur-md border-b dark:border-white/10 sticky top-16 md:top-20 z-30 shadow-sm transition-all duration-300">
+                <div className="container mx-auto px-4 py-3 md:py-4">
+                    <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-center">
+                        <div className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-xl border border-slate-100 dark:border-white/5 flex-1 w-full transition-colors duration-300">
+                            <Search className="w-4 h-4 md:w-5 md:h-5 text-slate-400" />
                             <input
-                                className="bg-transparent border-none focus:ring-0 w-full text-slate-700 dark:text-slate-100 font-bold placeholder:font-medium placeholder:text-slate-400"
-                                placeholder="Search everything..."
+                                className="bg-transparent border-none focus:ring-0 w-full text-sm md:text-base text-slate-700 dark:text-slate-100 font-bold placeholder:font-medium placeholder:text-slate-400"
+                                placeholder="Search materials..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
                         </div>
-                        <div className="flex gap-2">
-                            <Button className="h-11 px-8 rounded-xl bg-primary hover:bg-primary/90 font-black shadow-lg shadow-primary/20">Search</Button>
-                            <Button variant="ghost" size="icon" className="h-11 w-11 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 transition-colors"><User className="w-5 h-5 text-slate-400" /></Button>
-                            <Button variant="ghost" size="icon" className="h-11 w-11 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 transition-colors"><ShoppingCart className="w-5 h-5 text-slate-400" /></Button>
+                        <div className="flex gap-2 w-full md:w-auto">
+                            <Button className="flex-1 md:flex-none h-10 md:h-11 px-6 md:px-8 rounded-xl bg-primary hover:bg-primary/90 font-black shadow-lg shadow-primary/20 text-xs md:text-sm">Search</Button>
+                            <div className="flex gap-2">
+                                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 transition-colors"><User className="w-4 h-4 md:w-5 md:h-5 text-slate-400" /></Button>
+                                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 transition-colors"><ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-slate-400" /></Button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -73,8 +85,8 @@ const Marketplace = () => {
 
             <div className="container mx-auto px-4 py-8">
                 <div className="flex flex-col lg:flex-row gap-10">
-                    {/* Sidebar Filters */}
-                    <aside className="w-full lg:w-72 flex-shrink-0 space-y-10">
+                    {/* Sidebar Filters - Desktop Only */}
+                    <aside className="hidden lg:block w-72 flex-shrink-0 space-y-10">
                         <div>
                             <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
                                 <Filter className="w-4 h-4" /> Filter Categories
@@ -95,7 +107,7 @@ const Marketplace = () => {
                             </ul>
                         </div>
 
-                        <div className="pt-10 border-t border-slate-100">
+                        <div className="pt-10 border-t border-slate-100 dark:border-white/10">
                             <h4 className="text-xs font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
                                 <DollarSign className="w-4 h-4" /> Price Range (₦)
                             </h4>
@@ -121,35 +133,97 @@ const Marketplace = () => {
 
                     {/* Main Content */}
                     <div className="flex-1">
-                        <div className="flex justify-between items-center mb-8">
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 md:mb-8 gap-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-6 bg-primary rounded-full"></div>
-                                <h1 className="text-2xl font-black text-slate-900 dark:text-white">
-                                    {selectedCategory === "All" ? "All Materials" : selectedCategory}
-                                    <span className="ml-3 text-sm font-medium text-slate-400 dark:text-slate-500">({filteredMaterials.length} items)</span>
+                                <div className="hidden md:block w-1.5 h-6 bg-primary rounded-full"></div>
+                                <h1 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                                    {selectedCategory === "All" ? "Construction Hub" : selectedCategory}
+                                    <span className="ml-3 text-xs md:text-sm font-medium text-slate-400 dark:text-slate-500 normal-case italic">({filteredMaterials.length} results)</span>
                                 </h1>
                             </div>
-                            <div className="flex items-center gap-4">
-                                <div className="hidden md:flex bg-slate-100 dark:bg-card p-1 rounded-lg border dark:border-white/5 transition-colors">
+                            <div className="flex items-center justify-between w-full md:w-auto gap-3">
+                                <div className="flex bg-slate-100 dark:bg-card p-1 rounded-xl border dark:border-white/5 transition-colors">
                                     <Button
-                                        variant={viewMode === "grid-4" ? "secondary" : "ghost"}
+                                        variant={viewMode === "grid-4" || mobileView === "grid" ? "secondary" : "ghost"}
                                         size="sm"
-                                        onClick={() => setViewMode("grid-4")}
-                                        className="h-8 w-8 p-0 rounded-md"
+                                        onClick={() => {
+                                            setViewMode("grid-4");
+                                            setMobileView("grid");
+                                        }}
+                                        className="h-9 w-9 md:h-8 md:w-8 p-0 rounded-lg"
                                     >
                                         <Grid className="w-4 h-4" />
                                     </Button>
                                     <Button
-                                        variant={viewMode === "list" ? "secondary" : "ghost"}
+                                        variant={viewMode === "list" || mobileView === "list" ? "secondary" : "ghost"}
                                         size="sm"
-                                        onClick={() => setViewMode("list")}
-                                        className="h-8 w-8 p-0 rounded-md"
+                                        onClick={() => {
+                                            setViewMode("list");
+                                            setMobileView("list");
+                                        }}
+                                        className="h-9 w-9 md:h-8 md:w-8 p-0 rounded-lg"
                                     >
                                         <List className="w-4 h-4" />
                                     </Button>
+                                    <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                                        <SheetTrigger asChild>
+                                            <Button variant="ghost" size="sm" className="lg:hidden h-9 w-9 p-0 rounded-lg">
+                                                <SlidersHorizontal className="w-4 h-4 text-primary" />
+                                            </Button>
+                                        </SheetTrigger>
+                                        <SheetContent side="bottom" className="rounded-t-[2.5rem] h-[80vh] dark:bg-slate-900 border-t-primary/20">
+                                            <SheetHeader className="pb-6 border-b dark:border-white/10">
+                                                <SheetTitle className="font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                                                    <Filter className="w-4 h-4" /> Refine Marketplace
+                                                </SheetTitle>
+                                                <SheetDescription className="italic">Adjust filters to find specific materials.</SheetDescription>
+                                            </SheetHeader>
+                                            <div className="py-8 space-y-10 overflow-y-auto h-full">
+                                                <div>
+                                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6">Categories</h4>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {categories.map(cat => (
+                                                            <Button
+                                                                key={cat}
+                                                                variant={selectedCategory === cat ? "default" : "outline"}
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    setSelectedCategory(cat);
+                                                                    setIsFilterOpen(false);
+                                                                }}
+                                                                className={`rounded-full h-8 px-4 text-[10px] font-black uppercase tracking-widest transition-all ${selectedCategory === cat ? 'bg-primary text-white shadow-lg shadow-primary/20 scale-105' : 'dark:border-white/10 dark:text-slate-400'}`}
+                                                            >
+                                                                {cat}
+                                                            </Button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-6 italic">Budget Range (₦)</h4>
+                                                    <div className="flex gap-3 items-center">
+                                                        <Input
+                                                            placeholder="Min"
+                                                            type="number"
+                                                            value={priceRange.min}
+                                                            onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                                                            className="h-12 bg-slate-50 dark:bg-white/5 border-none rounded-2xl font-bold"
+                                                        />
+                                                        <Input
+                                                            placeholder="Max"
+                                                            type="number"
+                                                            value={priceRange.max}
+                                                            onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                                                            className="h-12 bg-slate-50 dark:bg-white/5 border-none rounded-2xl font-bold"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <Button className="w-full h-14 rounded-2xl bg-primary font-black uppercase tracking-[0.2em] shadow-xl shadow-primary/20" onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
+                                            </div>
+                                        </SheetContent>
+                                    </Sheet>
                                 </div>
-                                <Button variant="outline" size="sm" className="h-9 gap-2 rounded-lg font-bold dark:border-slate-700 dark:hover:bg-slate-800">
-                                    <ArrowUpDown className="w-4 h-4" /> Sort by: Newest
+                                <Button variant="outline" size="sm" className="h-9 gap-2 rounded-xl font-black uppercase tracking-widest text-[10px] dark:border-white/10">
+                                    <ArrowUpDown className="w-3.5 h-3.5" /> Sort
                                 </Button>
                             </div>
                         </div>
@@ -166,7 +240,7 @@ const Marketplace = () => {
                                 <p className="text-red-600 font-medium italic">We couldn't reach the construction database. Please check your connection.</p>
                             </div>
                         ) : filteredMaterials.length > 0 ? (
-                            <div className={viewMode === "list" ? "space-y-4" : "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6"}>
+                            <div className={viewMode === "list" || mobileView === "list" ? "space-y-4" : "grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6"}>
                                 {filteredMaterials.map((m) => (
                                     <Card key={m.id} className="group overflow-hidden border-slate-100 dark:border-white/5 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 rounded-2xl flex flex-col h-full bg-white dark:bg-card shadow-sm transition-colors">
                                         <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-black/20">
@@ -175,34 +249,34 @@ const Marketplace = () => {
                                                 alt={m.name}
                                                 className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                                             />
-                                            <div className="absolute top-3 right-3 flex flex-col gap-2">
-                                                <Badge className="bg-white/90 dark:bg-slate-900/90 backdrop-blur text-slate-900 dark:text-white border-none font-black text-[10px] uppercase shadow-sm">
-                                                    {m.category}
+                                            <div className="absolute top-2 right-2 md:top-3 md:right-3 flex flex-col gap-2">
+                                                <Badge className="bg-white/90 dark:bg-slate-900/90 backdrop-blur text-slate-900 dark:text-white border-none font-black text-[8px] md:text-[10px] uppercase shadow-sm px-2 py-0.5">
+                                                    {m.category.split(' ')[0]}
                                                 </Badge>
                                             </div>
                                         </div>
-                                        <CardContent className="p-5 flex-grow">
-                                            <div className="flex justify-between items-start mb-3">
-                                                <h3 className="font-black text-lg text-slate-900 dark:text-white leading-tight group-hover:text-primary transition-colors">{m.name}</h3>
+                                        <CardContent className="p-3 md:p-5 flex-grow">
+                                            <div className="flex justify-between items-start mb-2 md:mb-3">
+                                                <h3 className="font-black text-sm md:text-lg text-slate-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-1 truncate uppercase tracking-tight">{m.name}</h3>
                                             </div>
-                                            <p className="text-slate-500 dark:text-slate-400 text-sm mb-4 line-clamp-2 leading-relaxed font-medium">{m.description}</p>
-                                            <div className="flex items-center gap-2 text-xs font-black text-slate-400 dark:text-slate-500 mb-4 bg-slate-50 dark:bg-white/5 p-2 rounded-lg transition-colors">
-                                                <User className="w-3.5 h-3.5" />
-                                                {m.vendor_name || "Verified Vendor"}
+                                            <p className="hidden md:block text-slate-500 dark:text-slate-400 text-sm mb-4 line-clamp-2 leading-relaxed font-medium">{m.description}</p>
+                                            <div className="flex items-center gap-2 text-[8px] md:text-xs font-black text-slate-400 dark:text-slate-500 mb-3 md:mb-4 bg-slate-50 dark:bg-white/5 p-1.5 md:p-2 rounded-lg transition-colors truncate">
+                                                <User className="w-3 h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
+                                                <span className="truncate">{m.vendor_name || "Verified Vendor"}</span>
                                             </div>
                                             <div className="flex justify-between items-end mt-auto">
                                                 <div>
-                                                    <span className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 block mb-0.5">Price starting at</span>
-                                                    <div className="flex items-baseline gap-1">
-                                                        <span className="text-2xl font-black text-slate-900 dark:text-white">₦{Number(m.price).toLocaleString()}</span>
-                                                        <span className="text-xs font-bold text-slate-400 dark:text-slate-500">/{m.unit}</span>
+                                                    <span className="text-[8px] md:text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 block mb-0.5">Price</span>
+                                                    <div className="flex items-baseline gap-0.5 md:gap-1">
+                                                        <span className="text-sm md:text-2xl font-black text-slate-900 dark:text-white">₦{Number(m.price).toLocaleString()}</span>
+                                                        <span className="text-[8px] md:text-xs font-bold text-slate-400 dark:text-slate-500">/{m.unit.split(' ')[0]}</span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </CardContent>
-                                        <CardFooter className="p-5 pt-0">
-                                            <Button className="w-full bg-slate-900 hover:bg-primary text-white font-black h-11 rounded-xl transition-all shadow-lg hover:shadow-primary/20 group/btn">
-                                                Add to Project <ShoppingCart className="ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                        <CardFooter className="p-3 md:p-5 pt-0">
+                                            <Button className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-primary text-white font-black h-9 md:h-11 rounded-xl transition-all shadow-lg hover:shadow-primary/20 group/btn text-[10px] md:text-sm uppercase tracking-widest md:tracking-normal">
+                                                Add <ShoppingCart className="ml-2 w-3 h-3 md:w-4 md:h-4 group-hover/btn:translate-x-1 transition-transform" />
                                             </Button>
                                         </CardFooter>
                                     </Card>

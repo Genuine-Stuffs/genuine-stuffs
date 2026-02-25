@@ -168,7 +168,7 @@ const ProRegister = () => {
                             </div>
                             <h2 className="text-3xl font-bold mb-4">Welcome to the Platform!</h2>
                             <p className="text-xl text-muted-foreground mb-8">
-                                Your professional account has been created. You now have access to our basic suite of innovation tools.
+                                Your professional account has been created. We've granted you <span className="text-primary font-black">10 AI Credits</span> to test our innovation tools for free.
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
                                 <Button asChild size="lg" className="px-10">

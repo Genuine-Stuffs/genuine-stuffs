@@ -2,13 +2,70 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Calculator, BookOpen, Sparkles, Wand2, FileText, Share2, CheckCircle2, Lock } from "lucide-react";
+import { Calculator, BookOpen, Sparkles, Wand2, FileText, Share2, CheckCircle2, Lock, Loader2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { supabase } from "backend/supabaseClient";
+import CreditInfo from "@/components/CreditInfo";
+import { toast } from "sonner";
 
 const AIStudio = () => {
-    const { role } = useAuth();
+    const { user, role } = useAuth();
     const isPro = role === "pro";
+    const [credits, setCredits] = useState<number | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isGenerating, setIsGenerating] = useState(false);
+
+    useEffect(() => {
+        const fetchCredits = async () => {
+            if (!user) return;
+            try {
+                const { data, error } = await supabase
+                    .from('professionals')
+                    .select('credits')
+                    .eq('id', user.id)
+                    .single();
+
+                if (error) throw error;
+                setCredits(data?.credits ?? 0);
+            } catch (err) {
+                console.error("Error fetching credits:", err);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchCredits();
+    }, [user]);
+
+    const handleGenerate = async () => {
+        if (!isPro || !credits || credits < 2) {
+            toast.error("Insufficient credits or not a Pro account.");
+            return;
+        }
+
+        setIsGenerating(true);
+        try {
+            // Simulate AI lag
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            const { error } = await supabase
+                .from('professionals')
+                .update({ credits: credits - 2 })
+                .eq('id', user?.id);
+
+            if (error) throw error;
+
+            setCredits(prev => (prev !== null ? prev - 2 : null));
+            toast.success("Design Vision Generated! (2 Credits used)");
+        } catch (err) {
+            toast.error("Generation failed. Please try again.");
+            console.error(err);
+        } finally {
+            setIsGenerating(false);
+        }
+    };
     return (
         <div className="min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
             <Navbar />
@@ -21,6 +78,11 @@ const AIStudio = () => {
                         </div>
                         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white uppercase">AI Innovation Studio</h1>
                     </div>
+                    {isPro && (
+                        <div className="mb-6">
+                            <CreditInfo credits={credits ?? 0} variant="compact" />
+                        </div>
+                    )}
                     <p className="text-xl text-muted-foreground dark:text-slate-400 max-w-3xl font-medium leading-relaxed italic">
                         Access next-generation building tools. Design, survey, and plan with AI-powered precision.
                     </p>
@@ -59,12 +121,20 @@ const AIStudio = () => {
                                     </div>
                                     <div className="flex gap-3">
                                         <input
-                                            disabled={!isPro}
-                                            placeholder={isPro ? "Prompt your building idea..." : "Upgrade to unlock AI Prompting"}
+                                            disabled={!isPro || (credits !== null && credits < 2) || isGenerating}
+                                            placeholder={!isPro ? "Upgrade to unlock AI Prompting" : (credits !== null && credits < 2) ? "Trial exhausted. Please upgrade." : "Prompt your building idea..."}
                                             className="flex-1 px-6 py-4 rounded-xl border dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 transition-all outline-none focus:ring-4 focus:ring-primary/10 font-bold placeholder:text-slate-400"
                                         />
-                                        <Button disabled={!isPro} className="gap-2 font-black px-10 rounded-xl uppercase tracking-widest shadow-xl shadow-primary/20">
-                                            <Sparkles className="w-4 h-4 text-yellow-400 fill-yellow-400" /> Generate
+                                        <Button
+                                            onClick={handleGenerate}
+                                            disabled={!isPro || (credits !== null && credits < 2) || isGenerating}
+                                            className="gap-2 font-black px-10 rounded-xl uppercase tracking-widest shadow-xl shadow-primary/20"
+                                        >
+                                            {isGenerating ? (
+                                                <><Loader2 className="w-4 h-4 animate-spin" /> Thinking...</>
+                                            ) : (
+                                                <><Sparkles className="w-4 h-4 text-yellow-400 fill-yellow-400" /> Generate (2 Credits)</>
+                                            )}
                                         </Button>
                                     </div>
                                 </div>
