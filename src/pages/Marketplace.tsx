@@ -96,10 +96,10 @@ const Marketplace = () => {
                                     <li key={cat}>
                                         <button
                                             onClick={() => setSelectedCategory(cat)}
-                                            className={`text-sm font-bold transition-colors block w-full text-left py-1 ${selectedCategory === cat ? 'text-primary' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'}`}
+                                            className={`text-sm font-black uppercase tracking-widest transition-all block w-full text-left py-2 px-3 rounded-lg border border-transparent ${selectedCategory === cat ? 'text-primary bg-primary/5 border-primary/20 shadow-lg shadow-primary/5' : 'text-slate-500 hover:text-slate-800 dark:hover:text-white dark:hover:bg-white/5'}`}
                                         >
-                                            {cat} <span className="text-[10px] ml-1 bg-slate-100 dark:bg-white/5 px-1.5 py-0.5 rounded text-slate-400 dark:text-slate-500">
-                                                ({cat === "All" ? dbMaterials.length : dbMaterials.filter(m => m.category === cat).length})
+                                            {cat} <span className={`text-[10px] ml-1 px-1.5 py-0.5 rounded-md transition-colors ${selectedCategory === cat ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-400 dark:text-slate-500'}`}>
+                                                {cat === "All" ? dbMaterials.length : dbMaterials.filter(m => m.category === cat).length}
                                             </span>
                                         </button>
                                     </li>
@@ -242,15 +242,16 @@ const Marketplace = () => {
                         ) : filteredMaterials.length > 0 ? (
                             <div className={viewMode === "list" || mobileView === "list" ? "space-y-4" : "grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6"}>
                                 {filteredMaterials.map((m) => (
-                                    <Card key={m.id} className="group overflow-hidden border-slate-100 dark:border-white/5 hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 rounded-2xl flex flex-col h-full bg-white dark:bg-card shadow-sm transition-colors">
-                                        <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-black/20">
+                                    <Card key={m.id} className="group overflow-hidden border border-slate-200 dark:border-white/10 hover:border-primary/50 hover:shadow-[0_0_30px_-5px_hsl(var(--primary-glow))] transition-all duration-500 rounded-3xl flex flex-col h-full bg-white dark:bg-card shadow-sm">
+                                        <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-800">
                                             <img
                                                 src={m.image_url || "/images/materials/cement.png"}
                                                 alt={m.name}
                                                 className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                                             />
-                                            <div className="absolute top-2 right-2 md:top-3 md:right-3 flex flex-col gap-2">
-                                                <Badge className="bg-white/90 dark:bg-slate-900/90 backdrop-blur text-slate-900 dark:text-white border-none font-black text-[8px] md:text-[10px] uppercase shadow-sm px-2 py-0.5">
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:from-black/40 transition-all duration-500" />
+                                            <div className="absolute top-2 right-2 md:top-3 md:right-3 flex flex-col gap-2 z-10">
+                                                <Badge className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-900 dark:text-white border-none font-black text-[8px] md:text-[10px] uppercase shadow-xl px-2.5 py-1">
                                                     {m.category.split(' ')[0]}
                                                 </Badge>
                                             </div>

@@ -159,12 +159,13 @@ const Index = () => {
               <Link
                 key={i}
                 to={cat.link || `/marketplace?category=${encodeURIComponent(cat.title)}`}
-                className="group flex flex-col items-center p-3 md:p-6 rounded-2xl border border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-primary hover:shadow-xl transition-all duration-300 backdrop-blur-sm"
+                className="group flex flex-col items-center p-3 md:p-6 rounded-3xl border border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-card hover:bg-white dark:hover:bg-slate-800/50 hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 backdrop-blur-sm relative overflow-hidden"
               >
-                <div className={`w-10 h-10 md:w-14 md:h-14 rounded-2xl flex items-center justify-center mb-2 md:mb-4 ${cat.color} group-hover:scale-110 transition-transform shadow-sm`}>
+                <div className={`w-10 h-10 md:w-14 md:h-14 rounded-2xl flex items-center justify-center mb-2 md:mb-4 ${cat.color} group-hover:scale-110 transition-transform shadow-sm group-hover:shadow-lg`}>
                   <cat.icon className="w-5 h-5 md:w-7 md:h-7" />
                 </div>
-                <span className="text-[9px] md:text-[10px] font-black text-center text-slate-700 dark:text-slate-300 leading-tight group-hover:text-primary uppercase tracking-tighter">{cat.title}</span>
+                <span className="text-[9px] md:text-[10px] font-black text-center text-slate-700 dark:text-slate-300 leading-tight group-hover:text-primary uppercase tracking-tighter transition-colors">{cat.title}</span>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-primary/10 transition-colors" />
               </Link>
             ))}
           </div>
@@ -257,12 +258,15 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {benefits.map((benefit, index) => (
-              <Card key={index} className="border-2 hover:border-primary transition-colors">
-                <CardContent className="pt-6">
-                  <benefit.icon className="w-12 h-12 text-primary mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">{benefit.title}</h3>
-                  <p className="text-muted-foreground">{benefit.description}</p>
+              <Card key={index} className="group border-2 border-slate-100 dark:border-white/10 bg-white dark:bg-card hover:border-primary transition-all duration-500 overflow-hidden relative shadow-sm hover:shadow-2xl hover:shadow-primary/10 rounded-3xl">
+                <CardContent className="pt-8 pb-8 relative z-10">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                    <benefit.icon className="w-8 h-8 text-primary" />
+                  </div>
+                  <h3 className="text-xl font-black mb-3 text-slate-900 dark:text-white uppercase tracking-tight">{benefit.title}</h3>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{benefit.description}</p>
                 </CardContent>
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mb-16 -mr-16 group-hover:bg-primary/20 transition-colors" />
               </Card>
             ))}
           </div>

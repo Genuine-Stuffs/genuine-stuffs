@@ -64,21 +64,22 @@ const VendorDashboard = () => {
                 {/* Stats Overview */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
                     {stats.map((stat, i) => (
-                        <Card key={i} className="border-none shadow-sm hover:shadow-xl transition-all dark:bg-card rounded-3xl overflow-hidden group">
-                            <CardContent className="p-6">
+                        <Card key={i} className="group border border-slate-100 dark:border-white/5 hover:border-primary/50 shadow-sm hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 bg-white dark:bg-card rounded-[2rem] overflow-hidden relative">
+                            <CardContent className="p-6 relative z-10">
                                 <div className="flex justify-between items-start mb-6">
-                                    <div className={`p-4 rounded-2xl bg-white dark:bg-white/5 shadow-sm border dark:border-white/5 transition-all group-hover:scale-110 ${stat.color}`}>
+                                    <div className={`p-4 rounded-[1.25rem] bg-slate-50 dark:bg-slate-800/50 shadow-inner border dark:border-white/10 transition-all group-hover:scale-110 group-hover:shadow-lg ${stat.color}`}>
                                         <stat.icon className="w-6 h-6" />
                                     </div>
-                                    <span className={`text-[10px] font-black px-3 py-1.5 rounded-full bg-slate-50 dark:bg-white/5 border dark:border-white/5 uppercase tracking-widest ${stat.color}`}>
+                                    <span className={`text-[10px] font-black px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 border dark:border-white/10 uppercase tracking-widest ${stat.color}`}>
                                         {stat.trend}
                                     </span>
                                 </div>
-                                <div>
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{stat.title}</p>
-                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white leading-tight">{stat.value}</h3>
+                                <div className="relative">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 group-hover:text-primary transition-colors">{stat.title}</p>
+                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white leading-tight tabular-nums truncate tracking-tight">{stat.value}</h3>
                                 </div>
                             </CardContent>
+                            <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
                         </Card>
                     ))}
                 </div>

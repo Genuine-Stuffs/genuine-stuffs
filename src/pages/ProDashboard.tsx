@@ -97,9 +97,9 @@ const ProDashboard = () => {
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {activeProjects.map((project, i) => (
-                                    <Card key={i} className="border-none shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all group overflow-hidden bg-white dark:bg-card rounded-[2rem]">
-                                        <div className={`h-1.5 w-full ${i === 0 ? 'bg-primary' : i === 1 ? 'bg-orange-500' : 'bg-red-500'}`} />
-                                        <CardContent className="p-8">
+                                    <Card key={i} className="group overflow-hidden border border-slate-100 dark:border-white/5 hover:border-primary/50 shadow-sm hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 bg-white dark:bg-card rounded-[2rem] relative">
+                                        <div className={`h-1.5 w-full ${i === 0 ? 'bg-primary' : i === 1 ? 'bg-orange-500' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`} />
+                                        <CardContent className="p-8 relative z-10">
                                             <div className="flex justify-between items-start mb-6">
                                                 <div>
                                                     <h4 className="font-black text-lg text-slate-900 dark:text-white group-hover:text-primary transition-colors leading-tight uppercase tracking-tight">{project.title}</h4>
@@ -157,13 +157,14 @@ const ProDashboard = () => {
                                     { name: "Site Planning", icon: Map, color: "green-500" },
                                     { name: "BoQ Engine", icon: FileText, color: "purple-500" },
                                 ].map((tool, i) => (
-                                    <Card key={i} className="border-none shadow-sm hover:shadow-xl hover:-translate-y-2 transition-all cursor-pointer overflow-hidden group bg-white dark:bg-card rounded-3xl">
-                                        <CardContent className="p-6 flex flex-col items-center justify-center text-center">
-                                            <div className={`p-4 rounded-2xl mb-4 text-white shadow-xl transition-all group-hover:scale-110 ${tool.color === 'primary' ? 'bg-primary shadow-primary/30' : `bg-${tool.color} shadow-${tool.color.split('-')[0]}-500/30`}`}>
+                                    <Card key={i} className="group border border-slate-100 dark:border-white/5 hover:border-primary/50 shadow-sm hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 transition-all duration-500 cursor-pointer overflow-hidden bg-white dark:bg-card rounded-[2rem] relative">
+                                        <CardContent className="p-6 flex flex-col items-center justify-center text-center relative z-10">
+                                            <div className={`p-4 rounded-[1.25rem] mb-4 text-white shadow-xl transition-all group-hover:scale-110 ${tool.color === 'primary' ? 'bg-primary shadow-primary/30 group-hover:shadow-[0_0_20px_-5px_hsl(var(--primary))]' : `bg-${tool.color} shadow-${tool.color.split('-')[0]}-500/30`}`}>
                                                 <tool.icon className="w-6 h-6" />
                                             </div>
                                             <span className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white transition-colors group-hover:text-primary">{tool.name}</span>
                                         </CardContent>
+                                        <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors" />
                                     </Card>
                                 ))}
                             </div>
