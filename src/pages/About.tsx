@@ -45,11 +45,11 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
+      <section className="py-24 bg-slate-900 dark:bg-black text-white relative overflow-hidden transition-colors duration-300">
         <div className="absolute top-0 right-0 p-40 bg-primary/10 rounded-full blur-3xl" />
         <div className="container mx-auto px-4 relative z-10 text-center">
           <div className="max-w-4xl mx-auto">
@@ -69,17 +69,17 @@ const About = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl font-black mb-8">We Exist to Change the Industry.</h2>
-              <p className="text-xl text-slate-600 mb-8 leading-relaxed font-medium">
+              <h2 className="text-4xl font-black mb-8 text-slate-900 dark:text-white uppercase tracking-tight">We Exist to Change the Industry.</h2>
+              <p className="text-xl text-slate-600 dark:text-slate-400 mb-8 leading-relaxed font-medium">
                 Our platform serves as a verified hub where building materials suppliers, construction professionals, artisans, knowledge resources, and advisory services converge.
               </p>
               <div className="space-y-6">
-                <p className="text-lg text-slate-500 leading-relaxed">
-                  This platform is founded on <span className="font-bold text-slate-900">over two decades of real-world experience</span> across construction and real estate—from site supervision to property management.
+                <p className="text-lg text-slate-500 dark:text-slate-500 leading-relaxed">
+                  This platform is founded on <span className="font-bold text-slate-900 dark:text-slate-200">over two decades of real-world experience</span> across construction and real estate—from site supervision to property management.
                 </p>
-                <div className="bg-slate-50 p-8 rounded-3xl border border-slate-100">
-                  <h3 className="text-xl font-black mb-4">Our Mission</h3>
-                  <p className="text-slate-600 leading-relaxed font-medium italic">
+                <div className="bg-slate-50 dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 transition-colors">
+                  <h3 className="text-xl font-black mb-4 text-slate-900 dark:text-white">Our Mission</h3>
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium italic">
                     "Our mission is to enable informed decision-making, reduce construction risk, and protect long-term property value through trust, verification, and knowledge."
                   </p>
                 </div>
@@ -97,22 +97,22 @@ const About = () => {
       </section>
 
       {/* Values */}
-      <section className="py-20 bg-secondary/30">
+      <section className="py-20 bg-secondary/30 dark:bg-slate-900/50 transition-colors">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Our Core Values</h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            <h2 className="text-3xl md:text-4xl font-black mb-4 text-slate-900 dark:text-white uppercase tracking-tight">Our Core Values</h2>
+            <p className="text-xl text-muted-foreground dark:text-slate-400 max-w-2xl mx-auto font-medium">
               The principles that guide every consultation, recommendation, and partnership.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {values.map((value, index) => (
-              <Card key={index} className="border-2 hover:border-primary transition-colors">
-                <CardContent className="pt-6 text-center">
-                  <value.icon className="w-16 h-16 text-primary mx-auto mb-4" />
-                  <h3 className="text-2xl font-semibold mb-3">{value.title}</h3>
-                  <p className="text-muted-foreground">{value.description}</p>
+              <Card key={index} className="border-2 dark:border-slate-800 dark:bg-slate-900 hover:border-primary transition-all rounded-3xl overflow-hidden shadow-sm">
+                <CardContent className="pt-8 text-center">
+                  <value.icon className="w-16 h-16 text-primary mx-auto mb-6" />
+                  <h3 className="text-2xl font-black mb-4 text-slate-900 dark:text-white uppercase tracking-tighter">{value.title}</h3>
+                  <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{value.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -132,17 +132,17 @@ const About = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {team.map((member, index) => (
-              <Card key={index} className="border-2">
-                <CardContent className="pt-6">
-                  <div className="w-24 h-24 bg-secondary rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <span className="text-4xl font-bold text-primary">
+              <Card key={index} className="border-2 dark:border-slate-800 dark:bg-slate-900 rounded-3xl overflow-hidden group hover:border-primary transition-all">
+                <CardContent className="pt-8">
+                  <div className="w-24 h-24 bg-primary/10 dark:bg-primary/20 rounded-full mx-auto mb-6 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <span className="text-4xl font-black text-primary">
                       {member.name.split(' ').map(n => n[0]).join('')}
                     </span>
                   </div>
-                  <h3 className="text-xl font-semibold text-center mb-1">{member.name}</h3>
-                  <p className="text-primary text-center font-medium mb-2">{member.role}</p>
-                  <p className="text-sm text-muted-foreground text-center mb-4">{member.credentials}</p>
-                  <p className="text-muted-foreground">{member.bio}</p>
+                  <h3 className="text-xl font-black text-center mb-1 text-slate-900 dark:text-white uppercase tracking-tight">{member.name}</h3>
+                  <p className="text-primary text-center font-bold mb-3 uppercase tracking-widest text-xs">{member.role}</p>
+                  <p className="text-xs text-slate-400 dark:text-slate-500 text-center mb-6 font-bold uppercase tracking-wider">{member.credentials}</p>
+                  <p className="text-slate-600 dark:text-slate-400 font-medium leading-relaxed text-center italic">"{member.bio}"</p>
                 </CardContent>
               </Card>
             ))}
@@ -151,47 +151,27 @@ const About = () => {
       </section>
 
       {/* Why Choose Us */}
-      <section className="py-20 bg-secondary/30">
+      <section className="py-20 bg-secondary/30 dark:bg-slate-900/50 transition-colors">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center">Why Choose Genuine Stuffs Ltd?</h2>
+            <h2 className="text-3xl md:text-4xl font-black mb-12 text-center text-slate-900 dark:text-white uppercase tracking-tight">Why Choose us?</h2>
 
-            <div className="space-y-6">
-              <Card className="border-2">
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-3">Deep Technical Expertise</h3>
-                  <p className="text-muted-foreground">
-                    Our team combines academic research, industry certifications, and hands-on construction experience to provide comprehensive material consulting services.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2">
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-3">Data-Driven Recommendations</h3>
-                  <p className="text-muted-foreground">
-                    We don't rely on guesswork. Our recommendations are backed by lifecycle modeling, compliance verification, and proven performance data.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2">
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-3">Local Expertise with Global Standards</h3>
-                  <p className="text-muted-foreground">
-                    We understand regional climate challenges and local material availability while ensuring compliance with international quality standards.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2">
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-semibold mb-3">Partnership Approach</h3>
-                  <p className="text-muted-foreground">
-                    We work alongside your team, educating and empowering rather than just dictating solutions. Your success is our success.
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[
+                { title: "Technical Expertise", desc: "PhD level research and decades of site management." },
+                { title: "Data-Driven Modeling", desc: "ROI and lifecycle performance analysis for every material." },
+                { title: "Verified Ecosystem", desc: "Rigorous screening for both suppliers and artisans." },
+                { title: "Partnership Focus", desc: "We guide projects from assessment to completion." }
+              ].map((perf, i) => (
+                <Card key={i} className="border-2 dark:border-slate-800 dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl transition-all">
+                  <CardContent className="pt-6">
+                    <h3 className="text-lg font-black mb-3 text-slate-900 dark:text-white uppercase tracking-tighter">{perf.title}</h3>
+                    <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                      {perf.desc}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </div>

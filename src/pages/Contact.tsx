@@ -59,17 +59,17 @@ const Contact = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="py-20 bg-secondary/30">
+      <section className="py-20 bg-secondary/30 dark:bg-slate-900/50 transition-colors">
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-6">
+            <h1 className="text-4xl md:text-5xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-tight">
               Schedule Your Free Materials Review
             </h1>
-            <p className="text-xl text-muted-foreground">
+            <p className="text-xl text-muted-foreground dark:text-slate-400 font-medium leading-relaxed">
               Let's discuss how quality material decisions can transform your construction project's success and longevity.
             </p>
           </div>
@@ -82,9 +82,9 @@ const Contact = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
             {/* Contact Form */}
             <div>
-              <Card className="border-2">
-                <CardContent className="pt-6">
-                  <h2 className="text-2xl font-bold mb-6">Book Your Consultation</h2>
+              <Card className="border-2 dark:border-slate-800 dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm">
+                <CardContent className="pt-8">
+                  <h2 className="text-2xl font-black mb-8 text-slate-900 dark:text-white uppercase tracking-tighter">Book Your Consultation</h2>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                       <Label htmlFor="name">Full Name *</Label>
@@ -175,7 +175,7 @@ const Contact = () => {
                       />
                     </div>
 
-                    <Button type="submit" disabled={isSubmitting} className="w-full" size="lg">
+                    <Button type="submit" disabled={isSubmitting} className="w-full bg-slate-900 dark:bg-primary dark:text-slate-900 hover:bg-primary text-white font-black h-12 rounded-xl transition-all shadow-lg hover:shadow-primary/20" size="lg">
                       {isSubmitting ? "Submitting..." : "Book Free Consultation"}
                     </Button>
                   </form>
@@ -186,14 +186,14 @@ const Contact = () => {
             {/* Info Sidebar */}
             <div className="space-y-8">
               {/* What to Expect */}
-              <Card className="border-2 border-primary">
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-bold mb-4">What to Expect</h3>
-                  <ul className="space-y-3">
+              <Card className="border-2 border-primary dark:bg-slate-900/50 rounded-3xl overflow-hidden shadow-sm">
+                <CardContent className="pt-8">
+                  <h3 className="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-tight">What to Expect</h3>
+                  <ul className="space-y-4">
                     {benefits.map((benefit, index) => (
                       <li key={index} className="flex items-start">
                         <CheckCircle2 className="w-5 h-5 text-primary mr-3 flex-shrink-0 mt-0.5" />
-                        <span>{benefit}</span>
+                        <span className="font-medium text-slate-600 dark:text-slate-400">{benefit}</span>
                       </li>
                     ))}
                   </ul>
@@ -201,35 +201,25 @@ const Contact = () => {
               </Card>
 
               {/* Contact Information */}
-              <Card className="border-2">
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-bold mb-4">Other Ways to Reach Us</h3>
-                  <div className="space-y-4">
+              <Card className="border-2 dark:border-slate-800 dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm transition-colors">
+                <CardContent className="pt-8">
+                  <h3 className="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-tight">Other Ways to Reach Us</h3>
+                  <div className="space-y-6">
                     <div className="flex items-start">
                       <Mail className="w-5 h-5 text-primary mr-3 mt-0.5" />
                       <div>
-                        <p className="font-medium">Email</p>
-                        <a href="mailto:contact@genuinestuffs.com" className="text-muted-foreground hover:text-primary transition-colors">
+                        <p className="font-black text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Email</p>
+                        <a href="mailto:contact@genuinestuffs.com" className="font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors">
                           contact@genuinestuffs.com
                         </a>
                       </div>
                     </div>
 
-                    {/* <div className="flex items-start">
-                      <Phone className="w-5 h-5 text-primary mr-3 mt-0.5" />
-                      <div>
-                        <p className="font-medium">Phone</p>
-                        <a href="tel:+234101233" className="text-muted-foreground hover:text-primary transition-colors">
-                          +234 (0) 101 233
-                        </a>
-                      </div>
-                    </div> */}
-
                     <div className="flex items-start">
                       <Linkedin className="w-5 h-5 text-primary mr-3 mt-0.5" />
                       <div>
-                        <p className="font-medium">LinkedIn</p>
-                        <a href="#" className="text-muted-foreground hover:text-primary transition-colors">
+                        <p className="font-black text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">LinkedIn</p>
+                        <a href="#" className="font-bold text-slate-700 dark:text-slate-200 hover:text-primary transition-colors">
                           Genuine Stuffs Ltd
                         </a>
                       </div>
@@ -238,8 +228,8 @@ const Contact = () => {
                     <div className="flex items-start">
                       <MapPin className="w-5 h-5 text-primary mr-3 mt-0.5" />
                       <div>
-                        <p className="font-medium">Office</p>
-                        <p className="text-muted-foreground">
+                        <p className="font-black text-xs uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1">Office</p>
+                        <p className="font-bold text-slate-700 dark:text-slate-200 leading-relaxed italic">
                           No 8 Milverton Road<br />
                           Ikoyi, Lagos, Nigeria<br />
                           Available for projects nationwide
@@ -251,15 +241,15 @@ const Contact = () => {
               </Card>
 
               {/* Business Hours */}
-              <Card className="border-2">
-                <CardContent className="pt-6">
-                  <h3 className="text-xl font-bold mb-4">Business Hours</h3>
-                  <div className="space-y-2 text-muted-foreground">
-                    <p><span className="font-medium text-foreground">Monday - Friday:</span> 8:00 AM - 6:00 PM</p>
-                    <p><span className="font-medium text-foreground">Saturday:</span> 9:00 AM - 2:00 PM</p>
-                    <p><span className="font-medium text-foreground">Sunday:</span> Closed</p>
+              <Card className="border-2 dark:border-slate-800 dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm transition-colors">
+                <CardContent className="pt-8">
+                  <h3 className="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-tight">Business Hours</h3>
+                  <div className="space-y-3 font-medium text-slate-600 dark:text-slate-400">
+                    <p className="flex justify-between items-center"><span className="text-xs font-black uppercase tracking-widest text-slate-400">Mon - Fri:</span> <span>8:00 AM - 6:00 PM</span></p>
+                    <p className="flex justify-between items-center"><span className="text-xs font-black uppercase tracking-widest text-slate-400">Sat:</span> <span>9:00 AM - 2:00 PM</span></p>
+                    <p className="flex justify-between items-center"><span className="text-xs font-black uppercase tracking-widest text-slate-400 text-red-400">Sun:</span> <span className="text-red-400">Closed</span></p>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-4">
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-6 uppercase tracking-wider italic">
                     * We typically respond to inquiries within 24 business hours
                   </p>
                 </CardContent>

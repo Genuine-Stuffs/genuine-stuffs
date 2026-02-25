@@ -102,45 +102,45 @@ const VendorRegister = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-background transition-colors duration-300">
             <Navbar />
 
             <main className="container mx-auto px-4 py-12 flex justify-center">
                 <div className="w-full max-w-3xl">
                     {/* Header */}
                     <div className="text-center mb-10">
-                        <h1 className="text-3xl md:text-4xl font-extrabold mb-4">Vendor Registration</h1>
-                        <p className="text-lg text-muted-foreground max-w-xl mx-auto">
-                            Join the premier building materials marketplace. Complete your profile to start listing products to top project owners and professionals.
+                        <h1 className="text-3xl md:text-5xl font-black mb-4 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Partner <span className="text-primary italic">Activation</span></h1>
+                        <p className="text-xl text-muted-foreground dark:text-slate-400 max-w-xl mx-auto font-medium leading-relaxed italic">
+                            Join the premier building materials marketplace. Complete your profile to start listing products.
                         </p>
                     </div>
 
                     {step <= totalSteps ? (
-                        <div className="bg-white rounded-2xl shadow-sm border overflow-hidden">
+                        <div className="bg-white dark:bg-card rounded-[2.5rem] shadow-2xl border-none overflow-hidden transition-colors">
                             {/* Progress Indicator */}
-                            <div className="bg-slate-100 flex justify-between items-center p-4 md:px-8 border-b">
+                            <div className="bg-slate-50 dark:bg-white/5 flex justify-between items-center p-6 md:px-12 border-b dark:border-white/10 transition-colors">
                                 {steps.map((s, idx) => (
                                     <div key={s.id} className="flex items-center">
                                         <div
-                                            className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${step === s.id
-                                                ? "bg-primary text-primary-foreground"
+                                            className={`flex items-center justify-center w-10 h-10 rounded-2xl font-black text-xs shadow-inner transition-all ${step === s.id
+                                                ? "bg-primary text-white scale-110 shadow-primary/20"
                                                 : step > s.id
                                                     ? "bg-green-500 text-white"
-                                                    : "bg-slate-300 text-slate-500"
+                                                    : "bg-slate-100 dark:bg-white/5 text-slate-400"
                                                 }`}
                                         >
-                                            {step > s.id ? <Check className="w-4 h-4" /> : s.id}
+                                            {step > s.id ? <Check className="w-5 h-5" /> : s.id}
                                         </div>
                                         <span
-                                            className={`ml-2 text-sm hidden md:block ${step === s.id ? "font-bold text-slate-800" : "text-slate-500"
+                                            className={`ml-3 text-[10px] uppercase font-black tracking-widest hidden lg:block ${step === s.id ? "text-primary" : "text-slate-400 dark:text-slate-600"
                                                 }`}
                                         >
                                             {s.title}
                                         </span>
                                         {idx < steps.length - 1 && (
-                                            <div className="w-8 md:w-16 h-1 bg-slate-300 mx-2 md:mx-4 rounded-full">
+                                            <div className="w-8 md:w-16 h-1 bg-slate-100 dark:bg-white/5 mx-3 md:mx-6 rounded-full overflow-hidden">
                                                 <div
-                                                    className="h-full bg-green-500 rounded-full transition-all duration-300"
+                                                    className="h-full bg-primary transition-all duration-500"
                                                     style={{ width: step > s.id ? "100%" : "0%" }}
                                                 />
                                             </div>
@@ -150,11 +150,11 @@ const VendorRegister = () => {
                             </div>
 
                             {/* Form Content */}
-                            <div className="p-6 md:p-10">
+                            <div className="p-8 md:p-12">
                                 {step === 1 && (
-                                    <div className="space-y-6 animate-in slide-in-from-right-4">
-                                        <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
-                                            <User className="w-6 h-6 text-primary" /> Personal Details
+                                    <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                                        <h2 className="text-2xl font-black flex items-center gap-4 mb-4 text-slate-900 dark:text-white uppercase tracking-tight">
+                                            <div className="p-3 bg-primary/10 rounded-xl"><User className="w-6 h-6 text-primary" /></div> Account Owner
                                         </h2>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-2">
@@ -231,44 +231,48 @@ const VendorRegister = () => {
                                 )}
 
                                 {step === 4 && (
-                                    <div className="space-y-6 animate-in slide-in-from-right-4">
-                                        <h2 className="text-2xl font-bold flex items-center gap-2 mb-6">
-                                            <CheckCircle2 className="w-6 h-6 text-primary" /> Document Verification
+                                    <div className="space-y-8 animate-in slide-in-from-right-4 duration-500">
+                                        <h2 className="text-2xl font-black flex items-center gap-4 mb-4 text-slate-900 dark:text-white uppercase tracking-tight">
+                                            <div className="p-3 bg-primary/10 rounded-xl"><CheckCircle2 className="w-6 h-6 text-primary" /></div> Trust & Verification
                                         </h2>
-                                        <p className="text-sm text-muted-foreground mb-4">
-                                            To ensure platform quality, we require verification documents. You can upload these now or later in your dashboard.
+                                        <p className="text-lg text-slate-500 dark:text-slate-400 font-medium italic mb-4 leading-relaxed">
+                                            To ensure platform quality, we require verification documents. You can upload these now or later in your portal.
                                         </p>
-                                        <div className="space-y-4">
-                                            <div className="border-2 border-dashed rounded-xl p-8 text-center hover:bg-slate-50 transition-colors cursor-pointer">
-                                                <Upload className="w-10 h-10 text-slate-400 mx-auto mb-4" />
-                                                <h3 className="font-semibold text-lg">Upload Business Registration Certificate</h3>
-                                                <p className="text-sm text-muted-foreground mt-2">PDF, JPG, PNG up to 5MB</p>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:border-primary/50 transition-all cursor-pointer group">
+                                                <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner group-hover:scale-110 transition-transform">
+                                                    <Upload className="w-8 h-8 text-primary" />
+                                                </div>
+                                                <h3 className="font-black text-sm uppercase tracking-tight text-slate-900 dark:text-white">Business Cert</h3>
+                                                <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mt-2">PDF, JPG up to 5MB</p>
                                             </div>
-                                            <div className="border-2 border-dashed rounded-xl p-8 text-center hover:bg-slate-50 transition-colors cursor-pointer">
-                                                <Upload className="w-10 h-10 text-slate-400 mx-auto mb-4" />
-                                                <h3 className="font-semibold text-lg">Upload Valid Means of ID</h3>
-                                                <p className="text-sm text-muted-foreground mt-2">Driver's License, NIN, or Passport</p>
+                                            <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl p-10 text-center hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:border-primary/50 transition-all cursor-pointer group">
+                                                <div className="w-16 h-16 bg-slate-50 dark:bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner group-hover:scale-110 transition-transform">
+                                                    <Upload className="w-8 h-8 text-primary" />
+                                                </div>
+                                                <h3 className="font-black text-sm uppercase tracking-tight text-slate-900 dark:text-white">Valid ID</h3>
+                                                <p className="text-[10px] text-slate-400 uppercase font-black tracking-widest mt-2">License, NIN, or Passport</p>
                                             </div>
                                         </div>
                                     </div>
                                 )}
 
                                 {/* Footer Buttons */}
-                                <div className="flex justify-between items-center mt-10 pt-6 border-t">
+                                <div className="flex justify-between items-center mt-12 pt-8 border-t dark:border-white/10 transition-colors">
                                     <Button
-                                        variant="outline"
+                                        variant="ghost"
                                         onClick={handleBack}
                                         disabled={step === 1}
-                                        className="gap-2 px-6"
+                                        className="gap-2 px-8 font-black uppercase tracking-widest text-xs h-12 rounded-xl"
                                     >
                                         <ChevronLeft className="w-4 h-4" /> Back
                                     </Button>
-                                    <Button onClick={handleNext} className="gap-2 px-8" size="lg" disabled={isLoading}>
+                                    <Button onClick={handleNext} className="gap-3 px-10 font-black uppercase tracking-widest text-xs h-14 rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-[1.02]" size="lg" disabled={isLoading}>
                                         {isLoading ? (
-                                            <>Processing... <Loader2 className="w-4 h-4 animate-spin" /></>
+                                            <>Validating... <Loader2 className="w-4 h-4 animate-spin" /></>
                                         ) : (
                                             <>
-                                                {step === totalSteps ? "Complete Registration" : "Continue"}
+                                                {step === totalSteps ? "Finish Registration" : "Continue"}
                                                 {step !== totalSteps && <ChevronRight className="w-4 h-4" />}
                                             </>
                                         )}

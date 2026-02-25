@@ -58,11 +58,11 @@ const Services = () => {
   ];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="py-24 bg-slate-900 text-white relative overflow-hidden">
+      <section className="py-24 bg-slate-900 dark:bg-black text-white relative overflow-hidden transition-colors duration-300">
         <div className="absolute bottom-0 left-0 p-40 bg-primary/10 rounded-full blur-3xl opacity-50" />
         <div className="container mx-auto px-4 relative z-10 text-center max-w-4xl">
           <h1 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
@@ -84,31 +84,31 @@ const Services = () => {
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Left Column - Icon & Title */}
                     <div className="lg:col-span-1">
-                      <service.icon className="w-16 h-16 text-primary mb-4" />
-                      <h2 className="text-2xl md:text-3xl font-black mb-4">{service.title}</h2>
-                      <p className="text-slate-500 font-medium">{service.description}</p>
+                      <service.icon className="w-16 h-16 text-primary mb-6" />
+                      <h2 className="text-2xl md:text-3xl font-black mb-4 text-slate-900 dark:text-white uppercase tracking-tight">{service.title}</h2>
+                      <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{service.description}</p>
                     </div>
 
                     {/* Middle Column - Features */}
                     <div className="lg:col-span-1">
-                      <h3 className="text-lg font-black mb-4">What's Included:</h3>
-                      <ul className="space-y-3">
+                      <h3 className="text-lg font-black mb-6 text-slate-900 dark:text-white uppercase tracking-widest text-xs">What's Included:</h3>
+                      <ul className="space-y-4">
                         {service.features.map((feature, idx) => (
                           <li key={idx} className="flex items-start">
                             <CheckCircle2 className="w-5 h-5 text-primary mr-3 flex-shrink-0 mt-0.5" />
-                            <span className="font-medium text-slate-700">{feature}</span>
+                            <span className="font-medium text-slate-700 dark:text-slate-300">{feature}</span>
                           </li>
                         ))}
                       </ul>
                     </div>
 
                     {/* Right Column - Why It Matters */}
-                    <div className="lg:col-span-1 bg-slate-50 p-6 rounded-2xl border border-slate-100">
-                      <h3 className="text-lg font-black mb-4 flex items-center">
+                    <div className="lg:col-span-1 bg-slate-50 dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 transition-colors">
+                      <h3 className="text-lg font-black mb-4 flex items-center text-slate-900 dark:text-white uppercase tracking-tighter">
                         <AlertCircle className="w-5 h-5 mr-2 text-primary" />
                         Why It Matters
                       </h3>
-                      <p className="text-slate-600 font-medium">{service.whyItMatters}</p>
+                      <p className="text-slate-600 dark:text-slate-400 font-medium italic">"{service.whyItMatters}"</p>
                     </div>
                   </div>
                 </CardContent>
@@ -119,29 +119,29 @@ const Services = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-slate-50 border-y border-slate-100">
+      <section className="py-20 bg-slate-50 dark:bg-slate-900 border-y border-slate-100 dark:border-slate-800 transition-colors">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black mb-4 text-slate-900">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-black mb-4 text-slate-900 dark:text-white uppercase tracking-tight">
               The Cost of Poor Material Choices
             </h2>
-            <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">
+            <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium">
               Data-driven insights on why material quality cannot be compromised.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            <div className="text-center p-8 rounded-3xl bg-white shadow-sm">
-              <div className="text-5xl font-black text-primary mb-2 italic">40%</div>
-              <p className="text-lg font-bold text-slate-800">Higher maintenance costs with sub-standard materials</p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="text-center p-10 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 transition-all hover:scale-105">
+              <div className="text-5xl font-black text-primary mb-4 italic">40%</div>
+              <p className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-tight">Higher maintenance costs with sub-standard materials</p>
             </div>
-            <div className="text-center p-8 rounded-3xl bg-white shadow-sm">
-              <div className="text-5xl font-black text-primary mb-2 italic">3-5x</div>
-              <p className="text-lg font-bold text-slate-800">Average cost multiplier for fixing material failures</p>
+            <div className="text-center p-10 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 transition-all hover:scale-105">
+              <div className="text-5xl font-black text-primary mb-4 italic">3-5x</div>
+              <p className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-tight">Average cost multiplier for fixing material failures</p>
             </div>
-            <div className="text-center p-8 rounded-3xl bg-white shadow-sm">
-              <div className="text-5xl font-black text-primary mb-2 italic">35%</div>
-              <p className="text-lg font-bold text-slate-800">Reduction in delays with proper material audits</p>
+            <div className="text-center p-10 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 transition-all hover:scale-105">
+              <div className="text-5xl font-black text-primary mb-4 italic">35%</div>
+              <p className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-tight">Reduction in delays with proper material audits</p>
             </div>
           </div>
         </div>

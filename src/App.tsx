@@ -17,38 +17,47 @@ import ProRegister from "./pages/ProRegister";
 import VendorDashboard from "./pages/VendorDashboard";
 import ProDashboard from "./pages/ProDashboard";
 import { AuthProvider } from "./context/AuthContext";
+import { ThemeProvider } from "./components/ThemeProvider";
+import BottomNav from "./components/BottomNav";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/services" element={<Services />} />
-            <Route path="/resources" element={<Resources />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
+    <ThemeProvider defaultTheme="light" storageKey="material-insight-theme">
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <div className="flex flex-col min-h-screen">
+              <main className="flex-grow pb-20 md:pb-0">
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/services" element={<Services />} />
+                  <Route path="/resources" element={<Resources />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
 
-            {/* New Industry Transformation Routes */}
-            <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/calculators" element={<Calculators />} />
-            <Route path="/vendor-dashboard" element={<VendorDashboard />} />
-            <Route path="/pro-portal" element={<ProDashboard />} />
-            <Route path="/pro/ai-studio" element={<AIStudio />} />
-            <Route path="/register/vendor" element={<VendorRegister />} />
-            <Route path="/register/pro" element={<ProRegister />} />
+                  {/* New Industry Transformation Routes */}
+                  <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/calculators" element={<Calculators />} />
+                  <Route path="/vendor-dashboard" element={<VendorDashboard />} />
+                  <Route path="/pro-portal" element={<ProDashboard />} />
+                  <Route path="/pro/ai-studio" element={<AIStudio />} />
+                  <Route path="/register/vendor" element={<VendorRegister />} />
+                  <Route path="/register/pro" element={<ProRegister />} />
 
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+              <BottomNav />
+            </div>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

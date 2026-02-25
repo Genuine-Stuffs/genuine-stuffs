@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, ChevronDown, Rocket, ShieldCheck, ShoppingBag, LayoutDashboard } from "lucide-react";
+import { Menu, X, User, ChevronDown, Rocket, ShieldCheck, ShoppingBag, LayoutDashboard, Search } from "lucide-react";
+import { ModeToggle } from "./ModeToggle";
 import { Button } from "@/components/ui/button";
 import logoIcon from "@/assets/logo-icon.png";
 import { useAuth } from "@/context/AuthContext";
@@ -32,7 +33,7 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
+    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center space-x-3 group">
@@ -41,21 +42,21 @@ const Navbar = () => {
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-white" />
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-lg leading-tight tracking-tight text-slate-900 group-hover:text-primary transition-colors">GENUINE STUFFS</span>
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Trust-Driven Ecosystem</span>
+              <span className="font-black text-lg leading-tight tracking-tight text-slate-900 dark:text-white group-hover:text-primary transition-colors">GENUINE STUFFS</span>
+              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest leading-none">Trust-Driven Ecosystem</span>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <div className="flex items-center space-x-1 bg-slate-100/50 p-1.5 rounded-2xl">
+            <div className="flex items-center space-x-1 bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl">
               {filteredLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
                   className={`text-sm font-bold px-4 py-2 rounded-xl transition-all ${isActive(link.path)
-                    ? "bg-white text-primary shadow-sm"
-                    : "text-slate-500 hover:text-slate-900 hover:bg-white/50"
+                    ? "bg-white dark:bg-slate-700 text-primary shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
                     }`}
                 >
                   {link.label}
@@ -63,15 +64,17 @@ const Navbar = () => {
               ))}
             </div>
 
-            <div className="h-8 w-[1px] bg-slate-100" />
+            <ModeToggle />
+
+            <div className="h-8 w-[1px] bg-slate-100 dark:bg-slate-800" />
 
             {/* Role Switcher (For Demo) / Auth State */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="rounded-2xl gap-2 font-black text-slate-700 bg-slate-50 border-none hover:bg-slate-100">
+                <Button variant="ghost" className="rounded-2xl gap-2 font-black text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 border-none hover:bg-slate-100 dark:hover:bg-slate-700">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${role === 'pro' ? 'bg-primary text-white' :
                     role === 'vendor' ? 'bg-orange-500 text-white' :
-                      'bg-slate-300 text-white'
+                      'bg-slate-300 dark:bg-slate-600 text-white'
                     }`}>
                     <User className="w-4 h-4" />
                   </div>
@@ -101,20 +104,23 @@ const Navbar = () => {
             </DropdownMenu>
 
             {role === 'guest' ? (
-              <Button asChild className="rounded-2xl font-black bg-slate-900 hover:bg-slate-800 px-6 h-11">
+              <Button asChild className="rounded-2xl font-black bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 px-6 h-11 transition-colors">
                 <Link to="/register/pro">Join Platform</Link>
               </Button>
             ) : null}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden p-2 rounded-xl bg-slate-50"
-            onClick={() => setIsOpen(!isOpen)}
-            aria-label="Toggle menu"
-          >
-            {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
+          {/* Mobile Menu Actions */}
+          <div className="flex md:hidden items-center gap-2">
+            <ModeToggle />
+            <button
+              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}

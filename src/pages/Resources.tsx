@@ -79,18 +79,18 @@ const Resources = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50/50">
+    <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 transition-colors duration-300">
       <Navbar />
 
       {/* Hero Section */}
-      <section className="py-20 relative overflow-hidden bg-slate-900 text-white">
+      <section className="py-20 relative overflow-hidden bg-slate-900 dark:bg-black text-white transition-colors duration-300">
         <div className="absolute top-0 right-0 p-20 bg-primary/20 rounded-full blur-3xl" />
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tight">
+            <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tight uppercase leading-none">
               Technical <span className="text-primary italic">Resource</span> Center
             </h1>
-            <p className="text-xl text-slate-400 font-medium">
+            <p className="text-xl text-slate-400 font-medium italic">
               High-fidelity CAD/BIM models, industry standards, and precision guides for the modern construction team.
             </p>
           </div>
@@ -98,16 +98,17 @@ const Resources = () => {
       </section>
 
       {/* Filter Bar */}
-      <div className="sticky top-20 z-40 bg-white border-b py-2 shadow-sm">
-        <div className="container mx-auto px-4 flex gap-2 overflow-x-auto no-scrollbar">
+      <div className="sticky top-20 z-40 bg-white dark:bg-slate-900 border-b dark:border-slate-800 py-3 shadow-sm transition-colors">
+        <div className="container mx-auto px-4 flex gap-3 overflow-x-auto no-scrollbar items-center">
+          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mr-2 shrink-0">Filter By:</span>
           {resourceFilters.map((filter) => (
             <Button
               key={filter.id}
-              variant={activeFilter === filter.id ? "ghost" : "ghost"} // Simplified for now
+              variant="ghost"
               onClick={() => setActiveFilter(filter.id)}
-              className={`rounded-full gap-2 whitespace-nowrap ${activeFilter === filter.id ? 'bg-primary text-white hover:bg-primary/90' : ''}`}
+              className={`rounded-full gap-2 whitespace-nowrap px-6 h-9 text-xs font-black uppercase tracking-widest transition-all ${activeFilter === filter.id ? 'bg-primary text-white hover:bg-primary/90' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/5'}`}
             >
-              <filter.icon className="w-4 h-4" /> {filter.label}
+              <filter.icon className="w-3.5 h-3.5" /> {filter.label}
             </Button>
           ))}
         </div>
@@ -118,27 +119,27 @@ const Resources = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {articles.map((article, index) => (
-              <Card key={index} className={`group border-none shadow-sm hover:shadow-xl transition-all relative overflow-hidden bg-white ${article.isPro ? 'ring-2 ring-primary/10' : ''}`}>
+              <Card key={index} className={`group border-none shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all relative overflow-hidden bg-white dark:bg-slate-900 rounded-3xl ${article.isPro ? 'ring-1 ring-primary/20 dark:ring-primary/10' : ''}`}>
                 {article.isPro && (
                   <div className="absolute top-4 right-4 z-10">
-                    <div className="bg-primary text-white p-2 rounded-full shadow-lg">
+                    <div className="bg-primary text-white p-2.5 rounded-full shadow-lg">
                       <Lock className="w-4 h-4" />
                     </div>
                   </div>
                 )}
                 <CardContent className="pt-8">
-                  <div className={`p-4 rounded-2xl w-fit mb-4 ${article.isPro ? 'bg-primary/10 text-primary' : 'bg-slate-100 text-slate-600'}`}>
+                  <div className={`p-4 rounded-2xl w-fit mb-6 transition-colors ${article.isPro ? 'bg-primary/10 text-primary dark:bg-primary/20' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'}`}>
                     <article.icon className="w-8 h-8" />
                   </div>
-                  <div className="text-xs text-primary font-bold uppercase tracking-widest mb-2">{article.category}</div>
-                  <h3 className="text-xl font-bold mb-3 group-hover:text-primary transition-colors">{article.title}</h3>
-                  <p className="text-muted-foreground mb-6 line-clamp-2">{article.description}</p>
-                  <div className="flex justify-between items-center text-sm font-bold">
-                    <span className={article.isPro ? 'text-primary' : 'text-slate-400'}>{article.readTime}</span>
+                  <div className="text-[10px] text-primary font-black uppercase tracking-widest mb-3">{article.category}</div>
+                  <h3 className="text-xl font-black mb-3 text-slate-900 dark:text-white leading-tight uppercase tracking-tight group-hover:text-primary transition-colors">{article.title}</h3>
+                  <p className="text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 leading-relaxed font-medium">{article.description}</p>
+                  <div className="flex justify-between items-center text-xs font-black uppercase tracking-widest">
+                    <span className={article.isPro ? 'text-primary' : 'text-slate-400 dark:text-slate-500'}>{article.readTime}</span>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="gap-2 group-hover:bg-primary/5"
+                      className="gap-2 group-hover:bg-primary/5 h-8 font-black uppercase italic"
                       asChild={article.isPro && !isPro}
                     >
                       {article.isPro && !isPro ? (
@@ -156,29 +157,29 @@ const Resources = () => {
       </section>
 
       {/* Downloadable Resources */}
-      <section className="py-20 bg-slate-900 text-white">
+      <section className="py-24 bg-slate-900 dark:bg-black text-white transition-colors duration-300">
         <div className="container mx-auto px-4">
-          <div className="mb-12 text-center">
-            <h2 className="text-4xl font-black mb-4">Technical Assets</h2>
-            <p className="text-xl text-slate-400">Direct access to verified construction documentation.</p>
+          <div className="mb-16 text-center">
+            <h2 className="text-4xl font-black mb-4 uppercase tracking-tighter">Technical Assets</h2>
+            <p className="text-xl text-slate-400 italic">Direct access to verified construction documentation.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {downloads.map((download, index) => (
-              <Card key={index} className="border-none bg-white/5 backdrop-blur hover:bg-white/10 transition-all group">
-                <CardContent className="pt-8">
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="p-4 rounded-2xl bg-white/10 group-hover:bg-primary transition-colors">
+              <Card key={index} className="border-none bg-white/5 dark:bg-white/[0.03] backdrop-blur hover:bg-white/10 dark:hover:bg-white/[0.06] transition-all group rounded-3xl overflow-hidden shadow-2xl">
+                <CardContent className="pt-10">
+                  <div className="flex justify-between items-start mb-8">
+                    <div className="p-4 rounded-2xl bg-white/10 group-hover:bg-primary transition-all group-hover:scale-110">
                       <download.icon className="w-8 h-8 text-white" />
                     </div>
-                    <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${download.isPro ? 'bg-primary text-white' : 'bg-slate-700 text-slate-300'}`}>
+                    <span className={`text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-widest ${download.isPro ? 'bg-primary text-white' : 'bg-slate-700 text-slate-300'}`}>
                       {download.format}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold mb-3">{download.title}</h3>
-                  <p className="text-slate-400 mb-8">{download.description}</p>
+                  <h3 className="text-xl font-black mb-4 uppercase tracking-tight">{download.title}</h3>
+                  <p className="text-slate-400 mb-8 font-medium leading-relaxed italic">"{download.description}"</p>
                   <Button
-                    className={`w-full h-12 gap-2 font-bold ${download.isPro ? 'bg-primary' : 'bg-white text-slate-900 hover:bg-slate-100'}`}
+                    className={`w-full h-12 gap-3 font-black uppercase tracking-wider rounded-xl transition-all shadow-lg ${download.isPro ? 'bg-primary hover:bg-primary/90 text-white shadow-primary/20' : 'bg-white text-slate-900 hover:bg-slate-100 shadow-white/10'}`}
                     asChild={download.isPro && !isPro}
                   >
                     {download.isPro && !isPro ? (

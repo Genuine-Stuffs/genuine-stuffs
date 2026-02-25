@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
     Calculator, UploadCloud, FileText, CheckCircle2, ChevronDown,
-    BarChart, Activity, RefreshCw, Zap
+    BarChart, Activity, RefreshCw, Zap, Layers, Wrench
 } from "lucide-react";
 
 const Calculators = () => {
@@ -22,17 +22,17 @@ const Calculators = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50/50">
+        <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950 transition-colors duration-300">
             <Navbar />
 
             <main className="container mx-auto px-4 py-12 flex justify-center">
                 <div className="w-full max-w-6xl">
                     <header className="mb-10 text-center">
-                        <h1 className="text-4xl font-extrabold mb-4 flex items-center justify-center gap-3">
+                        <h1 className="text-4xl font-extrabold mb-4 flex items-center justify-center gap-3 text-slate-900 dark:text-white uppercase tracking-tight">
                             <Calculator className="w-10 h-10 text-primary" />
-                            Interactive AI Surveying & Calculators
+                            Interactive AI Surveying
                         </h1>
-                        <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        <p className="text-xl text-muted-foreground dark:text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed italic">
                             Upload your blueprints or architectural prompts. Our AI immediately generates a phased breakdown of required materials and estimated costs.
                         </p>
                     </header>
@@ -40,43 +40,43 @@ const Calculators = () => {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Left Panel: Upload & Input */}
                         <div className="lg:col-span-1 space-y-6">
-                            <Card className="border-2 border-primary/20 shadow-lg">
-                                <CardHeader>
-                                    <CardTitle className="text-2xl flex items-center gap-2">
+                            <Card className="border-2 border-primary/20 dark:border-primary/10 dark:bg-slate-900 shadow-lg rounded-3xl overflow-hidden">
+                                <CardHeader className="pb-4">
+                                    <CardTitle className="text-2xl font-black flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-tighter">
                                         <UploadCloud className="w-6 h-6 text-primary" />
                                         Project Input
                                     </CardTitle>
-                                    <CardDescription>
+                                    <CardDescription className="dark:text-slate-500 font-medium">
                                         Upload CAD files, PDFs, or provide a detailed prompt to begin AI surveying.
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:bg-slate-50 transition-colors cursor-pointer group">
-                                        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors">
+                                    <div className="border-2 border-dashed border-slate-300 dark:border-slate-800 rounded-2xl p-8 text-center hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group">
+                                        <div className="w-16 h-16 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
                                             <FileText className="w-8 h-8 text-primary" />
                                         </div>
-                                        <p className="font-semibold text-slate-700">Drag & Drop Blueprint</p>
-                                        <p className="text-sm text-slate-500 mt-2">Supports .dwg, .pdf, .rvt</p>
+                                        <p className="font-bold text-slate-700 dark:text-slate-200">Drag & Drop Blueprint</p>
+                                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-2 uppercase tracking-widest font-black">Supports .dwg, .pdf, .rvt</p>
                                     </div>
 
                                     <div className="relative">
                                         <div className="absolute inset-0 flex items-center">
                                             <span className="w-full border-t" />
                                         </div>
-                                        <div className="relative flex justify-center text-xs uppercase">
-                                            <span className="bg-white px-2 text-muted-foreground">OR</span>
+                                        <div className="relative flex justify-center text-xs font-black uppercase tracking-widest">
+                                            <span className="bg-white dark:bg-slate-900 px-3 text-slate-400">OR</span>
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
                                         <textarea
-                                            className="w-full min-h-[120px] p-4 rounded-xl border bg-slate-50/50 focus:bg-white transition-colors placeholder:text-slate-400"
-                                            placeholder="Describe the building: E.g., A 3-story commercial block with 500sqm floor area per level, reinforced concrete frame..."
+                                            className="w-full min-h-[120px] p-4 rounded-xl border dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/50 focus:bg-white dark:focus:bg-slate-800 transition-colors placeholder:text-slate-400 text-slate-700 dark:text-slate-200 font-medium"
+                                            placeholder="Describe the building: E.g., A 3-story commercial block with 500sqm floor area per level..."
                                         />
                                     </div>
 
                                     <Button
-                                        className="w-full h-14 text-lg font-bold gap-2 shadow-md hover:shadow-xl transition-all"
+                                        className="w-full h-14 text-lg font-black gap-2 shadow-lg hover:shadow-primary/20 transition-all rounded-xl uppercase tracking-wider"
                                         onClick={startAiAnalysis}
                                         disabled={isSurveying}
                                     >
@@ -86,7 +86,7 @@ const Calculators = () => {
                                             </>
                                         ) : (
                                             <>
-                                                <Zap className="w-5 h-5 text-yellow-400" /> Generate Bill of Quantities
+                                                <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" /> Generate Bill of Quantities
                                             </>
                                         )}
                                     </Button>
@@ -140,29 +140,29 @@ const Calculators = () => {
                                                     { item: "Sharp Sand", qty: "320 Tons", price: "₦ 3,200,000", alt: "Compare Suppliers" },
                                                     { item: "Reinforcement Steel (16mm)", qty: "85 Tons", price: "₦ 51,000,000", alt: "View Market Trends" }
                                                     ].map((row, i) => (
-                                                        <div key={i} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-primary/30 hover:shadow-md transition-all group">
+                                                        <div key={i} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-primary/30 dark:hover:border-primary/30 transition-all group">
                                                             <div className="flex-1">
-                                                                <h4 className="font-bold text-slate-800">{row.item}</h4>
-                                                                <p className="text-sm text-primary font-semibold mt-1">Estimated. {row.qty}</p>
+                                                                <h4 className="font-black text-slate-800 dark:text-white text-lg tracking-tight uppercase leading-none mb-1">{row.item}</h4>
+                                                                <p className="text-xs text-primary font-black uppercase tracking-widest mt-1">Estimated {row.qty}</p>
                                                             </div>
-                                                            <div className="flex items-center gap-4 mt-4 sm:mt-0">
+                                                            <div className="flex items-center gap-6 mt-4 sm:mt-0">
                                                                 <div className="text-right">
-                                                                    <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Est. Cost</p>
-                                                                    <p className="font-bold text-slate-800">{row.price}</p>
+                                                                    <p className="text-[10px] text-slate-400 dark:text-slate-500 uppercase tracking-widest font-black mb-1">Estimated Cost</p>
+                                                                    <p className="font-black text-xl text-slate-900 dark:text-white leading-none">{row.price}</p>
                                                                 </div>
-                                                                <Button size="sm" variant="secondary" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                                                <Button size="sm" variant="secondary" className="bg-white dark:bg-slate-700 font-bold opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                                                                     {row.alt}
                                                                 </Button>
                                                             </div>
                                                         </div>
                                                     ))}
-                                                    <div className="mt-8 p-6 bg-green-50 rounded-xl border border-green-200 flex justify-between items-center">
+                                                    <div className="mt-8 p-8 bg-green-50 dark:bg-green-950/30 rounded-3xl border border-green-200 dark:border-green-900/50 flex flex-col md:flex-row justify-between items-center gap-6 transition-colors">
                                                         <div>
-                                                            <p className="text-green-800 font-bold mb-1">Phase 1 Total Estimate</p>
-                                                            <p className="text-3xl font-black text-green-900">₦ 75,350,000</p>
+                                                            <p className="text-green-800 dark:text-green-400 font-black uppercase tracking-widest text-xs mb-2">Phase 1 Total Estimate</p>
+                                                            <p className="text-4xl font-black text-green-900 dark:text-green-200">₦ 75,350,000</p>
                                                         </div>
-                                                        <Button className="bg-green-600 hover:bg-green-700 text-white gap-2 h-12">
-                                                            <CheckCircle2 className="w-5 h-5" /> Send to Marketplace Cart
+                                                        <Button className="bg-green-600 hover:bg-green-700 dark:bg-green-600 dark:hover:bg-green-500 text-white font-black px-10 h-14 rounded-xl shadow-xl shadow-green-600/20 text-lg">
+                                                            <CheckCircle2 className="w-6 h-6 mr-2" /> Send to Marketplace
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -181,10 +181,10 @@ const Calculators = () => {
                                     </div>
                                 </Card>
                             ) : (
-                                <div className="h-full min-h-[500px] border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center text-slate-400 p-8 text-center bg-white/50">
-                                    <Calculator className="w-20 h-20 mb-6 text-slate-300" />
-                                    <h3 className="text-2xl font-bold mb-2 text-slate-500">Awaiting AI Input</h3>
-                                    <p className="max-w-md mx-auto">
+                                <div className="h-full min-h-[500px] border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-3xl flex flex-col items-center justify-center text-slate-400 p-8 text-center bg-white/50 dark:bg-slate-900/50 transition-colors">
+                                    <Calculator className="w-20 h-20 mb-6 text-slate-300 dark:text-slate-700" />
+                                    <h3 className="text-2xl font-black mb-2 text-slate-500 dark:text-slate-400 uppercase tracking-tighter">Awaiting AI Input</h3>
+                                    <p className="max-w-md mx-auto font-medium italic opacity-70">
                                         Once you upload a project file or describe your building, the AI will instantly generate a highly accurate, phase-by-phase material estimation.
                                     </p>
                                 </div>
@@ -197,13 +197,5 @@ const Calculators = () => {
         </div>
     );
 };
-
-// Simple icon fallbacks since we didn't import all from lucide-react initially in this file
-const Layers = ({ className }: { className?: string }) => (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2" /><polyline points="2 12 12 17 22 12" /><polyline points="2 17 12 22 22 17" /></svg>
-);
-const Wrench = ({ className }: { className?: string }) => (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" /></svg>
-);
 
 export default Calculators;

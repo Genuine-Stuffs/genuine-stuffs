@@ -17,7 +17,9 @@ import {
   Wrench,
   PencilRuler,
   Users,
-  LayoutDashboard
+  LayoutDashboard,
+  Rocket,
+  ShieldCheck
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -93,128 +95,150 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50/30">
+    <div className="min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300 pb-24 md:pb-0">
       <Navbar />
 
-      {/* Hero Section - Search First & Industry Transformation */}
-      <section className="relative pt-24 pb-16 overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img
-            src={heroImage}
-            alt="Industry Transformation"
-            className="w-full h-full object-cover opacity-20 grayscale"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-background/95 via-background/80 to-slate-50/50" />
-        </div>
+      {/* Compact Search Header */}
+      <section className="relative pt-6 md:pt-12 pb-8 overflow-hidden bg-slate-50 dark:bg-black border-b border-slate-100 dark:border-white/5">
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-4xl mx-auto text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest mb-4">
+              <Rocket className="w-3 h-3" />
+              Direct Marketplace Access
+            </div>
+            <h1 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
+              Find <span className="text-primary italic">Genuine</span> Building Materials
+            </h1>
+          </div>
 
-        <div className="container mx-auto px-4 relative z-10 text-center max-w-4xl">
-          <h1 className="text-4xl md:text-5xl lg:text-7xl font-extrabold mb-6 tracking-tight leading-[1.1]">
-            Welcome To A <span className="text-primary italic">Trust-Driven Construction Ecosystem</span>
-          </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-10 font-medium max-w-3xl mx-auto">
-            Restoring confidence, quality, and long-term value in the built environment through verification and expert guidance.
-          </p>
-
-          {/* Search Box - Jiji Inspired */}
-          <div className="relative max-w-2xl mx-auto mb-12 shadow-2xl rounded-2xl overflow-hidden group">
-            <div className="flex bg-white p-2">
-              <div className="flex-1 flex items-center px-4">
-                <Search className="w-6 h-6 text-muted-foreground mr-3" />
+          {/* Search Box - Jiji Inspired & Prominent */}
+          <div className="relative max-w-3xl mx-auto mb-8 shadow-2xl rounded-2xl overflow-hidden group border-2 border-primary/20 hover:border-primary transition-all bg-white dark:bg-card">
+            <div className="flex flex-col md:flex-row p-1.5 gap-1.5 md:gap-0">
+              <div className="flex-1 flex items-center px-4 py-2 md:py-0">
+                <Search className="w-6 h-6 text-slate-400 mr-3" />
                 <input
                   type="text"
-                  placeholder="What are you looking for? (e.g. Structural Steel, BIM Models, Cement...)"
-                  className="w-full h-12 bg-transparent border-none focus:outline-none text-lg"
+                  placeholder="Structural Steel, BIM Models, Cement..."
+                  className="w-full h-10 md:h-12 bg-transparent border-none focus:outline-none text-base md:text-lg dark:text-white"
                 />
               </div>
-              <Button size="lg" className="h-14 px-10 text-lg font-bold rounded-xl">
-                SEARCH
+              <Button size="lg" className="h-12 md:h-14 px-8 md:px-12 text-lg font-black rounded-xl w-full md:w-auto">
+                FIND STUFFS
               </Button>
             </div>
           </div>
 
-          {/* Quick Stats/Links */}
-          <div className="flex flex-wrap justify-center gap-4 text-sm font-semibold uppercase tracking-wider">
-            {role === 'vendor' ? (
-              <Link to="/vendor-dashboard" className="flex items-center text-primary hover:underline">
-                <LayoutDashboard className="w-4 h-4 mr-2" /> Vendor Dashboard
-              </Link>
-            ) : (
-              <Link to="/register/vendor" className="flex items-center text-primary hover:underline">
-                <Truck className="w-4 h-4 mr-2" /> How to Sell
-              </Link>
-            )}
-            <span className="text-muted-foreground">|</span>
-            <Link to="/marketplace" className="flex items-center text-primary hover:underline">
-              <HardHat className="w-4 h-4 mr-2" /> How to Buy
-            </Link>
-            <span className="text-muted-foreground">|</span>
-            {role === 'pro' ? (
-              <Link to="/pro-portal" className="flex items-center text-primary hover:underline">
-                <PencilRuler className="w-4 h-4 mr-2" /> Pro Dashboard
-              </Link>
-            ) : (
-              <Link to="/register/pro" className="flex items-center text-primary hover:underline">
-                <Shield className="w-4 h-4 mr-2" /> Verified Professionals
-              </Link>
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* Browse By Innovation & Category - Restored */}
-      <section className="py-12 bg-white border-b border-slate-100">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-3 mb-8">
-            <div className="w-2 h-8 bg-primary rounded-full" />
-            <h2 className="text-2xl font-black text-slate-900">Browse by Innovation & Category</h2>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            {categories.map((cat, i) => (
+          {/* Featured/Promoted Tags */}
+          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
+            {["Premium Cement", "ISO Rebars", "Tile Adhesives", "Lumber", "Hire Pros"].map((tag) => (
               <Link
-                key={i}
-                to={cat.link || `/marketplace?category=${encodeURIComponent(cat.title)}`}
-                className="group flex flex-col items-center p-6 rounded-2xl border border-slate-50 bg-slate-50/50 hover:bg-white hover:border-primary hover:shadow-xl transition-all duration-300"
+                key={tag}
+                to={`/marketplace?q=${tag}`}
+                className="px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary transition-all"
               >
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 ${cat.color} group-hover:scale-110 transition-transform shadow-sm`}>
-                  <cat.icon className="w-7 h-7" />
-                </div>
-                <span className="text-[10px] font-black text-center text-slate-700 leading-tight group-hover:text-primary uppercase tracking-tighter">{cat.title}</span>
+                {tag}
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Brand Values / Why We Exist - New Section */}
-      <section className="py-20 bg-white">
+      {/* Browse By Category - Prominent & Card Style */}
+      <section className="py-12 bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-white/5">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-8 bg-primary rounded-full" />
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white">Shop By Category</h2>
+            </div>
+            <Link to="/marketplace" className="text-sm font-black text-primary hover:underline uppercase tracking-tighter">View All Market</Link>
+          </div>
+
+          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4">
+            {categories.map((cat, i) => (
+              <Link
+                key={i}
+                to={cat.link || `/marketplace?category=${encodeURIComponent(cat.title)}`}
+                className="group flex flex-col items-center p-3 md:p-6 rounded-2xl border border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 hover:border-primary hover:shadow-xl transition-all duration-300 backdrop-blur-sm"
+              >
+                <div className={`w-10 h-10 md:w-14 md:h-14 rounded-2xl flex items-center justify-center mb-2 md:mb-4 ${cat.color} group-hover:scale-110 transition-transform shadow-sm`}>
+                  <cat.icon className="w-5 h-5 md:w-7 md:h-7" />
+                </div>
+                <span className="text-[9px] md:text-[10px] font-black text-center text-slate-700 dark:text-slate-300 leading-tight group-hover:text-primary uppercase tracking-tighter">{cat.title}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Trending / Promoted Materials Section - NEW */}
+      <section className="py-16 bg-slate-50 dark:bg-black transition-colors">
+        <div className="container mx-auto px-4">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-2 h-8 bg-orange-500 rounded-full" />
+              <h2 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Promoted Materials</h2>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+            {[
+              { title: "Standard Cement", price: "₦5,200", img: "/images/materials/cement.png", vendor: "Dangote Dist." },
+              { title: "Mild Steel Rebars", price: "₦850,000/ton", img: "/images/materials/steel.png", vendor: "TMT Global" },
+              { title: "Granite (Hard Rock)", price: "₦180,000", img: "/images/materials/granite.png", vendor: "Quarry Direct" },
+              { title: "Sharp Sand", price: "₦45,000", img: "/images/materials/sand.png", vendor: "Dredge Masters" }
+            ].map((prod, i) => (
+              <Card key={i} className="group overflow-hidden border-none shadow-sm hover:shadow-2xl transition-all bg-white dark:bg-card rounded-2xl">
+                <div className="aspect-square relative overflow-hidden bg-slate-100 dark:bg-slate-700">
+                  <img src={prod.img} alt={prod.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <div className="absolute top-2 right-2 px-2 py-1 rounded-lg bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest">PROMOTED</div>
+                </div>
+                <CardContent className="p-4">
+                  <div className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{prod.vendor}</div>
+                  <h3 className="font-black text-slate-900 dark:text-white leading-tight mb-2 group-hover:text-primary transition-colors">{prod.title}</h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-black text-slate-900 dark:text-white uppercase">{prod.price}</span>
+                    <Button size="sm" variant="outline" className="h-8 rounded-lg text-[10px] font-black dark:border-slate-700 dark:hover:bg-slate-700">DETAILS</Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Brand Purpose / Why We Exist - Dark Mode Enhanced */}
+      <section className="py-24 bg-white dark:bg-slate-950 border-y border-slate-100 dark:border-white/5">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="order-2 lg:order-1">
-              <div className="inline-block p-2 bg-primary/10 rounded-lg text-primary text-xs font-black uppercase tracking-widest mb-6">Our Purpose</div>
-              <h2 className="text-4xl font-black mb-8 leading-tight">Solving Fragmented <span className="text-primary italic">Supply Chains</span></h2>
-              <p className="text-lg text-slate-600 mb-6 leading-relaxed">
-                The construction industry suffers from unverified professionals, substandard materials, and limited practical guidance—resulting in project failures and cost overruns.
+              <div className="inline-block p-2 bg-primary/10 rounded-lg text-primary text-xs font-black uppercase tracking-widest mb-6">Our Core Focus</div>
+              <h2 className="text-4xl md:text-5xl font-black mb-8 leading-tight text-slate-900 dark:text-white">Restoring <span className="text-primary italic">Trust</span> to the Site</h2>
+              <p className="text-lg text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
+                We believe that every successful project starts with verified inputs. Our ecosystem bridges the gap between major suppliers and end-users.
               </p>
               <div className="space-y-4">
                 {[
-                  "Verification: Strict screening for suppliers & artisans",
-                  "Quality: Restoring confidence in material standards",
-                  "Advisory: Over 20 years of real-world site experience",
-                  "Transparency: Data-driven material selection"
-                ].map((text, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <CheckCircle2 className="w-5 h-5 text-primary" />
-                    <span className="font-bold text-slate-800">{text}</span>
+                  { label: "Verification", desc: "Rigorous screening for all listed suppliers." },
+                  { label: "Quality Control", desc: "Materials must meet minimum NIS standards." },
+                  { label: "Expert Advisory", desc: "Site management guidance from seasoned pros." },
+                  { label: "Price Transparency", desc: "Eliminating the 'middle-man' markup." }
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-4 items-start p-4 rounded-2xl bg-slate-50 dark:bg-card border border-slate-100 dark:border-white/5">
+                    <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
+                    <div>
+                      <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-tighter">{item.label}</h4>
+                      <p className="text-sm text-slate-500 dark:text-slate-500 font-medium">{item.desc}</p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="order-1 lg:order-2 rounded-3xl overflow-hidden shadow-2xl relative aspect-square lg:aspect-video">
+            <div className="order-1 lg:order-2 rounded-3xl overflow-hidden shadow-2xl relative aspect-square lg:aspect-video border-8 border-white dark:border-slate-800">
               <img src="/images/materials/steel.png" alt="Verified construction materials on site" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
               <div className="absolute bottom-8 left-8 right-8">
-                <p className="text-white text-xl font-bold italic">"We exist to ensure users do not just build, but build right."</p>
+                <p className="text-white text-xl md:text-2xl font-black italic tracking-tight leading-tight">"Efficiency is not just speed; it is building with the right materials the first time."</p>
               </div>
             </div>
           </div>
@@ -274,26 +298,29 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Specialties Section - LinkedIn Style */}
-      <section className="py-24 bg-slate-50 border-y border-slate-100">
+      {/* Specialties Section - Dark Mode Enhanced */}
+      <section className="py-24 bg-slate-50 dark:bg-black transition-colors">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-black mb-4">Our <span className="text-primary italic">Specialties</span></h2>
-            <p className="text-xl text-slate-500 max-w-2xl mx-auto font-medium">Focused on restoring confidence and protecting long-term property value.</p>
+          <div className="text-center mb-16 px-4">
+            <div className="inline-block p-2 bg-primary/10 rounded-lg text-primary text-[10px] font-black uppercase tracking-widest mb-6">Capabilities</div>
+            <h2 className="text-3xl md:text-5xl font-black mb-4 text-slate-900 dark:text-white uppercase tracking-tight">Our <span className="text-primary italic">Specialties</span></h2>
+            <p className="text-base md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium">Protecting the value of your built assets through expert verification.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 max-w-6xl mx-auto px-4">
             {[
-              "Verified Building Materials Marketplace",
-              "Construction Professionals & Artisans Directory",
-              "Supplier & Professional Verification",
-              "Construction & Property Advisory Services",
-              "Property Development & Value Assurance",
-              "Training & Knowledge Hub",
-              "Quality-Focused Construction Enablement"
+              "Verified Marketplace",
+              "Artisan Directory",
+              "Supplier Verification",
+              "Property Advisory",
+              "Value Assurance",
+              "Knowledge Hub",
+              "Quality Enablement"
             ].map((specialty, i) => (
-              <div key={i} className="flex items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:border-primary hover:shadow-md transition-all group">
-                <div className="w-2 h-2 rounded-full bg-primary group-hover:scale-150 transition-all" />
-                <span className="font-bold text-slate-800 group-hover:text-primary transition-colors">{specialty}</span>
+              <div key={i} className="flex items-center gap-4 bg-white dark:bg-card p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 hover:border-primary hover:shadow-xl transition-all group">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <span className="font-black text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors uppercase tracking-widest text-[11px] md:text-xs">{specialty}</span>
               </div>
             ))}
           </div>
@@ -362,18 +389,24 @@ const Index = () => {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-20 bg-primary text-primary-foreground">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-6">
-            Ready to Make Smarter Material Decisions?
+      {/* CTA Section - Compact & Punchy */}
+      <section className="py-24 bg-primary text-primary-foreground relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl" />
+        <div className="container mx-auto px-4 text-center relative z-10">
+          <h2 className="text-3xl md:text-5xl font-black mb-6 uppercase tracking-tight">
+            Build with <span className="italic underline decoration-4">Certainty</span>
           </h2>
-          <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90">
-            Book your free 30-minute materials review and discover how quality material choices can transform your project.
+          <p className="text-lg md:text-xl mb-10 max-w-2xl mx-auto opacity-90 font-medium">
+            Join the ecosystem of verified materials and professional construction management today.
           </p>
-          <Button asChild size="lg" variant="secondary" className="text-lg">
-            <Link to="/contact">Schedule Your Free Consultation</Link>
-          </Button>
+          <div className="flex flex-col md:flex-row items-center justify-center gap-4">
+            <Button asChild size="lg" variant="secondary" className="text-base font-black px-10 h-14 rounded-2xl w-full md:w-auto">
+              <Link to="/marketplace">EXPLORE MARKET</Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-primary text-base font-black px-10 h-14 rounded-2xl w-full md:w-auto">
+              <Link to="/register/pro">BECOME A PRO</Link>
+            </Button>
+          </div>
         </div>
       </section>
 

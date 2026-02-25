@@ -68,7 +68,7 @@ const ProRegister = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50">
+        <div className="min-h-screen bg-background transition-colors duration-300">
             <Navbar />
 
             <main className="container mx-auto px-4 py-12 flex justify-center">
@@ -76,23 +76,23 @@ const ProRegister = () => {
                     {!submitted ? (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="text-center mb-10">
-                                <h1 className="text-3xl md:text-4xl font-extrabold mb-4">Professional Registration</h1>
-                                <p className="text-lg text-muted-foreground">
+                                <h1 className="text-3xl md:text-5xl font-black mb-4 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Professional <span className="text-primary italic">Onboarding</span></h1>
+                                <p className="text-xl text-muted-foreground dark:text-slate-400 max-w-2xl mx-auto font-medium leading-relaxed italic">
                                     Access AI-powered innovation tools, BIM models, and project lifecycle management.
                                 </p>
                             </div>
 
-                            <Card className="border-2 shadow-xl">
-                                <CardHeader className="bg-primary/5 border-b">
-                                    <CardTitle className="flex items-center gap-2">
-                                        <ShieldCheck className="w-6 h-6 text-primary" />
-                                        Join the Industry Elite
+                            <Card className="border-none shadow-2xl dark:bg-card rounded-[2.5rem] overflow-hidden transition-colors">
+                                <CardHeader className="bg-primary/5 dark:bg-white/5 border-b dark:border-white/10 p-8">
+                                    <CardTitle className="flex items-center gap-3 text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                                        <ShieldCheck className="w-8 h-8 text-primary" />
+                                        Join the Elite
                                     </CardTitle>
-                                    <CardDescription>
+                                    <CardDescription className="dark:text-slate-400 font-medium italic">
                                         Fill in your details to create your professional account.
                                     </CardDescription>
                                 </CardHeader>
-                                <CardContent className="p-8">
+                                <CardContent className="p-10">
                                     <form onSubmit={handleSubmit} className="space-y-6">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
@@ -110,8 +110,8 @@ const ProRegister = () => {
                                             <Input id="email" type="email" placeholder="jane@studio.com" required value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} />
                                         </div>
 
-                                        <div className="space-y-3 pt-4 border-t">
-                                            <Label className="text-base font-bold">Registration Type</Label>
+                                        <div className="space-y-4 pt-6 border-t dark:border-white/10 transition-colors">
+                                            <Label className="text-xs font-black uppercase tracking-widest text-slate-400">Account Strategy</Label>
                                             <RadioGroup
                                                 defaultValue="individual"
                                                 value={formData.registrationType}
@@ -122,20 +122,20 @@ const ProRegister = () => {
                                                     <RadioGroupItem value="individual" id="individual" className="peer sr-only" />
                                                     <Label
                                                         htmlFor="individual"
-                                                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                                                        className="flex flex-col items-center justify-center rounded-2xl border-2 border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-6 hover:bg-white dark:hover:bg-white/10 hover:border-primary/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-white dark:peer-data-[state=checked]:bg-white/10 [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
                                                     >
-                                                        <User className="mb-3 h-6 w-6" />
-                                                        <span className="font-bold">Individual Professional</span>
+                                                        <User className="mb-3 h-8 w-8 text-primary" />
+                                                        <span className="font-black uppercase tracking-tight text-xs">Individual</span>
                                                     </Label>
                                                 </div>
                                                 <div>
                                                     <RadioGroupItem value="organization" id="organization" className="peer sr-only" />
                                                     <Label
                                                         htmlFor="organization"
-                                                        className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer"
+                                                        className="flex flex-col items-center justify-center rounded-2xl border-2 border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-white/5 p-6 hover:bg-white dark:hover:bg-white/10 hover:border-primary/50 peer-data-[state=checked]:border-primary peer-data-[state=checked]:bg-white dark:peer-data-[state=checked]:bg-white/10 [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
                                                     >
-                                                        <Building2 className="mb-3 h-6 w-6" />
-                                                        <span className="font-bold">Organization / Firm</span>
+                                                        <Building2 className="mb-3 h-8 w-8 text-primary" />
+                                                        <span className="font-black uppercase tracking-tight text-xs">Firm / Entity</span>
                                                     </Label>
                                                 </div>
                                             </RadioGroup>
@@ -146,16 +146,16 @@ const ProRegister = () => {
                                             <Input id="password" type="password" required value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} />
                                         </div>
 
-                                        <Button type="submit" className="w-full h-12 text-lg gap-2" size="lg" disabled={isLoading}>
+                                        <Button type="submit" className="w-full h-14 text-lg gap-2 font-black uppercase tracking-[0.2em] rounded-2xl shadow-xl shadow-primary/20 transition-all hover:scale-[1.02]" size="lg" disabled={isLoading}>
                                             {isLoading ? (
-                                                <>Creating Account... <Loader2 className="w-5 h-5 animate-spin" /></>
+                                                <>Syncing... <Loader2 className="w-5 h-5 animate-spin" /></>
                                             ) : (
-                                                <>Create Professional Account <Check className="w-5 h-5" /></>
+                                                <>Initialize Portal <ChevronRight className="w-5 h-5" /></>
                                             )}
                                         </Button>
 
-                                        <p className="text-center text-sm text-muted-foreground mt-4">
-                                            By registering, you agree to our <Link to="/terms" className="text-primary hover:underline">Terms of Service</Link> and <Link to="/privacy" className="text-primary hover:underline">Privacy Policy</Link>.
+                                        <p className="text-center text-[10px] text-slate-400 font-black uppercase tracking-widest mt-6">
+                                            Trusted by over 500+ Architecture firms in Nigeria.
                                         </p>
                                     </form>
                                 </CardContent>

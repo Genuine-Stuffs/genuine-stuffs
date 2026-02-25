@@ -17,16 +17,16 @@ VALUES
 ('Vitrified Floor Tiles (60x60)', 'Flooring', 8500, 'sqm', '/images/materials/tiles.png', 'Marble-finish vitrified tiles for premium indoor flooring.', 'Royal Ceramics', 'In Stock', ARRAY['Non-Slip', 'Water Resistant'], true, 4.6, 'Low Impact'),
 
 -- ROOFING (High-Stability Link)
-('Longspan Aluminum Roofing (0.55mm)', 'Roofing', 5200, 'Linear Meter', 'https://images.unsplash.com/photo-1635424710928-0544e8512eae?auto=format&fit=crop&w=800&q=80', 'Premium gauge aluminum roofing sheets with anti-fade coating.', 'Alu-Prime Systems', 'In Stock', ARRAY['Anti-Corrosion', 'Heat Reflecting'], true, 4.5, 'Medium Impact'),
+('Longspan Aluminum Roofing (0.55mm)', 'Roofing', 5200, 'Linear Meter', 'https://images.unsplash.com/photo-1635424710928-0544e8512eea?auto=format&fit=crop&w=800&q=80', 'Premium gauge aluminum roofing sheets with anti-fade coating.', 'Alu-Prime Systems', 'In Stock', ARRAY['Anti-Corrosion', 'Heat Reflecting'], true, 4.5, 'Medium Impact'),
 
 -- FLOORING (Polished Slab - Better Link)
-('Polished Granite Slabs', 'Flooring', 25000, 'sqm', 'https://images.unsplash.com/photo-1600607687920-4e2a12cf1a57?auto=format&fit=crop&w=800&q=80', 'Natural black galaxy granite slabs for countertops and floors.', 'Nigerian Granite Hub', 'Low Stock', ARRAY['Natural Stone', 'Luxury'], true, 4.8, 'Low Impact'),
+('Polished Granite Slabs', 'Flooring', 25000, 'sqm', 'https://images.unsplash.com/photo-1603120286981-37887349942a?auto=format&fit=crop&w=800&q=80', 'Natural black galaxy granite slabs for countertops and floors.', 'Nigerian Granite Hub', 'Low Stock', ARRAY['Natural Stone', 'Luxury'], true, 4.8, 'Low Impact'),
 
 -- PAINT (High-Stability Link)
-('Premium Wall Paint (White)', 'Finishing', 42000, '20L Bucket', 'https://images.unsplash.com/photo-1562664377-709f2c337eb2?auto=format&fit=crop&w=800&q=80', 'High-opacity brilliant white emulsion for interior walls.', 'Dulux Nigeria', 'In Stock', ARRAY['Washable', 'Low VOC'], true, 4.7, 'Eco-Friendly'),
+('Premium Wall Paint (White)', 'Finishing', 42000, '20L Bucket', 'https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&w=800&q=80', 'High-opacity brilliant white emulsion for interior walls.', 'Dulux Nigeria', 'In Stock', ARRAY['Washable', 'Low VOC'], true, 4.7, 'Eco-Friendly'),
 
 -- ELECTRICAL (Industrial Quality Link)
-('Coleman Copper Cable (1.5mm)', 'Electrical', 35000, '100m Roll', 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=800&q=80', 'Pure copper wiring for residential electrical installations.', 'Coleman Wires & Cables', 'In Stock', ARRAY['Fire Retardant', 'Pure Copper'], true, 4.9, 'Medium Impact'),
+('Coleman Copper Cable (1.5mm)', 'Electrical', 35000, '100m Roll', 'https://images.unsplash.com/photo-1558444473-111537175525?auto=format&fit=crop&w=800&q=80', 'Pure copper wiring for residential electrical installations.', 'Coleman Wires & Cables', 'In Stock', ARRAY['Fire Retardant', 'Pure Copper'], true, 4.9, 'Medium Impact'),
 
 -- PLUMBING (Industrial Quality Link)
-('Plumbing Network Pipes', 'Plumbing', 12500, 'Length', 'https://images.unsplash.com/photo-1581244277943-fe4a9c777189?auto=format&fit=crop&w=800&q=80', 'Durable PVC pressure pipes for water distribution networks.', 'Kaka Plumbing', 'In Stock', ARRAY['Standard PN10', 'UV Protected'], true, 4.3, 'Low Impact');
+('Plumbing Network Pipes', 'Plumbing', 12500, 'Length', 'https://images.unsplash.com/photo-1585704032915-c3400ca1f963?auto=format&fit=crop&w=800&q=80', 'Durable PVC pressure pipes for water distribution networks.', 'Kaka Plumbing', 'In Stock', ARRAY['Standard PN10', 'UV Protected'], true, 4.3, 'Low Impact');
