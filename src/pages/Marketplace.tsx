@@ -2,7 +2,6 @@ import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { Search, Filter, Grid, List, ArrowUpDown, ShoppingCart, Info, Leaf, DollarSign, User, Loader2, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
@@ -15,6 +14,14 @@ import {
     SheetTitle,
     SheetTrigger,
 } from "@/components/ui/sheet";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
+import { Phone, MessageCircle, ShieldAlert, CheckCircle2, Search, Filter, Grid, List, ArrowUpDown, ShoppingCart, Info, Leaf, DollarSign, User, Loader2, SlidersHorizontal, ExternalLink, MapPin } from "lucide-react";
 import { supabase } from "backend/supabaseClient";
 import type { Database } from "backend/types";
 
@@ -27,8 +34,10 @@ const Marketplace = () => {
     const [mobileView, setMobileView] = useState<"grid" | "list">("grid");
     const [priceRange, setPriceRange] = useState({ min: "", max: "" });
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [selectedMaterial, setSelectedMaterial] = useState<any | null>(null);
+    const [showContact, setShowContact] = useState(false);
 
-    const { data: dbMaterials = [], isLoading, error } = useQuery<MaterialRow[]>({
+    const { data: dbMaterials = [], isLoading, error: materialsError } = useQuery<any[]>({
         queryKey: ['materials'],
         queryFn: async () => {
             const { data, error } = await supabase
@@ -36,14 +45,32 @@ const Marketplace = () => {
                 .select('*')
                 .eq('is_verified', true);
             if (error) throw error;
-            return (data as MaterialRow[]) || [];
+            return data || [];
         }
     });
+
+    const { data: vendors = [] } = useQuery({
+        queryKey: ['vendors'],
+        queryFn: async () => {
+            const { data, error } = await supabase
+                .from('vendors')
+                .select('id, phone');
+            if (error) throw error;
+            return data || [];
+        }
+    });
+
+    const materialsWithVendors = useMemo(() => {
+        return dbMaterials.map(m => ({
+            ...m,
+            vendor: vendors.find(v => v.id === m.vendor_id)
+        }));
+    }, [dbMaterials, vendors]);
 
     const categories = ["All", ...Array.from(new Set(dbMaterials.map(m => m.category)))];
 
     const filteredMaterials = useMemo(() => {
-        return dbMaterials.filter(m => {
+        return materialsWithVendors.filter(m => {
             const matchesSearch = m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 (m.description?.toLowerCase().includes(searchQuery.toLowerCase())) ||
                 (m.vendor_name?.toLowerCase().includes(searchQuery.toLowerCase()));
@@ -233,7 +260,7 @@ const Marketplace = () => {
                                 <Loader2 className="w-10 h-10 text-primary animate-spin" />
                                 <p className="font-bold text-slate-400 italic">Authenticating and fetching verified materials...</p>
                             </div>
-                        ) : error ? (
+                        ) : materialsError ? (
                             <div className="bg-red-50 border border-red-100 p-8 rounded-2xl text-center">
                                 <Info className="w-12 h-12 text-red-500 mx-auto mb-4" />
                                 <h3 className="text-lg font-black text-red-900 mb-2">Connection Error</h3>
@@ -242,7 +269,14 @@ const Marketplace = () => {
                         ) : filteredMaterials.length > 0 ? (
                             <div className={viewMode === "list" || mobileView === "list" ? "space-y-4" : "grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-6"}>
                                 {filteredMaterials.map((m) => (
-                                    <Card key={m.id} className="group overflow-hidden border border-slate-200 dark:border-white/10 hover:border-primary/50 hover:shadow-[0_0_30px_-5px_hsl(var(--primary-glow))] transition-all duration-500 rounded-3xl flex flex-col h-full bg-white dark:bg-card shadow-sm">
+                                    <Card
+                                        key={m.id}
+                                        className="group overflow-hidden border border-slate-200 dark:border-white/10 hover:border-primary/50 hover:shadow-[0_0_30px_-5px_hsl(var(--primary-glow))] transition-all duration-500 rounded-3xl flex flex-col h-full bg-white dark:bg-card shadow-sm cursor-pointer"
+                                        onClick={() => {
+                                            setSelectedMaterial(m);
+                                            setShowContact(false);
+                                        }}
+                                    >
                                         <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-800">
                                             <img
                                                 src={m.image_url || "/images/materials/cement.png"}
@@ -257,27 +291,28 @@ const Marketplace = () => {
                                             </div>
                                         </div>
                                         <CardContent className="p-3 md:p-5 flex-grow">
-                                            <div className="flex justify-between items-start mb-2 md:mb-3">
-                                                <h3 className="font-black text-sm md:text-lg text-slate-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-1 truncate uppercase tracking-tight">{m.name}</h3>
-                                            </div>
-                                            <p className="hidden md:block text-slate-500 dark:text-slate-400 text-sm mb-4 line-clamp-2 leading-relaxed font-medium">{m.description}</p>
-                                            <div className="flex items-center gap-2 text-[8px] md:text-xs font-black text-slate-400 dark:text-slate-500 mb-3 md:mb-4 bg-slate-50 dark:bg-white/5 p-1.5 md:p-2 rounded-lg transition-colors truncate">
+                                            <div className="flex items-center gap-2 text-[8px] md:text-xs font-black text-slate-400 dark:text-slate-500 mb-2 md:mb-3 bg-slate-50 dark:bg-white/5 p-1 px-2 md:p-2 rounded-lg transition-colors truncate">
                                                 <User className="w-3 h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
                                                 <span className="truncate">{m.vendor_name || "Verified Vendor"}</span>
+                                                {m.is_verified && <CheckCircle2 className="w-2.5 h-2.5 md:w-3 md:h-3 text-primary ml-auto" />}
                                             </div>
-                                            <div className="flex justify-between items-end mt-auto">
-                                                <div>
-                                                    <span className="text-[8px] md:text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 block mb-0.5">Price</span>
-                                                    <div className="flex items-baseline gap-0.5 md:gap-1">
-                                                        <span className="text-sm md:text-2xl font-black text-slate-900 dark:text-white">₦{Number(m.price).toLocaleString()}</span>
-                                                        <span className="text-[8px] md:text-xs font-bold text-slate-400 dark:text-slate-500">/{m.unit.split(' ')[0]}</span>
-                                                    </div>
-                                                </div>
+                                            <h3 className="font-black text-xs md:text-lg text-slate-900 dark:text-white leading-tight group-hover:text-primary transition-colors line-clamp-2 uppercase tracking-tight mb-2">{m.name}</h3>
+                                            <p className="hidden md:block text-slate-500 dark:text-slate-400 text-sm mb-4 line-clamp-2 leading-relaxed font-medium">{m.description}</p>
+
+                                            <div className="flex items-baseline gap-1 mt-auto">
+                                                <span className="text-xs md:text-lg font-black text-slate-900 dark:text-white">₦{Number(m.price).toLocaleString()}</span>
+                                                <span className="text-[8px] md:text-xs text-slate-400 font-bold uppercase tracking-widest">/{m.unit || "unit"}</span>
                                             </div>
                                         </CardContent>
                                         <CardFooter className="p-3 md:p-5 pt-0">
-                                            <Button className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-primary text-white font-black h-9 md:h-11 rounded-xl transition-all shadow-lg hover:shadow-primary/20 group/btn text-[10px] md:text-sm uppercase tracking-widest md:tracking-normal">
-                                                Add <ShoppingCart className="ml-2 w-3 h-3 md:w-4 md:h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                            <Button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedMaterial(m);
+                                                }}
+                                                className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-primary text-white font-black h-8 md:h-10 rounded-xl transition-all shadow-lg hover:shadow-primary/20 group/btn text-[9px] md:text-xs uppercase tracking-widest"
+                                            >
+                                                Details <ExternalLink className="ml-2 w-3 h-3 md:w-3.5 md:h-3.5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                                             </Button>
                                         </CardFooter>
                                     </Card>
@@ -295,6 +330,103 @@ const Marketplace = () => {
                     </div>
                 </div>
             </div>
+            {/* Product Detail Modal (Jiji Style) */}
+            <Dialog open={!!selectedMaterial} onOpenChange={(open) => !open && setSelectedMaterial(null)}>
+                <DialogContent className="max-w-4xl p-0 overflow-hidden bg-white dark:bg-card border-none rounded-[2rem] shadow-3xl">
+                    {selectedMaterial && (
+                        <div className="flex flex-col md:flex-row h-full max-h-[90vh] overflow-y-auto md:overflow-hidden">
+                            {/* Left Side: Images */}
+                            <div className="md:w-3/5 bg-slate-100 dark:bg-slate-900 relative">
+                                <img
+                                    src={selectedMaterial.image_url || "/images/materials/cement.png"}
+                                    alt={selectedMaterial.name}
+                                    className="w-full h-full object-cover min-h-[300px] md:min-h-0"
+                                />
+                                <div className="absolute top-4 left-4 flex gap-2">
+                                    <Badge className="bg-primary text-white font-black px-3 py-1 uppercase tracking-widest border-none text-[10px]">
+                                        {selectedMaterial.availability}
+                                    </Badge>
+                                    {selectedMaterial.is_verified && (
+                                        <Badge className="bg-green-600 text-white font-black px-3 py-1 uppercase tracking-widest border-none text-[10px] flex items-center gap-1">
+                                            <CheckCircle2 className="w-3 h-3" /> VERIFIED
+                                        </Badge>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Right Side: Details & Contact */}
+                            <div className="md:w-2/5 p-6 md:p-8 flex flex-col h-full bg-white dark:bg-card">
+                                <div className="flex-grow">
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-widest mb-4">
+                                        <User className="w-4 h-4" />
+                                        {selectedMaterial.vendor_name || "Official Partner"}
+                                    </div>
+                                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-4 leading-tight uppercase tracking-tight">
+                                        {selectedMaterial.name}
+                                    </h2>
+                                    <div className="text-3xl font-black text-primary mb-6">
+                                        ₦{Number(selectedMaterial.price).toLocaleString()}
+                                        <span className="text-sm text-slate-400 font-bold ml-1 uppercase">/{selectedMaterial.unit}</span>
+                                    </div>
+
+                                    <div className="space-y-6 mb-8">
+                                        <div>
+                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Technical Description</h4>
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                                                {selectedMaterial.description || "No full description provided by vendor."}
+                                            </p>
+                                        </div>
+
+                                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                                            <div className="flex items-center gap-3 mb-3 text-slate-900 dark:text-white">
+                                                <MapPin className="w-4 h-4 text-primary" />
+                                                <span className="text-xs font-black uppercase tracking-widest">Ships Nationally</span>
+                                            </div>
+                                            <div className="flex items-center gap-3 text-slate-900 dark:text-white">
+                                                <Leaf className="w-4 h-4 text-green-500" />
+                                                <span className="text-xs font-black uppercase tracking-widest">CO2: {selectedMaterial.co2_footprint || "Not Rated"}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Action Area */}
+                                <div className="space-y-3 mt-auto pt-6 border-t dark:border-white/5">
+                                    <Button
+                                        className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3"
+                                        onClick={() => setShowContact(!showContact)}
+                                    >
+                                        <Phone className="w-5 h-5" />
+                                        {showContact ? (selectedMaterial as any).vendor?.phone || "0803 123 4567" : "SHOW CONTACT"}
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full h-14 rounded-2xl border-2 border-green-600/50 hover:bg-green-600 hover:text-white text-green-600 font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3"
+                                        asChild
+                                    >
+                                        <a
+                                            href={`https://wa.me/${((selectedMaterial as any).vendor?.phone || "2348031234567").replace(/\D/g, '')}?text=Hi,%20I'm%20interested%20in%20${encodeURIComponent(selectedMaterial.name)}%20on%20Genuine%20Stuffs.`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        >
+                                            <MessageCircle className="w-5 h-5" /> START CHAT
+                                        </a>
+                                    </Button>
+
+                                    {/* Safety Tips */}
+                                    <div className="mt-6 flex items-start gap-3 p-3 rounded-xl bg-orange-500/5 border border-orange-500/10">
+                                        <ShieldAlert className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
+                                        <div className="text-[9px] font-bold text-orange-600/80 uppercase leading-relaxed tracking-tighter">
+                                            Safety Tip: Meet in public, verify material quality on delivery, and never make advance payments before inspection.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
             <Footer />
         </div>
     );
