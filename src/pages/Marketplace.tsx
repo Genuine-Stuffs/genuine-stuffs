@@ -21,13 +21,15 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Phone, MessageCircle, ShieldAlert, CheckCircle2, Search, Filter, Grid, List, ArrowUpDown, ShoppingCart, Info, Leaf, DollarSign, User, Loader2, SlidersHorizontal, ExternalLink, MapPin } from "lucide-react";
+import { Phone, MessageCircle, ShieldAlert, CheckCircle2, Search, Filter, Grid, List, ArrowUpDown, ShoppingCart, Info, Leaf, DollarSign, User, Loader2, SlidersHorizontal, ExternalLink, MapPin, History, ArrowRight } from "lucide-react";
 import { supabase } from "backend/supabaseClient";
 import type { Database } from "backend/types";
+import { useAuth } from "@/context/AuthContext";
 
 type MaterialRow = Database['public']['Tables']['materials']['Row'];
 
 const Marketplace = () => {
+    const { user, role } = useAuth();
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [viewMode, setViewMode] = useState<"grid-4" | "grid-5" | "list">("grid-4");
@@ -36,6 +38,57 @@ const Marketplace = () => {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [selectedMaterial, setSelectedMaterial] = useState<any | null>(null);
     const [showContact, setShowContact] = useState(false);
+    const [isReporting, setIsReporting] = useState(false);
+    const [reportStatus, setReportStatus] = useState<"idle" | "submitting" | "success">("idle");
+
+    const logInteraction = async (type: 'phone_reveal' | 'whatsapp_chat') => {
+        if (!user || !selectedMaterial || role !== 'pro') return;
+
+        try {
+            await supabase.from('pro_interactions').insert({
+                pro_id: user.id,
+                material_id: selectedMaterial.id,
+                vendor_id: selectedMaterial.vendor_id,
+                interaction_type: type
+            });
+        } catch (err) {
+            console.error("Log failed:", err);
+        }
+    };
+
+    const incrementViewCount = async (m: any) => {
+        if (!m) return;
+        try {
+            // Using RPC for atomic increment if available, else just a direct update
+            const { error } = await supabase.rpc('increment_material_views', { material_id: m.id });
+            if (error) {
+                // Fallback direct update
+                await supabase.from('materials').update({ views_count: (m.views_count || 0) + 1 }).eq('id', m.id);
+            }
+        } catch (err) {
+            console.error("View increment failed:", err);
+        }
+    };
+
+    const handleReport = async (reason: string) => {
+        if (!selectedMaterial) return;
+        setReportStatus("submitting");
+        try {
+            await supabase.from('listing_reports').insert({
+                material_id: selectedMaterial.id,
+                reporter_id: user?.id,
+                reason: reason
+            });
+            setReportStatus("success");
+            setTimeout(() => {
+                setIsReporting(false);
+                setReportStatus("idle");
+            }, 2000);
+        } catch (err) {
+            console.error("Report failed:", err);
+            setReportStatus("idle");
+        }
+    };
 
     const { data: dbMaterials = [], isLoading, error: materialsError } = useQuery<any[]>({
         queryKey: ['materials'],
@@ -275,6 +328,7 @@ const Marketplace = () => {
                                         onClick={() => {
                                             setSelectedMaterial(m);
                                             setShowContact(false);
+                                            incrementViewCount(m);
                                         }}
                                     >
                                         <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-800">
@@ -309,6 +363,7 @@ const Marketplace = () => {
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setSelectedMaterial(m);
+                                                    incrementViewCount(m);
                                                 }}
                                                 className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-primary text-white font-black h-8 md:h-10 rounded-xl transition-all shadow-lg hover:shadow-primary/20 group/btn text-[9px] md:text-xs uppercase tracking-widest"
                                             >
@@ -357,9 +412,15 @@ const Marketplace = () => {
                             {/* Right Side: Details & Contact */}
                             <div className="md:w-2/5 p-6 md:p-8 flex flex-col h-full bg-white dark:bg-card">
                                 <div className="flex-grow">
-                                    <div className="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-widest mb-4">
-                                        <User className="w-4 h-4" />
-                                        {selectedMaterial.vendor_name || "Official Partner"}
+                                    <div className="flex items-center justify-between gap-2 text-[10px] font-black text-primary uppercase tracking-widest mb-4">
+                                        <div className="flex items-center gap-2">
+                                            <User className="w-4 h-4" />
+                                            {selectedMaterial.vendor_name || "Official Partner"}
+                                        </div>
+                                        <div className="flex items-center gap-1.5 text-slate-400">
+                                            <ShieldAlert className="w-3.5 h-3.5" />
+                                            <button onClick={() => setIsReporting(true)} className="hover:text-red-500 transition-colors uppercase">Report</button>
+                                        </div>
                                     </div>
                                     <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white mb-4 leading-tight uppercase tracking-tight">
                                         {selectedMaterial.name}
@@ -394,7 +455,11 @@ const Marketplace = () => {
                                 <div className="space-y-3 mt-auto pt-6 border-t dark:border-white/5">
                                     <Button
                                         className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3"
-                                        onClick={() => setShowContact(!showContact)}
+                                        onClick={() => {
+                                            const nextState = !showContact;
+                                            setShowContact(nextState);
+                                            if (nextState) logInteraction('phone_reveal');
+                                        }}
                                     >
                                         <Phone className="w-5 h-5" />
                                         {showContact ? (selectedMaterial as any).vendor?.phone || "0803 123 4567" : "SHOW CONTACT"}
@@ -402,6 +467,7 @@ const Marketplace = () => {
                                     <Button
                                         variant="outline"
                                         className="w-full h-14 rounded-2xl border-2 border-green-600/50 hover:bg-green-600 hover:text-white text-green-600 font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3"
+                                        onClick={() => logInteraction('whatsapp_chat')}
                                         asChild
                                     >
                                         <a
@@ -422,6 +488,60 @@ const Marketplace = () => {
                                     </div>
                                 </div>
                             </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Report Dialog */}
+            <Dialog open={isReporting} onOpenChange={setIsReporting}>
+                <DialogContent className="max-w-md p-0 rounded-[2rem] overflow-hidden border-none shadow-3xl bg-white dark:bg-slate-900 transition-colors">
+                    {reportStatus === "success" ? (
+                        <div className="p-12 text-center animate-in fade-in zoom-in duration-300">
+                            <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                                <CheckCircle2 className="w-8 h-8 text-green-500" />
+                            </div>
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">Report Received</h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium italic">Our moderation team will review this listing shortly. Thank you for keeping the marketplace safe.</p>
+                        </div>
+                    ) : (
+                        <div className="p-8">
+                            <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2 flex items-center gap-3">
+                                <ShieldAlert className="w-6 h-6 text-red-500" /> Report Listing
+                            </h3>
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 font-medium italic">Why are you reporting this material?</p>
+
+                            <div className="space-y-3 mb-8">
+                                {[
+                                    "Incorrect Information",
+                                    "Prohibited Item",
+                                    "Suspicious Vendor",
+                                    "Quality Issues",
+                                    "Duplicate Listing"
+                                ].map((reason) => (
+                                    <button
+                                        key={reason}
+                                        onClick={() => handleReport(reason)}
+                                        disabled={reportStatus === "submitting"}
+                                        className="w-full text-left p-4 rounded-xl border border-slate-100 dark:border-white/5 hover:border-primary/50 hover:bg-primary/5 transition-all text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between group"
+                                    >
+                                        {reason}
+                                        {reportStatus === "submitting" ? (
+                                            <Loader2 className="w-4 h-4 animate-spin text-slate-300" />
+                                        ) : (
+                                            <ArrowRight className="w-4 h-4 text-slate-300 group-hover:text-primary transition-colors" />
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+
+                            <Button
+                                variant="ghost"
+                                className="w-full text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-colors"
+                                onClick={() => setIsReporting(false)}
+                            >
+                                Cancel
+                            </Button>
                         </div>
                     )}
                 </DialogContent>

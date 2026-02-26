@@ -1,50 +1,64 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from 'backend/supabaseClient';
+import { User, Session } from '@supabase/supabase-js';
 
 type Role = 'client' | 'pro' | 'vendor' | 'guest';
 
-interface User {
-    id: string;
-    email: string;
-    role: Role;
-    name: string;
-}
-
 interface AuthContextType {
     user: User | null;
+    session: Session | null;
     role: Role;
-    login: (role: Role) => void;
-    logout: () => void;
+    isLoading: boolean;
+    signInWithGoogle: () => Promise<void>;
+    logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [role, setRole] = useState<Role>(() => {
-        const saved = localStorage.getItem('platform_role');
-        return (saved as Role) || 'guest';
-    });
-
     const [user, setUser] = useState<User | null>(null);
+    const [session, setSession] = useState<Session | null>(null);
+    const [role, setRole] = useState<Role>('guest');
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        localStorage.setItem('platform_role', role);
-        if (role !== 'guest') {
-            setUser({
-                id: '1',
-                email: `${role}@example.com`,
-                role: role,
-                name: `Sample ${role.charAt(0).toUpperCase() + role.slice(1)}`
-            });
-        } else {
-            setUser(null);
-        }
-    }, [role]);
+        // Initial session check
+        const initAuth = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            setSession(session);
+            setUser(session?.user ?? null);
+            setRole((session?.user?.user_metadata?.role as Role) || 'guest');
+            setIsLoading(false);
+        };
 
-    const login = (newRole: Role) => setRole(newRole);
-    const logout = () => setRole('guest');
+        initAuth();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setSession(session);
+            setUser(session?.user ?? null);
+            setRole((session?.user?.user_metadata?.role as Role) || 'guest');
+            setIsLoading(false);
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const signInWithGoogle = async () => {
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: `${window.location.origin}`
+            }
+        });
+        if (error) throw error;
+    };
+
+    const logout = async () => {
+        await supabase.auth.signOut();
+    };
 
     return (
-        <AuthContext.Provider value={{ user, role, login, logout }}>
+        <AuthContext.Provider value={{ user, session, role, isLoading, signInWithGoogle, logout }}>
             {children}
         </AuthContext.Provider>
     );

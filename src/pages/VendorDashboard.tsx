@@ -15,24 +15,47 @@ import {
     Bell,
     Search,
     Filter,
-    DollarSign
+    DollarSign,
+    Eye,
+    Loader2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { VerificationBanner } from "@/components/VerificationBanner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "backend/supabaseClient";
 
 const VendorDashboard = () => {
-    const { role } = useAuth();
+    const { user, role } = useAuth();
     const isVendor = role === "vendor";
 
+    const { data: myMaterials = [], isLoading } = useQuery({
+        queryKey: ['vendor-materials', user?.id],
+        queryFn: async () => {
+            if (!user) return [];
+            const { data, error } = await supabase
+                .from('materials')
+                .select('*')
+                .eq('vendor_id', user.id);
+            if (error) throw error;
+            return data || [];
+        },
+        enabled: !!user
+    });
+
+    const totalViews = myMaterials.reduce((sum, m) => sum + (m.views_count || 0), 0);
+    const lowStockCount = myMaterials.filter(m => m.availability === 'Low Stock' || m.availability === 'Out of Stock').length;
+
     const stats = [
-        { title: "Total Sales", value: "₦ 12,450,000", icon: DollarSign, trend: "+12.5%", color: "text-green-600" },
-        { title: "Active Orders", value: "24", icon: ShoppingCart, trend: "+4", color: "text-blue-600" },
-        { title: "Material Inventory", value: "142 Items", icon: Package, trend: "8 Low Stock", color: "text-orange-600" },
-        { title: "Profile Views", value: "1,240", icon: Users, trend: "+18%", color: "text-purple-600" },
+        { title: "Total Sales", value: "₦ 0", icon: DollarSign, trend: "Stable", color: "text-green-600" },
+        { title: "Active Orders", value: "0", icon: ShoppingCart, trend: "No active", color: "text-blue-600" },
+        { title: "Material Inventory", value: `${myMaterials.length} Items`, icon: Package, trend: `${lowStockCount} Alert`, color: "text-orange-600" },
+        { title: "Market Visibility", value: totalViews.toLocaleString(), icon: Eye, trend: "Real-time", color: "text-purple-600" },
     ];
 
     return (
         <div className="min-h-screen bg-background transition-colors duration-300">
             <Navbar />
+            <VerificationBanner />
 
             <main className="container mx-auto px-4 py-8">
                 {!isVendor && (
@@ -143,18 +166,25 @@ const VendorDashboard = () => {
                                 <Button variant="outline" size="sm" className="h-9 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-50 dark:bg-white/5 border-none text-primary">All Categories <Filter className="w-3.5 h-3.5 ml-2" /></Button>
                             </div>
                             <div className="space-y-3">
-                                {[
-                                    { name: "Portland Cement (50kg)", stock: 120, status: "Normal" },
-                                    { name: "Steel Rebar (12mm)", stock: 15, status: "Low" },
-                                    { name: "Roofing Sheets (Galvanized)", stock: 8, status: "Low" },
-                                ].map((item, i) => (
-                                    <div key={i} className="flex justify-between items-center p-4 rounded-xl bg-slate-50 dark:bg-white/5 border dark:border-white/5 transition-colors group cursor-pointer hover:bg-primary hover:text-white hover:border-primary">
-                                        <span className="text-xs font-black uppercase tracking-tight line-clamp-1">{item.name}</span>
-                                        <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded ${item.status === 'Low' ? 'bg-orange-500 text-white' : 'text-slate-400 group-hover:text-white/80'}`}>
-                                            {item.stock} Units
-                                        </span>
-                                    </div>
-                                ))}
+                                {isLoading ? (
+                                    <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                                ) : myMaterials.length > 0 ? (
+                                    myMaterials.slice(0, 5).map((item, i) => (
+                                        <div key={i} className="flex justify-between items-center p-4 rounded-xl bg-slate-50 dark:bg-white/5 border dark:border-white/5 transition-colors group cursor-pointer hover:bg-primary hover:text-white hover:border-primary">
+                                            <div className="flex flex-col gap-0.5">
+                                                <span className="text-xs font-black uppercase tracking-tight line-clamp-1">{item.name}</span>
+                                                <span className="text-[10px] font-bold opacity-60 flex items-center gap-1">
+                                                    <Eye className="w-2.5 h-2.5" /> {(item as any).views_count || 0} views
+                                                </span>
+                                            </div>
+                                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded ${item.availability === 'Low Stock' || item.availability === 'Out of Stock' ? 'bg-orange-500 text-white' : 'text-slate-400 group-hover:text-white/80'}`}>
+                                                {item.availability}
+                                            </span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="text-center p-8 text-slate-400 text-xs italic">No materials listed yet.</div>
+                                )}
                             </div>
                         </CardContent>
                     </Card>

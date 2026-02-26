@@ -25,6 +25,7 @@ export type Database = {
           availability: 'In Stock' | 'Low Stock' | 'Out of Stock'
           tags: string[] | null
           rating: number | null
+          views_count: number
           created_at: string
         }
         Insert: {
@@ -42,6 +43,7 @@ export type Database = {
           availability?: 'In Stock' | 'Low Stock' | 'Out of Stock'
           tags?: string[] | null
           rating?: number | null
+          views_count?: number
           created_at?: string
         }
         Update: {
@@ -59,6 +61,7 @@ export type Database = {
           availability?: 'In Stock' | 'Low Stock' | 'Out of Stock'
           tags?: string[] | null
           rating?: number | null
+          views_count?: number
           created_at?: string
         }
         Relationships: []
@@ -144,12 +147,66 @@ export type Database = {
         }
         Relationships: []
       }
+      pro_interactions: {
+        Row: {
+          id: string
+          pro_id: string
+          material_id: string | null
+          vendor_id: string | null
+          event_type: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          pro_id: string
+          material_id?: string | null
+          vendor_id?: string | null
+          event_type: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          pro_id?: string
+          material_id?: string | null
+          vendor_id?: string | null
+          event_type?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      listing_reports: {
+        Row: {
+          id: string
+          material_id: string
+          reporter_id: string
+          reason: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          material_id: string
+          reporter_id: string
+          reason: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          material_id?: string
+          reporter_id?: string
+          reason?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      increment_material_views: {
+        Args: { material_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

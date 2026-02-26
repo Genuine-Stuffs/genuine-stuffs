@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, ChevronDown, Rocket, ShieldCheck, ShoppingBag, LayoutDashboard, Search } from "lucide-react";
+import { Menu, X, User, ChevronDown, Rocket, ShieldCheck, ShoppingBag, LayoutDashboard, Search, Settings } from "lucide-react";
 import { ModeToggle } from "./ModeToggle";
 import { Button } from "@/components/ui/button";
 import logoIcon from "@/assets/logo-icon.png";
@@ -17,7 +17,7 @@ import {
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  const { user, role, login, logout } = useAuth();
+  const { user, role, logout } = useAuth();
 
   const navLinks = [
     { path: "/", label: "Home" },
@@ -68,46 +68,47 @@ const Navbar = () => {
 
             <div className="h-8 w-[1px] bg-slate-100 dark:bg-slate-800" />
 
-            {/* Role Switcher (For Demo) / Auth State */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="rounded-2xl gap-2 font-black text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 border-none hover:bg-slate-100 dark:hover:bg-slate-700">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${role === 'pro' ? 'bg-primary text-white' :
-                    role === 'vendor' ? 'bg-orange-500 text-white' :
-                      'bg-slate-300 dark:bg-slate-600 text-white'
-                    }`}>
-                    <User className="w-4 h-4" />
-                  </div>
-                  <div className="text-left hidden lg:block">
-                    <p className="text-[10px] uppercase text-slate-400 font-black leading-none mb-0.5">Logged in as</p>
-                    <p className="text-xs font-bold leading-none capitalize">{role}</p>
-                  </div>
-                  <ChevronDown className="w-4 h-4 text-slate-400" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 border-slate-100 shadow-2xl">
-                <DropdownMenuLabel className="px-4 py-2 text-xs font-black uppercase text-slate-400">Switch Role (Dev Mode)</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => login('client')} className="rounded-xl gap-3 py-3 cursor-pointer">
-                  <ShoppingBag className="w-4 h-4 text-slate-400" /> <span>Switch to Client</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => login('pro')} className="rounded-xl gap-3 py-3 cursor-pointer">
-                  <Rocket className="w-4 h-4 text-primary" /> <span>Switch to Pro (Architect)</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => login('vendor')} className="rounded-xl gap-3 py-3 cursor-pointer">
-                  <ShieldCheck className="w-4 h-4 text-orange-500" /> <span>Switch to Vendor</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout} className="rounded-xl gap-3 py-3 text-red-500 focus:text-red-500 cursor-pointer">
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
+            {/* Auth State */}
             {role === 'guest' ? (
               <Button asChild className="rounded-2xl font-black bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 px-6 h-11 transition-colors">
                 <Link to="/register/pro">Join Platform</Link>
               </Button>
-            ) : null}
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="rounded-2xl gap-2 font-black text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 border-none hover:bg-slate-100 dark:hover:bg-slate-700">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${role === 'pro' ? 'bg-primary text-white' :
+                      role === 'vendor' ? 'bg-orange-500 text-white' :
+                        'bg-slate-300 dark:bg-slate-600 text-white'
+                      }`}>
+                      <User className="w-4 h-4" />
+                    </div>
+                    <div className="text-left hidden lg:block">
+                      <p className="text-[10px] uppercase text-slate-400 font-black leading-none mb-0.5">Logged in as</p>
+                      <p className="text-xs font-bold leading-none capitalize">{user?.email?.split('@')[0] || role}</p>
+                    </div>
+                    <ChevronDown className="w-4 h-4 text-slate-400" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 border-slate-100 shadow-2xl">
+                  <DropdownMenuLabel className="px-4 py-2 text-xs font-black uppercase text-slate-400">Account</DropdownMenuLabel>
+                  <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
+                    <Link to={role === 'vendor' ? '/vendor-dashboard' : '/pro-portal'}>
+                      <LayoutDashboard className="w-4 h-4 text-slate-400" /> <span>Dashboard</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
+                    <Link to="/settings">
+                      <Settings className="w-4 h-4 text-slate-400" /> <span>Settings</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="rounded-xl gap-3 py-3 text-red-500 focus:text-red-500 cursor-pointer">
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           {/* Mobile Menu Actions */}
@@ -139,9 +140,14 @@ const Navbar = () => {
             ))}
             <div className="pt-4 border-t">
               <p className="px-4 pb-2 text-[10px] font-black uppercase text-slate-400 tracking-widest">Authentication</p>
-              <div className="grid grid-cols-2 gap-2 px-2">
-                <Button variant="outline" className="rounded-2xl font-bold" onClick={() => login('pro')}>Switch Pro</Button>
-                <Button variant="outline" className="rounded-2xl font-bold" onClick={() => login('vendor')}>Switch Vendor</Button>
+              <div className="px-4">
+                {role === 'guest' ? (
+                  <Button asChild className="w-full rounded-2xl font-black" onClick={() => setIsOpen(false)}>
+                    <Link to="/register/pro">Join Platform</Link>
+                  </Button>
+                ) : (
+                  <Button variant="outline" className="w-full rounded-2xl font-black text-red-500" onClick={() => { logout(); setIsOpen(false); }}>Logout</Button>
+                )}
               </div>
             </div>
           </div>

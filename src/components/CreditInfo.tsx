@@ -9,10 +9,12 @@ interface CreditInfoProps {
     credits: number;
     totalCredits?: number;
     variant?: "compact" | "full";
+    isPro?: boolean;
+    onRefill?: () => void;
 }
 
-const CreditInfo = ({ credits, totalCredits = 10, variant = "full" }: CreditInfoProps) => {
-    const percentage = (credits / totalCredits) * 100;
+const CreditInfo = ({ credits, totalCredits = 10, variant = "full", isPro = false, onRefill }: CreditInfoProps) => {
+    const percentage = Math.min((credits / totalCredits) * 100, 100);
 
     if (variant === "compact") {
         return (
@@ -33,7 +35,9 @@ const CreditInfo = ({ credits, totalCredits = 10, variant = "full" }: CreditInfo
                         <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
                             <Sparkles className="w-5 h-5 text-primary" /> Usage & Credits
                         </h3>
-                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1 italic">Trial Mode Active</p>
+                        <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest mt-1 italic">
+                            {isPro ? "Professional Plan" : "Trial Mode Active"}
+                        </p>
                     </div>
                     <div className="text-right">
                         <span className="text-3xl font-black text-primary italic leading-none">{credits}</span>
@@ -44,16 +48,25 @@ const CreditInfo = ({ credits, totalCredits = 10, variant = "full" }: CreditInfo
                 <div className="space-y-3 mb-8">
                     <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
                         <span>Utilization</span>
-                        <span>{credits}/{totalCredits}</span>
+                        <span>{credits}/{isPro ? "Unlimited" : totalCredits}</span>
                     </div>
-                    <Progress value={percentage} className="h-2 bg-slate-100 dark:bg-black/40 border dark:border-white/5" />
+                    <Progress value={isPro ? 100 : percentage} className="h-2 bg-slate-100 dark:bg-black/40 border dark:border-white/5" />
                 </div>
 
-                <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white border-none h-12 font-black uppercase tracking-widest text-xs rounded-xl shadow-xl shadow-primary/20 group">
-                    <Link to="/register/pro" className="flex items-center justify-center gap-2">
-                        Upgrade for Unlimited <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-                    </Link>
-                </Button>
+                {isPro ? (
+                    <Button
+                        onClick={onRefill}
+                        className="w-full bg-primary hover:bg-primary/90 text-white border-none h-12 font-black uppercase tracking-widest text-xs rounded-xl shadow-xl shadow-primary/20 group animate-pulse"
+                    >
+                        Refill Credits <Sparkles className="ml-2 w-4 h-4 group-hover:scale-125 transition-transform" />
+                    </Button>
+                ) : (
+                    <Button asChild className="w-full bg-primary hover:bg-primary/90 text-white border-none h-12 font-black uppercase tracking-widest text-xs rounded-xl shadow-xl shadow-primary/20 group">
+                        <Link to="/register/pro" className="flex items-center justify-center gap-2">
+                            Upgrade for Unlimited <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                        </Link>
+                    </Button>
+                )}
             </CardContent>
         </Card>
     );
