@@ -1,0 +1,50 @@
+# OpenRouter Integration & Testing: Quick Start Guide
+
+This guide will walk you through finalizing the integration and testing the AI Innovation Studio.
+
+STEP 1: GET YOUR API KEY
+---------------------------
+1. Go to https://openrouter.ai/keys
+2. Sign in and click "Create Key".
+3. Name it "Genuine Stuffs AI Studio".
+4. COPY the key immediately. (It starts with "sk-or-...")
+
+STEP 2: ADD SECRET TO SUPABASE
+-----------------------------
+Open your terminal and run:
+--------------------------------------------------
+supabase secrets set OPENROUTER_API_KEY=YOUR_KEY_HERE
+--------------------------------------------------
+*Replace YOUR_KEY_HERE with the key you copied in Step 1.
+
+STEP 3: DEPLOY THE FUNCTION
+---------------------------
+Run this command in your terminal:
+--------------------------------------------------
+supabase functions deploy ai-studio
+--------------------------------------------------
+*This makes your AI backend live.*
+
+STEP 4: HOW TO TEST
+-------------------
+
+A. UI TEST (THE BEST WAY)
+1. Log in to Material Insight Pros as a PRO USER.
+2. Go to the "AI Innovation Studio".
+3. Select a role (e.g., ARCHITECT).
+4. Click one of the RECIPE buttons.
+5. Click "RUN AI (2 CREDITS)".
+6. Verify: The image appears and your credits drop by 2.
+
+B. LOGS (IF SOMETHING GOES WRONG)
+If the AI doesn't work, run this to see the errors:
+--------------------------------------------------
+supabase functions logs ai-studio --follow
+--------------------------------------------------
+
+COMMON ISSUES
+-------------
+- Error: "Insufficient credits" -> Go to your Supabase Database, find your user in the 'professionals' table, and set 'credits' to 100 manually for testing.
+- Error: "Unauthorized" -> Make sure you are logged in on the website before testing the Prompt tool.
+
+Need more help? Just ask!

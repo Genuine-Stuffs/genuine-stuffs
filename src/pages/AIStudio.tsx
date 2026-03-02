@@ -21,6 +21,7 @@ import {
 const AIStudio = () => {
     const { user, role } = useAuth();
     const isPro = role === "pro";
+    const [selectedRole, setSelectedRole] = useState("Architect");
     const [credits, setCredits] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -88,6 +89,33 @@ const AIStudio = () => {
         handler.openIframe();
     };
 
+    const professionalRoles = [
+        {
+            name: "Architect",
+            icon: <Wand2 className="w-5 h-5" />,
+            templates: [
+                "Modern sustainable residential villa, two stories, glass facades, timber cladding, golden hour.",
+                "Architectural massing study of a low-rise office building, minimalist white cubic forms."
+            ]
+        },
+        {
+            name: "Interior Designer",
+            icon: <Sparkles className="w-5 h-5" />,
+            templates: [
+                "Luxury penthouse living room, Italian marble, polished concrete, Scandinavian furniture.",
+                "Modern open-plan kitchen, industrial aesthetic, exposed brickwork, matte black fixtures."
+            ]
+        },
+        {
+            name: "Quantity Surveyor",
+            icon: <Calculator className="w-5 h-5" />,
+            templates: [
+                "Construction site foundation phase, visible excavation, reinforcement bars layout.",
+                "Organized construction materials: interlocking blocks, cement bags, steel beams on pallets."
+            ]
+        }
+    ];
+
     const handleGenerate = async () => {
         if (!isPro || credits === null || credits < 2) {
             toast.error("Insufficient credits or not a Pro account.");
@@ -98,23 +126,24 @@ const AIStudio = () => {
         setIsGenerating(true);
         setGeneratedImage(null);
         try {
-            // Simulate AI lag + Cloud processing
-            await new Promise(resolve => setTimeout(resolve, 5000));
-
-            const { error } = await supabase
-                .from('professionals')
-                .update({ credits: credits - 2 })
-                .eq('id', user?.id);
+            const { data, error } = await supabase.functions.invoke('ai-studio', {
+                body: {
+                    prompt: promptText,
+                    type: 'image',
+                    model: 'openai/dall-e-3' // Default for now
+                }
+            });
 
             if (error) throw error;
+            if (data?.error) throw new Error(data.error);
 
-            // For now, using a premium placeholder since we haven't wired up the actual Edge Function for DALL-E
-            setGeneratedImage("https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=1200");
-
+            // OpenRouter usually returns content which might be a URL or a description
+            // For now, we assume the edge function returns the result directly
+            setGeneratedImage(data.result);
             setCredits(prev => (prev !== null ? prev - 2 : null));
             toast.success("Design Vision Rendered! (2 Credits used)");
-        } catch (err) {
-            toast.error("Generation failed. Please try again.");
+        } catch (err: any) {
+            toast.error(err.message || "Generation failed. Please try again.");
             console.error(err);
         } finally {
             setIsGenerating(false);
@@ -133,17 +162,31 @@ const AIStudio = () => {
                         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900 dark:text-white uppercase">AI Innovation Studio</h1>
                     </div>
                     {isPro && (
-                        <div className="mb-6">
+                        <div className="mb-6 flex flex-wrap items-center gap-6">
                             <CreditInfo
                                 credits={credits ?? 0}
                                 variant="compact"
                                 isPro={true}
                                 onRefill={() => setShowRefillModal(true)}
                             />
+                            <div className="flex gap-2 p-1 bg-slate-100 dark:bg-slate-900 rounded-xl">
+                                {professionalRoles.map((role) => (
+                                    <button
+                                        key={role.name}
+                                        onClick={() => setSelectedRole(role.name)}
+                                        className={`px-4 py-2 rounded-lg text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 ${selectedRole === role.name
+                                            ? "bg-white dark:bg-slate-800 text-primary shadow-sm"
+                                            : "text-slate-500 hover:text-slate-900 dark:hover:text-white"
+                                            }`}
+                                    >
+                                        {role.icon} {role.name}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                     )}
                     <p className="text-xl text-muted-foreground dark:text-slate-400 max-w-3xl font-medium leading-relaxed italic">
-                        Access next-generation building tools. Design, survey, and plan with AI-powered precision.
+                        Access next-generation building tools. Select your persona and prompt with precision.
                     </p>
                 </header>
 
@@ -155,10 +198,10 @@ const AIStudio = () => {
                                 <div>
                                     <CardTitle className="text-2xl font-black flex items-center gap-3 text-slate-900 dark:text-white uppercase tracking-tighter">
                                         <Wand2 className="w-7 h-7 text-primary" />
-                                        Architectural Prompting
+                                        {selectedRole} Prompting
                                     </CardTitle>
                                     <CardDescription className="text-lg mt-4 text-slate-500 dark:text-slate-400 font-medium leading-relaxed italic">
-                                        Describe your building vision in detail and let AI generate professional conceptual plans.
+                                        Use our specialized templates or describe your unique {selectedRole.toLowerCase()} vision.
                                     </CardDescription>
                                 </div>
                                 {isPro ? (
@@ -178,10 +221,10 @@ const AIStudio = () => {
                                     <div className="flex-1 rounded-2xl overflow-hidden relative shadow-2xl animate-in fade-in duration-1000 mb-6">
                                         <img src={generatedImage} alt="AI Generated Vision" className="w-full h-full object-cover" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-6">
-                                            <p className="text-white font-bold italic text-sm mb-2">"{promptText || "Conceptual Villa Design"}"</p>
+                                            <p className="text-white font-bold italic text-sm mb-2">"{promptText || "Conceptual Vision"}"</p>
                                             <div className="flex gap-2">
-                                                <Badge className="bg-primary text-white border-none text-[10px] font-black uppercase tracking-widest">Render v1.0</Badge>
-                                                <Badge className="bg-white/20 backdrop-blur-md text-white border-none text-[10px] font-black uppercase tracking-widest">Concept Only</Badge>
+                                                <Badge className="bg-primary text-white border-none text-[10px] font-black uppercase tracking-widest">Render v2.0 (Live)</Badge>
+                                                <Badge className="bg-white/20 backdrop-blur-md text-white border-none text-[10px] font-black uppercase tracking-widest">{selectedRole}</Badge>
                                             </div>
                                         </div>
                                     </div>
@@ -193,26 +236,37 @@ const AIStudio = () => {
                                                     <Loader2 className="w-16 h-16 animate-spin text-primary mx-auto" />
                                                     <Sparkles className="w-6 h-6 text-yellow-500 absolute top-0 right-0 animate-bounce" />
                                                 </div>
-                                                <p className="text-sm font-black uppercase tracking-widest">Processing Material Textures...</p>
+                                                <p className="text-sm font-black uppercase tracking-widest">Generating {selectedRole} Insight...</p>
                                             </div>
                                         ) : (
                                             <>
                                                 <div className="w-20 h-20 bg-white dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-6 shadow-xl">
                                                     <Wand2 className="w-10 h-10 group-hover/preview:rotate-12 transition-transform duration-500" />
                                                 </div>
-                                                <p className="font-black uppercase tracking-widest text-[10px]">Your vision will appear here</p>
+                                                <p className="font-black uppercase tracking-widest text-[10px]">Your {selectedRole.toLowerCase()} vision will appear here</p>
                                             </>
                                         )}
                                     </div>
                                 )}
 
                                 <div className="space-y-6 max-w-full">
+                                    <div className="flex flex-wrap gap-2 mb-2">
+                                        {professionalRoles.find(r => r.name === selectedRole)?.templates.map((template, idx) => (
+                                            <button
+                                                key={idx}
+                                                onClick={() => setPromptText(template)}
+                                                className="text-[10px] font-bold px-3 py-1 bg-white/50 dark:bg-slate-800 hover:bg-primary hover:text-white rounded-full transition-all border border-slate-200 dark:border-slate-700"
+                                            >
+                                                Recipe #{idx + 1}
+                                            </button>
+                                        ))}
+                                    </div>
                                     <div className="flex flex-col md:flex-row gap-3">
                                         <input
                                             value={promptText}
                                             onChange={(e) => setPromptText(e.target.value)}
                                             disabled={!isPro || (credits !== null && credits < 2) || isGenerating}
-                                            placeholder={!isPro ? "Upgrade to unlock AI Prompting" : (credits !== null && credits < 2) ? "Trial exhausted. Please upgrade." : "Prompt your building idea..."}
+                                            placeholder={!isPro ? "Upgrade to unlock AI Prompting" : (credits !== null && credits < 2) ? "Trial exhausted. Please upgrade." : `Prompt your ${selectedRole.toLowerCase()} idea...`}
                                             className="flex-1 px-6 py-4 rounded-xl border dark:border-slate-700 bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-800 transition-all outline-none focus:ring-4 focus:ring-primary/10 font-bold placeholder:text-slate-400"
                                         />
                                         <Button
@@ -221,9 +275,9 @@ const AIStudio = () => {
                                             className="gap-2 font-black px-10 rounded-xl uppercase tracking-widest shadow-xl shadow-primary/20 h-14"
                                         >
                                             {isGenerating ? (
-                                                <><Loader2 className="w-4 h-4 animate-spin" /> Thinking...</>
+                                                <><Loader2 className="w-4 h-4 animate-spin" /> Analyzing...</>
                                             ) : (
-                                                <><Sparkles className="w-4 h-4 text-yellow-400 fill-yellow-400" /> Generate (2 Credits)</>
+                                                <><Sparkles className="w-4 h-4 text-yellow-400 fill-yellow-400" /> Run AI (2 Credits)</>
                                             )}
                                         </Button>
                                     </div>
