@@ -23,8 +23,8 @@ const Navbar = () => {
     { path: "/", label: "Home" },
     { path: "/marketplace", label: "Marketplace" },
     { path: "/resources", label: "Resources" },
-    { path: "/pro/ai-studio", label: "AI Studio", role: "pro" },
-    { path: "/pro-portal", label: "Dashboard", role: "pro" },
+    { path: "/pro/ai-studio", label: "AI Studio", role: "professional" },
+    { path: "/pro-portal", label: "Dashboard", role: "professional" },
     { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
   ];
 
