@@ -12,6 +12,7 @@ interface AuthContextType {
     role: Role;
     isLoading: boolean;
     signInWithGoogle: () => Promise<void>;
+    signInWithEmail: (email: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -76,12 +77,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) throw error;
     };
 
+    const signInWithEmail = async (email: string, password: string) => {
+        const { error } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+        });
+        if (error) throw error;
+    };
+
     const logout = async () => {
         await supabase.auth.signOut();
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, role, isLoading, signInWithGoogle, logout }}>
+        <AuthContext.Provider value={{ user, session, role, isLoading, signInWithGoogle, signInWithEmail, logout }}>
             {children}
         </AuthContext.Provider>
     );

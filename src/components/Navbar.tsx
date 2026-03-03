@@ -70,9 +70,14 @@ const Navbar = () => {
 
             {/* Auth State */}
             {role === 'guest' ? (
-              <Button asChild className="rounded-2xl font-black bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 px-6 h-11 transition-colors">
-                <Link to="/register/pro">Join Platform</Link>
-              </Button>
+              <div className="flex items-center gap-3">
+                <Button asChild variant="ghost" className="rounded-2xl font-black text-slate-700 dark:text-slate-200 px-4 h-11 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                  <Link to="/login">Log In</Link>
+                </Button>
+                <Button asChild className="rounded-2xl font-black bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 px-6 h-11 transition-colors">
+                  <Link to="/register/pro">Join Platform</Link>
+                </Button>
+              </div>
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -142,9 +147,14 @@ const Navbar = () => {
               <p className="px-4 pb-2 text-[10px] font-black uppercase text-slate-400 tracking-widest">Authentication</p>
               <div className="px-4">
                 {role === 'guest' ? (
-                  <Button asChild className="w-full rounded-2xl font-black" onClick={() => setIsOpen(false)}>
-                    <Link to="/register/pro">Join Platform</Link>
-                  </Button>
+                  <div className="space-y-3">
+                    <Button asChild variant="outline" className="w-full rounded-2xl font-black border-2" onClick={() => setIsOpen(false)}>
+                      <Link to="/login">Log In</Link>
+                    </Button>
+                    <Button asChild className="w-full rounded-2xl font-black" onClick={() => setIsOpen(false)}>
+                      <Link to="/register/pro">Join Platform</Link>
+                    </Button>
+                  </div>
                 ) : (
                   <Button variant="outline" className="w-full rounded-2xl font-black text-red-500" onClick={() => { logout(); setIsOpen(false); }}>Logout</Button>
                 )}

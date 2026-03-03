@@ -14,6 +14,7 @@ import Marketplace from "./pages/Marketplace";
 import VendorRegister from "./pages/VendorRegister";
 import Calculators from "./pages/Calculators";
 import ProRegister from "./pages/ProRegister";
+import Login from "./pages/Login";
 import VendorDashboard from "./pages/VendorDashboard";
 import ProDashboard from "./pages/ProDashboard";
 import Settings from "./pages/Settings";
@@ -48,6 +49,7 @@ const App = () => (
                   <Route path="/pro/ai-studio" element={<AIStudio />} />
                   <Route path="/register/vendor" element={<VendorRegister />} />
                   <Route path="/register/pro" element={<ProRegister />} />
+                  <Route path="/login" element={<Login />} />
                   <Route path="/settings" element={<Settings />} />
 
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
