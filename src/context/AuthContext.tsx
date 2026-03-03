@@ -45,22 +45,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setIsLoading(false);
 
             // Handle post-verification redirection
-            if (event === 'SIGNED_IN') {
-                const hash = window.location.hash;
-                const isVerification = hash.includes('type=signup') || hash.includes('type=recovery');
-
-                if (isVerification) {
-                    toast.success("Account verified successfully! Welcome to your dashboard.");
-
-                    // Clear the hash to avoid re-triggering logic
-                    window.history.replaceState(null, '', window.location.pathname);
-
-                    if (userRole === 'professional') {
-                        navigate('/pro-portal');
-                    } else if (userRole === 'vendor') {
-                        navigate('/vendor-dashboard');
-                    }
-                }
+            if (userRole === 'professional') {
+                navigate('/pro-portal');
+            } else if (userRole === 'vendor') {
+                navigate('/vendor-dashboard');
             }
         });
 

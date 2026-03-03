@@ -39,10 +39,6 @@ const Login = () => {
         try {
             const { error } = await signInWithEmail(formData.email, formData.password);
             if (error) throw error;
-
-            toast.success("Welcome back!");
-            // Redirection is handled by AuthContext but we can safety-navigate to portal
-            navigate("/pro-portal");
         } catch (err: any) {
             toast.error(err.message || "Invalid credentials. Please try again.");
             console.error(err);
