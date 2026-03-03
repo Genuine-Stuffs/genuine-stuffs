@@ -82,17 +82,6 @@ const ProDashboard = () => {
             <VerificationBanner />
 
             <main className="container mx-auto px-4 py-8">
-                {!isPro && (
-                    <div className="mb-6 px-6 py-3 bg-red-500/5 dark:bg-white/5 border border-red-500/10 dark:border-white/10 rounded-2xl flex items-center justify-between transition-colors">
-                        <div className="flex items-center gap-3">
-                            <span className="flex h-2 w-2 rounded-full bg-red-500" />
-                            <p className="text-red-600 dark:text-red-400 font-black uppercase tracking-widest text-[10px]">Trial Mode Active</p>
-                        </div>
-                        <Button variant="link" className="text-red-600 dark:text-red-400 font-black uppercase tracking-widest text-[10px] h-auto p-0 hover:no-underline hover:opacity-70" asChild>
-                            <Link to="/register/pro">Upgrade to Full Professional Account <ArrowRight className="w-3 h-3 ml-1" /></Link>
-                        </Button>
-                    </div>
-                )}
                 <header className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
                     <div>
                         <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none">Workspace Hub</h1>
@@ -105,8 +94,8 @@ const ProDashboard = () => {
                         <Button variant="outline" className="h-10 w-10 p-0 dark:border-white/10 rounded-xl">
                             <Settings className="w-4 h-4 text-slate-400" />
                         </Button>
-                        <Button className="gap-2 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 shadow-xl shadow-slate-200 dark:shadow-none transition-all font-black uppercase tracking-widest text-[10px] h-10 px-6 rounded-xl">
-                            <Plus className="w-4 h-4" /> New Project
+                        <Button asChild className="gap-2 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 shadow-xl shadow-slate-200 dark:shadow-none transition-all font-black uppercase tracking-widest text-[10px] h-10 px-6 rounded-xl">
+                            <Link to="/pro/ai-studio"><Plus className="w-4 h-4" /> New Project</Link>
                         </Button>
                     </div>
                 </header>
@@ -127,13 +116,15 @@ const ProDashboard = () => {
                             <TabsContent value="workspaces" className="space-y-8 mt-0 focus-visible:ring-0">
                                 <section>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <Card className="border-2 border-dashed border-slate-200 dark:border-white/10 bg-transparent dark:hover:bg-white/5 flex flex-col items-center justify-center p-12 text-center cursor-pointer hover:bg-slate-100/50 transition-all rounded-[2.5rem] group min-h-[300px]">
-                                            <div className="w-20 h-20 rounded-3xl bg-white dark:bg-white/5 border dark:border-white/5 shadow-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                                <Plus className="w-10 h-10 text-primary" />
-                                            </div>
-                                            <h3 className="font-black text-xl text-slate-900 dark:text-white uppercase tracking-tight">Create First Project</h3>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium italic mb-6">Start your construction journey with AI-powered tools.</p>
-                                            <Button className="rounded-xl font-black uppercase tracking-widest text-[10px] px-8 h-10">Initialize Workspace</Button>
+                                        <Card asChild className="border-2 border-dashed border-slate-200 dark:border-white/10 bg-transparent dark:hover:bg-white/5 flex flex-col items-center justify-center p-12 text-center cursor-pointer hover:bg-slate-100/50 transition-all rounded-[2.5rem] group min-h-[300px]">
+                                            <Link to="/pro/ai-studio">
+                                                <div className="w-20 h-20 rounded-3xl bg-white dark:bg-white/5 border dark:border-white/5 shadow-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                                    <Plus className="w-10 h-10 text-primary" />
+                                                </div>
+                                                <h3 className="font-black text-xl text-slate-900 dark:text-white uppercase tracking-tight">Create First Project</h3>
+                                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium italic mb-6">Start your construction journey with AI-powered tools.</p>
+                                                <Button className="rounded-xl font-black uppercase tracking-widest text-[10px] px-8 h-10">Initialize Workspace</Button>
+                                            </Link>
                                         </Card>
 
                                         <Card className="border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 p-8 rounded-[2.5rem] flex flex-col justify-center">
@@ -210,18 +201,20 @@ const ProDashboard = () => {
                             </h2>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                                 {[
-                                    { name: "Structural", icon: Layers, color: "slate-900" },
-                                    { name: "MEP Design", icon: Calculator, color: "slate-900" },
-                                    { name: "Site Planning", icon: Map, color: "slate-900" },
-                                    { name: "BoQ Engine", icon: FileText, color: "slate-900" },
+                                    { name: "Structural", icon: Layers, path: "/pro/ai-studio" },
+                                    { name: "MEP Design", icon: Calculator, path: "/pro/ai-studio" },
+                                    { name: "Site Planning", icon: Map, path: "/pro/ai-studio" },
+                                    { name: "BoQ Engine", icon: FileText, path: "/calculators" },
                                 ].map((tool, i) => (
-                                    <Card key={i} className="group border border-slate-100 dark:border-white/5 hover:border-primary shadow-sm transition-all duration-300 cursor-pointer bg-white dark:bg-card rounded-2xl">
-                                        <CardContent className="p-4 flex items-center gap-4">
-                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-slate-50 dark:bg-white/5 group-hover:bg-primary group-hover:text-white text-slate-400`}>
-                                                <tool.icon className="w-5 h-5" />
-                                            </div>
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">{tool.name}</span>
-                                        </CardContent>
+                                    <Card key={i} asChild className="group border border-slate-100 dark:border-white/5 hover:border-primary shadow-sm transition-all duration-300 cursor-pointer bg-white dark:bg-card rounded-2xl">
+                                        <Link to={tool.path}>
+                                            <CardContent className="p-4 flex items-center gap-4">
+                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-slate-50 dark:bg-white/5 group-hover:bg-primary group-hover:text-white text-slate-400`}>
+                                                    <tool.icon className="w-5 h-5" />
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">{tool.name}</span>
+                                            </CardContent>
+                                        </Link>
                                     </Card>
                                 ))}
                             </div>
@@ -230,32 +223,41 @@ const ProDashboard = () => {
 
                     {/* Side Info / Resources */}
                     <div className="space-y-8">
-                        {isLoading ? (
-                            <Card className="border-none shadow-xl dark:bg-card rounded-3xl p-12 flex flex-col items-center justify-center text-center">
-                                <Loader2 className="w-8 h-8 text-primary animate-spin mb-4" />
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Loading Trial Data...</p>
-                            </Card>
-                        ) : (
-                            <CreditInfo credits={credits ?? 0} />
-                        )}
+                        {/* Pro Hub Launchpad */}
+                        <Card className="bg-slate-900 dark:bg-black text-white rounded-[2.5rem] border-none shadow-2xl transition-all hover:scale-[1.01] overflow-hidden">
+                            <CardHeader className="p-8 pb-4">
+                                <CardTitle className="text-xl font-black text-primary uppercase tracking-widest">AI Launcher</CardTitle>
+                                <CardDescription className="text-slate-400 font-medium italic">
+                                    Instant architectural workflows.
+                                </CardDescription>
+                            </CardHeader>
+                            <CardContent className="px-8 pb-8 space-y-4">
+                                <Button asChild variant="outline" className="w-full h-12 justify-start gap-4 bg-white/5 text-slate-300 border-white/10 hover:bg-primary hover:text-white hover:border-primary transition-all rounded-xl font-bold italic">
+                                    <Link to="/pro/ai-studio"><Sparkles className="w-4 h-4" /> Render New Concept</Link>
+                                </Button>
+                                <Button asChild variant="outline" className="w-full h-12 justify-start gap-4 bg-white/5 text-slate-300 border-white/10 hover:bg-primary hover:text-white hover:border-primary transition-all rounded-xl font-bold italic">
+                                    <Link to="/calculators"><Calculator className="w-4 h-4" /> Start AI Surveying</Link>
+                                </Button>
+                            </CardContent>
+                        </Card>
 
                         <Card className="border-none shadow-sm dark:bg-card transition-colors rounded-[2.5rem]">
                             <CardHeader className="p-8 pb-4">
-                                <CardTitle className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Market Pulse</CardTitle>
-                                <CardDescription className="dark:text-slate-500 font-medium italic">Live data for BoQ estimates.</CardDescription>
+                                <CardTitle className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Industry Insights</CardTitle>
+                                <CardDescription className="dark:text-slate-500 font-medium italic">Nigeria's construction trends.</CardDescription>
                             </CardHeader>
-                            <CardContent className="p-8 pt-0 space-y-4">
-                                {[
-                                    { item: "Cement (Standard)", price: "₦ 7,200", trend: "up" },
-                                    { item: "Reinforcement (16mm)", price: "₦ 12,500", trend: "down" },
-                                    { item: "Hardwood Granite", price: "₦ 15,200", trend: "stable" },
-                                ].map((p, i) => (
-                                    <div key={i} className="flex justify-between items-center py-3 border-b last:border-0 border-slate-50 dark:border-white/5 transition-colors">
-                                        <span className="text-xs font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">{p.item}</span>
-                                        <span className="text-sm font-black text-slate-900 dark:text-white">{p.price}</span>
+                            <CardContent className="p-8 pt-0 space-y-6">
+                                <div className="space-y-4">
+                                    <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl">
+                                        <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-1">New Report</p>
+                                        <h5 className="text-xs font-black dark:text-white uppercase">Cement price stability forecast for Q2 2024.</h5>
                                     </div>
-                                ))}
-                                <Button variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5 mt-4">Full Market Index</Button>
+                                    <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl">
+                                        <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-1">Sustainability</p>
+                                        <h5 className="text-xs font-black dark:text-white uppercase">Recycled reinforcement bars adoption rates rising.</h5>
+                                    </div>
+                                </div>
+                                <Button variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5">View Resource Library</Button>
                             </CardContent>
                         </Card>
                     </div>
