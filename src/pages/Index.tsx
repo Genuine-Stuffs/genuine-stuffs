@@ -411,7 +411,7 @@ const Index = () => {
               <Link to="/marketplace">EXPLORE MARKET</Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="bg-transparent border-white text-white hover:bg-white hover:text-primary text-base font-black px-10 h-14 rounded-2xl w-full md:w-auto">
-              <Link to="/register/pro">BECOME A PRO</Link>
+              <Link to="/register">JOIN PLATFORM</Link>
             </Button>
           </div>
         </div>

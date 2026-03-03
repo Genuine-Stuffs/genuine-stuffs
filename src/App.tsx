@@ -11,9 +11,8 @@ import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import AIStudio from "./pages/AIStudio";
 import Marketplace from "./pages/Marketplace";
-import VendorRegister from "./pages/VendorRegister";
 import Calculators from "./pages/Calculators";
-import ProRegister from "./pages/ProRegister";
+import Register from "./pages/Register";
 import Login from "./pages/Login";
 import VendorDashboard from "./pages/VendorDashboard";
 import ProDashboard from "./pages/ProDashboard";
@@ -47,8 +46,7 @@ const App = () => (
                   <Route path="/vendor-dashboard" element={<VendorDashboard />} />
                   <Route path="/pro-portal" element={<ProDashboard />} />
                   <Route path="/pro/ai-studio" element={<AIStudio />} />
-                  <Route path="/register/vendor" element={<VendorRegister />} />
-                  <Route path="/register/pro" element={<ProRegister />} />
+                  <Route path="/register" element={<Register />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/settings" element={<Settings />} />
 

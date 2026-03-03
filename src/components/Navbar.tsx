@@ -75,14 +75,14 @@ const Navbar = () => {
                   <Link to="/login">Log In</Link>
                 </Button>
                 <Button asChild className="rounded-2xl font-black bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 px-6 h-11 transition-colors">
-                  <Link to="/register/pro">Join Platform</Link>
+                  <Link to="/register">Join Platform</Link>
                 </Button>
               </div>
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="rounded-2xl gap-2 font-black text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 border-none hover:bg-slate-100 dark:hover:bg-slate-700">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${role === 'pro' ? 'bg-primary text-white' :
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${role === 'professional' ? 'bg-primary text-white' :
                       role === 'vendor' ? 'bg-orange-500 text-white' :
                         'bg-slate-300 dark:bg-slate-600 text-white'
                       }`}>
@@ -152,7 +152,7 @@ const Navbar = () => {
                       <Link to="/login">Log In</Link>
                     </Button>
                     <Button asChild className="w-full rounded-2xl font-black" onClick={() => setIsOpen(false)}>
-                      <Link to="/register/pro">Join Platform</Link>
+                      <Link to="/register">Join Platform</Link>
                     </Button>
                   </div>
                 ) : (
