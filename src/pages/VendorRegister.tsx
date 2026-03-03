@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Check, ChevronRight, ChevronLeft, Upload, Building2, User, FileText, CheckCircle2, Loader2 } from "lucide-react";
+import { Check, ChevronRight, ChevronLeft, Upload, Building2, User, FileText, CheckCircle2, Loader2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,8 +17,8 @@ const VendorRegister = () => {
     const { signInWithGoogle } = useAuth();
     const [step, setStep] = useState(1);
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const totalSteps = 4;
-
     const [formData, setFormData] = useState({
         firstName: "",
         lastName: "",
@@ -211,7 +211,22 @@ const VendorRegister = () => {
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="password">Password</Label>
-                                            <Input id="password" type="password" value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} />
+                                            <div className="relative">
+                                                <Input
+                                                    id="password"
+                                                    type={showPassword ? "text" : "password"}
+                                                    value={formData.password}
+                                                    onChange={(e) => handleInputChange('password', e.target.value)}
+                                                    className="pr-10"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                                >
+                                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 )}

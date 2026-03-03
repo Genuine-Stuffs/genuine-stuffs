@@ -86,12 +86,12 @@ const Index = () => {
   const categories = [
     { title: "Cement & Aggregates", icon: Construction, color: "bg-blue-500/10 text-blue-600" },
     { title: "Steel & Rebars", icon: Layers, color: "bg-orange-500/10 text-orange-600" },
-    { title: "Roofing & Ceiling", icon: Hammer, color: "bg-green-500/10 text-green-600" },
+    { title: "Roofing & Ceiling", icon: Layers, color: "bg-green-500/10 text-green-600" },
     { title: "Electrical & Plumbing", icon: Wrench, color: "bg-purple-500/10 text-purple-600" },
-    { title: "Finishing & Tiles", icon: Layers, color: "bg-pink-500/10 text-pink-600" },
-    { title: "Architecture / AI Studio", icon: Cpu, color: "bg-cyan-500/10 text-cyan-600", link: "/pro/ai-studio" },
+    { title: "Finishing & Tiles", icon: Construction, color: "bg-pink-500/10 text-pink-600" },
+    { title: "Building / AI Studio", icon: Cpu, color: "bg-cyan-500/10 text-cyan-600", link: "/pro/ai-studio" },
     { title: "Hire Professionals", icon: Users, color: "bg-indigo-500/10 text-indigo-600" },
-    { title: "Tools & Equipment", icon: Hammer, color: "bg-amber-500/10 text-amber-600" },
+    { title: "Tools & Equipment", icon: HardHat, color: "bg-amber-500/10 text-amber-600" },
   ];
 
   return (
@@ -106,9 +106,12 @@ const Index = () => {
               <Rocket className="w-3 h-3" />
               Direct Marketplace Access
             </div>
-            <h1 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-4">
+            <h1 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
               Find <span className="text-primary italic">Genuine</span> Building Materials
             </h1>
+            <p className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mb-4">
+              Your Construction Operating Systems
+            </p>
           </div>
 
           {/* Search Box - Jiji Inspired & Prominent */}
