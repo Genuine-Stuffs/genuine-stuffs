@@ -26,11 +26,11 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider defaultTheme="light" storageKey="material-insight-theme">
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
             <div className="flex flex-col min-h-screen">
               <main className="flex-grow pb-20 md:pb-0">
                 <Routes>
@@ -56,9 +56,9 @@ const App = () => (
               </main>
               <BottomNav />
             </div>
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
