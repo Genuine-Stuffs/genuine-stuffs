@@ -75,11 +75,6 @@ const ProDashboard = () => {
         fetchInteractions();
     }, [user]);
 
-    const activeProjects = [
-        { title: "Lekki Residential Villa", type: "Architectural Drawing", status: "In AI Review", progress: 65, lastEdit: "10 mins ago" },
-        { title: "Mainland Health Plaza", type: "Quantity Surveying", status: "Awaiting Market Prices", progress: 40, lastEdit: "2 hours ago" },
-        { title: "Eco-Tech Office Complex", type: "BIM Coordination", status: "Clash Detected", progress: 85, lastEdit: "Yesterday" },
-    ];
 
     return (
         <div className="min-h-screen bg-background transition-colors duration-300">
@@ -88,27 +83,30 @@ const ProDashboard = () => {
 
             <main className="container mx-auto px-4 py-8">
                 {!isPro && (
-                    <div className="mb-8 p-4 bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/20 rounded-2xl flex items-center justify-between transition-colors">
-                        <p className="text-primary font-bold text-sm">You are viewing this as a <span className="underline">{role}</span>. Full Pro features require an upgrade.</p>
-                        <Button variant="outline" className="text-primary border-primary hover:bg-primary hover:text-white font-black uppercase tracking-widest text-[10px] h-8 px-4" asChild>
-                            <Link to="/register/pro">Upgrade Now</Link>
+                    <div className="mb-6 px-6 py-3 bg-red-500/5 dark:bg-white/5 border border-red-500/10 dark:border-white/10 rounded-2xl flex items-center justify-between transition-colors">
+                        <div className="flex items-center gap-3">
+                            <span className="flex h-2 w-2 rounded-full bg-red-500" />
+                            <p className="text-red-600 dark:text-red-400 font-black uppercase tracking-widest text-[10px]">Trial Mode Active</p>
+                        </div>
+                        <Button variant="link" className="text-red-600 dark:text-red-400 font-black uppercase tracking-widest text-[10px] h-auto p-0 hover:no-underline hover:opacity-70" asChild>
+                            <Link to="/register/pro">Upgrade to Full Professional Account <ArrowRight className="w-3 h-3 ml-1" /></Link>
                         </Button>
                     </div>
                 )}
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+                <header className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
                     <div>
-                        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Professional Portal</h1>
-                        <p className="text-muted-foreground dark:text-slate-400 font-medium italic mt-1">Access your AI tools and manage your workflows. <span className="font-black text-primary uppercase tracking-widest text-xs ml-2">{role} Account</span></p>
+                        <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none">Workspace Hub</h1>
+                        <p className="text-sm text-muted-foreground dark:text-slate-500 font-medium italic mt-2">Manage your AI-integrated construction workflows.</p>
                     </div>
-                    <div className="flex gap-3">
-                        <Button className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 transition-all font-black uppercase tracking-widest text-xs h-11 px-6 rounded-xl">
+                    <div className="flex gap-2">
+                        <Button variant="outline" className="h-10 w-10 p-0 dark:border-white/10 rounded-xl">
+                            <Bell className="w-4 h-4 text-slate-400" />
+                        </Button>
+                        <Button variant="outline" className="h-10 w-10 p-0 dark:border-white/10 rounded-xl">
+                            <Settings className="w-4 h-4 text-slate-400" />
+                        </Button>
+                        <Button className="gap-2 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 shadow-xl shadow-slate-200 dark:shadow-none transition-all font-black uppercase tracking-widest text-[10px] h-10 px-6 rounded-xl">
                             <Plus className="w-4 h-4" /> New Project
-                        </Button>
-                        <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-card dark:border-white/10 rounded-xl">
-                            <Bell className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                        </Button>
-                        <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-card dark:border-white/10 rounded-xl">
-                            <Settings className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                         </Button>
                     </div>
                 </header>
@@ -129,52 +127,24 @@ const ProDashboard = () => {
                             <TabsContent value="workspaces" className="space-y-8 mt-0 focus-visible:ring-0">
                                 <section>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {activeProjects.map((project, i) => (
-                                            <Card key={i} className="group overflow-hidden border border-slate-100 dark:border-white/5 hover:border-primary/50 shadow-sm hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 bg-white dark:bg-card rounded-[2rem] relative">
-                                                <div className={`h-1.5 w-full ${i === 0 ? 'bg-primary' : i === 1 ? 'bg-orange-500' : 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.3)]'}`} />
-                                                <CardContent className="p-8 relative z-10">
-                                                    <div className="flex justify-between items-start mb-6">
-                                                        <div>
-                                                            <h4 className="font-black text-lg text-slate-900 dark:text-white group-hover:text-primary transition-colors leading-tight uppercase tracking-tight">{project.title}</h4>
-                                                            <p className="text-[10px] text-primary font-black uppercase tracking-widest mt-2">{project.type}</p>
-                                                        </div>
-                                                        <span className="text-[10px] bg-slate-50 dark:bg-white/5 border dark:border-white/5 px-3 py-1.5 rounded-full font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                            <Clock className="w-3.5 h-3.5" /> {project.lastEdit}
-                                                        </span>
-                                                    </div>
-
-                                                    <div className="space-y-3 mb-8">
-                                                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">
-                                                            <span>Phase Progress</span>
-                                                            <span>{project.progress}%</span>
-                                                        </div>
-                                                        <div className="w-full bg-slate-100 dark:bg-black/40 h-2.5 rounded-full overflow-hidden border dark:border-white/5">
-                                                            <div
-                                                                className="h-full bg-primary rounded-full transition-all duration-700 shadow-[0_0_10px_rgba(var(--primary),0.3)]"
-                                                                style={{ width: `${project.progress}%` }}
-                                                            />
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="flex justify-between items-center">
-                                                        <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-lg ${project.status === 'Clash Detected' ? 'bg-red-50 dark:bg-red-950/30 text-red-600' :
-                                                            project.status === 'In AI Review' ? 'bg-primary/10 text-primary' : 'bg-orange-50 dark:bg-orange-950/30 text-orange-600'
-                                                            }`}>
-                                                            {project.status}
-                                                        </span>
-                                                        <Button size="sm" variant="ghost" className="gap-2 p-0 h-auto hover:bg-transparent font-black uppercase tracking-widest text-[10px] text-slate-900 dark:text-white group-hover:text-primary transition-all">
-                                                            Resume <ArrowRight className="w-4 h-4" />
-                                                        </Button>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                        <Card className="border-2 border-dashed border-slate-200 dark:border-white/10 bg-transparent dark:hover:bg-white/5 flex flex-col items-center justify-center p-8 text-center cursor-pointer hover:bg-slate-100/50 transition-all rounded-[2rem] group">
-                                            <div className="w-14 h-14 rounded-2xl bg-white dark:bg-white/5 border dark:border-white/5 shadow-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                                                <Plus className="w-7 h-7 text-primary" />
+                                        <Card className="border-2 border-dashed border-slate-200 dark:border-white/10 bg-transparent dark:hover:bg-white/5 flex flex-col items-center justify-center p-12 text-center cursor-pointer hover:bg-slate-100/50 transition-all rounded-[2.5rem] group min-h-[300px]">
+                                            <div className="w-20 h-20 rounded-3xl bg-white dark:bg-white/5 border dark:border-white/5 shadow-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                                                <Plus className="w-10 h-10 text-primary" />
                                             </div>
-                                            <p className="font-black text-slate-500 dark:text-slate-400 uppercase tracking-tight">New Project</p>
-                                            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-2 uppercase tracking-widest font-black">Prompt or Model Upload</p>
+                                            <h3 className="font-black text-xl text-slate-900 dark:text-white uppercase tracking-tight">Create First Project</h3>
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium italic mb-6">Start your construction journey with AI-powered tools.</p>
+                                            <Button className="rounded-xl font-black uppercase tracking-widest text-[10px] px-8 h-10">Initialize Workspace</Button>
+                                        </Card>
+
+                                        <Card className="border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 p-8 rounded-[2.5rem] flex flex-col justify-center">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Quick Tip</p>
+                                            <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">AI-Driven Insights</h4>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium italic leading-relaxed">
+                                                Use the AI Studio to generate optimized material lists or verify structural drawings in seconds.
+                                            </p>
+                                            <Button variant="link" className="text-primary p-0 h-auto justify-start mt-4 font-black uppercase tracking-widest text-[10px] gap-2">
+                                                Explore AI Studio <ArrowRight className="w-4 h-4" />
+                                            </Button>
                                         </Card>
                                     </div>
                                 </section>
@@ -240,19 +210,18 @@ const ProDashboard = () => {
                             </h2>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                                 {[
-                                    { name: "Structural", icon: Layers, color: "primary" },
-                                    { name: "MEP Design", icon: Calculator, color: "orange-500" },
-                                    { name: "Site Planning", icon: Map, color: "green-500" },
-                                    { name: "BoQ Engine", icon: FileText, color: "purple-500" },
+                                    { name: "Structural", icon: Layers, color: "slate-900" },
+                                    { name: "MEP Design", icon: Calculator, color: "slate-900" },
+                                    { name: "Site Planning", icon: Map, color: "slate-900" },
+                                    { name: "BoQ Engine", icon: FileText, color: "slate-900" },
                                 ].map((tool, i) => (
-                                    <Card key={i} className="group border border-slate-100 dark:border-white/5 hover:border-primary/50 shadow-sm hover:shadow-2xl hover:shadow-primary/10 hover:-translate-y-2 transition-all duration-500 cursor-pointer overflow-hidden bg-white dark:bg-card rounded-[2rem] relative">
-                                        <CardContent className="p-6 flex flex-col items-center justify-center text-center relative z-10">
-                                            <div className={`p-4 rounded-[1.25rem] mb-4 text-white shadow-xl transition-all group-hover:scale-110 ${tool.color === 'primary' ? 'bg-primary shadow-primary/30 group-hover:shadow-[0_0_20px_-5px_hsl(var(--primary))]' : `bg-${tool.color} shadow-${tool.color.split('-')[0]}-500/30`}`}>
-                                                <tool.icon className="w-6 h-6" />
+                                    <Card key={i} className="group border border-slate-100 dark:border-white/5 hover:border-primary shadow-sm transition-all duration-300 cursor-pointer bg-white dark:bg-card rounded-2xl">
+                                        <CardContent className="p-4 flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-slate-50 dark:bg-white/5 group-hover:bg-primary group-hover:text-white text-slate-400`}>
+                                                <tool.icon className="w-5 h-5" />
                                             </div>
-                                            <span className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white transition-colors group-hover:text-primary">{tool.name}</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">{tool.name}</span>
                                         </CardContent>
-                                        <div className="absolute top-0 right-0 w-20 h-20 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10 group-hover:bg-primary/10 transition-colors" />
                                     </Card>
                                 ))}
                             </div>
