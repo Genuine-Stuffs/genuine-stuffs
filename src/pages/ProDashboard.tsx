@@ -22,16 +22,30 @@ import {
     History,
     MessageCircle,
     PhoneCall,
-    Building2
+    Building2,
+    TrendingUp,
+    Zap,
+    Scale,
+    ShieldCheck
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "backend/supabaseClient";
 import CreditInfo from "@/components/CreditInfo";
 import { VerificationBanner } from "@/components/VerificationBanner";
+import { LineChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+
+const mockMarketData = [
+    { name: "Jan", price: 4200 },
+    { name: "Feb", price: 4500 },
+    { name: "Mar", price: 4300 },
+    { name: "Apr", price: 4800 },
+    { name: "May", price: 5100 },
+    { name: "Jun", price: 4900 },
+];
 
 const ProDashboard = () => {
     const { user, role } = useAuth();
-    const isPro = role === "pro";
+    const isPro = role === "professional";
     const [credits, setCredits] = useState<number | null>(null);
     const [interactions, setInteractions] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -75,192 +89,172 @@ const ProDashboard = () => {
         fetchInteractions();
     }, [user]);
 
-
     return (
-        <div className="min-h-screen bg-background transition-colors duration-300">
+        <div className="relative min-h-screen bg-transparent overflow-hidden selection:bg-primary/30">
+            <div className="mesh-background" />
+            <div className="noise-overlay" />
+
             <Navbar />
             <VerificationBanner />
 
-            <main className="container mx-auto px-4 py-8">
-                <header className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-slate-900 dark:text-white uppercase leading-none">Workspace Hub</h1>
-                        <p className="text-sm text-muted-foreground dark:text-slate-500 font-medium italic mt-2">Manage your AI-integrated construction workflows.</p>
-                    </div>
-                    <div className="flex gap-2">
-                        <Button variant="outline" className="h-10 w-10 p-0 dark:border-white/10 rounded-xl">
-                            <Bell className="w-4 h-4 text-slate-400" />
-                        </Button>
-                        <Button variant="outline" className="h-10 w-10 p-0 dark:border-white/10 rounded-xl">
-                            <Settings className="w-4 h-4 text-slate-400" />
-                        </Button>
-                        <Button asChild className="gap-2 bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 shadow-xl shadow-slate-200 dark:shadow-none transition-all font-black uppercase tracking-widest text-[10px] h-10 px-6 rounded-xl">
-                            <Link to="/pro/ai-studio"><Plus className="w-4 h-4" /> New Project</Link>
-                        </Button>
-                    </div>
-                </header>
+            <main className="container relative mx-auto px-4 py-12 z-10">
+                {/* Bento Grid Main Layout */}
+                <div className="bento-grid lg:grid-rows-[auto_auto_auto] gap-px bg-slate-200/20 dark:bg-white/5 p-px rounded-[3rem] overflow-hidden border border-slate-200/50 dark:border-white/10 backdrop-blur-3xl shadow-3xl">
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Main Action Hub - Tabs */}
-                    <div className="lg:col-span-2 space-y-8">
-                        <Tabs defaultValue="workspaces" className="w-full">
-                            <TabsList className="bg-slate-100 dark:bg-white/5 p-1 rounded-2xl mb-8 border dark:border-white/10">
-                                <TabsTrigger value="workspaces" className="rounded-xl font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm px-6">
-                                    <Cpu className="w-3.5 h-3.5 mr-2" /> Workspaces
-                                </TabsTrigger>
-                                <TabsTrigger value="history" className="rounded-xl font-black uppercase tracking-widest text-[10px] data-[state=active]:bg-white dark:data-[state=active]:bg-white/10 data-[state=active]:shadow-sm px-6">
-                                    <History className="w-3.5 h-3.5 mr-2" /> Interaction Log
-                                </TabsTrigger>
-                            </TabsList>
-
-                            <TabsContent value="workspaces" className="space-y-8 mt-0 focus-visible:ring-0">
-                                <section>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <Card asChild className="border-2 border-dashed border-slate-200 dark:border-white/10 bg-transparent dark:hover:bg-white/5 flex flex-col items-center justify-center p-12 text-center cursor-pointer hover:bg-slate-100/50 transition-all rounded-[2.5rem] group min-h-[300px]">
-                                            <Link to="/pro/ai-studio">
-                                                <div className="w-20 h-20 rounded-3xl bg-white dark:bg-white/5 border dark:border-white/5 shadow-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                                    <Plus className="w-10 h-10 text-primary" />
-                                                </div>
-                                                <h3 className="font-black text-xl text-slate-900 dark:text-white uppercase tracking-tight">Create First Project</h3>
-                                                <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium italic mb-6">Start your construction journey with AI-powered tools.</p>
-                                                <Button className="rounded-xl font-black uppercase tracking-widest text-[10px] px-8 h-10">Initialize Workspace</Button>
-                                            </Link>
-                                        </Card>
-
-                                        <Card className="border border-slate-100 dark:border-white/5 bg-slate-50/50 dark:bg-white/5 p-8 rounded-[2.5rem] flex flex-col justify-center">
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Quick Tip</p>
-                                            <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">AI-Driven Insights</h4>
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 font-medium italic leading-relaxed">
-                                                Use the AI Studio to generate optimized material lists or verify structural drawings in seconds.
-                                            </p>
-                                            <Button variant="link" className="text-primary p-0 h-auto justify-start mt-4 font-black uppercase tracking-widest text-[10px] gap-2">
-                                                Explore AI Studio <ArrowRight className="w-4 h-4" />
-                                            </Button>
-                                        </Card>
-                                    </div>
-                                </section>
-                            </TabsContent>
-
-                            <TabsContent value="history" className="space-y-6 mt-0 focus-visible:ring-0">
-                                {interactions.length > 0 ? (
-                                    <div className="space-y-4">
-                                        {interactions.map((event, i) => (
-                                            <Card key={i} className="border border-slate-100 dark:border-white/5 bg-white dark:bg-card rounded-2xl overflow-hidden group hover:border-primary/30 transition-all">
-                                                <CardContent className="p-5 flex items-center justify-between">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center overflow-hidden border dark:border-white/5">
-                                                            {event.materials?.image_url ? (
-                                                                <img src={event.materials.image_url} alt={event.materials.name} className="w-full h-full object-cover" />
-                                                            ) : (
-                                                                <FileText className="w-5 h-5 text-slate-400" />
-                                                            )}
-                                                        </div>
-                                                        <div>
-                                                            <h4 className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1">{event.materials?.name || "Product Inquiry"}</h4>
-                                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest flex items-center gap-1.5 mt-1">
-                                                                <Building2 className="w-3 h-3 text-primary" /> {event.vendors?.company_name}
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="flex items-center justify-end gap-2 mb-1.5">
-                                                            {event.interaction_type === 'phone_reveal' ? (
-                                                                <span className="text-[8px] font-black uppercase bg-blue-50 dark:bg-blue-500/10 text-blue-600 px-2 py-1 rounded-md flex items-center gap-1 border border-blue-100 dark:border-blue-500/20">
-                                                                    <PhoneCall className="w-2.5 h-2.5" /> Call Intent
-                                                                </span>
-                                                            ) : (
-                                                                <span className="text-[8px] font-black uppercase bg-green-50 dark:bg-green-500/10 text-green-600 px-2 py-1 rounded-md flex items-center gap-1 border border-green-100 dark:border-green-500/20">
-                                                                    <MessageCircle className="w-2.5 h-2.5" /> WhatsApp Chat
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        <p className="text-[10px] text-slate-400 font-medium italic tabular-nums">{new Date(event.created_at).toLocaleDateString()} at {new Date(event.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <Card className="border-2 border-dashed border-slate-200 dark:border-white/10 bg-transparent flex flex-col items-center justify-center p-12 text-center rounded-[2.5rem]">
-                                        <div className="w-16 h-16 rounded-2xl bg-white dark:bg-white/5 border dark:border-white/5 flex items-center justify-center mb-4 text-slate-300 dark:text-slate-700">
-                                            <History className="w-8 h-8" />
-                                        </div>
-                                        <h3 className="font-black text-slate-900 dark:text-white uppercase tracking-tight">No interaction history</h3>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 font-medium italic">Your engagement with vendors in the marketplace will appear here.</p>
-                                        <Button asChild variant="link" className="text-primary font-black uppercase tracking-widest text-[10px] mt-4">
-                                            <Link to="/marketplace">Explore Marketplace</Link>
-                                        </Button>
-                                    </Card>
-                                )}
-                            </TabsContent>
-                        </Tabs>
-
-                        <section>
-                            <h2 className="text-xl font-black mb-6 flex items-center gap-3 text-slate-900 dark:text-white uppercase tracking-tight">
-                                <Sparkles className="w-6 h-6 text-primary" /> Technical Toolkits
-                            </h2>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-                                {[
-                                    { name: "Structural", icon: Layers, path: "/pro/ai-studio" },
-                                    { name: "MEP Design", icon: Calculator, path: "/pro/ai-studio" },
-                                    { name: "Site Planning", icon: Map, path: "/pro/ai-studio" },
-                                    { name: "BoQ Engine", icon: FileText, path: "/calculators" },
-                                ].map((tool, i) => (
-                                    <Card key={i} asChild className="group border border-slate-100 dark:border-white/5 hover:border-primary shadow-sm transition-all duration-300 cursor-pointer bg-white dark:bg-card rounded-2xl">
-                                        <Link to={tool.path}>
-                                            <CardContent className="p-4 flex items-center gap-4">
-                                                <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all bg-slate-50 dark:bg-white/5 group-hover:bg-primary group-hover:text-white text-slate-400`}>
-                                                    <tool.icon className="w-5 h-5" />
-                                                </div>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">{tool.name}</span>
-                                            </CardContent>
-                                        </Link>
-                                    </Card>
-                                ))}
+                    {/* Header Block (Col 1-12) */}
+                    <div className="col-span-12 p-10 bg-white/70 dark:bg-slate-900/40 backdrop-blur-md flex flex-col md:flex-row justify-between items-center border-b border-slate-200 dark:border-white/5">
+                        <div className="flex items-center gap-6">
+                            <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20">
+                                <Building2 className="w-8 h-8 text-primary" />
                             </div>
-                        </section>
+                            <div>
+                                <h1 className="text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
+                                    Studio <span className="text-primary italic">Workspace</span>
+                                </h1>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mt-2">Professional Environment v4.0</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-4 mt-6 md:mt-0">
+                            <CreditInfo
+                                credits={credits ?? 0}
+                                variant="compact"
+                                isPro={true}
+                                onRefill={() => { }}
+                            />
+                            <Button size="icon" variant="ghost" className="rounded-xl border border-slate-200 dark:border-white/10 hover:bg-primary/5">
+                                <Bell className="w-5 h-5" />
+                            </Button>
+                            <Button size="icon" variant="ghost" className="rounded-xl border border-slate-200 dark:border-white/10 hover:bg-primary/5">
+                                <Settings className="w-5 h-5" />
+                            </Button>
+                        </div>
                     </div>
 
-                    {/* Side Info / Resources */}
-                    <div className="space-y-8">
-                        {/* Pro Hub Launchpad */}
-                        <Card className="bg-slate-900 dark:bg-black text-white rounded-[2.5rem] border-none shadow-2xl transition-all hover:scale-[1.01] overflow-hidden">
-                            <CardHeader className="p-8 pb-4">
-                                <CardTitle className="text-xl font-black text-primary uppercase tracking-widest">AI Launcher</CardTitle>
-                                <CardDescription className="text-slate-400 font-medium italic">
-                                    Instant architectural workflows.
-                                </CardDescription>
-                            </CardHeader>
-                            <CardContent className="px-8 pb-8 space-y-4">
-                                <Button asChild variant="outline" className="w-full h-12 justify-start gap-4 bg-white/5 text-slate-300 border-white/10 hover:bg-primary hover:text-white hover:border-primary transition-all rounded-xl font-bold italic">
-                                    <Link to="/pro/ai-studio"><Sparkles className="w-4 h-4" /> Render New Concept</Link>
-                                </Button>
-                                <Button asChild variant="outline" className="w-full h-12 justify-start gap-4 bg-white/5 text-slate-300 border-white/10 hover:bg-primary hover:text-white hover:border-primary transition-all rounded-xl font-bold italic">
-                                    <Link to="/calculators"><Calculator className="w-4 h-4" /> Start AI Surveying</Link>
-                                </Button>
-                            </CardContent>
-                        </Card>
+                    {/* Left Column: Material Index (Col 1-4) */}
+                    <div className="col-span-12 lg:col-span-4 p-8 bg-white/60 dark:bg-slate-900/30 backdrop-blur-sm border-r border-slate-200 dark:border-white/5 space-y-8 animate-cascade-in">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <TrendingUp className="w-5 h-5 text-emerald-500" />
+                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">Material Volatility</h3>
+                            </div>
+                            <span className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">+12.4% Est.</span>
+                        </div>
+                        <div className="h-48 w-full">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={mockMarketData}>
+                                    <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={3} dot={false} strokeDasharray="5 5" />
+                                    <Tooltip contentStyle={{ background: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '12px', color: '#fff' }} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center p-4 bg-white/40 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cement (Local)</span>
+                                <span className="text-xs font-black text-slate-900 dark:text-white">₦5,400/bag</span>
+                            </div>
+                            <div className="flex justify-between items-center p-4 bg-white/40 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Reinforcement (12mm)</span>
+                                <span className="text-xs font-black text-slate-900 dark:text-white">₦1.2M/Ton</span>
+                            </div>
+                        </div>
+                    </div>
 
-                        <Card className="border-none shadow-sm dark:bg-card transition-colors rounded-[2.5rem]">
-                            <CardHeader className="p-8 pb-4">
-                                <CardTitle className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Industry Insights</CardTitle>
-                                <CardDescription className="dark:text-slate-500 font-medium italic">Nigeria's construction trends.</CardDescription>
-                            </CardHeader>
-                            <CardContent className="p-8 pt-0 space-y-6">
-                                <div className="space-y-4">
-                                    <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl">
-                                        <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-1">New Report</p>
-                                        <h5 className="text-xs font-black dark:text-white uppercase">Cement price stability forecast for Q2 2024.</h5>
+                    {/* Middle Column: ROI & Rapid Actions (Col 5-8) */}
+                    <div className="col-span-12 lg:col-span-4 p-8 bg-white/50 dark:bg-slate-900/40 backdrop-blur-sm border-r border-slate-200 dark:border-white/5 space-y-10 animate-cascade-in" style={{ animationDelay: '100ms' }}>
+                        <div className="p-8 rounded-[2.5rem] bg-slate-900 text-white relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl -mr-16 -mt-16" />
+                            <Zap className="w-8 h-8 text-primary mb-6" />
+                            <h4 className="text-2xl font-black uppercase tracking-tighter italic">AI Cost Savings</h4>
+                            <div className="mt-4 flex items-baseline gap-2">
+                                <span className="text-4xl font-black text-primary tabular-nums">₦425k</span>
+                                <span className="text-[10px] font-bold text-white/40 uppercase">This Month</span>
+                            </div>
+                            <p className="text-[10px] text-white/60 mt-4 leading-relaxed font-medium italic">Estimated revenue preserved through neural procurement optimization.</p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <Button asChild className="h-28 flex-col gap-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white hover:bg-primary hover:text-white transition-all group">
+                                <Link to="/pro/ai-studio">
+                                    <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">New Concept</span>
+                                </Link>
+                            </Button>
+                            <Button asChild variant="outline" className="h-28 flex-col gap-3 rounded-[2rem] border-dashed border-2 bg-transparent text-slate-400 hover:border-primary hover:text-primary transition-all">
+                                <Link to="/pro/ai-studio">
+                                    <Plus className="w-6 h-6" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">Workspace</span>
+                                </Link>
+                            </Button>
+                        </div>
+                    </div>
+
+                    {/* Right Column: History & Delivery (Col 9-12) */}
+                    <div className="col-span-12 lg:col-span-4 p-8 bg-white/40 dark:bg-slate-900/50 backdrop-blur-sm space-y-8 animate-cascade-in" style={{ animationDelay: '200ms' }}>
+                        <div className="flex items-center gap-3">
+                            <History className="w-5 h-5 text-primary" />
+                            <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">Active Pipeline</h3>
+                        </div>
+
+                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                            {interactions.length > 0 ? (
+                                interactions.map((event, i) => (
+                                    <div key={i} className="p-5 bg-white/60 dark:bg-black/30 rounded-3xl border border-slate-100 dark:border-white/5 hover:border-primary/30 transition-all group">
+                                        <div className="flex justify-between items-start mb-3">
+                                            <span className="text-[9px] font-black text-primary px-2 py-0.5 bg-primary/10 rounded uppercase tracking-tighter">
+                                                {event.interaction_type === 'phone_reveal' ? 'Voice Link' : 'Digital Sync'}
+                                            </span>
+                                            <span className="text-[9px] text-slate-400 font-bold">{new Date(event.created_at).toLocaleDateString()}</span>
+                                        </div>
+                                        <h4 className="text-xs font-black dark:text-white uppercase tracking-tight truncate">{event.materials?.name || "Material Request"}</h4>
+                                        <div className="flex items-center gap-2 mt-2 opacity-60">
+                                            <Building2 className="w-3 h-3" />
+                                            <p className="text-[9px] font-bold uppercase">{event.vendors?.company_name}</p>
+                                        </div>
                                     </div>
-                                    <div className="p-4 bg-slate-50 dark:bg-white/5 rounded-2xl">
-                                        <p className="text-[10px] text-primary font-black uppercase tracking-widest mb-1">Sustainability</p>
-                                        <h5 className="text-xs font-black dark:text-white uppercase">Recycled reinforcement bars adoption rates rising.</h5>
-                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-12 text-slate-400 italic">
+                                    <Clock className="w-8 h-8 mx-auto mb-3 opacity-20" />
+                                    <p className="text-[10px] font-bold uppercase tracking-widest">No Active Intent Logs</p>
                                 </div>
-                                <Button variant="ghost" className="w-full text-[10px] font-black uppercase tracking-widest text-primary hover:bg-primary/5">View Resource Library</Button>
-                            </CardContent>
-                        </Card>
+                            )}
+                        </div>
+
+                        <div className="p-6 bg-primary/5 rounded-[2rem] border border-primary/20 space-y-4">
+                            <div className="flex items-center gap-3">
+                                <ShieldCheck className="w-4 h-4 text-primary" />
+                                <span className="text-[10px] font-black uppercase tracking-widest text-primary">Security Node</span>
+                            </div>
+                            <p className="text-[9px] text-slate-500 font-medium italic">All marketplace interactions are encrypted and verified under Studio Protocol v4.0.</p>
+                        </div>
                     </div>
+
+                    {/* Bottom Row: Technical Toolkits (Col 1-12) */}
+                    <div className="col-span-12 p-8 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border-t border-slate-200 dark:border-white/5 animate-cascade-in" style={{ animationDelay: '300ms' }}>
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                                <Scale className="w-6 h-6 text-primary" />
+                                <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Neural Toolkit Dispatch</h2>
+                            </div>
+                            <div className="h-[1px] flex-grow mx-10 bg-gradient-to-r from-primary/30 to-transparent rounded-full hidden md:block" />
+                        </div>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                            {[
+                                { name: "Structural Integrity", icon: Layers, path: "/pro/ai-studio" },
+                                { name: "MEP Precision", icon: Calculator, path: "/pro/ai-studio" },
+                                { name: "Urban Site Flow", icon: Map, path: "/pro/ai-studio" },
+                                { name: "Dynamic BoQ", icon: FileText, path: "/calculators" },
+                            ].map((tool, i) => (
+                                <Link key={i} to={tool.path} className="group p-6 bg-white/50 dark:bg-black/20 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-primary/50 hover:-translate-y-2 transition-all duration-500 text-center">
+                                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-white/10 group-hover:bg-primary group-hover:text-white group-hover:rotate-3 transition-all">
+                                        <tool.icon className="w-8 h-8" />
+                                    </div>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">{tool.name}</span>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
                 </div>
             </main>
 
