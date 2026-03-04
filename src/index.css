@@ -99,6 +99,89 @@ All colors MUST be HSL.
 
     /* Extra pop tokens */
     --primary-glow: 354 100% 44% / 0.15;
+    --glass-bg: 222 47% 10% / 0.7;
+    --glass-border: 222 47% 20% / 0.5;
+    --mesh-color-1: 354 100% 44% / 0.2;
+    --mesh-color-2: 222 47% 20% / 0.3;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 border border-white/20 dark:border-white/10 shadow-2xl;
+  }
+
+  .premium-gradient {
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, #1a1a1a 100%);
+  }
+
+  .animate-cascade-in {
+    animation: cascade-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+  }
+
+  @keyframes cascade-in {
+    from {
+      opacity: 0;
+      transform: translateY(20px) scale(0.98);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .mesh-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    background-color: hsl(var(--background));
+    background-image:
+      radial-gradient(at 0% 0%, hsl(var(--mesh-color-1)) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, hsl(var(--mesh-color-2)) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, hsl(var(--mesh-color-1)) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, hsl(var(--mesh-color-2)) 0px, transparent 50%);
+    filter: blur(80px);
+    opacity: 0.5;
+  }
+
+  .noise-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    opacity: 0.03;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  }
+
+  /* Bento Layout Utilities */
+  .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 1.5rem;
+  }
+
+  .bento-card {
+    @apply relative overflow-hidden transition-all duration-500;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+  }
+
+  .bento-card:hover {
+    @apply -translate-y-1 shadow-2xl;
+    border-color: hsl(var(--primary) / 0.4);
+  }
+
+  .flush-junction {
+    @apply border-collapse -m-[1px];
   }
 }
 
