@@ -295,11 +295,15 @@ const AIStudio = () => {
                                     <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10">
                                         <Link to="/pro-portal"><LayoutDashboard className="w-4 h-4 text-primary" /> <span className="text-xs font-bold">Dashboard Feed</span></Link>
                                     </Button>
-                                    <Button variant="ghost" className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10">
-                                        <BookOpen className="w-4 h-4 text-slate-400" /> <span className="text-xs font-bold">Documentation</span>
+                                    <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10">
+                                        <Link to="/pro/ai-documentation">
+                                            <BookOpen className="w-4 h-4 text-slate-400" /> <span className="text-xs font-bold">Documentation</span>
+                                        </Link>
                                     </Button>
-                                    <Button variant="ghost" className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10">
-                                        <Calculator className="w-4 h-4 text-slate-400" /> <span className="text-xs font-bold">BoQ Engine</span>
+                                    <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10">
+                                        <Link to="/calculators">
+                                            <Calculator className="w-4 h-4 text-slate-400" /> <span className="text-xs font-bold">BoQ Engine</span>
+                                        </Link>
                                     </Button>
                                 </div>
                             </div>

@@ -10,6 +10,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 import AIStudio from "./pages/AIStudio";
+import AIDocumentation from "./pages/AIDocumentation";
 import Marketplace from "./pages/Marketplace";
 import Calculators from "./pages/Calculators";
 import Register from "./pages/Register";
@@ -46,6 +47,7 @@ const App = () => (
                   <Route path="/vendor-dashboard" element={<VendorDashboard />} />
                   <Route path="/pro-portal" element={<ProDashboard />} />
                   <Route path="/pro/ai-studio" element={<AIStudio />} />
+                  <Route path="/pro/ai-documentation" element={<AIDocumentation />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/settings" element={<Settings />} />
