@@ -92,13 +92,16 @@ const ProDashboard = () => {
                     "Portland Cement (Dangote)": "/images/materials/cement_bags.png",
                 };
 
-                const mappedData = (data || []).map(event => ({
-                    ...event,
-                    materials: event.materials ? {
-                        ...event.materials,
-                        image_url: assetMap[event.materials.name] || event.materials.image_url
-                    } : null
-                }));
+                const mappedData = (data as any[] || []).map(event => {
+                    const material = event.materials as { name: string; image_url: string | null } | null;
+                    return {
+                        ...event,
+                        materials: material ? {
+                            ...material,
+                            image_url: assetMap[material.name] || material.image_url
+                        } : null
+                    };
+                });
 
                 setInteractions(mappedData);
             } catch (err) {

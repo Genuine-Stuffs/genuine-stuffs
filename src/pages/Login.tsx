@@ -37,8 +37,7 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            const { error } = await signInWithEmail(formData.email, formData.password);
-            if (error) throw error;
+            await signInWithEmail(formData.email, formData.password);
         } catch (err: any) {
             toast.error(err.message || "Invalid credentials. Please try again.");
             console.error(err);
