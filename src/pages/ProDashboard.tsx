@@ -179,7 +179,7 @@ const ProDashboard = () => {
                                     <span className="text-[10px] font-black uppercase tracking-widest">New Concept</span>
                                 </Link>
                             </Button>
-                            <Button asChild variant="outline" className="h-28 flex-col gap-3 rounded-[2rem] border-dashed border-2 bg-transparent text-slate-400 hover:border-primary hover:text-primary transition-all">
+                            <Button asChild variant="outline" className="h-28 flex-col gap-3 rounded-[2rem] border-dashed border-2 bg-transparent text-slate-400 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all">
                                 <Link to="/pro/ai-studio">
                                     <Plus className="w-6 h-6" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Workspace</span>
