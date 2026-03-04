@@ -183,6 +183,19 @@ All colors MUST be HSL.
   .flush-junction {
     @apply border-collapse -m-[1px];
   }
+
+  /* Custom Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-slate-200 dark:bg-white/10 rounded-full;
+  }
 }
 
 @layer base {

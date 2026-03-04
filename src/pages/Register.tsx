@@ -95,6 +95,7 @@ const Register = () => {
                     id: authData.user.id,
                     full_name: formData.fullName,
                     specialty: formData.proType,
+                    credits: 10
                 });
 
                 if (profileError) throw profileError;
