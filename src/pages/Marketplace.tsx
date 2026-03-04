@@ -42,14 +42,14 @@ const Marketplace = () => {
     const [reportStatus, setReportStatus] = useState<"idle" | "submitting" | "success">("idle");
 
     const logInteraction = async (type: 'phone_reveal' | 'whatsapp_chat') => {
-        if (!user || !selectedMaterial || role !== 'pro') return;
+        if (!user || !selectedMaterial || role !== 'professional') return;
 
         try {
             await supabase.from('pro_interactions').insert({
                 pro_id: user.id,
                 material_id: selectedMaterial.id,
                 vendor_id: selectedMaterial.vendor_id,
-                interaction_type: type
+                event_type: type
             });
         } catch (err) {
             console.error("Log failed:", err);
