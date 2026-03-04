@@ -251,12 +251,19 @@ const AIStudio = () => {
             >
                 <div className="p-6 flex flex-col h-full overflow-hidden">
                     <div className="flex items-center justify-between mb-8">
-                        <Link to="/pro-portal" className="flex items-center gap-2 group">
+                        <button
+                            onClick={() => {
+                                setPromptText("");
+                                setGeneratedImage(null);
+                                toast.info("New project session initiated.");
+                            }}
+                            className="flex items-center gap-2 group w-full text-left"
+                        >
                             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
                                 <Plus className="w-5 h-5" />
                             </div>
                             <span className="font-black uppercase tracking-tighter text-slate-900 dark:text-white text-xs">New Project</span>
-                        </Link>
+                        </button>
                         <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl lg:hidden">
                             <X className="w-5 h-5" />
                         </Button>
@@ -283,7 +290,7 @@ const AIStudio = () => {
                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Studio Hub</p>
                             <div className="space-y-1">
                                 <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10">
-                                    <Link to="/pro/ai-studio"><LayoutDashboard className="w-4 h-4 text-primary" /> <span className="text-xs font-bold">Workspace</span></Link>
+                                    <Link to="/pro-portal"><LayoutDashboard className="w-4 h-4 text-primary" /> <span className="text-xs font-bold">Dashboard Feed</span></Link>
                                 </Button>
                                 <Button variant="ghost" className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10">
                                     <BookOpen className="w-4 h-4 text-slate-400" /> <span className="text-xs font-bold">Documentation</span>
