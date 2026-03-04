@@ -28,6 +28,7 @@ import {
     DialogDescription,
     DialogHeader,
     DialogTitle,
+    DialogClose,
 } from "@/components/ui/dialog";
 import { useState } from "react";
 
@@ -287,10 +288,14 @@ const AIDocumentation = () => {
                                 </div>
 
                                 <div className="flex justify-end gap-4">
-                                    <Button onClick={() => setSelectedRole(null)} variant="ghost" className="font-bold uppercase tracking-widest text-[10px] rounded-xl">Close</Button>
-                                    <Button asChild className="bg-primary text-white font-black uppercase tracking-widest text-[10px] rounded-xl px-6">
-                                        <Link to={`/pro/ai-studio?role=${selectedRole.role}`}>Execute Vision</Link>
-                                    </Button>
+                                    <DialogClose asChild>
+                                        <Button variant="ghost" className="font-bold uppercase tracking-widest text-[10px] rounded-xl">Close</Button>
+                                    </DialogClose>
+                                    <DialogClose asChild>
+                                        <Button asChild className="bg-primary text-white font-black uppercase tracking-widest text-[10px] rounded-xl px-6">
+                                            <Link to={`/pro/ai-studio?role=${selectedRole.role}`}>Execute Vision</Link>
+                                        </Button>
+                                    </DialogClose>
                                 </div>
                             </div>
                         </div>
