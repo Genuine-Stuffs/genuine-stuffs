@@ -99,10 +99,10 @@ const ProDashboard = () => {
 
             <main className="container relative mx-auto px-4 py-12 z-10">
                 {/* Bento Grid Main Layout */}
-                <div className="bento-grid lg:grid-rows-[auto_auto_auto] gap-px bg-slate-200/20 dark:bg-white/5 p-px rounded-[3rem] overflow-hidden border border-slate-200/50 dark:border-white/10 backdrop-blur-3xl shadow-3xl">
+                <div className="bento-grid lg:grid-rows-[auto_auto_auto] gap-px bg-slate-200/20 dark:bg-border p-px rounded-[3rem] overflow-hidden border border-slate-200/50 dark:border-border backdrop-blur-3xl shadow-3xl">
 
                     {/* Header Block (Col 1-12) */}
-                    <div className="col-span-12 p-10 bg-white/70 dark:bg-slate-900/40 backdrop-blur-md flex flex-col md:flex-row justify-between items-center border-b border-slate-200 dark:border-white/5">
+                    <div className="col-span-12 p-10 bg-white/70 dark:bg-card/40 backdrop-blur-md flex flex-col md:flex-row justify-between items-center border-b border-slate-200 dark:border-border">
                         <div className="flex items-center gap-6">
                             <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20">
                                 <Building2 className="w-8 h-8 text-primary" />
@@ -131,7 +131,7 @@ const ProDashboard = () => {
                     </div>
 
                     {/* Left Column: Material Index (Col 1-4) */}
-                    <div className="col-span-12 lg:col-span-4 p-8 bg-white/60 dark:bg-slate-900/30 backdrop-blur-sm border-r border-slate-200 dark:border-white/5 space-y-8 animate-cascade-in">
+                    <div className="col-span-12 lg:col-span-4 p-8 bg-white/60 dark:bg-background/20 backdrop-blur-sm border-r border-slate-200 dark:border-border space-y-8 animate-cascade-in">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <TrendingUp className="w-5 h-5 text-emerald-500" />
@@ -160,8 +160,8 @@ const ProDashboard = () => {
                     </div>
 
                     {/* Middle Column: ROI & Rapid Actions (Col 5-8) */}
-                    <div className="col-span-12 lg:col-span-4 p-8 bg-white/50 dark:bg-slate-900/40 backdrop-blur-sm border-r border-slate-200 dark:border-white/5 space-y-10 animate-cascade-in" style={{ animationDelay: '100ms' }}>
-                        <div className="p-8 rounded-[2.5rem] bg-slate-900 text-white relative overflow-hidden group">
+                    <div className="col-span-12 lg:col-span-4 p-8 bg-white/50 dark:bg-card/40 backdrop-blur-sm border-r border-slate-200 dark:border-border space-y-10 animate-cascade-in" style={{ animationDelay: '100ms' }}>
+                        <div className="p-8 rounded-[2.5rem] bg-slate-900 dark:bg-slate-950/40 text-white relative overflow-hidden group">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl -mr-16 -mt-16" />
                             <Zap className="w-8 h-8 text-primary mb-6" />
                             <h4 className="text-2xl font-black uppercase tracking-tighter italic">AI Cost Savings</h4>
@@ -173,7 +173,7 @@ const ProDashboard = () => {
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
-                            <Button asChild className="h-28 flex-col gap-3 rounded-[2rem] bg-white dark:bg-slate-800 border border-slate-200 dark:border-white/10 text-slate-900 dark:text-white hover:bg-primary hover:text-white transition-all group">
+                            <Button asChild className="h-28 flex-col gap-3 rounded-[2rem] bg-white dark:bg-card border border-slate-200 dark:border-border text-slate-900 dark:text-white hover:bg-primary hover:text-white transition-all group">
                                 <Link to="/pro/ai-studio">
                                     <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">New Concept</span>
@@ -189,7 +189,7 @@ const ProDashboard = () => {
                     </div>
 
                     {/* Right Column: History & Delivery (Col 9-12) */}
-                    <div className="col-span-12 lg:col-span-4 p-8 bg-white/40 dark:bg-slate-900/50 backdrop-blur-sm space-y-8 animate-cascade-in" style={{ animationDelay: '200ms' }}>
+                    <div className="col-span-12 lg:col-span-4 p-8 bg-white/40 dark:bg-card/20 backdrop-blur-sm space-y-8 animate-cascade-in" style={{ animationDelay: '200ms' }}>
                         <div className="flex items-center gap-3">
                             <History className="w-5 h-5 text-primary" />
                             <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">Active Pipeline</h3>
@@ -198,7 +198,7 @@ const ProDashboard = () => {
                         <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                             {interactions.length > 0 ? (
                                 interactions.map((event, i) => (
-                                    <div key={i} className="p-5 bg-white/60 dark:bg-black/30 rounded-3xl border border-slate-100 dark:border-white/5 hover:border-primary/30 transition-all group">
+                                    <div key={i} className="p-5 bg-white/60 dark:bg-muted/20 rounded-3xl border border-slate-100 dark:border-white/5 hover:border-primary/30 transition-all group">
                                         <div className="flex justify-between items-start mb-3">
                                             <span className="text-[9px] font-black text-primary px-2 py-0.5 bg-primary/10 rounded uppercase tracking-tighter">
                                                 {event.interaction_type === 'phone_reveal' ? 'Voice Link' : 'Digital Sync'}
@@ -230,7 +230,7 @@ const ProDashboard = () => {
                     </div>
 
                     {/* Bottom Row: Technical Toolkits (Col 1-12) */}
-                    <div className="col-span-12 p-8 bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border-t border-slate-200 dark:border-white/5 animate-cascade-in" style={{ animationDelay: '300ms' }}>
+                    <div className="col-span-12 p-8 bg-white/80 dark:bg-card/60 backdrop-blur-md border-t border-slate-200 dark:border-border animate-cascade-in" style={{ animationDelay: '300ms' }}>
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-4">
                                 <Scale className="w-6 h-6 text-primary" />
@@ -245,8 +245,8 @@ const ProDashboard = () => {
                                 { name: "Urban Site Flow", icon: Map, path: "/pro/ai-studio?role=Civil Engineer" },
                                 { name: "Dynamic BoQ", icon: FileText, path: "/calculators" },
                             ].map((tool, i) => (
-                                <Link key={i} to={tool.path} className="group p-6 bg-white/50 dark:bg-black/20 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-primary/50 hover:-translate-y-2 transition-all duration-500 text-center">
-                                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-white/10 group-hover:bg-primary group-hover:text-white group-hover:rotate-3 transition-all">
+                                <Link key={i} to={tool.path} className="group p-6 bg-white/50 dark:bg-muted/10 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-primary/50 hover:-translate-y-2 transition-all duration-500 text-center">
+                                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-slate-50 dark:bg-background/50 border border-slate-100 dark:border-white/10 group-hover:bg-primary group-hover:text-white group-hover:rotate-3 transition-all">
                                         <tool.icon className="w-8 h-8" />
                                     </div>
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">{tool.name}</span>

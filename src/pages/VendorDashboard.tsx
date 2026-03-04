@@ -75,10 +75,10 @@ const VendorDashboard = () => {
                         <Button className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 transition-all font-black uppercase tracking-widest text-xs h-11 px-6 rounded-xl">
                             <Plus className="w-4 h-4" /> Add Material
                         </Button>
-                        <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-slate-900 dark:border-slate-800 rounded-xl">
+                        <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-card dark:border-border rounded-xl">
                             <Bell className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                         </Button>
-                        <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-slate-900 dark:border-slate-800 rounded-xl">
+                        <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-card dark:border-border rounded-xl">
                             <Settings className="w-4 h-4 text-slate-600 dark:text-slate-400" />
                         </Button>
                     </div>
@@ -90,10 +90,10 @@ const VendorDashboard = () => {
                         <Card key={i} className="group border border-slate-100 dark:border-white/5 hover:border-primary/50 shadow-sm hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 bg-white dark:bg-card rounded-[2rem] overflow-hidden relative">
                             <CardContent className="p-6 relative z-10">
                                 <div className="flex justify-between items-start mb-6">
-                                    <div className={`p-4 rounded-[1.25rem] bg-slate-50 dark:bg-slate-800/50 shadow-inner border dark:border-white/10 transition-all group-hover:scale-110 group-hover:shadow-lg ${stat.color}`}>
+                                    <div className={`p-4 rounded-[1.25rem] bg-slate-50 dark:bg-muted/50 shadow-inner border dark:border-border transition-all group-hover:scale-110 group-hover:shadow-lg ${stat.color}`}>
                                         <stat.icon className="w-6 h-6" />
                                     </div>
-                                    <span className={`text-[10px] font-black px-3 py-1.5 rounded-full bg-slate-100 dark:bg-white/5 border dark:border-white/10 uppercase tracking-widest ${stat.color}`}>
+                                    <span className={`text-[10px] font-black px-3 py-1.5 rounded-full bg-slate-100 dark:bg-muted/30 border dark:border-border uppercase tracking-widest ${stat.color}`}>
                                         {stat.trend}
                                     </span>
                                 </div>
@@ -125,9 +125,9 @@ const VendorDashboard = () => {
                                     { order: "#ORD-5419", client: "Premium Dev", item: "Sharp Sand (10 Tons)", status: "Delivered", date: "3 hours ago" },
                                     { order: "#ORD-5418", client: "Metro Builders", item: "Concrete Aggregates", status: "Pending", date: "Yesterday" },
                                 ].map((order, i) => (
-                                    <div key={i} className="flex items-center justify-between p-5 rounded-2xl border border-slate-50 dark:border-white/5 hover:bg-slate-50/50 dark:hover:bg-white/5 transition-all group">
+                                    <div key={i} className="flex items-center justify-between p-5 rounded-2xl border border-slate-50 dark:border-border hover:bg-slate-50/50 dark:hover:bg-muted/20 transition-all group">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-black flex items-center justify-center font-black text-xs text-slate-500 dark:text-slate-400 shadow-inner group-hover:scale-110 transition-transform">
+                                            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-muted flex items-center justify-center font-black text-xs text-slate-500 dark:text-slate-400 shadow-inner group-hover:scale-110 transition-transform">
                                                 {order.client.split(' ').map(n => n[0]).join('')}
                                             </div>
                                             <div>
@@ -158,19 +158,19 @@ const VendorDashboard = () => {
                         <CardContent className="px-8 pb-8 space-y-6">
                             <div className="relative group">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
-                                <Input className="pl-11 h-12 bg-slate-50 dark:bg-black border-none rounded-xl font-bold focus:ring-4 focus:ring-primary/10 dark:text-white transition-all" placeholder="Search my inventory..." />
+                                <Input className="pl-11 h-12 bg-slate-50 dark:bg-background border-none rounded-xl font-bold focus:ring-4 focus:ring-primary/10 dark:text-white transition-all" placeholder="Search my inventory..." />
                             </div>
                             <div className="flex flex-wrap gap-2 mb-4">
-                                <Button variant="outline" size="sm" className="h-9 rounded-full text-[10px] font-black uppercase tracking-widest border-slate-200 dark:border-white/10 dark:text-slate-400">Low Stock</Button>
-                                <Button variant="outline" size="sm" className="h-9 rounded-full text-[10px] font-black uppercase tracking-widest border-slate-200 dark:border-white/10 dark:text-slate-400">Recently Added</Button>
-                                <Button variant="outline" size="sm" className="h-9 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-50 dark:bg-white/5 border-none text-primary">All Categories <Filter className="w-3.5 h-3.5 ml-2" /></Button>
+                                <Button variant="outline" size="sm" className="h-9 rounded-full text-[10px] font-black uppercase tracking-widest border-slate-200 dark:border-border dark:text-slate-400">Low Stock</Button>
+                                <Button variant="outline" size="sm" className="h-9 rounded-full text-[10px] font-black uppercase tracking-widest border-slate-200 dark:border-border dark:text-slate-400">Recently Added</Button>
+                                <Button variant="outline" size="sm" className="h-9 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-50 dark:bg-muted border-none text-primary">All Categories <Filter className="w-3.5 h-3.5 ml-2" /></Button>
                             </div>
                             <div className="space-y-3">
                                 {isLoading ? (
                                     <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
                                 ) : myMaterials.length > 0 ? (
                                     myMaterials.slice(0, 5).map((item, i) => (
-                                        <div key={i} className="flex justify-between items-center p-4 rounded-xl bg-slate-50 dark:bg-white/5 border dark:border-white/5 transition-colors group cursor-pointer hover:bg-primary hover:text-white hover:border-primary">
+                                        <div key={i} className="flex justify-between items-center p-4 rounded-xl bg-slate-50 dark:bg-muted/20 border dark:border-border transition-colors group cursor-pointer hover:bg-primary hover:text-white hover:border-primary">
                                             <div className="flex flex-col gap-0.5">
                                                 <span className="text-xs font-black uppercase tracking-tight line-clamp-1">{item.name}</span>
                                                 <span className="text-[10px] font-bold opacity-60 flex items-center gap-1">

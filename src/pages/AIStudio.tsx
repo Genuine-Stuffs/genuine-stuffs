@@ -246,10 +246,10 @@ const AIStudio = () => {
     return (
         <div className="flex flex-col h-screen overflow-hidden">
             <Navbar />
-            <div className="flex flex-1 bg-white dark:bg-slate-950 transition-colors overflow-hidden selection:bg-primary/30">
+            <div className="flex flex-1 bg-white dark:bg-background transition-colors overflow-hidden selection:bg-primary/30">
                 {/* Sidebar (Minimalist ChatGPT style) */}
                 <aside
-                    className={`flex flex-col bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-white/5 transition-all duration-300 z-50 ${sidebarOpen ? 'w-72' : 'w-0'
+                    className={`flex flex-col bg-slate-50 dark:bg-card border-r border-slate-200 dark:border-white/5 transition-all duration-300 z-50 ${sidebarOpen ? 'w-72' : 'w-0'
                         }`}
                 >
                     <div className="p-6 flex flex-col h-full overflow-hidden">
@@ -461,7 +461,7 @@ const AIStudio = () => {
                 </main>
 
                 <Dialog open={showRefillModal} onOpenChange={setShowRefillModal}>
-                    <DialogContent className="max-w-4xl p-0 rounded-[2.5rem] overflow-hidden border-none shadow-3xl bg-white dark:bg-slate-950">
+                    <DialogContent className="max-w-4xl p-0 rounded-[2.5rem] overflow-hidden border-none shadow-3xl bg-white dark:bg-background">
                         <div className="p-8 md:p-12">
                             <DialogHeader className="mb-10 text-center">
                                 <DialogTitle className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white flex items-center justify-center gap-3">
@@ -476,7 +476,7 @@ const AIStudio = () => {
                                 {creditPackages.map((pack) => (
                                     <Card
                                         key={pack.name}
-                                        className={`relative group border-2 transition-all p-6 flex flex-col rounded-[2rem] hover:scale-[1.02] cursor-pointer ${pack.popular ? 'border-primary bg-primary/5 shadow-2xl shadow-primary/10' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900'
+                                        className={`relative group border-2 transition-all p-6 flex flex-col rounded-[2rem] hover:scale-[1.02] cursor-pointer ${pack.popular ? 'border-primary bg-primary/5 shadow-2xl shadow-primary/10' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-card'
                                             }`}
                                         onClick={() => handlePaystackPayment(pack)}
                                     >
@@ -510,7 +510,7 @@ const AIStudio = () => {
                     </DialogContent>
                 </Dialog>
             </div>
-        </div>
+        </div >
     );
 };
 

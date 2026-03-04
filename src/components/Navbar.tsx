@@ -33,7 +33,7 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-b border-slate-100 dark:border-slate-800 transition-colors duration-300">
+    <nav className="sticky top-0 z-50 bg-white/80 dark:bg-background/80 backdrop-blur-xl border-b border-slate-100 dark:border-border transition-colors duration-300">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center space-x-3 group">
@@ -49,14 +49,14 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
-            <div className="flex items-center space-x-1 bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-2xl">
+            <div className="flex items-center space-x-1 bg-slate-100/50 dark:bg-muted/50 p-1.5 rounded-2xl">
               {filteredLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
                   className={`text-sm font-bold px-4 py-2 rounded-xl transition-all ${isActive(link.path)
-                    ? "bg-white dark:bg-slate-700 text-primary shadow-sm"
-                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50"
+                    ? "bg-white dark:bg-primary/20 text-primary shadow-sm"
+                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-muted/50"
                     }`}
                 >
                   {link.label}
@@ -66,12 +66,12 @@ const Navbar = () => {
 
             <ModeToggle />
 
-            <div className="h-8 w-[1px] bg-slate-100 dark:bg-slate-800" />
+            <div className="h-8 w-[1px] bg-slate-100 dark:bg-border" />
 
             {/* Auth State */}
             {role === 'guest' ? (
               <div className="flex items-center gap-3">
-                <Button asChild variant="ghost" className="rounded-2xl font-black text-slate-700 dark:text-slate-200 px-4 h-11 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                <Button asChild variant="ghost" className="rounded-2xl font-black text-slate-700 dark:text-slate-200 px-4 h-11 hover:bg-slate-100 dark:hover:bg-muted transition-colors">
                   <Link to="/login">Log In</Link>
                 </Button>
                 <Button asChild className="rounded-2xl font-black bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 px-6 h-11 transition-colors">
@@ -81,7 +81,7 @@ const Navbar = () => {
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="rounded-2xl gap-2 font-black text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 border-none hover:bg-slate-100 dark:hover:bg-slate-700">
+                  <Button variant="ghost" className="rounded-2xl gap-2 font-black text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-card border-none hover:bg-slate-100 dark:hover:bg-muted text-xs">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${role === 'professional' ? 'bg-primary text-white' :
                       role === 'vendor' ? 'bg-orange-500 text-white' :
                         'bg-slate-300 dark:bg-slate-600 text-white'

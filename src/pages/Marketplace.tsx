@@ -140,10 +140,10 @@ const Marketplace = () => {
     return (
         <div className="min-h-screen bg-background transition-colors duration-300">
             <Navbar />
-            <div className="bg-white dark:bg-slate-950/50 backdrop-blur-md border-b dark:border-white/10 sticky top-16 md:top-20 z-30 shadow-sm transition-all duration-300">
+            <div className="bg-white dark:bg-card/50 backdrop-blur-md border-b dark:border-border sticky top-16 md:top-20 z-30 shadow-sm transition-all duration-300">
                 <div className="container mx-auto px-4 py-3 md:py-4">
                     <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-center">
-                        <div className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-xl border border-slate-100 dark:border-white/5 flex-1 w-full transition-colors duration-300">
+                        <div className="flex items-center gap-3 bg-slate-50 dark:bg-muted/40 px-4 py-2 rounded-xl border border-slate-100 dark:border-border flex-1 w-full transition-colors duration-300">
                             <Search className="w-4 h-4 md:w-5 md:h-5 text-slate-400" />
                             <input
                                 className="bg-transparent border-none focus:ring-0 w-full text-sm md:text-base text-slate-700 dark:text-slate-100 font-bold placeholder:font-medium placeholder:text-slate-400"
@@ -155,8 +155,8 @@ const Marketplace = () => {
                         <div className="flex gap-2 w-full md:w-auto">
                             <Button className="flex-1 md:flex-none h-10 md:h-11 px-6 md:px-8 rounded-xl bg-primary hover:bg-primary/90 font-black shadow-lg shadow-primary/20 text-xs md:text-sm">Search</Button>
                             <div className="flex gap-2">
-                                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 transition-colors"><User className="w-4 h-4 md:w-5 md:h-5 text-slate-400" /></Button>
-                                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 transition-colors"><ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-slate-400" /></Button>
+                                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-50 dark:bg-muted border border-slate-100 dark:border-border transition-colors"><User className="w-4 h-4 md:w-5 md:h-5 text-slate-400" /></Button>
+                                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-50 dark:bg-muted border border-slate-100 dark:border-border transition-colors"><ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-slate-400" /></Button>
                             </div>
                         </div>
                     </div>
@@ -176,9 +176,9 @@ const Marketplace = () => {
                                     <li key={cat}>
                                         <button
                                             onClick={() => setSelectedCategory(cat)}
-                                            className={`text-sm font-black uppercase tracking-widest transition-all block w-full text-left py-2 px-3 rounded-lg border border-transparent ${selectedCategory === cat ? 'text-primary bg-primary/5 border-primary/20 shadow-lg shadow-primary/5' : 'text-slate-500 hover:text-slate-800 dark:hover:text-white dark:hover:bg-white/5'}`}
+                                            className={`text-sm font-black uppercase tracking-widest transition-all block w-full text-left py-2 px-3 rounded-lg border border-transparent ${selectedCategory === cat ? 'text-primary bg-primary/5 border-primary/20 shadow-lg shadow-primary/5' : 'text-slate-500 hover:text-slate-800 dark:hover:text-white dark:hover:bg-muted'}`}
                                         >
-                                            {cat} <span className={`text-[10px] ml-1 px-1.5 py-0.5 rounded-md transition-colors ${selectedCategory === cat ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-white/10 text-slate-400 dark:text-slate-500'}`}>
+                                            {cat} <span className={`text-[10px] ml-1 px-1.5 py-0.5 rounded-md transition-colors ${selectedCategory === cat ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-muted/50 text-slate-400 dark:text-slate-500'}`}>
                                                 {cat === "All" ? dbMaterials.length : dbMaterials.filter(m => m.category === cat).length}
                                             </span>
                                         </button>
@@ -251,8 +251,8 @@ const Marketplace = () => {
                                                 <SlidersHorizontal className="w-4 h-4 text-primary" />
                                             </Button>
                                         </SheetTrigger>
-                                        <SheetContent side="bottom" className="rounded-t-[2.5rem] h-[80vh] dark:bg-slate-900 border-t-primary/20">
-                                            <SheetHeader className="pb-6 border-b dark:border-white/10">
+                                        <SheetContent side="bottom" className="rounded-t-[2.5rem] h-[80vh] dark:bg-background border-t-primary/20">
+                                            <SheetHeader className="pb-6 border-b dark:border-border">
                                                 <SheetTitle className="font-black uppercase tracking-widest text-primary flex items-center gap-2">
                                                     <Filter className="w-4 h-4" /> Refine Marketplace
                                                 </SheetTitle>
@@ -286,14 +286,14 @@ const Marketplace = () => {
                                                             type="number"
                                                             value={priceRange.min}
                                                             onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
-                                                            className="h-12 bg-slate-50 dark:bg-white/5 border-none rounded-2xl font-bold"
+                                                            className="h-12 bg-slate-50 dark:bg-muted/20 border-none rounded-2xl font-bold"
                                                         />
                                                         <Input
                                                             placeholder="Max"
                                                             type="number"
                                                             value={priceRange.max}
                                                             onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
-                                                            className="h-12 bg-slate-50 dark:bg-white/5 border-none rounded-2xl font-bold"
+                                                            className="h-12 bg-slate-50 dark:bg-muted/20 border-none rounded-2xl font-bold"
                                                         />
                                                     </div>
                                                 </div>
@@ -324,7 +324,7 @@ const Marketplace = () => {
                                 {filteredMaterials.map((m) => (
                                     <Card
                                         key={m.id}
-                                        className="group overflow-hidden border border-slate-200 dark:border-white/10 hover:border-primary/50 hover:shadow-[0_0_30px_-5px_hsl(var(--primary-glow))] transition-all duration-500 rounded-3xl flex flex-col h-full bg-white dark:bg-card shadow-sm cursor-pointer"
+                                        className="group overflow-hidden border border-slate-200 dark:border-border hover:border-primary/50 hover:shadow-[0_0_30px_-5px_hsl(var(--primary-glow))] transition-all duration-500 rounded-3xl flex flex-col h-full bg-white dark:bg-card shadow-sm cursor-pointer"
                                         onClick={() => {
                                             setSelectedMaterial(m);
                                             setShowContact(false);
@@ -339,13 +339,13 @@ const Marketplace = () => {
                                             />
                                             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent group-hover:from-black/40 transition-all duration-500" />
                                             <div className="absolute top-2 right-2 md:top-3 md:right-3 flex flex-col gap-2 z-10">
-                                                <Badge className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-900 dark:text-white border-none font-black text-[8px] md:text-[10px] uppercase shadow-xl px-2.5 py-1">
+                                                <Badge className="bg-white/95 dark:bg-background/95 backdrop-blur-md text-slate-900 dark:text-white border-none font-black text-[8px] md:text-[10px] uppercase shadow-xl px-2.5 py-1">
                                                     {m.category.split(' ')[0]}
                                                 </Badge>
                                             </div>
                                         </div>
                                         <CardContent className="p-3 md:p-5 flex-grow">
-                                            <div className="flex items-center gap-2 text-[8px] md:text-xs font-black text-slate-400 dark:text-slate-500 mb-2 md:mb-3 bg-slate-50 dark:bg-white/5 p-1 px-2 md:p-2 rounded-lg transition-colors truncate">
+                                            <div className="flex items-center gap-2 text-[8px] md:text-xs font-black text-slate-400 dark:text-slate-500 mb-2 md:mb-3 bg-slate-50 dark:bg-muted/40 p-1 px-2 md:p-2 rounded-lg transition-colors truncate">
                                                 <User className="w-3 h-3 md:w-3.5 md:h-3.5 flex-shrink-0" />
                                                 <span className="truncate">{m.vendor_name || "Verified Vendor"}</span>
                                                 {m.is_verified && <CheckCircle2 className="w-2.5 h-2.5 md:w-3 md:h-3 text-primary ml-auto" />}
@@ -365,7 +365,7 @@ const Marketplace = () => {
                                                     setSelectedMaterial(m);
                                                     incrementViewCount(m);
                                                 }}
-                                                className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-primary text-white font-black h-8 md:h-10 rounded-xl transition-all shadow-lg hover:shadow-primary/20 group/btn text-[9px] md:text-xs uppercase tracking-widest"
+                                                className="w-full bg-slate-900 dark:bg-primary/20 hover:bg-primary text-white font-black h-8 md:h-10 rounded-xl transition-all shadow-lg hover:shadow-primary/20 group/btn text-[9px] md:text-xs uppercase tracking-widest"
                                             >
                                                 Details <ExternalLink className="ml-2 w-3 h-3 md:w-3.5 md:h-3.5 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5 transition-transform" />
                                             </Button>
@@ -374,8 +374,8 @@ const Marketplace = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="bg-slate-50 dark:bg-card border-2 border-dashed border-slate-200 dark:border-white/10 rounded-3xl p-16 text-center transition-colors">
-                                <div className="w-20 h-20 bg-white dark:bg-black/20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border dark:border-white/5">
+                            <div className="bg-slate-50 dark:bg-card border-2 border-dashed border-slate-200 dark:border-border rounded-3xl p-16 text-center transition-colors">
+                                <div className="w-20 h-20 bg-white dark:bg-muted/40 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border dark:border-border">
                                     <Search className="w-10 h-10 text-slate-300 dark:text-slate-600" />
                                 </div>
                                 <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2">No materials found</h3>
@@ -391,7 +391,7 @@ const Marketplace = () => {
                     {selectedMaterial && (
                         <div className="flex flex-col md:flex-row h-full max-h-[90vh] overflow-y-auto md:overflow-hidden">
                             {/* Left Side: Images */}
-                            <div className="md:w-3/5 bg-slate-100 dark:bg-slate-900 relative">
+                            <div className="md:w-3/5 bg-slate-100 dark:bg-background relative">
                                 <img
                                     src={selectedMaterial.image_url || "/images/materials/cement.png"}
                                     alt={selectedMaterial.name}
@@ -438,7 +438,7 @@ const Marketplace = () => {
                                             </p>
                                         </div>
 
-                                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5">
+                                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-muted/20 border border-slate-100 dark:border-border">
                                             <div className="flex items-center gap-3 mb-3 text-slate-900 dark:text-white">
                                                 <MapPin className="w-4 h-4 text-primary" />
                                                 <span className="text-xs font-black uppercase tracking-widest">Ships Nationally</span>
@@ -495,7 +495,7 @@ const Marketplace = () => {
 
             {/* Report Dialog */}
             <Dialog open={isReporting} onOpenChange={setIsReporting}>
-                <DialogContent className="max-w-md p-0 rounded-[2rem] overflow-hidden border-none shadow-3xl bg-white dark:bg-slate-900 transition-colors">
+                <DialogContent className="max-w-md p-0 rounded-[2rem] overflow-hidden border-none shadow-3xl bg-white dark:bg-background transition-colors">
                     {reportStatus === "success" ? (
                         <div className="p-12 text-center animate-in fade-in zoom-in duration-300">
                             <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -523,7 +523,7 @@ const Marketplace = () => {
                                         key={reason}
                                         onClick={() => handleReport(reason)}
                                         disabled={reportStatus === "submitting"}
-                                        className="w-full text-left p-4 rounded-xl border border-slate-100 dark:border-white/5 hover:border-primary/50 hover:bg-primary/5 transition-all text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between group"
+                                        className="w-full text-left p-4 rounded-xl border border-slate-100 dark:border-border hover:border-primary/50 hover:bg-primary/5 transition-all text-sm font-bold text-slate-700 dark:text-slate-200 flex items-center justify-between group"
                                     >
                                         {reason}
                                         {reportStatus === "submitting" ? (

@@ -192,7 +192,7 @@ const AIDocumentation = () => {
                         { icon: <TrendingUp />, title: "Precision Gains", desc: "Minimize human error in preliminary site studies and logistics planning." },
                         { icon: <ShieldCheck />, title: "Expert Guardrails", desc: "Built with industry-specific protocol knowledge across 9 core disciplines." }
                     ].map((pillar, i) => (
-                        <Card key={i} className="bg-white/50 dark:bg-slate-900/60 backdrop-blur-md border-slate-100 dark:border-white/5 rounded-[2.5rem] p-10 hover:border-primary/30 transition-all group animate-cascade-in" style={{ animationDelay: `${i * 100}ms` }}>
+                        <Card key={i} className="bg-white/50 dark:bg-card/60 backdrop-blur-md border-slate-100 dark:border-white/5 rounded-[2.5rem] p-10 hover:border-primary/30 transition-all group animate-cascade-in" style={{ animationDelay: `${i * 100}ms` }}>
                             <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-6 group-hover:scale-110 group-hover:rotate-6 transition-transform">
                                 {pillar.icon}
                             </div>
@@ -211,9 +211,9 @@ const AIDocumentation = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {professionalInsights.map((insight, i) => (
-                            <div key={i} className="p-8 bg-white/40 dark:bg-black/20 backdrop-blur-sm rounded-[2rem] border border-slate-100 dark:border-white/5 hover:bg-white/80 dark:hover:bg-slate-900/80 transition-all flex flex-col group">
+                            <div key={i} className="p-8 bg-white/40 dark:bg-card/20 backdrop-blur-sm rounded-[2rem] border border-slate-100 dark:border-white/5 hover:bg-white/80 dark:hover:bg-card/80 transition-all flex flex-col group">
                                 <div className="flex items-center gap-4 mb-6">
-                                    <div className="p-3 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-white/10 group-hover:text-primary transition-colors">
+                                    <div className="p-3 bg-white dark:bg-muted rounded-xl shadow-sm border border-slate-100 dark:border-white/10 group-hover:text-primary transition-colors">
                                         {insight.icon}
                                     </div>
                                     <h4 className="text-lg font-black uppercase tracking-tighter text-slate-900 dark:text-white italic">{insight.role}</h4>
@@ -232,7 +232,7 @@ const AIDocumentation = () => {
                 </div>
 
                 {/* Final CTA */}
-                <div className="mt-32 p-12 md:p-20 rounded-[3rem] bg-slate-900 text-white relative overflow-hidden text-center animate-cascade-in" style={{ animationDelay: '500ms' }}>
+                <div className="mt-32 p-12 md:p-20 rounded-[3rem] bg-slate-900 dark:bg-card text-white relative overflow-hidden text-center animate-cascade-in" style={{ animationDelay: '500ms' }}>
                     <div className="absolute inset-0 mesh-background opacity-20" />
                     <div className="relative z-10 max-w-2xl mx-auto">
                         <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tighter italic mb-8">Ready to evolve your <br /> architectural node?</h2>
@@ -245,15 +245,15 @@ const AIDocumentation = () => {
             </main>
 
             <Dialog open={!!selectedRole} onOpenChange={() => setSelectedRole(null)}>
-                <DialogContent className="max-w-2xl p-0 overflow-hidden border-none rounded-[2.5rem] bg-white dark:bg-slate-900 shadow-3xl">
+                <DialogContent className="max-w-2xl p-0 overflow-hidden border-none rounded-[2.5rem] bg-white dark:bg-card shadow-3xl">
                     {selectedRole && (
                         <div className="flex flex-col">
-                            <div className="h-48 bg-slate-900 relative flex items-center justify-center overflow-hidden">
+                            <div className="h-48 bg-slate-900 dark:bg-muted/30 relative flex items-center justify-center overflow-hidden">
                                 <div className="absolute inset-0 opacity-20">
                                     <div className="mesh-background" />
                                 </div>
                                 <div className="relative z-10 flex flex-col items-center">
-                                    <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl mb-4">
+                                    <div className="p-4 bg-white dark:bg-muted rounded-2xl mb-4">
                                         {selectedRole.icon}
                                     </div>
                                     <h2 className="text-2xl font-black text-white uppercase tracking-tighter italic">{selectedRole.role} Protocol</h2>

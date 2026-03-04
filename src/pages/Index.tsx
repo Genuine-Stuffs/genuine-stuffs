@@ -95,11 +95,11 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300 pb-24 md:pb-0">
+    <div className="min-h-screen bg-white dark:bg-background transition-colors duration-300 pb-24 md:pb-0">
       <Navbar />
 
       {/* Compact Search Header */}
-      <section className="relative pt-6 md:pt-12 pb-8 overflow-hidden bg-slate-50 dark:bg-black border-b border-slate-100 dark:border-white/5">
+      <section className="relative pt-6 md:pt-12 pb-8 overflow-hidden bg-slate-50 dark:bg-background border-b border-slate-100 dark:border-border">
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-4xl mx-auto text-center mb-8">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest mb-4">
@@ -137,7 +137,7 @@ const Index = () => {
               <Link
                 key={tag}
                 to={`/marketplace?q=${tag}`}
-                className="px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary transition-all"
+                className="px-4 py-2 rounded-full bg-white dark:bg-card border border-slate-200 dark:border-border text-xs font-bold text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary transition-all"
               >
                 {tag}
               </Link>
@@ -147,7 +147,7 @@ const Index = () => {
       </section>
 
       {/* Browse By Category - Prominent & Card Style */}
-      <section className="py-12 bg-white dark:bg-slate-950 border-b border-slate-100 dark:border-white/5">
+      <section className="py-12 bg-white dark:bg-background border-b border-slate-100 dark:border-border">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
@@ -162,7 +162,7 @@ const Index = () => {
               <Link
                 key={i}
                 to={cat.link || `/marketplace?category=${encodeURIComponent(cat.title)}`}
-                className="group flex flex-col items-center p-3 md:p-6 rounded-3xl border border-slate-100 dark:border-white/10 bg-slate-50/50 dark:bg-card hover:bg-white dark:hover:bg-slate-800/50 hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 backdrop-blur-sm relative overflow-hidden"
+                className="group flex flex-col items-center p-3 md:p-6 rounded-3xl border border-slate-100 dark:border-border bg-slate-50/50 dark:bg-card hover:bg-white dark:hover:bg-muted/50 hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 backdrop-blur-sm relative overflow-hidden"
               >
                 <div className={`w-10 h-10 md:w-14 md:h-14 rounded-2xl flex items-center justify-center mb-2 md:mb-4 ${cat.color} group-hover:scale-110 transition-transform shadow-sm group-hover:shadow-lg`}>
                   <cat.icon className="w-5 h-5 md:w-7 md:h-7" />
@@ -176,7 +176,7 @@ const Index = () => {
       </section>
 
       {/* Trending / Promoted Materials Section - NEW */}
-      <section className="py-16 bg-slate-50 dark:bg-black transition-colors">
+      <section className="py-16 bg-slate-50 dark:bg-background transition-colors">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
@@ -202,7 +202,7 @@ const Index = () => {
                   <h3 className="font-black text-slate-900 dark:text-white leading-tight mb-2 group-hover:text-primary transition-colors">{prod.title}</h3>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-black text-slate-900 dark:text-white uppercase">{prod.price}</span>
-                    <Button size="sm" variant="outline" className="h-8 rounded-lg text-[10px] font-black dark:border-slate-700 dark:hover:bg-slate-700">DETAILS</Button>
+                    <Button size="sm" variant="outline" className="h-8 rounded-lg text-[10px] font-black dark:border-border dark:hover:bg-muted">DETAILS</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -212,7 +212,7 @@ const Index = () => {
       </section>
 
       {/* Brand Purpose / Why We Exist - Dark Mode Enhanced */}
-      <section className="py-24 bg-white dark:bg-slate-950 border-y border-slate-100 dark:border-white/5">
+      <section className="py-24 bg-white dark:bg-background border-y border-slate-100 dark:border-border">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div className="order-2 lg:order-1">
@@ -228,7 +228,7 @@ const Index = () => {
                   { label: "Expert Advisory", desc: "Site management guidance from seasoned pros." },
                   { label: "Price Transparency", desc: "Eliminating the 'middle-man' markup." }
                 ].map((item, i) => (
-                  <div key={i} className="flex gap-4 items-start p-4 rounded-2xl bg-slate-50 dark:bg-card border border-slate-100 dark:border-white/5">
+                  <div key={i} className="flex gap-4 items-start p-4 rounded-2xl bg-slate-50 dark:bg-card border border-slate-100 dark:border-border">
                     <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
                     <div>
                       <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-tighter">{item.label}</h4>
@@ -238,7 +238,7 @@ const Index = () => {
                 ))}
               </div>
             </div>
-            <div className="order-1 lg:order-2 rounded-3xl overflow-hidden shadow-2xl relative aspect-square lg:aspect-video border-8 border-white dark:border-slate-800">
+            <div className="order-1 lg:order-2 rounded-3xl overflow-hidden shadow-2xl relative aspect-square lg:aspect-video border-8 border-white dark:border-card">
               <img src="/images/materials/steel.png" alt="Verified construction materials on site" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
               <div className="absolute bottom-8 left-8 right-8">
@@ -261,7 +261,7 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {benefits.map((benefit, index) => (
-              <Card key={index} className="group border-2 border-slate-100 dark:border-white/10 bg-white dark:bg-card hover:border-primary transition-all duration-500 overflow-hidden relative shadow-sm hover:shadow-2xl hover:shadow-primary/10 rounded-3xl">
+              <Card key={index} className="group border-2 border-slate-100 dark:border-border bg-white dark:bg-card hover:border-primary transition-all duration-500 overflow-hidden relative shadow-sm hover:shadow-2xl hover:shadow-primary/10 rounded-3xl">
                 <CardContent className="pt-8 pb-8 relative z-10">
                   <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                     <benefit.icon className="w-8 h-8 text-primary" />
@@ -297,7 +297,7 @@ const Index = () => {
                   <p className="text-muted-foreground">{step.description}</p>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-0.5 bg-border" />
+                  <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-0.5 bg-slate-100 dark:bg-border" />
                 )}
               </div>
             ))}
@@ -323,7 +323,7 @@ const Index = () => {
               "Knowledge Hub",
               "Quality Enablement"
             ].map((specialty, i) => (
-              <div key={i} className="flex items-center gap-4 bg-white dark:bg-card p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-white/5 hover:border-primary hover:shadow-xl transition-all group">
+              <div key={i} className="flex items-center gap-4 bg-white dark:bg-card p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-border hover:border-primary hover:shadow-xl transition-all group">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
@@ -385,7 +385,7 @@ const Index = () => {
               <Card key={index} className="border-2">
                 <CardContent className="pt-6">
                   <p className="text-lg mb-6 italic">"{testimonial.quote}"</p>
-                  <div className="border-t pt-4">
+                  <div className="border-t dark:border-border pt-4">
                     <p className="font-semibold">{testimonial.author}</p>
                     <p className="text-sm text-muted-foreground">{testimonial.role}</p>
                   </div>
