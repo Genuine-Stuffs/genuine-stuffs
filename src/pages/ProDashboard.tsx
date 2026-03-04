@@ -240,9 +240,9 @@ const ProDashboard = () => {
                         </div>
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
                             {[
-                                { name: "Structural Integrity", icon: Layers, path: "/pro/ai-studio" },
-                                { name: "MEP Precision", icon: Calculator, path: "/pro/ai-studio" },
-                                { name: "Urban Site Flow", icon: Map, path: "/pro/ai-studio" },
+                                { name: "Structural Integrity", icon: Layers, path: "/pro/ai-studio?role=Structural Engineer" },
+                                { name: "MEP Precision", icon: Calculator, path: "/pro/ai-studio?role=MEP Engineer" },
+                                { name: "Urban Site Flow", icon: Map, path: "/pro/ai-studio?role=Civil Engineer" },
                                 { name: "Dynamic BoQ", icon: FileText, path: "/calculators" },
                             ].map((tool, i) => (
                                 <Link key={i} to={tool.path} className="group p-6 bg-white/50 dark:bg-black/20 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-primary/50 hover:-translate-y-2 transition-all duration-500 text-center">

@@ -28,7 +28,7 @@ import {
     Compass
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { supabase } from "backend/supabaseClient";
 import CreditInfo from "@/components/CreditInfo";
@@ -52,6 +52,7 @@ import {
 const AIStudio = () => {
     const { user, role } = useAuth();
     const isPro = role === "professional";
+    const [searchParams] = useSearchParams();
     const [selectedRole, setSelectedRole] = useState("Architect");
     const [credits, setCredits] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -60,6 +61,13 @@ const AIStudio = () => {
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
     const [promptText, setPromptText] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(true);
+
+    useEffect(() => {
+        const roleParam = searchParams.get('role');
+        if (roleParam) {
+            setSelectedRole(roleParam);
+        }
+    }, [searchParams]);
 
     const creditPackages = [
         { name: "Starter", credits: 50, price: 5000, description: "Perfect for a single project vision" },
