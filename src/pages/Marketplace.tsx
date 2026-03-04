@@ -98,7 +98,27 @@ const Marketplace = () => {
                 .select('*')
                 .eq('is_verified', true);
             if (error) throw error;
-            return data || [];
+
+            // Temporary local asset mapping to override remote database URLs until seed is re-run
+            const assetMap: Record<string, string> = {
+                "Plumbing Network Pipes": "/images/materials/plumbing_pipes.png",
+                "Coleman Copper Cable (1.5mm)": "/images/materials/copper_cables.png",
+                "Polished Granite Slabs": "/images/materials/granite_slabs.png",
+                "Longspan Aluminum Roofing (0.55mm)": "/images/materials/roofing_sheets.png",
+                "Vitrified Floor Tiles (60x60)": "/images/materials/floor_tiles.png",
+                "Premium Wall Paint (White)": "/images/materials/dulux_paint.png",
+                "Reinforcement Steel (12mm)": "/images/materials/steel_rebars.png",
+                "Portland Cement (Dangote)": "/images/materials/cement_bags.png",
+            };
+
+            const mappedData = (data || []).map(m => ({
+                ...m,
+                image_url: assetMap[m.name] || m.image_url,
+                // Also update price for Dangote Cement if found
+                price: m.name === "Portland Cement (Dangote)" ? 10450 : m.price
+            }));
+
+            return mappedData;
         }
     });
 

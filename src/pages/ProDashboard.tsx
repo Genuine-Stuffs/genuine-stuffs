@@ -79,7 +79,28 @@ const ProDashboard = () => {
                     .order('created_at', { ascending: false });
 
                 if (error) throw error;
-                setInteractions(data || []);
+
+                // Temporary local asset mapping for interactions
+                const assetMap: Record<string, string> = {
+                    "Plumbing Network Pipes": "/images/materials/plumbing_pipes.png",
+                    "Coleman Copper Cable (1.5mm)": "/images/materials/copper_cables.png",
+                    "Polished Granite Slabs": "/images/materials/granite_slabs.png",
+                    "Longspan Aluminum Roofing (0.55mm)": "/images/materials/roofing_sheets.png",
+                    "Vitrified Floor Tiles (60x60)": "/images/materials/floor_tiles.png",
+                    "Premium Wall Paint (White)": "/images/materials/dulux_paint.png",
+                    "Reinforcement Steel (12mm)": "/images/materials/steel_rebars.png",
+                    "Portland Cement (Dangote)": "/images/materials/cement_bags.png",
+                };
+
+                const mappedData = (data || []).map(event => ({
+                    ...event,
+                    materials: event.materials ? {
+                        ...event.materials,
+                        image_url: assetMap[event.materials.name] || event.materials.image_url
+                    } : null
+                }));
+
+                setInteractions(mappedData);
             } catch (err) {
                 console.error("Error fetching interactions:", err);
             }
@@ -150,7 +171,7 @@ const ProDashboard = () => {
                         <div className="space-y-4">
                             <div className="flex justify-between items-center p-4 bg-white/40 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cement (Local)</span>
-                                <span className="text-xs font-black text-slate-900 dark:text-white">₦5,400/bag</span>
+                                <span className="text-xs font-black text-slate-900 dark:text-white">₦10,450/bag</span>
                             </div>
                             <div className="flex justify-between items-center p-4 bg-white/40 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5">
                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Reinforcement (12mm)</span>
