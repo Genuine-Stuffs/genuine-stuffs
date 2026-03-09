@@ -48,6 +48,7 @@ const App = () => (
                   <Route path="/pro-portal" element={<ProDashboard />} />
                   <Route path="/pro/ai-studio" element={<AIStudio />} />
                   <Route path="/pro/ai-documentation" element={<AIDocumentation />} />
+                  <Route path="/pro/documentation" element={<AIDocumentation />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/settings" element={<Settings />} />

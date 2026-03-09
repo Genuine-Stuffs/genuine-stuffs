@@ -25,7 +25,8 @@ import {
     HardHat,
     DraftingCompass,
     Trees,
-    Compass
+    Compass,
+    Building2
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Link, useSearchParams } from "react-router-dom";
@@ -274,35 +275,31 @@ const AIStudio = () => {
 
                         <div className="flex-1 space-y-8 overflow-y-auto custom-scrollbar">
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Historical Nodes</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-4">Studio Node</p>
                                 <div className="space-y-1">
-                                    {[
-                                        "Residential Villa v1",
-                                        "Office Complex Massing",
-                                        "Kitchen Detail - Marble",
-                                        "Structural Study 04"
-                                    ].map((item, i) => (
-                                        <button key={i} className="w-full text-left px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-white/5 transition-all truncate">
-                                            {item}
-                                        </button>
-                                    ))}
+                                    <div className="flex items-center gap-3 px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-400 italic">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                        V4.0 Live
+                                    </div>
                                 </div>
                             </div>
 
                             <div>
                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Studio Hub</p>
                                 <div className="space-y-1">
-                                    <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10">
-                                        <Link to="/pro-portal"><LayoutDashboard className="w-4 h-4 text-primary" /> <span className="text-xs font-bold">Dashboard Feed</span></Link>
-                                    </Button>
-                                    <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10">
-                                        <Link to="/pro/ai-documentation">
-                                            <BookOpen className="w-4 h-4 text-slate-400" /> <span className="text-xs font-bold">Documentation</span>
+                                    <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all">
+                                        <Link to="/pro/documentation">
+                                            <BookOpen className="w-4 h-4 text-slate-400" /> <span className="text-xs font-black uppercase tracking-widest">Documentation</span>
                                         </Link>
                                     </Button>
-                                    <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10">
-                                        <Link to="/calculators">
-                                            <Calculator className="w-4 h-4 text-slate-400" /> <span className="text-xs font-bold">BoQ Engine</span>
+                                    <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all">
+                                        <Link to="/marketplace">
+                                            <Building2 className="w-4 h-4 text-slate-400" /> <span className="text-xs font-black uppercase tracking-widest">Construction Hub</span>
+                                        </Link>
+                                    </Button>
+                                    <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all">
+                                        <Link to="/pro-portal">
+                                            <LayoutDashboard className="w-4 h-4 text-primary" /> <span className="text-xs font-black uppercase tracking-widest">Dashboard Feed</span>
                                         </Link>
                                     </Button>
                                 </div>
