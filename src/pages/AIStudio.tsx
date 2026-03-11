@@ -250,7 +250,7 @@ const AIStudio = () => {
             <div className="flex flex-1 bg-white dark:bg-background transition-colors overflow-hidden selection:bg-primary/30">
                 {/* Sidebar (Minimalist ChatGPT style) */}
                 <aside
-                    className={`flex flex-col bg-slate-50 dark:bg-card border-r border-slate-200 dark:border-white/5 transition-all duration-300 z-50 ${sidebarOpen ? 'w-72' : 'w-0'
+                    className={`hidden md:flex flex-col bg-slate-50 dark:bg-card border-r border-slate-200 dark:border-border transition-all duration-300 z-50 ${sidebarOpen ? 'w-72' : 'w-0'
                         }`}
                 >
                     <div className="p-6 flex flex-col h-full overflow-hidden">
@@ -268,7 +268,7 @@ const AIStudio = () => {
                                 </div>
                                 <span className="font-black uppercase tracking-tighter text-slate-900 dark:text-white text-xs">New Project</span>
                             </button>
-                            <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl lg:hidden">
+                            <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl">
                                 <X className="w-5 h-5" />
                             </Button>
                         </div>
@@ -306,7 +306,7 @@ const AIStudio = () => {
                             </div>
                         </div>
 
-                        <div className="mt-auto pt-6 border-t dark:border-white/5">
+                        <div className="mt-auto pt-6 border-t dark:border-border">
                             <CreditInfo
                                 credits={credits ?? 0}
                                 variant="compact"
@@ -322,7 +322,7 @@ const AIStudio = () => {
                     <div className="mesh-background opacity-20" />
 
                     {/* Header (Top Nav) */}
-                    <nav className="h-20 flex items-center justify-between px-8 border-b border-slate-200/50 dark:border-white/5 relative z-10 bg-white/50 dark:bg-slate-950/50 backdrop-blur-md">
+                    <nav className="h-20 hidden md:flex items-center justify-between px-8 border-b border-slate-200/50 dark:border-border relative z-10 bg-white/50 dark:bg-card/50 backdrop-blur-md">
                         <div className="flex items-center gap-4">
                             {!sidebarOpen && (
                                 <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="rounded-xl">
@@ -339,10 +339,10 @@ const AIStudio = () => {
                             <div className="flex flex-col items-end">
                                 <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Pick A Profession</span>
                                 <Select value={selectedRole} onValueChange={setSelectedRole}>
-                                    <SelectTrigger className="w-56 h-11 rounded-xl bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 font-bold text-xs uppercase tracking-widest shadow-sm focus:ring-primary/20 transition-all">
+                                    <SelectTrigger className="w-56 h-11 rounded-xl bg-white dark:bg-background border-slate-200 dark:border-border font-bold text-xs uppercase tracking-widest shadow-sm focus:ring-primary/20 transition-all">
                                         <SelectValue placeholder="Select Profession" />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl">
+                                    <SelectContent className="bg-white dark:bg-card border-slate-200 dark:border-border rounded-xl overflow-hidden shadow-2xl">
                                         {professionalRoles.map(r => (
                                             <SelectItem
                                                 key={r.name}
@@ -365,17 +365,17 @@ const AIStudio = () => {
                     <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10 max-w-4xl mx-auto w-full">
                         {!generatedImage && !isGenerating ? (
                             <div className="text-center mb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                                <h1 className="text-4xl md:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-4">
-                                    Where should we <span className="text-primary italic">begin?</span>
+                                <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-3">
+                                    What can I <span className="text-primary italic">design?</span>
                                 </h1>
-                                <p className="text-slate-500 font-medium italic">Execute your {selectedRole.toLowerCase()} vision with Studio Intelligence.</p>
+                                <p className="text-sm text-slate-400 font-medium italic">Studio AI · {selectedRole} Mode</p>
                             </div>
                         ) : null}
 
                         {/* Result View */}
                         {(generatedImage || isGenerating) && (
                             <div className="w-full flex-1 flex flex-col justify-center mb-8 max-h-[60vh]">
-                                <div className="glass-card rounded-[3rem] overflow-hidden shadow-3xl border-slate-200 dark:border-white/5 bg-white/70 dark:bg-slate-900/50 relative group">
+                                <div className="glass-card rounded-[3rem] overflow-hidden shadow-3xl border-slate-200 dark:border-border bg-white/70 dark:bg-card/50 relative group">
                                     {isGenerating ? (
                                         <div className="aspect-video flex flex-col items-center justify-center space-y-4">
                                             <div className="relative">
@@ -410,7 +410,7 @@ const AIStudio = () => {
                                         <button
                                             key={i}
                                             onClick={() => setPromptText(r)}
-                                            className="px-4 py-2 bg-slate-100 dark:bg-white/5 hover:bg-primary/10 hover:border-primary/50 text-[10px] font-bold text-slate-500 hover:text-primary rounded-2xl border border-transparent transition-all whitespace-nowrap"
+                                            className="px-4 py-2 bg-slate-100 dark:bg-muted hover:bg-primary/10 hover:border-primary/50 text-[10px] font-bold text-slate-500 hover:text-primary rounded-2xl border border-transparent transition-all whitespace-nowrap"
                                         >
                                             Creative Recipe #{i + 1}
                                         </button>
@@ -419,7 +419,7 @@ const AIStudio = () => {
                             )}
 
                             <div className="relative max-w-2xl mx-auto">
-                                <div className="p-2 bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-white/10 shadow-3xl focus-within:border-primary/50 transition-all flex flex-col gap-2">
+                                <div className="p-2 bg-white dark:bg-card rounded-[2rem] border border-slate-200 dark:border-border shadow-3xl focus-within:border-primary/50 transition-all flex flex-col gap-2">
                                     <textarea
                                         value={promptText}
                                         onChange={(e) => setPromptText(e.target.value)}

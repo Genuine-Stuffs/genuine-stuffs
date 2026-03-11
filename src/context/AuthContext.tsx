@@ -44,11 +44,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setRole(userRole);
             setIsLoading(false);
 
-            // Handle post-verification redirection
-            if (userRole === 'professional') {
-                navigate('/pro-portal');
-            } else if (userRole === 'vendor') {
-                navigate('/vendor-dashboard');
+            // Only redirect on initial sign-in, not on token refresh or other events
+            if (event === 'SIGNED_IN') {
+                if (userRole === 'professional') {
+                    navigate('/pro-portal');
+                } else if (userRole === 'vendor') {
+                    navigate('/vendor-dashboard');
+                }
             }
         });
 
