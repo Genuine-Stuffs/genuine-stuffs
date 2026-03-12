@@ -207,31 +207,35 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-    font-family: 'DM Sans', sans-serif;
-    font-feature-settings: 'kern' 1, 'liga' 1;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11'; /* Inter optical features */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    line-height: 1.6;
   }
 
-  /* Headings use Syne — geometric, bold, premium */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Syne', sans-serif;
-  }
+  /* Headings: Inter at higher weight for hierarchy without changing family */
+  h1 { font-family: 'Inter', system-ui, sans-serif; font-weight: 700; letter-spacing: -0.025em; line-height: 1.15; }
+  h2 { font-family: 'Inter', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.02em;  line-height: 1.2;  }
+  h3 { font-family: 'Inter', system-ui, sans-serif; font-weight: 600; letter-spacing: -0.01em;  line-height: 1.3;  }
+  h4, h5, h6 { font-family: 'Inter', system-ui, sans-serif; font-weight: 500; line-height: 1.4; }
 }
 
 /* ─── Typography Utilities ─────────────────────────────────── */
 @layer utilities {
   /* Standard all-caps label — use instead of ad-hoc tracking/size combos */
   .type-label {
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
     font-size: 0.625rem;   /* 10px */
     font-weight: 600;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
   }
 
-  /* Syne display override for non-heading elements that need display font */
+  /* Strong display override when extra tight and bold is needed */
   .font-display {
-    font-family: 'Syne', sans-serif;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.03em;
   }
 }
