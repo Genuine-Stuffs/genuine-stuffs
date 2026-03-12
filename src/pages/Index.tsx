@@ -24,8 +24,19 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
-import heroImage from "@/assets/hero-construction.jpg";
-import materialsImage from "@/assets/materials-quality.jpg";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
+
+import cityscape from "@/assets/hero/cityscape.png";
+import construction from "@/assets/hero/construction.png";
+import highrise from "@/assets/hero/highrise.png";
+import trustImage from "@/assets/thematic/trust.png";
+import valueImage from "@/assets/thematic/value.png";
 
 const Index = () => {
   const { role } = useAuth();
@@ -98,52 +109,49 @@ const Index = () => {
     <div className="min-h-screen bg-white dark:bg-background transition-colors duration-300 pb-24 md:pb-0">
       <Navbar />
 
-      {/* Compact Search Header */}
-      <section className="relative pt-6 md:pt-12 pb-8 overflow-hidden bg-slate-50 dark:bg-background border-b border-slate-100 dark:border-border">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-4xl mx-auto text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-widest mb-4">
-              <Rocket className="w-3 h-3" />
-              Direct Marketplace Access
-            </div>
-            <h1 className="text-3xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
-              Find <span className="text-primary italic">Genuine</span> Building Materials
-            </h1>
-            <p className="text-xs md:text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-[0.2em] mb-4">
-              Your Construction Operating Systems
-            </p>
-          </div>
-
-          {/* Search Box - Jiji Inspired & Prominent */}
-          <div className="relative max-w-3xl mx-auto mb-8 shadow-2xl rounded-2xl overflow-hidden group border-2 border-primary/20 hover:border-primary transition-all bg-white dark:bg-card">
-            <div className="flex flex-col md:flex-row p-1.5 gap-1.5 md:gap-0">
-              <div className="flex-1 flex items-center px-4 py-2 md:py-0">
-                <Search className="w-6 h-6 text-slate-400 mr-3" />
-                <input
-                  type="text"
-                  placeholder="Structural Steel, BIM Models, Cement..."
-                  className="w-full h-10 md:h-12 bg-transparent border-none focus:outline-none text-base md:text-lg dark:text-white"
-                />
-              </div>
-              <Button size="lg" className="h-12 md:h-14 px-8 md:px-12 text-lg font-black rounded-xl w-full md:w-auto">
-                FIND STUFFS
-              </Button>
-            </div>
-          </div>
-
-          {/* Featured/Promoted Tags */}
-          <div className="flex flex-wrap justify-center gap-2 md:gap-3">
-            {["Premium Cement", "ISO Rebars", "Tile Adhesives", "Lumber", "Hire Pros"].map((tag) => (
-              <Link
-                key={tag}
-                to={`/marketplace?q=${tag}`}
-                className="px-4 py-2 rounded-full bg-white dark:bg-card border border-slate-200 dark:border-border text-xs font-bold text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary transition-all"
-              >
-                {tag}
-              </Link>
+      {/* Panoramic Hero Carousel */}
+      <section className="relative w-full h-[60vh] md:h-[80vh] overflow-hidden">
+        <Carousel className="w-full h-full" opts={{ loop: true }}>
+          <CarouselContent className="h-full">
+            {[cityscape, construction, highrise].map((img, i) => (
+              <CarouselItem key={i} className="relative h-full pl-0">
+                <div className="absolute inset-0">
+                  <img src={img} alt={`Hero ${i + 1}`} className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-black/40" />
+                </div>
+              </CarouselItem>
             ))}
+          </CarouselContent>
+          
+          {/* Overlay Text */}
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4">
+            <div className="max-w-4xl">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest mb-6">
+                <Rocket className="w-3 h-3 text-primary-foreground" />
+                Your Construction Operating Systems
+              </div>
+              <h1 className="text-4xl md:text-7xl font-black text-white tracking-tighter mb-4 drop-shadow-2xl">
+                Find <span className="text-primary italic">Genuine</span> Building Materials
+              </h1>
+              <p className="text-sm md:text-xl font-bold text-slate-100 uppercase tracking-[0.3em] mb-8 drop-shadow-lg">
+                Direct Marketplace Access & Verified Professionals
+              </p>
+              <div className="flex flex-wrap justify-center gap-4">
+                <Button asChild size="lg" className="h-14 md:h-16 px-10 md:px-14 text-lg font-black rounded-2xl shadow-xl hover:scale-105 transition-transform">
+                  <Link to="/marketplace">EXPLORE MARKET</Link>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="h-14 md:h-16 px-10 md:px-14 text-lg font-black rounded-2xl bg-white/10 backdrop-blur-md border-white text-white hover:bg-white hover:text-primary transition-all">
+                  <Link to="/pros">HIRE EXPERTS</Link>
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
+
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-8 z-30">
+             <CarouselPrevious className="relative left-0 translate-y-0 h-12 w-12 bg-white/20 hover:bg-white/40 border-none text-white transition-all backdrop-blur-md" />
+             <CarouselNext className="relative right-0 translate-y-0 h-12 w-12 bg-white/20 hover:bg-white/40 border-none text-white transition-all backdrop-blur-md" />
+          </div>
+        </Carousel>
       </section>
 
       {/* Browse By Category - Prominent & Card Style */}
@@ -239,7 +247,7 @@ const Index = () => {
               </div>
             </div>
             <div className="order-1 lg:order-2 rounded-3xl overflow-hidden shadow-2xl relative aspect-square lg:aspect-video border-8 border-white dark:border-card">
-              <img src="/images/materials/steel.png" alt="Verified construction materials on site" className="w-full h-full object-cover" />
+              <img src={trustImage} alt="Verified construction materials on site" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
               <div className="absolute bottom-8 left-8 right-8">
                 <p className="text-white text-xl md:text-2xl font-black italic tracking-tight leading-tight">"Efficiency is not just speed; it is building with the right materials the first time."</p>
@@ -359,9 +367,9 @@ const Index = () => {
                 ))}
               </ul>
             </div>
-            <div className="rounded-lg overflow-hidden shadow-lg">
+            <div className="rounded-lg overflow-hidden shadow-lg aspect-video">
               <img
-                src="/images/materials/cement.png"
+                src={valueImage}
                 alt="High-quality building materials on a construction site"
                 className="w-full h-full object-cover"
               />
