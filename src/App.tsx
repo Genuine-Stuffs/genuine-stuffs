@@ -12,6 +12,7 @@ import NotFound from "./pages/NotFound";
 import AIStudio from "./pages/AIStudio";
 import AIDocumentation from "./pages/AIDocumentation";
 import Marketplace from "./pages/Marketplace";
+import Pros from "./pages/Pros";
 import Calculators from "./pages/Calculators";
 import Register from "./pages/Register";
 import Login from "./pages/Login";
@@ -43,6 +44,7 @@ const App = () => (
 
                   {/* New Industry Transformation Routes */}
                   <Route path="/marketplace" element={<Marketplace />} />
+                  <Route path="/pros" element={<Pros />} />
                   <Route path="/calculators" element={<Calculators />} />
                   <Route path="/vendor-dashboard" element={<VendorDashboard />} />
                   <Route path="/pro-portal" element={<ProDashboard />} />

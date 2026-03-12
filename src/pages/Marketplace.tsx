@@ -21,7 +21,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Phone, MessageCircle, ShieldAlert, CheckCircle2, Search, Filter, Grid, List, ArrowUpDown, ShoppingCart, Info, Leaf, DollarSign, User, Loader2, SlidersHorizontal, ExternalLink, MapPin, History, ArrowRight } from "lucide-react";
+import { Phone, MessageCircle, ShieldAlert, CheckCircle2, Search, Filter, Grid, List, ArrowUpDown, ShoppingBag, ShoppingCart, Info, Leaf, DollarSign, User, Loader2, SlidersHorizontal, ExternalLink, MapPin, History, ArrowRight, ChevronDown } from "lucide-react";
 import { supabase } from "backend/supabaseClient";
 import type { Database } from "backend/types";
 import { useAuth } from "@/context/AuthContext";
@@ -157,130 +157,126 @@ const Marketplace = () => {
         });
     }, [searchQuery, selectedCategory, priceRange, dbMaterials]);
 
+    const [location, setLocation] = useState("All Nigeria");
+    const locations = ["All Nigeria", "Lagos", "Abuja", "Port Harcourt", "Ibadan", "Kano", "Enugu"];
+
     return (
         <div className="min-h-screen bg-background transition-colors duration-300">
             <Navbar />
-            <div className="bg-white dark:bg-card/50 backdrop-blur-md border-b dark:border-border sticky top-16 md:top-20 z-30 shadow-sm transition-all duration-300">
-                <div className="container mx-auto px-4 py-3 md:py-4">
-                    <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-center">
-                        <div className="flex items-center gap-3 bg-slate-50 dark:bg-muted/40 px-4 py-2 rounded-xl border border-slate-100 dark:border-border flex-1 w-full transition-colors duration-300">
-                            <Search className="w-4 h-4 md:w-5 md:h-5 text-slate-400" />
-                            <input
-                                className="bg-transparent border-none focus:ring-0 w-full text-sm md:text-base text-slate-700 dark:text-slate-100 font-bold placeholder:font-medium placeholder:text-slate-400"
-                                placeholder="Search materials..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
+            <div className="bg-primary pt-4 pb-6 sticky top-16 md:top-20 z-30 shadow-lg transition-all duration-300 overflow-hidden">
+                <div className="container mx-auto px-4">
+                    <div className="max-w-4xl mx-auto space-y-4">
+                        <div className="text-white text-center mb-1">
+                            <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter flex items-center justify-center gap-2">
+                                <ShoppingBag className="w-5 h-5" /> What are you looking for?
+                            </h2>
                         </div>
-                        <div className="flex gap-2 w-full md:w-auto">
-                            <Button className="flex-1 md:flex-none h-10 md:h-11 px-6 md:px-8 rounded-xl bg-primary hover:bg-primary/90 font-black shadow-lg shadow-primary/20 text-xs md:text-sm">Search</Button>
-                            <div className="flex gap-2">
-                                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-50 dark:bg-muted border border-slate-100 dark:border-border transition-colors"><User className="w-4 h-4 md:w-5 md:h-5 text-slate-400" /></Button>
-                                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-50 dark:bg-muted border border-slate-100 dark:border-border transition-colors"><ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-slate-400" /></Button>
+                        
+                        <div className="bg-white rounded-2xl p-1.5 flex flex-col md:flex-row gap-1.5 shadow-2xl items-stretch">
+                            {/* Location Picker */}
+                            <div className="relative flex-shrink-0 min-w-[140px] md:border-r border-slate-100">
+                                <select 
+                                    value={location}
+                                    onChange={(e) => setLocation(e.target.value)}
+                                    className="w-full h-11 md:h-12 pl-10 pr-4 bg-transparent text-sm font-bold text-slate-700 appearance-none focus:outline-none cursor-pointer"
+                                >
+                                    {locations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+                                </select>
+                                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                             </div>
+
+                            {/* Search Input */}
+                            <div className="flex-1 relative">
+                                <input
+                                    className="w-full h-11 md:h-12 pl-10 pr-4 bg-transparent border-none focus:ring-0 text-sm md:text-base text-slate-700 font-bold placeholder:font-medium placeholder:text-slate-400"
+                                    placeholder="I am looking for..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            </div>
+
+                            {/* Search Icon Button */}
+                            <Button className="h-11 md:h-12 w-11 md:w-12 p-0 rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-md">
+                                <Search className="w-5 h-5 text-white" />
+                            </Button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div className="container mx-auto px-4 py-6">
-                {/* Toolbar: title + category dropdown + sort + view toggle */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-3">
-                    <div className="flex items-center gap-3">
-                        <div className="hidden md:block w-1 h-5 bg-primary rounded-full" />
-                        <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-                            {selectedCategory === "All" ? "Construction Hub" : selectedCategory}
-                            <span className="ml-2 text-xs font-normal text-slate-400 dark:text-slate-500 normal-case">({filteredMaterials.length} results)</span>
-                        </h1>
-                    </div>
+                {/* Unified Toolbar */}
+                <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
+                    {/* Category dropdown */}
+                    <select
+                        value={selectedCategory}
+                        onChange={(e) => setSelectedCategory(e.target.value)}
+                        className="h-9 px-3 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer min-w-[120px]"
+                    >
+                        {categories.map(cat => (
+                            <option key={cat} value={cat}>
+                                {cat} ({cat === "All" ? dbMaterials.length : dbMaterials.filter(m => m.category === cat).length})
+                            </option>
+                        ))}
+                    </select>
 
-                    <div className="flex items-center gap-2 w-full md:w-auto">
-                        {/* Category dropdown */}
-                        <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="flex-1 md:flex-none h-9 px-3 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
-                        >
-                            {categories.map(cat => (
-                                <option key={cat} value={cat}>
-                                    {cat} ({cat === "All" ? dbMaterials.length : dbMaterials.filter(m => m.category === cat).length})
-                                </option>
-                            ))}
-                        </select>
+                    <Button variant="outline" size="sm" className="h-9 gap-2 rounded-xl font-bold uppercase tracking-wider text-[10px] dark:border-white/10 shrink-0">
+                        <ArrowUpDown className="w-3.5 h-3.5" /> Sort
+                    </Button>
 
-                        {/* Price range inputs (compact) */}
-                        <input
-                            type="number"
-                            placeholder="Min ₦"
-                            value={priceRange.min}
-                            onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
-                            className="hidden md:block w-24 h-9 px-3 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
-                        <input
-                            type="number"
-                            placeholder="Max ₦"
-                            value={priceRange.max}
-                            onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
-                            className="hidden md:block w-24 h-9 px-3 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
-
-                        {/* Mobile filter sheet */}
-                        <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                            <SheetTrigger asChild>
-                                <Button variant="outline" size="sm" className="md:hidden h-9 w-9 p-0 rounded-xl dark:border-border">
-                                    <SlidersHorizontal className="w-4 h-4 text-primary" />
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="bottom" className="rounded-t-[2.5rem] h-[80vh] dark:bg-background border-t-primary/20">
-                                <SheetHeader className="pb-6 border-b dark:border-border">
-                                    <SheetTitle className="font-bold uppercase tracking-widest text-primary flex items-center gap-2">
-                                        <Filter className="w-4 h-4" /> Refine Marketplace
-                                    </SheetTitle>
-                                    <SheetDescription className="italic">Adjust filters to find specific materials.</SheetDescription>
-                                </SheetHeader>
-                                <div className="py-8 space-y-8 overflow-y-auto h-full">
-                                    <div>
-                                        <h4 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Categories</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {categories.map(cat => (
-                                                <Button
-                                                    key={cat}
-                                                    variant={selectedCategory === cat ? "default" : "outline"}
-                                                    size="sm"
-                                                    onClick={() => { setSelectedCategory(cat); setIsFilterOpen(false); }}
-                                                    className={`rounded-full h-8 px-4 text-[10px] font-semibold uppercase tracking-wider ${selectedCategory === cat ? 'bg-primary text-white shadow-md' : 'dark:border-white/10 dark:text-slate-400'}`}
-                                                >
-                                                    {cat}
-                                                </Button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Budget Range (₦)</h4>
-                                        <div className="flex gap-3 items-center">
-                                            <Input placeholder="Min" type="number" value={priceRange.min} onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))} className="h-10 bg-slate-50 dark:bg-muted/20 border-none rounded-xl font-medium" />
-                                            <Input placeholder="Max" type="number" value={priceRange.max} onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))} className="h-10 bg-slate-50 dark:bg-muted/20 border-none rounded-xl font-medium" />
-                                        </div>
-                                    </div>
-                                    <Button className="w-full h-12 rounded-2xl bg-primary font-semibold uppercase tracking-wider shadow-lg" onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
-                                </div>
-                            </SheetContent>
-                        </Sheet>
-
-                        {/* View toggle */}
-                        <div className="flex bg-slate-100 dark:bg-card p-1 rounded-xl border dark:border-white/5">
-                            <Button variant={viewMode === "grid-4" || mobileView === "grid" ? "secondary" : "ghost"} size="sm" onClick={() => { setViewMode("grid-4"); setMobileView("grid"); }} className="h-7 w-7 p-0 rounded-lg">
-                                <Grid className="w-3.5 h-3.5" />
-                            </Button>
-                            <Button variant={viewMode === "list" || mobileView === "list" ? "secondary" : "ghost"} size="sm" onClick={() => { setViewMode("list"); setMobileView("list"); }} className="h-7 w-7 p-0 rounded-lg">
-                                <List className="w-3.5 h-3.5" />
-                            </Button>
-                        </div>
-
-                        <Button variant="outline" size="sm" className="h-9 gap-2 rounded-xl font-semibold uppercase tracking-wider text-[10px] dark:border-white/10">
-                            <ArrowUpDown className="w-3.5 h-3.5" /> Sort
+                    <div className="flex bg-slate-100 dark:bg-card p-1 rounded-xl border dark:border-white/5 shrink-0 ml-auto gap-1">
+                        <Button variant={!(viewMode === "list" || mobileView === "list") ? "secondary" : "ghost"} size="sm" onClick={() => { setViewMode("grid-4"); setMobileView("grid"); }} className="h-7 w-7 p-0 rounded-lg">
+                            <Grid className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button variant={(viewMode === "list" || mobileView === "list") ? "secondary" : "ghost"} size="sm" onClick={() => { setViewMode("list"); setMobileView("list"); }} className="h-7 w-7 p-0 rounded-lg">
+                            <List className="w-3.5 h-3.5" />
                         </Button>
                     </div>
+
+                    {/* Mobile filter sheet */}
+                    <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                        <SheetTrigger asChild>
+                            <Button variant="outline" size="sm" className="md:hidden h-9 w-9 p-0 rounded-xl dark:border-border shrink-0">
+                                <SlidersHorizontal className="w-4 h-4 text-primary" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="bottom" className="rounded-t-[2.5rem] h-[80vh] dark:bg-background border-t-primary/20">
+                            <SheetHeader className="pb-6 border-b dark:border-border">
+                                <SheetTitle className="font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                                    <Filter className="w-4 h-4" /> Refine Marketplace
+                                </SheetTitle>
+                                <SheetDescription className="italic">Adjust filters to find specific materials.</SheetDescription>
+                            </SheetHeader>
+                            <div className="py-8 space-y-8 overflow-y-auto h-full">
+                                <div>
+                                    <h4 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Categories</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {categories.map(cat => (
+                                            <Button
+                                                key={cat}
+                                                variant={selectedCategory === cat ? "default" : "outline"}
+                                                size="sm"
+                                                onClick={() => { setSelectedCategory(cat); setIsFilterOpen(false); }}
+                                                className={`rounded-full h-8 px-4 text-[10px] font-semibold uppercase tracking-wider ${selectedCategory === cat ? 'bg-primary text-white shadow-md' : 'dark:border-white/10 dark:text-slate-400'}`}
+                                            >
+                                                {cat}
+                                            </Button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Budget Range (₦)</h4>
+                                    <div className="flex gap-3 items-center">
+                                        <Input placeholder="Min" type="number" value={priceRange.min} onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))} className="h-10 bg-slate-50 dark:bg-muted/20 border-none rounded-xl font-medium" />
+                                        <Input placeholder="Max" type="number" value={priceRange.max} onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))} className="h-10 bg-slate-50 dark:bg-muted/20 border-none rounded-xl font-medium" />
+                                    </div>
+                                </div>
+                                <Button className="w-full h-12 rounded-2xl bg-primary font-semibold uppercase tracking-wider shadow-lg" onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
+                            </div>
+                        </SheetContent>
+                    </Sheet>
                 </div>
 
                 {isLoading ? (
@@ -295,60 +291,86 @@ const Marketplace = () => {
                         <p className="text-red-600 font-medium">We couldn't reach the construction database. Please check your connection.</p>
                     </div>
                 ) : filteredMaterials.length > 0 ? (
-                    <div className={viewMode === "list" || mobileView === "list" ? "space-y-3" : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-3"}>
-                                {filteredMaterials.map((m) => (
-                                    <Card
-                                     key={m.id}
-                                        className="group overflow-hidden border border-slate-200 dark:border-border hover:border-primary/40 hover:shadow-md transition-all duration-300 rounded-xl flex flex-col bg-white dark:bg-card shadow-sm cursor-pointer"
-                                        onClick={() => {
-                                            setSelectedMaterial(m);
-                                            setShowContact(false);
-                                            incrementViewCount(m);
-                                        }}
-                                    >
-                                        {/* Image */}
-                                        <div className="relative aspect-[4/3] overflow-hidden bg-slate-100 dark:bg-slate-800">
-                                            <img
-                                                src={m.image_url || "/images/materials/cement.png"}
-                                                alt={m.name}
-                                                className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-500"
-                                            />
-                                            <div className="absolute top-1.5 right-1.5 z-10">
-                                                <Badge className="bg-white/95 dark:bg-background/95 text-slate-900 dark:text-white border-none font-semibold text-[8px] uppercase shadow-sm px-1.5 py-0.5">
+                    <div className={viewMode === "list" || mobileView === "list" 
+                        ? "flex flex-col gap-2" 
+                        : "grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4"}>
+                        {filteredMaterials.map((m) => {
+                            const isList = viewMode === "list" || mobileView === "list";
+                            
+                            return (
+                                <Card
+                                    key={m.id}
+                                    className={`group overflow-hidden border border-slate-100 dark:border-border hover:border-primary/40 hover:shadow-lg transition-all duration-300 rounded-2xl bg-white dark:bg-card shadow-sm cursor-pointer ${isList ? 'flex flex-row h-32 md:h-44' : 'flex flex-col h-full'}`}
+                                    onClick={() => {
+                                        setSelectedMaterial(m);
+                                        setShowContact(false);
+                                        incrementViewCount(m);
+                                    }}
+                                >
+                                    {/* Image Section */}
+                                    <div className={`relative overflow-hidden bg-slate-50 dark:bg-slate-800 ${isList ? 'w-1/3 md:w-48 h-full shrink-0' : 'aspect-[4/3] w-full'}`}>
+                                        <img
+                                            src={m.image_url || "/images/materials/cement.png"}
+                                            alt={m.name}
+                                            className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
+                                        />
+                                        {!isList && (
+                                            <div className="absolute top-2 right-2 z-10">
+                                                <Badge className="bg-white/95 dark:bg-background/95 text-slate-900 dark:text-white border-none font-bold text-[8px] uppercase shadow-md px-1.5 py-1">
                                                     {m.category.split(' ')[0]}
                                                 </Badge>
                                             </div>
+                                        )}
+                                    </div>
+
+                                    {/* Content Section */}
+                                    <div className={`flex flex-col p-3 md:p-4 flex-1 min-w-0 ${isList ? 'justify-center' : 'gap-1'}`}>
+                                        <div className="flex flex-col gap-0.5">
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span className={`${isList ? 'text-base md:text-xl' : 'text-sm md:text-lg'} font-black text-primary`}>₦{Number(m.price).toLocaleString()}</span>
+                                                <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight">/{m.unit || "unit"}</span>
+                                            </div>
+                                            <h3 className={`font-bold ${isList ? 'text-xs md:text-base' : 'text-[11px] md:text-sm'} text-slate-800 dark:text-slate-200 leading-tight line-clamp-2`}>{m.name}</h3>
                                         </div>
 
-                                        {/* Card Body — price first */}
-                                        <CardContent className="p-2.5 md:p-3 flex-grow flex flex-col gap-0.5">
-                                            <div className="flex items-baseline gap-1">
-                                                <span className="text-sm md:text-base font-bold text-slate-900 dark:text-white">₦{Number(m.price).toLocaleString()}</span>
-                                                <span className="text-[9px] text-slate-400 font-medium uppercase">/{m.unit || "unit"}</span>
+                                        <div className="mt-2 space-y-1.5">
+                                            <div className="flex items-center gap-1.5 text-[9px] md:text-xs text-slate-500 font-medium">
+                                                <MapPin className="w-3 h-3 text-slate-400" />
+                                                <span className="truncate">Lagos, Ikeja</span>
                                             </div>
-                                            <h3 className="font-semibold text-[11px] md:text-xs text-slate-700 dark:text-slate-300 leading-snug line-clamp-2 mt-0.5">{m.name}</h3>
-                                            <div className="flex items-center gap-1 mt-1 text-[9px] text-slate-400 dark:text-slate-500">
-                                                <User className="w-2.5 h-2.5 flex-shrink-0" />
-                                                <span className="truncate">{m.vendor_name || "Verified Vendor"}</span>
-                                                {m.is_verified && <CheckCircle2 className="w-2.5 h-2.5 text-primary ml-auto flex-shrink-0" />}
-                                            </div>
-                                        </CardContent>
+                                            {isList && (
+                                                <div className="hidden md:flex items-center gap-2 text-[10px] text-slate-400">
+                                                    <Badge variant="outline" className="text-[8px] px-1.5 py-0 rounded-md border-slate-200">Verified ID</Badge>
+                                                    <Badge variant="outline" className="text-[8px] px-1.5 py-0 rounded-md border-slate-200">3+ Years</Badge>
+                                                </div>
+                                            )}
+                                        </div>
 
-                                        <CardFooter className="p-2.5 md:p-3 pt-0">
+                                        {!isList && (
                                             <Button
+                                                className="mt-3 w-full bg-slate-50 dark:bg-muted/30 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-400 font-black h-8 md:h-9 rounded-xl transition-all text-[9px] uppercase tracking-[0.1em]"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     setSelectedMaterial(m);
                                                     incrementViewCount(m);
                                                 }}
-                                                className="w-full bg-slate-900 dark:bg-primary/20 hover:bg-primary text-white font-semibold h-7 md:h-8 rounded-lg transition-all text-[9px] uppercase tracking-wider"
                                             >
-                                                Details <ExternalLink className="ml-1.5 w-2.5 h-2.5" />
+                                                Details
                                             </Button>
-                                        </CardFooter>
-                                    </Card>
-                                ))}
-                            </div>
+                                        )}
+                                    </div>
+                                    
+                                    {isList && (
+                                        <div className="p-3 self-center hidden md:block">
+                                            <Button variant="ghost" size="icon" className="rounded-full hover:bg-primary/10">
+                                                <ArrowRight className="w-5 h-5 text-primary" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                </Card>
+                            );
+                        })}
+                    </div>
                         ) : (
                             <div className="bg-slate-50 dark:bg-card border-2 border-dashed border-slate-200 dark:border-border rounded-2xl p-16 text-center transition-colors">
                                 <div className="w-16 h-16 bg-white dark:bg-muted/40 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm border dark:border-border">

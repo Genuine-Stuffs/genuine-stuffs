@@ -1,16 +1,18 @@
 import { Link, useLocation } from "react-router-dom";
 import { Home, ShoppingBag, Users, User } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const BottomNav = () => {
     const location = useLocation();
+    const { role } = useAuth();
 
     const isActive = (path: string) => location.pathname === path;
 
     const navItems = [
         { label: "Home", icon: Home, path: "/" },
         { label: "Shop", icon: ShoppingBag, path: "/marketplace" },
-        { label: "Pros", icon: Users, path: "/register/pro" },
-        { label: "Profile", icon: User, path: "/pro-portal" },
+        { label: "Pros", icon: Users, path: "/pros" },
+        { label: "Profile", icon: User, path: role === 'professional' ? "/pro-portal" : role === 'vendor' ? "/vendor-dashboard" : "/login" },
     ];
 
     return (
