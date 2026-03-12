@@ -250,7 +250,7 @@ const AIStudio = () => {
             <div className="flex flex-1 bg-white dark:bg-background transition-colors overflow-hidden selection:bg-primary/30">
                 {/* Sidebar (Minimalist ChatGPT style) */}
                 <aside
-                    className={`hidden md:flex flex-col bg-slate-50 dark:bg-card border-r border-slate-200 dark:border-border transition-all duration-300 z-50 ${sidebarOpen ? 'w-72' : 'w-0'
+                    className={`hidden md:flex flex-col bg-slate-50 dark:bg-card border-r border-slate-200 dark:border-border transition-all duration-300 z-50 overflow-hidden flex-shrink-0 ${sidebarOpen ? 'w-64' : 'w-0 min-w-0 border-r-0'
                         }`}
                 >
                     <div className="px-6 py-6 flex flex-col h-full overflow-hidden">
@@ -321,8 +321,8 @@ const AIStudio = () => {
                     </div>
                 </aside>
 
-                {/* Main Content Area */}
-                <main className="flex-1 flex flex-col relative overflow-hidden backdrop-blur-3xl">
+                {/* Main Content Area - fills remaining space, centers content independently */}
+                <main className="flex-1 flex flex-col relative overflow-hidden">
                     <div className="mesh-background opacity-20" />
 
                     {/* Header (Top Nav) */}
@@ -365,19 +365,15 @@ const AIStudio = () => {
                         </div>
                     </nav>
 
-                    {/* Centered Area */}
-                    <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10 max-w-5xl mx-auto w-full">
+                    {/* Centered Area - uses absolute inset to stay centered in main regardless of sidebar state */}
+                    <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10">
+                        <div className="w-full max-w-2xl">
                         {!generatedImage && !isGenerating ? (
-                            <div className="text-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                                <div className="flex justify-center mb-6">
-                                    <div className="p-3 bg-primary/10 rounded-3xl">
-                                        <Sparkles className="w-10 h-10 text-primary animate-pulse" />
-                                    </div>
-                                </div>
-                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-4">
-                                    What can I <span className="text-primary italic">design?</span>
+                            <div className="text-center mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                <h1 className="text-2xl md:text-3xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight mb-2">
+                                    What can I <span className="text-primary">design?</span>
                                 </h1>
-                                <p className="text-sm md:text-base text-slate-400 font-bold uppercase tracking-widest opacity-80 italic">Studio AI · {selectedRole} Mode</p>
+                                <p className="text-xs text-slate-400 font-medium tracking-widest uppercase">Studio AI · {selectedRole} Mode</p>
                             </div>
                         ) : null}
 
@@ -411,14 +407,14 @@ const AIStudio = () => {
                         )}
 
                         {/* Chat Input Container */}
-                        <div className="w-full mt-auto relative mb-12">
-                            <div className="relative max-w-3xl mx-auto">
-                                <div className="p-3 bg-white dark:bg-card rounded-[2.5rem] border border-slate-200 dark:border-border shadow-3xl focus-within:border-primary/50 transition-all flex flex-col gap-2">
+                        <div className="w-full mt-auto relative mb-6">
+                            <div className="relative">
+                                <div className="bg-white dark:bg-card rounded-3xl border border-slate-200 dark:border-border shadow-xl focus-within:border-primary/40 transition-all flex flex-col">
                                     <textarea
                                         value={promptText}
                                         onChange={(e) => setPromptText(e.target.value)}
-                                        placeholder={`How can I help you today?`}
-                                        className="w-full min-h-[140px] bg-transparent resize-none p-6 text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 placeholder:italic placeholder:text-sm text-lg"
+                                        placeholder={`Ask ${selectedRole} anything...`}
+                                        className="w-full min-h-[120px] bg-transparent resize-none p-5 text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 placeholder:text-sm"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && !e.shiftKey) {
                                                 e.preventDefault();
@@ -426,20 +422,20 @@ const AIStudio = () => {
                                             }
                                         }}
                                     />
-                                    <div className="flex items-center justify-between px-6 pb-4">
-                                        <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-10 w-10"><Paperclip className="w-5 h-5" /></Button>
-                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-10 w-10"><ImageIcon className="w-5 h-5" /></Button>
-                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-10 w-10"><Mic className="w-5 h-5" /></Button>
+                                    <div className="flex items-center justify-between px-4 pb-3">
+                                        <div className="flex items-center gap-1">
+                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-9 w-9"><Paperclip className="w-4 h-4" /></Button>
+                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-9 w-9"><ImageIcon className="w-4 h-4" /></Button>
+                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-9 w-9"><Mic className="w-4 h-4" /></Button>
                                         </div>
-                                        <div className="flex items-center gap-6">
-                                            <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase hidden sm:block">2 Credits / Sync</span>
+                                        <div className="flex items-center gap-4">
+                                            <span className="text-[9px] font-semibold tracking-widest text-slate-400 uppercase hidden sm:block">2 Credits / Sync</span>
                                             <Button
                                                 onClick={handleGenerate}
                                                 disabled={isGenerating || !promptText}
-                                                className="h-12 w-12 p-0 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                                                className="h-10 w-10 p-0 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                                             >
-                                                {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
+                                                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                                             </Button>
                                         </div>
                                     </div>
@@ -448,12 +444,12 @@ const AIStudio = () => {
 
                             {/* Recipe Pills - BELOW Input (Claude style) */}
                             {!isGenerating && (
-                                <div className="flex flex-wrap justify-center gap-3 mt-8">
+                                <div className="flex flex-wrap justify-center gap-2 mt-5">
                                     {professionalRoles.find(r => r.name === selectedRole)?.recipes.map((r, i) => (
                                         <button
                                             key={i}
                                             onClick={() => setPromptText(r)}
-                                            className="px-5 py-2.5 bg-slate-50 dark:bg-muted/50 hover:bg-primary/10 hover:border-primary/50 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary rounded-2xl border border-slate-200 dark:border-border transition-all whitespace-nowrap shadow-sm"
+                                            className="px-4 py-2 bg-slate-50 dark:bg-muted/40 hover:bg-primary/10 hover:border-primary/40 text-[10px] font-semibold uppercase tracking-widest text-slate-500 hover:text-primary rounded-xl border border-slate-200 dark:border-border transition-all whitespace-nowrap"
                                         >
                                             Creative Recipe #{i + 1}
                                         </button>
@@ -461,8 +457,9 @@ const AIStudio = () => {
                                 </div>
                             )}
 
-                            <p className="text-center text-[9px] text-slate-400 mt-10 font-black uppercase tracking-widest opacity-40">Studio AI Intelligence Layer v4.0. Verify critical outputs.</p>
+                            <p className="text-center text-[9px] text-slate-400 mt-6 tracking-widest opacity-40">Studio AI v4.0 · Verify critical outputs.</p>
                         </div>
+                        </div>{/* end max-w-2xl wrapper */}
                     </div>
                 </main>
 
