@@ -44,24 +44,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setRole(userRole);
             setIsLoading(false);
 
-            // Only redirect on initial sign-in, not on token refresh or other events
+            // Removed aggressive global redirection to prevent unintended "page flips" during navigation.
+            // Redirections are now handled explicitly in login/registration flows.
             if (event === 'SIGNED_IN') {
-                const currentPath = window.location.pathname;
-                // Avoid redirecting if already on a dashboard or pro route
-                if (currentPath.startsWith('/pro/') || 
-                    currentPath === '/pro-portal' || 
-                    currentPath === '/vendor-dashboard' ||
-                    currentPath === '/settings' ||
-                    currentPath === '/marketplace' ||
-                    currentPath === '/calculators') {
-                    return;
-                }
-
-                if (userRole === 'professional') {
-                    navigate('/pro-portal');
-                } else if (userRole === 'vendor') {
-                    navigate('/vendor-dashboard');
-                }
+                setIsLoading(false);
             }
         });
 
