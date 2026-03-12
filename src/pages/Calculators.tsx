@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -12,6 +12,11 @@ import {
 const Calculators = () => {
     const [isSurveying, setIsSurveying] = useState(false);
     const [surveyComplete, setSurveyComplete] = useState(false);
+
+    // Scroll to top on mount
+    useEffect(() => {
+        window.scrollTo({ top: 0, behavior: 'instant' });
+    }, []);
 
     const startAiAnalysis = () => {
         setIsSurveying(true);

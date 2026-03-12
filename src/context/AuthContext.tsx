@@ -52,7 +52,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     currentPath === '/pro-portal' || 
                     currentPath === '/vendor-dashboard' ||
                     currentPath === '/settings' ||
-                    currentPath === '/marketplace') {
+                    currentPath === '/marketplace' ||
+                    currentPath === '/calculators') {
                     return;
                 }
 
