@@ -81,8 +81,10 @@ const professions = [
             "Visualize material substitution impacts instantly",
             "Produce client-ready cost dashboards without a design team",
             "Benchmark against regional market rates quickly",
-            "Model value engineering alternatives with visual backups"
+            "Model value engineering alternatives with visual backups",
+            "Generate a phased Bill of Quantities from project descriptions using the dedicated BoQ Calculator"
         ],
+        boqLink: true,
         tips: [
             { title: "State the project stage clearly", body: "'Preliminary estimate at RIBA Stage 2' gives different output than 'Tender BoQ with full spec'. Always define your stage for accurate outputs." },
             { title: "Name specifications precisely", body: "'500x500 vitrified porcelain tile, grade A, wall and floor, 250m²' is far more useful than 'tiling'. Precision = accuracy." },
@@ -404,7 +406,26 @@ const AIDocumentation = () => {
                             </div>
                         </div>
 
-                        {/* Prompt Templates */}
+                        {/* BoQ Calculator Callout — only shown for QS */}
+                        {(active as any).boqLink && (
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-2xl bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20">
+                                <div className="flex items-start gap-3">
+                                    <div className="p-2 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 shrink-0">
+                                        <Calculator className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-amber-900 dark:text-amber-300 mb-0.5">Interactive BoQ Calculator</p>
+                                        <p className="text-xs text-amber-700 dark:text-amber-400/80">Upload blueprints or describe your project to instantly generate a phased, AI-powered Bill of Quantities with material costs.</p>
+                                    </div>
+                                </div>
+                                <Button asChild size="sm" className="rounded-xl font-bold text-xs shrink-0 bg-amber-500 hover:bg-amber-600 text-white border-0">
+                                    <Link to="/calculators">
+                                        Open BoQ Calculator <ArrowRight className="w-3 h-3 ml-1" />
+                                    </Link>
+                                </Button>
+                            </div>
+                        )}
+
                         <div>
                             <h3 className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3 flex items-center gap-2">
                                 <MessageSquare className="w-3.5 h-3.5" /> Common Scenario Prompts
