@@ -46,6 +46,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             // Only redirect on initial sign-in, not on token refresh or other events
             if (event === 'SIGNED_IN') {
+                const currentPath = window.location.pathname;
+                // Avoid redirecting if already on a dashboard or pro route
+                if (currentPath.startsWith('/pro/') || 
+                    currentPath === '/pro-portal' || 
+                    currentPath === '/vendor-dashboard' ||
+                    currentPath === '/settings' ||
+                    currentPath === '/marketplace') {
+                    return;
+                }
+
                 if (userRole === 'professional') {
                     navigate('/pro-portal');
                 } else if (userRole === 'vendor') {

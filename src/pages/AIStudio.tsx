@@ -253,25 +253,29 @@ const AIStudio = () => {
                     className={`hidden md:flex flex-col bg-slate-50 dark:bg-card border-r border-slate-200 dark:border-border transition-all duration-300 z-50 ${sidebarOpen ? 'w-72' : 'w-0'
                         }`}
                 >
-                    <div className="p-6 flex flex-col h-full overflow-hidden">
+                    <div className="px-6 py-6 flex flex-col h-full overflow-hidden">
+                        {/* Sidebar Header with Close Button */}
                         <div className="flex items-center justify-between mb-8">
-                            <button
-                                onClick={() => {
-                                    setPromptText("");
-                                    setGeneratedImage(null);
-                                    toast.info("New project session initiated.");
-                                }}
-                                className="flex items-center gap-2 group w-full text-left"
-                            >
-                                <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
-                                    <Plus className="w-5 h-5" />
-                                </div>
-                                <span className="font-black uppercase tracking-tighter text-slate-900 dark:text-white text-xs">New Project</span>
-                            </button>
-                            <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl">
-                                <X className="w-5 h-5" />
+                            <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-900 dark:text-white">AI Studio</span>
+                            <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl h-8 w-8">
+                                <X className="w-5 h-5 text-slate-400" />
                             </Button>
                         </div>
+
+                        {/* New Project Button (Claude Style) */}
+                        <button
+                            onClick={() => {
+                                setPromptText("");
+                                setGeneratedImage(null);
+                                toast.info("New project session initiated.");
+                            }}
+                            className="flex items-center gap-3 w-full p-4 mb-8 bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl shadow-sm hover:shadow-md transition-all group"
+                        >
+                            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
+                                <Plus className="w-5 h-5" />
+                            </div>
+                            <span className="font-black uppercase tracking-tighter text-slate-900 dark:text-white text-xs">New Project</span>
+                        </button>
 
                         <div className="flex-1 space-y-8 overflow-y-auto custom-scrollbar">
                             <div>
@@ -362,13 +366,18 @@ const AIStudio = () => {
                     </nav>
 
                     {/* Centered Area */}
-                    <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10 max-w-4xl mx-auto w-full">
+                    <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10 max-w-5xl mx-auto w-full">
                         {!generatedImage && !isGenerating ? (
-                            <div className="text-center mb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                                <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-3">
+                            <div className="text-center mb-16 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                                <div className="flex justify-center mb-6">
+                                    <div className="p-3 bg-primary/10 rounded-3xl">
+                                        <Sparkles className="w-10 h-10 text-primary animate-pulse" />
+                                    </div>
+                                </div>
+                                <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white uppercase tracking-tighter mb-4">
                                     What can I <span className="text-primary italic">design?</span>
                                 </h1>
-                                <p className="text-sm text-slate-400 font-medium italic">Studio AI · {selectedRole} Mode</p>
+                                <p className="text-sm md:text-base text-slate-400 font-bold uppercase tracking-widest opacity-80 italic">Studio AI · {selectedRole} Mode</p>
                             </div>
                         ) : null}
 
@@ -402,29 +411,14 @@ const AIStudio = () => {
                         )}
 
                         {/* Chat Input Container */}
-                        <div className="w-full mt-auto relative">
-                            {/* Recipe Pills */}
-                            {!isGenerating && (
-                                <div className="flex flex-wrap justify-center gap-2 mb-6">
-                                    {professionalRoles.find(r => r.name === selectedRole)?.recipes.map((r, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={() => setPromptText(r)}
-                                            className="px-4 py-2 bg-slate-100 dark:bg-muted hover:bg-primary/10 hover:border-primary/50 text-[10px] font-bold text-slate-500 hover:text-primary rounded-2xl border border-transparent transition-all whitespace-nowrap"
-                                        >
-                                            Creative Recipe #{i + 1}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-
-                            <div className="relative max-w-2xl mx-auto">
-                                <div className="p-2 bg-white dark:bg-card rounded-[2rem] border border-slate-200 dark:border-border shadow-3xl focus-within:border-primary/50 transition-all flex flex-col gap-2">
+                        <div className="w-full mt-auto relative mb-12">
+                            <div className="relative max-w-3xl mx-auto">
+                                <div className="p-3 bg-white dark:bg-card rounded-[2.5rem] border border-slate-200 dark:border-border shadow-3xl focus-within:border-primary/50 transition-all flex flex-col gap-2">
                                     <textarea
                                         value={promptText}
                                         onChange={(e) => setPromptText(e.target.value)}
-                                        placeholder={`Ask ${selectedRole.toLowerCase()} anything...`}
-                                        className="w-full min-h-[100px] bg-transparent resize-none p-4 text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 placeholder:italic placeholder:text-sm"
+                                        placeholder={`How can I help you today?`}
+                                        className="w-full min-h-[140px] bg-transparent resize-none p-6 text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 placeholder:italic placeholder:text-sm text-lg"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && !e.shiftKey) {
                                                 e.preventDefault();
@@ -432,27 +426,42 @@ const AIStudio = () => {
                                             }
                                         }}
                                     />
-                                    <div className="flex items-center justify-between px-4 pb-2">
-                                        <div className="flex items-center gap-1">
-                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-lg h-9 w-9"><Paperclip className="w-4 h-4" /></Button>
-                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-lg h-9 w-9"><ImageIcon className="w-4 h-4" /></Button>
-                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-lg h-9 w-9"><Mic className="w-4 h-4" /></Button>
+                                    <div className="flex items-center justify-between px-6 pb-4">
+                                        <div className="flex items-center gap-2">
+                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-10 w-10"><Paperclip className="w-5 h-5" /></Button>
+                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-10 w-10"><ImageIcon className="w-5 h-5" /></Button>
+                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-10 w-10"><Mic className="w-5 h-5" /></Button>
                                         </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className="text-[9px] font-black tracking-widest text-slate-400 uppercase">2 Credits / Sync</span>
+                                        <div className="flex items-center gap-6">
+                                            <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase hidden sm:block">2 Credits / Sync</span>
                                             <Button
                                                 onClick={handleGenerate}
                                                 disabled={isGenerating || !promptText}
-                                                className="h-10 w-10 p-0 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+                                                className="h-12 w-12 p-0 bg-primary text-white rounded-2xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
                                             >
-                                                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                                {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                                             </Button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <p className="text-center text-[9px] text-slate-400 mt-6 font-medium italic opacity-50">Studio AI can analyze and render architectural concepts but may provide approximate data. Verify critical BoQ metrics.</p>
+                            {/* Recipe Pills - BELOW Input (Claude style) */}
+                            {!isGenerating && (
+                                <div className="flex flex-wrap justify-center gap-3 mt-8">
+                                    {professionalRoles.find(r => r.name === selectedRole)?.recipes.map((r, i) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setPromptText(r)}
+                                            className="px-5 py-2.5 bg-slate-50 dark:bg-muted/50 hover:bg-primary/10 hover:border-primary/50 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-primary rounded-2xl border border-slate-200 dark:border-border transition-all whitespace-nowrap shadow-sm"
+                                        >
+                                            Creative Recipe #{i + 1}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
+                            <p className="text-center text-[9px] text-slate-400 mt-10 font-black uppercase tracking-widest opacity-40">Studio AI Intelligence Layer v4.0. Verify critical outputs.</p>
                         </div>
                     </div>
                 </main>
