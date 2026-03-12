@@ -207,5 +207,31 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: 'DM Sans', sans-serif;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Headings use Syne — geometric, bold, premium */
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Syne', sans-serif;
+  }
+}
+
+/* ─── Typography Utilities ─────────────────────────────────── */
+@layer utilities {
+  /* Standard all-caps label — use instead of ad-hoc tracking/size combos */
+  .type-label {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.625rem;   /* 10px */
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* Syne display override for non-heading elements that need display font */
+  .font-display {
+    font-family: 'Syne', sans-serif;
   }
 }
