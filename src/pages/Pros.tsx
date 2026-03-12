@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, MapPin, Star, ShieldCheck, Mail, Phone, ExternalLink } from "lucide-react";
+import { Search, MapPin, Star, ShieldCheck, Mail, Phone, ExternalLink, ShoppingBag, ChevronDown } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -60,36 +60,70 @@ const professionals = [
 
 const Pros = () => {
     const [searchQuery, setSearchQuery] = useState("");
+    const [location, setLocation] = useState("All Nigeria");
+    const locations = [
+        "All Nigeria", "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno", 
+        "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT Abuja", "Gombe", "Imo", "Jigawa", 
+        "Kaduna", "Kano", "Katsina", "Kebbi", "Kogi", "Kwara", "Lagos", "Nasarawa", "Niger", "Ogun", 
+        "Ondo", "Osun", "Oyo", "Plateau", "Rivers", "Sokoto", "Taraba", "Yobe", "Zamfara"
+    ];
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-screen bg-background transition-colors duration-300">
             <Navbar />
             
+            <div className="bg-white dark:bg-card pt-2 md:pt-4 pb-4 md:pb-6 sticky top-16 md:top-20 z-30 transition-all duration-300 overflow-hidden border-b dark:border-border">
+                <div className="container mx-auto px-4">
+                    <div className="max-w-4xl mx-auto space-y-2 md:space-y-4">
+                        <div className="hidden md:flex text-slate-800 dark:text-white text-center mb-1 items-center justify-center gap-2">
+                            <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter flex items-center gap-2">
+                                <Star className="w-5 h-5 text-primary" /> Find Your Professional Expert
+                            </h2>
+                        </div>
+                        
+                        <div className="bg-slate-50 dark:bg-muted/30 rounded-xl md:rounded-2xl p-1 flex flex-col md:flex-row gap-0 shadow-sm border border-slate-100 dark:border-border items-stretch">
+                            {/* Location Picker */}
+                            <div className="relative flex-shrink-0 min-w-[120px] md:min-w-[140px] border-b md:border-b-0 md:border-r border-slate-200 dark:border-border/50">
+                                <select 
+                                    value={location}
+                                    onChange={(e) => setLocation(e.target.value)}
+                                    className="w-full h-10 md:h-12 pl-9 pr-6 bg-transparent text-[11px] md:text-sm font-bold text-slate-700 dark:text-slate-200 appearance-none focus:outline-none cursor-pointer"
+                                >
+                                    {locations.map(loc => <option key={loc} value={loc} className="dark:bg-card">{loc}</option>)}
+                                </select>
+                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary" />
+                                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
+                            </div>
+
+                            {/* Search Input */}
+                            <div className="flex-1 relative">
+                                <input
+                                    className="w-full h-10 md:h-12 pl-10 pr-4 bg-transparent border-none focus:ring-0 text-xs md:text-base text-slate-700 dark:text-slate-200 font-bold placeholder:font-medium placeholder:text-slate-400"
+                                    placeholder="Search by role or name (e.g. Architect, Lagos)"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            </div>
+
+                            {/* Search Icon Button */}
+                            <Button className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm m-1 md:m-1">
+                                <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <main className="container mx-auto px-4 py-8">
-                {/* Header */}
-                <div className="text-center mb-12">
-                    <h1 className="text-3xl md:text-5xl font-black mb-4 uppercase tracking-tighter">
+                {/* Header Text (Adjusted) */}
+                <div className="text-center mb-8 md:mb-12">
+                    <h1 className="text-2xl md:text-5xl font-black mb-4 uppercase tracking-tighter">
                         Hire Certified <span className="text-primary italic">Professionals</span>
                     </h1>
-                    <p className="text-muted-foreground text-sm md:text-base font-medium max-w-2xl mx-auto italic">
+                    <p className="text-muted-foreground text-[10px] md:text-base font-medium max-w-2xl mx-auto italic leading-relaxed">
                         Find vetted experts to execute your construction projects with precision and integrity.
                     </p>
-                </div>
-
-                {/* Search / Filter */}
-                <div className="flex flex-col md:flex-row gap-4 mb-8">
-                    <div className="relative flex-grow">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <Input 
-                            className="h-12 pl-12 rounded-2xl border-slate-200 dark:border-border font-medium"
-                            placeholder="Search by role or name (e.g. Architect, Lagos)"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
-                    </div>
-                    <Button className="h-12 px-8 rounded-2xl bg-slate-900 dark:bg-white dark:text-slate-900 font-bold uppercase tracking-widest text-xs">
-                        Find Experts
-                    </Button>
                 </div>
 
                 {/* Grid */}
