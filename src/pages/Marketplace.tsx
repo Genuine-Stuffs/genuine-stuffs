@@ -21,6 +21,13 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { Phone, MessageCircle, ShieldAlert, CheckCircle2, Search, Filter, Grid, List, ArrowUpDown, ShoppingBag, ShoppingCart, Info, Leaf, DollarSign, User, Loader2, SlidersHorizontal, ExternalLink, MapPin, History, ArrowRight, ChevronDown } from "lucide-react";
 import { supabase } from "backend/supabaseClient";
 import type { Database } from "backend/types";
@@ -179,16 +186,22 @@ const Marketplace = () => {
                         
                         <div className="bg-slate-50 dark:bg-muted/30 rounded-xl md:rounded-2xl p-1 flex flex-col md:flex-row gap-0 shadow-sm border border-slate-100 dark:border-border items-stretch">
                             {/* Location Picker */}
-                            <div className="relative flex-shrink-0 min-w-[120px] md:min-w-[140px] border-b md:border-b-0 md:border-r border-slate-200 dark:border-border/50">
-                                <select 
-                                    value={location}
-                                    onChange={(e) => setLocation(e.target.value)}
-                                    className="w-full h-10 md:h-12 pl-9 pr-6 bg-transparent text-[11px] md:text-sm font-bold text-slate-700 dark:text-slate-200 appearance-none focus:outline-none cursor-pointer"
-                                >
-                                    {locations.map(loc => <option key={loc} value={loc} className="dark:bg-card">{loc}</option>)}
-                                </select>
-                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary" />
-                                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
+                            <div className="relative flex-shrink-0 min-w-[120px] md:min-w-[140px] border-b md:border-b-0 md:border-r border-slate-200 dark:border-border/50 flex flex-col justify-center">
+                                <div className="absolute left-3 z-10 pointer-events-none flex items-center h-full">
+                                    <MapPin className="w-3.5 h-3.5 text-primary" />
+                                </div>
+                                <Select value={location} onValueChange={setLocation}>
+                                    <SelectTrigger className="w-full h-10 md:h-12 border-none bg-transparent text-[11px] md:text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 shadow-none pl-9 pr-2">
+                                        <SelectValue placeholder="Location" />
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" className="max-h-[300px] z-50">
+                                        {locations.map(loc => (
+                                            <SelectItem key={loc} value={loc} className="dark:bg-card cursor-pointer">
+                                                {loc}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
 
                             {/* Search Input */}
@@ -215,17 +228,18 @@ const Marketplace = () => {
                 {/* Unified Toolbar */}
                 <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
                     {/* Category dropdown */}
-                    <select
-                        value={selectedCategory}
-                        onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="h-9 px-3 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer min-w-[120px]"
-                    >
-                        {categories.map(cat => (
-                            <option key={cat} value={cat}>
-                                {cat} ({cat === "All" ? dbMaterials.length : dbMaterials.filter(m => m.category === cat).length})
-                            </option>
-                        ))}
-                    </select>
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                        <SelectTrigger className="h-9 px-3 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-primary min-w-[120px]">
+                            <SelectValue placeholder="Category" />
+                        </SelectTrigger>
+                        <SelectContent position="popper" className="max-h-[300px] z-50">
+                            {categories.map(cat => (
+                                <SelectItem key={cat} value={cat} className="dark:bg-card cursor-pointer">
+                                    {cat} ({cat === "All" ? dbMaterials.length : dbMaterials.filter(m => m.category === cat).length})
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
                     <Button variant="outline" size="sm" className="h-9 gap-2 rounded-xl font-bold uppercase tracking-wider text-[10px] dark:border-white/10 shrink-0">
                         <ArrowUpDown className="w-3.5 h-3.5" /> Sort
