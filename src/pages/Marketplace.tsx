@@ -175,24 +175,50 @@ const Marketplace = () => {
     return (
         <div className="min-h-screen bg-background transition-colors duration-300">
             <Navbar />
-            <div className="bg-white dark:bg-card/50 backdrop-blur-md border-b dark:border-border sticky top-16 md:top-20 z-30 shadow-sm transition-all duration-300">
-                <div className="container mx-auto px-4 py-3 md:py-4">
-                    <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-center">
-                        <div className="flex items-center gap-3 bg-slate-50 dark:bg-muted/40 px-4 py-2 rounded-xl border border-slate-100 dark:border-border flex-1 w-full transition-colors duration-300">
-                            <Search className="w-4 h-4 md:w-5 md:h-5 text-slate-400" />
-                            <input
-                                className="bg-transparent border-none focus:ring-0 w-full text-sm md:text-base text-slate-700 dark:text-slate-100 font-bold placeholder:font-medium placeholder:text-slate-400"
-                                placeholder="Search materials..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
+            <div className="bg-white dark:bg-card pt-2 md:pt-4 pb-4 md:pb-6 sticky top-16 md:top-20 z-30 transition-all duration-300 overflow-hidden border-b dark:border-border">
+                <div className="container mx-auto px-4">
+                    <div className="max-w-4xl mx-auto space-y-2 md:space-y-4">
+                        <div className="hidden md:flex text-slate-800 dark:text-white text-center mb-1 items-center justify-center gap-2">
+                            <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter flex items-center gap-2">
+                                <ShoppingBag className="w-5 h-5 text-primary" /> What are you looking for?
+                            </h2>
                         </div>
-                        <div className="flex gap-2 w-full md:w-auto">
-                            <Button className="flex-1 md:flex-none h-10 md:h-11 px-6 md:px-8 rounded-xl bg-primary hover:bg-primary/90 font-black shadow-lg shadow-primary/20 text-xs md:text-sm">Search</Button>
-                            <div className="flex gap-2">
-                                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-50 dark:bg-muted border border-slate-100 dark:border-border transition-colors"><User className="w-4 h-4 md:w-5 md:h-5 text-slate-400" /></Button>
-                                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-50 dark:bg-muted border border-slate-100 dark:border-border transition-colors"><ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-slate-400" /></Button>
+                        
+                        <div className="bg-slate-50 dark:bg-muted/30 rounded-xl md:rounded-2xl p-1 flex flex-col md:flex-row gap-0 shadow-sm border border-slate-100 dark:border-border items-stretch">
+                            {/* Location Picker */}
+                            <div className="relative flex-shrink-0 min-w-[120px] md:min-w-[140px] border-b md:border-b-0 md:border-r border-slate-200 dark:border-border/50 flex flex-col justify-center">
+                                <div className="absolute left-3 z-10 pointer-events-none flex items-center h-full">
+                                    <MapPin className="w-3.5 h-3.5 text-primary" />
+                                </div>
+                                <Select value={location} onValueChange={setLocation}>
+                                    <SelectTrigger className="w-full h-10 md:h-12 border-none bg-transparent text-[11px] md:text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 shadow-none pl-9 pr-2">
+                                        <SelectValue placeholder="Location" />
+                                    </SelectTrigger>
+                                    <SelectContent position="popper" className="max-h-[300px] z-50">
+                                        {locations.map(loc => (
+                                            <SelectItem key={loc} value={loc} className="dark:bg-card cursor-pointer">
+                                                {loc}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
+
+                            {/* Search Input */}
+                            <div className="flex-1 relative">
+                                <input
+                                    className="w-full h-10 md:h-12 pl-10 pr-4 bg-transparent border-none focus:ring-0 text-xs md:text-base text-slate-700 dark:text-slate-200 font-bold placeholder:font-medium placeholder:text-slate-400"
+                                    placeholder="I am looking for..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                            </div>
+
+                            {/* Search Icon Button */}
+                            <Button className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm m-1 md:m-1">
+                                <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
+                            </Button>
                         </div>
                     </div>
                 </div>
