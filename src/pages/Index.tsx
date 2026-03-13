@@ -110,19 +110,17 @@ const Index = () => {
       <Navbar />
 
       {/* Panoramic Hero Carousel */}
-      <section className="relative w-full h-[60vh] md:h-[80vh] overflow-hidden">
-        <Carousel className="w-full h-full" opts={{ loop: true }}>
-          <CarouselContent className="h-full">
+      <section className="relative w-full overflow-hidden bg-slate-900">
+        <Carousel className="w-full" opts={{ loop: true }}>
+          <CarouselContent>
             {[cityscape, construction, highrise].map((img, i) => (
-              <CarouselItem key={i} className="relative h-full pl-0">
-                <div className="absolute inset-0">
-                  <img src={img} alt={`Hero ${i + 1}`} className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/40" />
-                </div>
+              <CarouselItem key={i} className="relative h-[60vh] md:h-[80vh] pl-0">
+                <img src={img} alt={`Hero ${i + 1}`} className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-black/40 pointer-events-none" />
               </CarouselItem>
             ))}
           </CarouselContent>
-          
+
           {/* Overlay Text */}
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center px-4">
             <div className="max-w-4xl">
@@ -148,8 +146,8 @@ const Index = () => {
           </div>
 
           <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-8 z-30">
-             <CarouselPrevious className="relative left-0 translate-y-0 h-12 w-12 bg-white/20 hover:bg-white/40 border-none text-white transition-all backdrop-blur-md" />
-             <CarouselNext className="relative right-0 translate-y-0 h-12 w-12 bg-white/20 hover:bg-white/40 border-none text-white transition-all backdrop-blur-md" />
+            <CarouselPrevious className="relative left-0 translate-y-0 h-12 w-12 bg-white/20 hover:bg-white/40 border-none text-white transition-all backdrop-blur-md" />
+            <CarouselNext className="relative right-0 translate-y-0 h-12 w-12 bg-white/20 hover:bg-white/40 border-none text-white transition-all backdrop-blur-md" />
           </div>
         </Carousel>
       </section>
