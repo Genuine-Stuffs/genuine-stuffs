@@ -176,7 +176,7 @@ const Marketplace = () => {
         <div className="min-h-screen bg-background transition-colors duration-300">
             <Navbar />
             <div className="bg-white dark:bg-card pt-2 md:pt-4 pb-4 md:pb-6 transition-all duration-300 overflow-hidden border-b dark:border-border">
-                <div className="container mx-auto px-4">
+                <div className="w-full px-2 md:container md:mx-auto md:px-4">
                     <div className="max-w-2xl mx-auto space-y-2 md:space-y-4">
                         <div className="hidden md:flex text-slate-800 dark:text-white text-center mb-1 items-center justify-center gap-2">
                             <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter flex items-center gap-2">
@@ -184,14 +184,14 @@ const Marketplace = () => {
                             </h2>
                         </div>
                         
-                        <div className="bg-slate-50 dark:bg-muted/30 rounded-xl md:rounded-2xl p-1 flex flex-col md:flex-row gap-0 shadow-sm border border-slate-100 dark:border-border items-stretch">
+                        <div className="flex flex-row gap-2 items-stretch">
                             {/* Location Picker */}
-                            <div className="relative flex-shrink-0 min-w-[120px] border-b md:border-b-0 md:border-r border-slate-200 dark:border-border/50 flex flex-col justify-center">
-                                <div className="absolute left-3 z-10 pointer-events-none flex items-center h-full">
+                            <div className="bg-slate-50 dark:bg-muted/30 rounded-xl border border-slate-200/60 dark:border-border/50 relative flex-shrink-0 w-[35%] md:w-auto md:min-w-[140px] flex flex-col justify-center transition-colors">
+                                <div className="absolute left-2 md:left-3 z-10 pointer-events-none flex items-center h-full">
                                     <MapPin className="w-3.5 h-3.5 text-primary" />
                                 </div>
                                 <Select value={location} onValueChange={setLocation}>
-                                    <SelectTrigger className="w-full h-10 md:h-12 border-none bg-transparent text-[11px] md:text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 shadow-none pl-9 pr-2">
+                                    <SelectTrigger className="w-full h-10 md:h-12 border-none bg-transparent text-[11px] md:text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 shadow-none pl-7 md:pl-9 pr-1 md:pr-2">
                                         <SelectValue placeholder="Location" />
                                     </SelectTrigger>
                                     <SelectContent position="popper" className="max-h-[300px] z-50">
@@ -205,7 +205,7 @@ const Marketplace = () => {
                             </div>
 
                             {/* Mobile Row Container (Input + Actions) */}
-                            <div className="flex flex-1 flex-row items-center justify-between">
+                            <div className="bg-slate-50 dark:bg-muted/30 p-1 flex flex-1 flex-row items-center justify-between rounded-xl border border-slate-200/60 dark:border-border/50 transition-colors">
                                 {/* Search Input */}
                                 <div className="flex-1 relative min-w-0">
                                     <input
@@ -218,14 +218,14 @@ const Marketplace = () => {
                                 </div>
 
                                 {/* Actions Group */}
-                                <div className="flex items-center justify-end gap-1 pr-1 shrink-0 pb-1 md:pb-0 pt-1 md:pt-0">
+                                <div className="flex items-center justify-end gap-1 pr-1 shrink-0">
                                     <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
-                                        <User className="w-4 h-4 md:w-4 md:h-4 text-slate-500 dark:text-slate-400" />
+                                        <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                                     </Button>
                                     <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
-                                        <ShoppingCart className="w-4 h-4 md:w-4 md:h-4 text-slate-500 dark:text-slate-400" />
+                                        <ShoppingCart className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                                     </Button>
-                                    <Button className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm m-1 md:m-1">
+                                    <Button className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm ml-1">
                                         <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
                                     </Button>
                                 </div>
@@ -235,7 +235,7 @@ const Marketplace = () => {
                 </div>
             </div>
 
-            <div className="container mx-auto px-4 py-6">
+            <div className="w-full px-2 md:container md:mx-auto md:px-4 py-4 md:py-6">
                 {/* Toolbar: title + category dropdown + sort + view toggle */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-3">
                     <div className="flex items-center gap-3">
