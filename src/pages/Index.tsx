@@ -283,7 +283,7 @@ const Index = () => {
       </section>
 
       {/* How We Work Section */}
-      <section className="py-20">
+      <section className="py-20 bg-white dark:bg-background z-0 relative">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">How We Work</h2>
@@ -294,16 +294,16 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {steps.map((step, index) => (
-              <div key={index} className="relative">
+              <div key={index} className="relative z-0">
                 <div className="text-center">
-                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary text-primary-foreground text-3xl font-bold mb-4">
+                  <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-primary text-primary-foreground text-3xl font-bold mb-4 shadow-sm">
                     {step.number}
                   </div>
                   <h3 className="text-2xl font-semibold mb-3">{step.title}</h3>
                   <p className="text-muted-foreground">{step.description}</p>
                 </div>
                 {index < steps.length - 1 && (
-                  <div className="hidden md:block absolute top-10 left-[60%] w-[80%] h-0.5 bg-slate-100 dark:bg-border" />
+                  <div className="hidden md:block absolute top-[39px] left-[calc(50%+52px)] w-[calc(100%+2rem-104px)] h-[2px] bg-slate-200 dark:bg-slate-800" />
                 )}
               </div>
             ))}
