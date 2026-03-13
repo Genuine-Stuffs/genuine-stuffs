@@ -135,10 +135,10 @@ const Index = () => {
                 Direct Marketplace Access & Verified Professionals
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Button asChild size="lg" className="h-14 md:h-16 px-10 md:px-14 text-lg font-black rounded-2xl shadow-xl hover:scale-105 transition-transform">
+                <Button asChild size="lg" className="h-14 md:h-16 px-10 md:px-14 text-lg font-black rounded-2xl shadow-md md:shadow-lg md:hover:scale-[1.03] transition-transform">
                   <Link to="/marketplace">EXPLORE MARKET</Link>
                 </Button>
-                <Button asChild size="lg" variant="outline" className="h-14 md:h-16 px-10 md:px-14 text-lg font-black rounded-2xl bg-white/10 backdrop-blur-md border-white text-white hover:bg-white hover:text-primary transition-all">
+                <Button asChild size="lg" variant="outline" className="h-14 md:h-16 px-10 md:px-14 text-lg font-black rounded-2xl bg-white/10 backdrop-blur-md border-white text-white md:hover:bg-white md:hover:text-primary transition-all">
                   <Link to="/pros">HIRE EXPERTS</Link>
                 </Button>
               </div>
@@ -168,13 +168,13 @@ const Index = () => {
               <Link
                 key={i}
                 to={cat.link || `/marketplace?category=${encodeURIComponent(cat.title)}`}
-                className="group flex flex-col items-center p-3 md:p-6 rounded-3xl border border-slate-100 dark:border-border bg-slate-50/50 dark:bg-card hover:bg-white dark:hover:bg-muted/50 hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 backdrop-blur-sm relative overflow-hidden"
+                className="group flex flex-col items-center p-3 md:p-6 rounded-3xl border border-slate-100 dark:border-border bg-slate-50/50 dark:bg-card md:hover:bg-white dark:md:hover:bg-muted/50 md:hover:border-primary md:hover:shadow-lg md:hover:shadow-primary/5 transition-all duration-500 backdrop-blur-sm relative overflow-hidden"
               >
-                <div className={`w-10 h-10 md:w-14 md:h-14 rounded-2xl flex items-center justify-center mb-2 md:mb-4 ${cat.color} group-hover:scale-110 transition-transform shadow-sm group-hover:shadow-lg`}>
+                <div className={`w-10 h-10 md:w-14 md:h-14 rounded-2xl flex items-center justify-center mb-2 md:mb-4 ${cat.color} md:group-hover:scale-105 transition-transform shadow-none md:shadow-sm md:group-hover:shadow-md`}>
                   <cat.icon className="w-5 h-5 md:w-7 md:h-7" />
                 </div>
-                <span className="text-[9px] md:text-[10px] font-black text-center text-slate-700 dark:text-slate-300 leading-tight group-hover:text-primary uppercase tracking-tighter transition-colors">{cat.title}</span>
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12 group-hover:bg-primary/10 transition-colors" />
+                <span className="text-[9px] md:text-[10px] font-black text-center text-slate-700 dark:text-slate-300 leading-tight md:group-hover:text-primary uppercase tracking-tighter transition-colors">{cat.title}</span>
+                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12 md:group-hover:bg-primary/10 transition-colors hidden md:block" />
               </Link>
             ))}
           </div>
@@ -198,14 +198,14 @@ const Index = () => {
               { title: "Granite (Hard Rock)", price: "₦180,000", img: "/images/materials/granite.png", vendor: "Quarry Direct" },
               { title: "Sharp Sand", price: "₦45,000", img: "/images/materials/sand.png", vendor: "Dredge Masters" }
             ].map((prod, i) => (
-              <Card key={i} className="group overflow-hidden border-none shadow-sm hover:shadow-2xl transition-all bg-white dark:bg-card rounded-2xl">
+              <Card key={i} className="group overflow-hidden border-none shadow-none md:shadow-sm md:hover:shadow-lg transition-all bg-white dark:bg-card rounded-2xl">
                 <div className="aspect-square relative overflow-hidden bg-slate-100 dark:bg-slate-700">
-                  <img src={prod.img} alt={prod.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <img src={prod.img} alt={prod.title} className="w-full h-full object-cover md:group-hover:scale-[1.05] transition-transform duration-500" />
                   <div className="absolute top-2 right-2 px-2 py-1 rounded-lg bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest">PROMOTED</div>
                 </div>
                 <CardContent className="p-4">
                   <div className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{prod.vendor}</div>
-                  <h3 className="font-black text-slate-900 dark:text-white leading-tight mb-2 group-hover:text-primary transition-colors">{prod.title}</h3>
+                  <h3 className="font-black text-slate-900 dark:text-white leading-tight mb-2 md:group-hover:text-primary transition-colors">{prod.title}</h3>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-black text-slate-900 dark:text-white uppercase">{prod.price}</span>
                     <Button size="sm" variant="outline" className="h-8 rounded-lg text-[10px] font-black dark:border-border dark:hover:bg-muted">DETAILS</Button>
@@ -244,7 +244,7 @@ const Index = () => {
                 ))}
               </div>
             </div>
-            <div className="order-1 lg:order-2 rounded-3xl overflow-hidden shadow-2xl relative aspect-square lg:aspect-video border-8 border-white dark:border-card">
+            <div className="order-1 lg:order-2 rounded-3xl overflow-hidden md:shadow-xl relative aspect-square lg:aspect-video border-8 border-white dark:border-card">
               <img src={trustImage} alt="Verified construction materials on site" className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
               <div className="absolute bottom-8 left-8 right-8">
@@ -267,15 +267,15 @@ const Index = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {benefits.map((benefit, index) => (
-              <Card key={index} className="group border-2 border-slate-100 dark:border-border bg-white dark:bg-card hover:border-primary transition-all duration-500 overflow-hidden relative shadow-sm hover:shadow-2xl hover:shadow-primary/10 rounded-3xl">
+              <Card key={index} className="group border-2 border-slate-100 dark:border-border bg-white dark:bg-card md:hover:border-primary transition-all duration-500 overflow-hidden relative shadow-none md:shadow-sm md:hover:shadow-lg md:hover:shadow-primary/5 rounded-3xl">
                 <CardContent className="pt-8 pb-8 relative z-10">
-                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                  <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-6 md:group-hover:scale-[1.05] transition-transform">
                     <benefit.icon className="w-8 h-8 text-primary" />
                   </div>
                   <h3 className="text-xl font-black mb-3 text-slate-900 dark:text-white uppercase tracking-tight">{benefit.title}</h3>
                   <p className="text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{benefit.description}</p>
                 </CardContent>
-                <div className="absolute bottom-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mb-16 -mr-16 group-hover:bg-primary/20 transition-colors" />
+                <div className="absolute bottom-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mb-16 -mr-16 md:group-hover:bg-primary/20 transition-colors hidden md:block" />
               </Card>
             ))}
           </div>
@@ -329,11 +329,11 @@ const Index = () => {
               "Knowledge Hub",
               "Quality Enablement"
             ].map((specialty, i) => (
-              <div key={i} className="flex items-center gap-4 bg-white dark:bg-card p-5 md:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-border hover:border-primary hover:shadow-xl transition-all group">
-                <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all">
+              <div key={i} className="flex items-center gap-4 bg-white dark:bg-card p-5 md:p-6 rounded-2xl shadow-none md:shadow-sm border border-slate-100 dark:border-border md:hover:border-primary md:hover:shadow-md transition-all group">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary md:group-hover:bg-primary md:group-hover:text-white transition-all">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
-                <span className="font-black text-slate-800 dark:text-slate-200 group-hover:text-primary transition-colors uppercase tracking-widest text-[11px] md:text-xs">{specialty}</span>
+                <span className="font-black text-slate-800 dark:text-slate-200 md:group-hover:text-primary transition-colors uppercase tracking-widest text-[11px] md:text-xs">{specialty}</span>
               </div>
             ))}
           </div>
@@ -365,7 +365,7 @@ const Index = () => {
                 ))}
               </ul>
             </div>
-            <div className="rounded-lg overflow-hidden shadow-lg aspect-video">
+            <div className="rounded-lg overflow-hidden md:shadow-md aspect-video">
               <img
                 src={valueImage}
                 alt="High-quality building materials on a construction site"
