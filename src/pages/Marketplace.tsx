@@ -218,11 +218,11 @@ const Marketplace = () => {
                                 </div>
 
                                 {/* Actions Group */}
-                                <div className="flex items-center justify-end gap-1 pr-1 shrink-0">
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
+                                <div className="flex items-center justify-end gap-1 shrink-0">
+                                    <Button variant="ghost" size="icon" className="hidden md:flex h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
                                         <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                                     </Button>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
+                                    <Button variant="ghost" size="icon" className="hidden md:flex h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
                                         <ShoppingCart className="w-4 h-4 text-slate-500 dark:text-slate-400" />
                                     </Button>
                                     <Button className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm ml-1">
@@ -248,17 +248,19 @@ const Marketplace = () => {
 
                     <div className="flex items-center gap-2 w-full md:w-auto">
                         {/* Category dropdown */}
-                        <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
-                            className="flex-1 md:flex-none h-9 px-3 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
-                        >
-                            {categories.map(cat => (
-                                <option key={cat} value={cat}>
-                                    {cat} ({cat === "All" ? dbMaterials.length : dbMaterials.filter(m => m.category === cat).length})
-                                </option>
-                            ))}
-                        </select>
+                        <div className="w-[45%] md:w-auto flex-none">
+                            <select
+                                value={selectedCategory}
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                                className="w-full h-9 px-2 md:px-3 text-ellipsis overflow-hidden whitespace-nowrap rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                            >
+                                {categories.map(cat => (
+                                    <option key={cat} value={cat}>
+                                        {cat} ({cat === "All" ? dbMaterials.length : dbMaterials.filter(m => m.category === cat).length})
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
 
                         {/* Price range inputs (compact) */}
                         <input
@@ -276,61 +278,18 @@ const Marketplace = () => {
                             className="hidden md:block w-24 h-9 px-3 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary"
                         />
 
-                        {/* Mobile filter sheet */}
-                        <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                            <SheetTrigger asChild>
-                                <Button variant="outline" size="sm" className="md:hidden h-9 w-9 p-0 rounded-xl dark:border-border">
-                                    <SlidersHorizontal className="w-4 h-4 text-primary" />
-                                </Button>
-                            </SheetTrigger>
-                            <SheetContent side="bottom" className="rounded-t-[2.5rem] h-[80vh] dark:bg-background border-t-primary/20">
-                                <SheetHeader className="pb-6 border-b dark:border-border">
-                                    <SheetTitle className="font-bold uppercase tracking-widest text-primary flex items-center gap-2">
-                                        <Filter className="w-4 h-4" /> Refine Marketplace
-                                    </SheetTitle>
-                                    <SheetDescription className="italic">Adjust filters to find specific materials.</SheetDescription>
-                                </SheetHeader>
-                                <div className="py-8 space-y-8 overflow-y-auto h-full">
-                                    <div>
-                                        <h4 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Categories</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {categories.map(cat => (
-                                                <Button
-                                                    key={cat}
-                                                    variant={selectedCategory === cat ? "default" : "outline"}
-                                                    size="sm"
-                                                    onClick={() => { setSelectedCategory(cat); setIsFilterOpen(false); }}
-                                                    className={`rounded-full h-8 px-4 text-[10px] font-semibold uppercase tracking-wider ${selectedCategory === cat ? 'bg-primary text-white shadow-md' : 'dark:border-white/10 dark:text-slate-400'}`}
-                                                >
-                                                    {cat}
-                                                </Button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <h4 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Budget Range (₦)</h4>
-                                        <div className="flex gap-3 items-center">
-                                            <Input placeholder="Min" type="number" value={priceRange.min} onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))} className="h-10 bg-slate-50 dark:bg-muted/20 border-none rounded-xl font-medium" />
-                                            <Input placeholder="Max" type="number" value={priceRange.max} onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))} className="h-10 bg-slate-50 dark:bg-muted/20 border-none rounded-xl font-medium" />
-                                        </div>
-                                    </div>
-                                    <Button className="w-full h-12 rounded-2xl bg-primary font-semibold uppercase tracking-wider shadow-lg" onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
-                                </div>
-                            </SheetContent>
-                        </Sheet>
-
                         {/* View toggle */}
-                        <div className="flex bg-slate-100 dark:bg-card p-1 rounded-xl border dark:border-white/5">
-                            <Button variant={viewMode === "grid-4" || mobileView === "grid" ? "secondary" : "ghost"} size="sm" onClick={() => { setViewMode("grid-4"); setMobileView("grid"); }} className="h-7 w-7 p-0 rounded-lg">
-                                <Grid className="w-3.5 h-3.5" />
+                        <div className="flex-1 flex bg-slate-100 dark:bg-card p-0.5 rounded-xl border dark:border-white/5 h-9 items-stretch justify-center gap-0.5">
+                            <Button variant={viewMode === "grid-4" || mobileView === "grid" ? "secondary" : "ghost"} size="sm" onClick={() => { setViewMode("grid-4"); setMobileView("grid"); }} className={`flex-1 h-full p-0 rounded-lg ${viewMode === "grid-4" || mobileView === "grid" ? "bg-white shadow-sm dark:bg-slate-800" : ""}`}>
+                                <Grid className="w-3.5 h-3.5 mx-auto text-slate-600 dark:text-slate-300" />
                             </Button>
-                            <Button variant={viewMode === "list" || mobileView === "list" ? "secondary" : "ghost"} size="sm" onClick={() => { setViewMode("list"); setMobileView("list"); }} className="h-7 w-7 p-0 rounded-lg">
-                                <List className="w-3.5 h-3.5" />
+                            <Button variant={viewMode === "list" || mobileView === "list" ? "secondary" : "ghost"} size="sm" onClick={() => { setViewMode("list"); setMobileView("list"); }} className={`flex-1 h-full p-0 rounded-lg ${viewMode === "list" || mobileView === "list" ? "bg-white shadow-sm dark:bg-slate-800" : ""}`}>
+                                <List className="w-3.5 h-3.5 mx-auto text-slate-600 dark:text-slate-300" />
                             </Button>
                         </div>
 
-                        <Button variant="outline" size="sm" className="h-9 gap-2 rounded-xl font-semibold uppercase tracking-wider text-[10px] dark:border-white/10">
-                            <ArrowUpDown className="w-3.5 h-3.5" /> Sort
+                        <Button variant="outline" size="sm" className="flex-1 h-9 gap-1 rounded-xl font-bold md:font-semibold uppercase tracking-wider text-[10px] dark:border-white/10 px-1 md:px-3 text-slate-700 dark:text-slate-200">
+                            <ArrowUpDown className="w-3 h-3 text-primary shrink-0" /> Sort
                         </Button>
                     </div>
                 </div>

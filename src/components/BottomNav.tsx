@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, ShoppingBag, Users, User } from "lucide-react";
+import { Home, ShoppingBag, ShoppingCart, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const BottomNav = () => {
@@ -11,7 +11,7 @@ const BottomNav = () => {
     const navItems = [
         { label: "Home", icon: Home, path: "/" },
         { label: "Shop", icon: ShoppingBag, path: "/marketplace" },
-        { label: "Pros", icon: Users, path: "/pros" },
+        { label: "Cart", icon: ShoppingCart, path: "/cart" },
         { label: "Profile", icon: User, path: role === 'professional' ? "/pro-portal" : role === 'vendor' ? "/vendor-dashboard" : "/login" },
     ];
 
