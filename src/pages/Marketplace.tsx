@@ -177,7 +177,7 @@ const Marketplace = () => {
             <Navbar />
             <div className="bg-white dark:bg-card pt-2 md:pt-4 pb-4 md:pb-6 transition-all duration-300 overflow-hidden border-b dark:border-border">
                 <div className="container mx-auto px-4">
-                    <div className="max-w-4xl mx-auto space-y-2 md:space-y-4">
+                    <div className="max-w-2xl mx-auto space-y-2 md:space-y-4">
                         <div className="hidden md:flex text-slate-800 dark:text-white text-center mb-1 items-center justify-center gap-2">
                             <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter flex items-center gap-2">
                                 <ShoppingBag className="w-5 h-5 text-primary" /> What are you looking for?
@@ -186,7 +186,7 @@ const Marketplace = () => {
                         
                         <div className="bg-slate-50 dark:bg-muted/30 rounded-xl md:rounded-2xl p-1 flex flex-col md:flex-row gap-0 shadow-sm border border-slate-100 dark:border-border items-stretch">
                             {/* Location Picker */}
-                            <div className="relative flex-shrink-0 min-w-[120px] md:min-w-[140px] border-b md:border-b-0 md:border-r border-slate-200 dark:border-border/50 flex flex-col justify-center">
+                            <div className="relative flex-shrink-0 min-w-[120px] border-b md:border-b-0 md:border-r border-slate-200 dark:border-border/50 flex flex-col justify-center">
                                 <div className="absolute left-3 z-10 pointer-events-none flex items-center h-full">
                                     <MapPin className="w-3.5 h-3.5 text-primary" />
                                 </div>
@@ -205,7 +205,7 @@ const Marketplace = () => {
                             </div>
 
                             {/* Search Input */}
-                            <div className="flex-1 relative">
+                            <div className="flex-1 relative min-w-0">
                                 <input
                                     className="w-full h-10 md:h-12 pl-10 pr-4 bg-transparent border-none focus:ring-0 text-xs md:text-base text-slate-700 dark:text-slate-200 font-bold placeholder:font-medium placeholder:text-slate-400"
                                     placeholder="I am looking for..."
@@ -216,7 +216,7 @@ const Marketplace = () => {
                             </div>
 
                             {/* Actions Group */}
-                            <div className="flex items-center justify-end gap-1 pr-1 md:pr-0 pb-1 md:pb-0">
+                            <div className="flex items-center justify-end gap-1 pr-1 md:pr-0 pb-1 md:pb-0 shrink-0">
                                 <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
                                     <User className="w-4 h-4 md:w-4 md:h-4 text-slate-500 dark:text-slate-400" />
                                 </Button>
