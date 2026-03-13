@@ -215,10 +215,18 @@ const Marketplace = () => {
                                 <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                             </div>
 
-                            {/* Search Icon Button */}
-                            <Button className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm m-1 md:m-1">
-                                <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
-                            </Button>
+                            {/* Actions Group */}
+                            <div className="flex items-center justify-end gap-1 pr-1 md:pr-0 pb-1 md:pb-0">
+                                <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
+                                    <User className="w-4 h-4 md:w-4 md:h-4 text-slate-500 dark:text-slate-400" />
+                                </Button>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
+                                    <ShoppingCart className="w-4 h-4 md:w-4 md:h-4 text-slate-500 dark:text-slate-400" />
+                                </Button>
+                                <Button className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm m-1 md:m-1">
+                                    <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
