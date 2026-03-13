@@ -6,39 +6,39 @@ const Footer = () => {
   return (
     <footer className="bg-secondary/30 border-t mt-20">
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-8">
           {/* Company Info */}
-          <div className="space-y-4">
+          <div className="lg:col-span-4 space-y-6">
             <div className="flex items-center space-x-3">
-              <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-30 h-24" />
-              <span className="font-bold text-xl">Genuine Stuffs Ltd</span>
+              <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-auto h-16 object-contain" />
+              <span className="font-black text-xl text-slate-900 tracking-tight">Genuine Stuffs Ltd</span>
             </div>
-            <p className="text-sm text-slate-500 leading-relaxed font-medium">
+            <p className="text-sm text-slate-500 leading-relaxed font-medium md:max-w-sm">
               A Trust-Driven Construction Ecosystem built to restore confidence, quality, and long-term value in the built environment.
             </p>
           </div>
 
           {/* Quick Links */}
-          <div>
-            <h3 className="font-semibold mb-4">Quick Links</h3>
-            <ul className="space-y-2">
+          <div className="lg:col-span-2">
+            <h3 className="font-bold text-slate-900 text-base uppercase tracking-wider mb-6">Quick Links</h3>
+            <ul className="space-y-4">
               <li>
-                <Link to="/services" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link to="/services" className="text-sm text-slate-500 font-medium hover:text-primary transition-colors block">
                   Our Services
                 </Link>
               </li>
               <li>
-                <Link to="/resources" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link to="/resources" className="text-sm text-slate-500 font-medium hover:text-primary transition-colors block">
                   Resources
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link to="/about" className="text-sm text-slate-500 font-medium hover:text-primary transition-colors block">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                <Link to="/contact" className="text-sm text-slate-500 font-medium hover:text-primary transition-colors block">
                   Contact
                 </Link>
               </li>
@@ -46,9 +46,9 @@ const Footer = () => {
           </div>
 
           {/* Specialties */}
-          <div>
-            <h3 className="font-bold text-slate-900 mb-4">Our Specialties</h3>
-            <ul className="space-y-2">
+          <div className="lg:col-span-3">
+            <h3 className="font-bold text-slate-900 text-base uppercase tracking-wider mb-6">Our Specialties</h3>
+            <ul className="space-y-4">
               {[
                 "Verified Materials Marketplace",
                 "Professionals & Artisans Directory",
@@ -63,21 +63,17 @@ const Footer = () => {
           </div>
 
           {/* Contact */}
-          <div>
-            <h3 className="font-semibold mb-4">Contact Us</h3>
-            <ul className="space-y-3">
-              <li className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Mail className="w-4 h-4" />
+          <div className="lg:col-span-3">
+            <h3 className="font-bold text-slate-900 text-base uppercase tracking-wider mb-6">Contact Us</h3>
+            <ul className="space-y-4">
+              <li className="flex items-center space-x-3 text-sm text-slate-500 font-medium">
+                <Mail className="w-5 h-5 text-primary" />
                 <span>contact@genuinestuffs.com</span>
               </li>
-              {/* <li className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <Phone className="w-4 h-4" />
-                <span>+234 81 89 675 921</span>
-              </li> */}
-              <li className="flex items-start space-x-2 text-sm text-muted-foreground">
-                <Linkedin className="w-4 h-4 mt-0.5" />
+              <li className="flex items-start space-x-3 text-sm text-slate-500 font-medium">
+                <Linkedin className="w-5 h-5 text-primary mt-0.5" />
                 <div>
-                  <a href="#" className="hover:text-primary transition-colors block">LinkedIn</a>
+                  <a href="#" className="hover:text-primary transition-colors block font-semibold text-slate-700">LinkedIn</a>
                   <span className="block mt-1">Ikoyi, Lagos, Nigeria</span>
                 </div>
               </li>
