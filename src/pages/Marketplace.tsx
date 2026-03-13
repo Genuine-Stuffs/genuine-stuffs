@@ -175,7 +175,7 @@ const Marketplace = () => {
     return (
         <div className="min-h-screen bg-background transition-colors duration-300">
             <Navbar />
-            <div className="bg-white dark:bg-card pt-2 md:pt-4 pb-4 md:pb-6 sticky top-16 md:top-20 z-30 transition-all duration-300 overflow-hidden border-b dark:border-border">
+            <div className="bg-white dark:bg-card pt-2 md:pt-4 pb-4 md:pb-6 transition-all duration-300 overflow-hidden border-b dark:border-border">
                 <div className="container mx-auto px-4">
                     <div className="max-w-4xl mx-auto space-y-2 md:space-y-4">
                         <div className="hidden md:flex text-slate-800 dark:text-white text-center mb-1 items-center justify-center gap-2">
