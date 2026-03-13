@@ -175,127 +175,127 @@ const Marketplace = () => {
     return (
         <div className="min-h-screen bg-background transition-colors duration-300">
             <Navbar />
-            <div className="bg-white dark:bg-card pt-2 md:pt-4 pb-4 md:pb-6 sticky top-16 md:top-20 z-30 transition-all duration-300 overflow-hidden border-b dark:border-border">
-                <div className="container mx-auto px-4">
-                    <div className="max-w-4xl mx-auto space-y-2 md:space-y-4">
-                        <div className="hidden md:flex text-slate-800 dark:text-white text-center mb-1 items-center justify-center gap-2">
-                            <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter flex items-center gap-2">
-                                <ShoppingBag className="w-5 h-5 text-primary" /> What are you looking for?
-                            </h2>
+            <div className="bg-white dark:bg-card/50 backdrop-blur-md border-b dark:border-border sticky top-16 md:top-20 z-30 shadow-sm transition-all duration-300">
+                <div className="container mx-auto px-4 py-3 md:py-4">
+                    <div className="flex flex-col md:flex-row gap-3 md:gap-4 items-center">
+                        <div className="flex items-center gap-3 bg-slate-50 dark:bg-muted/40 px-4 py-2 rounded-xl border border-slate-100 dark:border-border flex-1 w-full transition-colors duration-300">
+                            <Search className="w-4 h-4 md:w-5 md:h-5 text-slate-400" />
+                            <input
+                                className="bg-transparent border-none focus:ring-0 w-full text-sm md:text-base text-slate-700 dark:text-slate-100 font-bold placeholder:font-medium placeholder:text-slate-400"
+                                placeholder="Search materials..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </div>
-                        
-                        <div className="bg-slate-50 dark:bg-muted/30 rounded-xl md:rounded-2xl p-1 flex flex-col md:flex-row gap-0 shadow-sm border border-slate-100 dark:border-border items-stretch">
-                            {/* Location Picker */}
-                            <div className="relative flex-shrink-0 min-w-[120px] md:min-w-[140px] border-b md:border-b-0 md:border-r border-slate-200 dark:border-border/50 flex flex-col justify-center">
-                                <div className="absolute left-3 z-10 pointer-events-none flex items-center h-full">
-                                    <MapPin className="w-3.5 h-3.5 text-primary" />
-                                </div>
-                                <Select value={location} onValueChange={setLocation}>
-                                    <SelectTrigger className="w-full h-10 md:h-12 border-none bg-transparent text-[11px] md:text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 shadow-none pl-9 pr-2">
-                                        <SelectValue placeholder="Location" />
-                                    </SelectTrigger>
-                                    <SelectContent position="popper" className="max-h-[300px] z-50">
-                                        {locations.map(loc => (
-                                            <SelectItem key={loc} value={loc} className="dark:bg-card cursor-pointer">
-                                                {loc}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                        <div className="flex gap-2 w-full md:w-auto">
+                            <Button className="flex-1 md:flex-none h-10 md:h-11 px-6 md:px-8 rounded-xl bg-primary hover:bg-primary/90 font-black shadow-lg shadow-primary/20 text-xs md:text-sm">Search</Button>
+                            <div className="flex gap-2">
+                                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-50 dark:bg-muted border border-slate-100 dark:border-border transition-colors"><User className="w-4 h-4 md:w-5 md:h-5 text-slate-400" /></Button>
+                                <Button variant="ghost" size="icon" className="h-10 w-10 md:h-11 md:w-11 rounded-xl bg-slate-50 dark:bg-muted border border-slate-100 dark:border-border transition-colors"><ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-slate-400" /></Button>
                             </div>
-
-                            {/* Search Input */}
-                            <div className="flex-1 relative">
-                                <input
-                                    className="w-full h-10 md:h-12 pl-10 pr-4 bg-transparent border-none focus:ring-0 text-xs md:text-base text-slate-700 dark:text-slate-200 font-bold placeholder:font-medium placeholder:text-slate-400"
-                                    placeholder="I am looking for..."
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                />
-                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            </div>
-
-                            {/* Search Icon Button */}
-                            <Button className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm m-1 md:m-1">
-                                <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
-                            </Button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <div className="container mx-auto px-4 py-6">
-                {/* Unified Toolbar */}
-                <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
-                    {/* Category dropdown */}
-                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                        <SelectTrigger className="h-9 px-3 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs font-bold text-slate-700 dark:text-slate-200 focus:ring-1 focus:ring-primary min-w-[120px]">
-                            <SelectValue placeholder="Category" />
-                        </SelectTrigger>
-                        <SelectContent position="popper" className="max-h-[300px] z-50">
-                            {categories.map(cat => (
-                                <SelectItem key={cat} value={cat} className="dark:bg-card cursor-pointer">
-                                    {cat} ({cat === "All" ? dbMaterials.length : dbMaterials.filter(m => m.category === cat).length})
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-
-                    <Button variant="outline" size="sm" className="h-9 gap-2 rounded-xl font-bold uppercase tracking-wider text-[10px] dark:border-white/10 shrink-0">
-                        <ArrowUpDown className="w-3.5 h-3.5" /> Sort
-                    </Button>
-
-                    <div className="flex bg-slate-100 dark:bg-card p-1 rounded-xl border dark:border-white/5 shrink-0 ml-auto gap-1">
-                        <Button variant={!(viewMode === "list" || mobileView === "list") ? "secondary" : "ghost"} size="sm" onClick={() => { setViewMode("grid-4"); setMobileView("grid"); }} className="h-7 w-7 p-0 rounded-lg">
-                            <Grid className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button variant={(viewMode === "list" || mobileView === "list") ? "secondary" : "ghost"} size="sm" onClick={() => { setViewMode("list"); setMobileView("list"); }} className="h-7 w-7 p-0 rounded-lg">
-                            <List className="w-3.5 h-3.5" />
-                        </Button>
+                {/* Toolbar: title + category dropdown + sort + view toggle */}
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-5 gap-3">
+                    <div className="flex items-center gap-3">
+                        <div className="hidden md:block w-1 h-5 bg-primary rounded-full" />
+                        <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
+                            {selectedCategory === "All" ? "Construction Hub" : selectedCategory}
+                            <span className="ml-2 text-xs font-normal text-slate-400 dark:text-slate-500 normal-case">({filteredMaterials.length} results)</span>
+                        </h1>
                     </div>
 
-                    {/* Mobile filter sheet */}
-                    <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
-                        <SheetTrigger asChild>
-                            <Button variant="outline" size="sm" className="md:hidden h-9 w-9 p-0 rounded-xl dark:border-border shrink-0">
-                                <SlidersHorizontal className="w-4 h-4 text-primary" />
+                    <div className="flex items-center gap-2 w-full md:w-auto">
+                        {/* Category dropdown */}
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            className="flex-1 md:flex-none h-9 px-3 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                        >
+                            {categories.map(cat => (
+                                <option key={cat} value={cat}>
+                                    {cat} ({cat === "All" ? dbMaterials.length : dbMaterials.filter(m => m.category === cat).length})
+                                </option>
+                            ))}
+                        </select>
+
+                        {/* Price range inputs (compact) */}
+                        <input
+                            type="number"
+                            placeholder="Min ₦"
+                            value={priceRange.min}
+                            onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))}
+                            className="hidden md:block w-24 h-9 px-3 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+                        <input
+                            type="number"
+                            placeholder="Max ₦"
+                            value={priceRange.max}
+                            onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))}
+                            className="hidden md:block w-24 h-9 px-3 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-xs text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-primary"
+                        />
+
+                        {/* Mobile filter sheet */}
+                        <Sheet open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="outline" size="sm" className="md:hidden h-9 w-9 p-0 rounded-xl dark:border-border">
+                                    <SlidersHorizontal className="w-4 h-4 text-primary" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="bottom" className="rounded-t-[2.5rem] h-[80vh] dark:bg-background border-t-primary/20">
+                                <SheetHeader className="pb-6 border-b dark:border-border">
+                                    <SheetTitle className="font-bold uppercase tracking-widest text-primary flex items-center gap-2">
+                                        <Filter className="w-4 h-4" /> Refine Marketplace
+                                    </SheetTitle>
+                                    <SheetDescription className="italic">Adjust filters to find specific materials.</SheetDescription>
+                                </SheetHeader>
+                                <div className="py-8 space-y-8 overflow-y-auto h-full">
+                                    <div>
+                                        <h4 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Categories</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {categories.map(cat => (
+                                                <Button
+                                                    key={cat}
+                                                    variant={selectedCategory === cat ? "default" : "outline"}
+                                                    size="sm"
+                                                    onClick={() => { setSelectedCategory(cat); setIsFilterOpen(false); }}
+                                                    className={`rounded-full h-8 px-4 text-[10px] font-semibold uppercase tracking-wider ${selectedCategory === cat ? 'bg-primary text-white shadow-md' : 'dark:border-white/10 dark:text-slate-400'}`}
+                                                >
+                                                    {cat}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h4 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Budget Range (₦)</h4>
+                                        <div className="flex gap-3 items-center">
+                                            <Input placeholder="Min" type="number" value={priceRange.min} onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))} className="h-10 bg-slate-50 dark:bg-muted/20 border-none rounded-xl font-medium" />
+                                            <Input placeholder="Max" type="number" value={priceRange.max} onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))} className="h-10 bg-slate-50 dark:bg-muted/20 border-none rounded-xl font-medium" />
+                                        </div>
+                                    </div>
+                                    <Button className="w-full h-12 rounded-2xl bg-primary font-semibold uppercase tracking-wider shadow-lg" onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
+                                </div>
+                            </SheetContent>
+                        </Sheet>
+
+                        {/* View toggle */}
+                        <div className="flex bg-slate-100 dark:bg-card p-1 rounded-xl border dark:border-white/5">
+                            <Button variant={viewMode === "grid-4" || mobileView === "grid" ? "secondary" : "ghost"} size="sm" onClick={() => { setViewMode("grid-4"); setMobileView("grid"); }} className="h-7 w-7 p-0 rounded-lg">
+                                <Grid className="w-3.5 h-3.5" />
                             </Button>
-                        </SheetTrigger>
-                        <SheetContent side="bottom" className="rounded-t-[2.5rem] h-[80vh] dark:bg-background border-t-primary/20">
-                            <SheetHeader className="pb-6 border-b dark:border-border">
-                                <SheetTitle className="font-bold uppercase tracking-widest text-primary flex items-center gap-2">
-                                    <Filter className="w-4 h-4" /> Refine Marketplace
-                                </SheetTitle>
-                                <SheetDescription className="italic">Adjust filters to find specific materials.</SheetDescription>
-                            </SheetHeader>
-                            <div className="py-8 space-y-8 overflow-y-auto h-full">
-                                <div>
-                                    <h4 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Categories</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {categories.map(cat => (
-                                            <Button
-                                                key={cat}
-                                                variant={selectedCategory === cat ? "default" : "outline"}
-                                                size="sm"
-                                                onClick={() => { setSelectedCategory(cat); setIsFilterOpen(false); }}
-                                                className={`rounded-full h-8 px-4 text-[10px] font-semibold uppercase tracking-wider ${selectedCategory === cat ? 'bg-primary text-white shadow-md' : 'dark:border-white/10 dark:text-slate-400'}`}
-                                            >
-                                                {cat}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div>
-                                    <h4 className="text-[10px] font-semibold uppercase tracking-widest text-slate-400 mb-4">Budget Range (₦)</h4>
-                                    <div className="flex gap-3 items-center">
-                                        <Input placeholder="Min" type="number" value={priceRange.min} onChange={(e) => setPriceRange(prev => ({ ...prev, min: e.target.value }))} className="h-10 bg-slate-50 dark:bg-muted/20 border-none rounded-xl font-medium" />
-                                        <Input placeholder="Max" type="number" value={priceRange.max} onChange={(e) => setPriceRange(prev => ({ ...prev, max: e.target.value }))} className="h-10 bg-slate-50 dark:bg-muted/20 border-none rounded-xl font-medium" />
-                                    </div>
-                                </div>
-                                <Button className="w-full h-12 rounded-2xl bg-primary font-semibold uppercase tracking-wider shadow-lg" onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
-                            </div>
-                        </SheetContent>
-                    </Sheet>
+                            <Button variant={viewMode === "list" || mobileView === "list" ? "secondary" : "ghost"} size="sm" onClick={() => { setViewMode("list"); setMobileView("list"); }} className="h-7 w-7 p-0 rounded-lg">
+                                <List className="w-3.5 h-3.5" />
+                            </Button>
+                        </div>
+
+                        <Button variant="outline" size="sm" className="h-9 gap-2 rounded-xl font-semibold uppercase tracking-wider text-[10px] dark:border-white/10">
+                            <ArrowUpDown className="w-3.5 h-3.5" /> Sort
+                        </Button>
+                    </div>
                 </div>
 
                 {isLoading ? (
