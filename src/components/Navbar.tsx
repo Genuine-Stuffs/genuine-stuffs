@@ -71,7 +71,7 @@ const Navbar = () => {
             {/* Auth State */}
             {role === 'guest' ? (
               <div className="flex items-center gap-3">
-                <Button asChild variant="ghost" className="rounded-2xl font-black text-slate-700 dark:text-slate-200 px-4 h-11 hover:bg-slate-100 dark:hover:bg-muted transition-colors">
+                <Button asChild variant="ghost" className="rounded-2xl font-black text-slate-700 dark:text-slate-200 px-4 h-11 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-muted dark:hover:text-white transition-colors">
                   <Link to="/login">Log In</Link>
                 </Button>
                 <Button asChild className="rounded-2xl font-black bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 px-6 h-11 transition-colors">
