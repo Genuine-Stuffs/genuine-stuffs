@@ -47,6 +47,7 @@ const Marketplace = () => {
     const [showContact, setShowContact] = useState(false);
     const [isReporting, setIsReporting] = useState(false);
     const [reportStatus, setReportStatus] = useState<"idle" | "submitting" | "success">("idle");
+    const [sortBy, setSortBy] = useState<string>("newest");
 
     const logInteraction = async (type: 'phone_reveal' | 'whatsapp_chat') => {
         if (!user || !selectedMaterial || role !== 'professional') return;
@@ -161,8 +162,13 @@ const Marketplace = () => {
                 (!priceRange.max || price <= Number(priceRange.max));
 
             return matchesSearch && matchesCategory && matchesPrice;
+        }).sort((a, b) => {
+            if (sortBy === "price-asc") return Number(a.price) - Number(b.price);
+            if (sortBy === "price-desc") return Number(b.price) - Number(a.price);
+            if (sortBy === "newest") return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+            return 0;
         });
-    }, [searchQuery, selectedCategory, priceRange, dbMaterials]);
+    }, [searchQuery, selectedCategory, priceRange, dbMaterials, sortBy]);
 
     const [location, setLocation] = useState("All Nigeria");
     const locations = [
@@ -288,9 +294,21 @@ const Marketplace = () => {
                             </Button>
                         </div>
 
-                        <Button variant="outline" size="sm" className="flex-1 h-9 gap-1 rounded-xl font-bold md:font-semibold uppercase tracking-wider text-[10px] dark:border-white/10 px-1 md:px-3 text-slate-700 dark:text-slate-200">
-                            <ArrowUpDown className="w-3 h-3 text-primary shrink-0" /> Sort
-                        </Button>
+                        <div className="flex-1 md:w-32">
+                            <Select value={sortBy} onValueChange={setSortBy}>
+                                <SelectTrigger className="w-full h-9 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-[10px] font-bold md:font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
+                                    <div className="flex items-center gap-1">
+                                        <ArrowUpDown className="w-3 h-3 text-primary shrink-0" />
+                                        <SelectValue placeholder="Sort" />
+                                    </div>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="newest" className="text-xs font-bold uppercase tracking-wider">Newest</SelectItem>
+                                    <SelectItem value="price-asc" className="text-xs font-bold uppercase tracking-wider">Price: Low to High</SelectItem>
+                                    <SelectItem value="price-desc" className="text-xs font-bold uppercase tracking-wider">Price: High to Low</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
                 </div>
 
