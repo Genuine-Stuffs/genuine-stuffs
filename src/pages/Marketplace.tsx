@@ -241,7 +241,7 @@ const Marketplace = () => {
                     <div className="flex items-center gap-3">
                         <div className="hidden md:block w-1 h-5 bg-primary rounded-full" />
                         <h1 className="text-base md:text-lg font-bold text-slate-900 dark:text-white tracking-tight">
-                            {selectedCategory === "All" ? "Construction Hub" : selectedCategory}
+                            {selectedCategory === "All" ? "Materials Hub" : selectedCategory}
                             <span className="ml-2 text-xs font-normal text-slate-400 dark:text-slate-500 normal-case">({filteredMaterials.length} results)</span>
                         </h1>
                     </div>

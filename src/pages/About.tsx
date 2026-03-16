@@ -55,7 +55,7 @@ const About = () => {
           <div className="max-w-4xl mx-auto">
             <div className="inline-block px-4 py-1.5 bg-primary/20 rounded-full text-primary text-xs font-black uppercase tracking-widest mb-6 border border-primary/30">Since 2004</div>
             <h1 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
-              A Trust-Driven <span className="text-primary italic">Construction</span> Ecosystem
+              A Data-Driven <span className="text-primary italic">Construction</span> Ecosystem
             </h1>
             <p className="text-xl md:text-2xl text-slate-400 font-medium leading-relaxed">
               Built to restore confidence, quality, and long-term value in the built environment.

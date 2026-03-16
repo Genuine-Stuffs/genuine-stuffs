@@ -225,7 +225,7 @@ const Index = () => {
               <div className="inline-block p-2 bg-primary/10 rounded-lg text-primary text-xs font-black uppercase tracking-widest mb-6">Our Core Focus</div>
               <h2 className="text-4xl md:text-5xl font-black mb-8 leading-tight text-slate-900 dark:text-white">Restoring <span className="text-primary italic">Trust</span> to the Site</h2>
               <p className="text-lg text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
-                We believe that every successful project starts with verified inputs. Our ecosystem bridges the gap between major suppliers and end-users.
+                We believe that every successful project starts with quality inputs. Our ecosystem bridges the gap between major suppliers and end-users.
               </p>
               <div className="space-y-4">
                 {[

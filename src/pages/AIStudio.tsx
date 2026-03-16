@@ -298,7 +298,7 @@ const AIStudio = () => {
                                     </Button>
                                     <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all">
                                         <Link to="/marketplace">
-                                            <Building2 className="w-4 h-4 text-slate-400" /> <span className="text-xs font-black uppercase tracking-widest">Construction Hub</span>
+                                            <Building2 className="w-4 h-4 text-slate-400" /> <span className="text-xs font-black uppercase tracking-widest">Materials Hub</span>
                                         </Link>
                                     </Button>
                                     <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all">

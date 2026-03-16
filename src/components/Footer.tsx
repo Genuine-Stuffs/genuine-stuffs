@@ -14,7 +14,7 @@ const Footer = () => {
               <span className="font-black text-xl text-slate-900 tracking-tight">Genuine Stuffs Ltd</span>
             </div>
             <p className="text-sm text-slate-500 leading-relaxed font-medium md:max-w-sm">
-              A Trust-Driven Construction Ecosystem built to restore confidence, quality, and long-term value in the built environment.
+              A Data-Driven Construction Operating Ecosystem built to restore confidence, quality, and long-term value in the built environment.
             </p>
           </div>
 
