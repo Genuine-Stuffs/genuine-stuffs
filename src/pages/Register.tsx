@@ -250,7 +250,7 @@ const Register = () => {
                         </button>
                     </div>
 
-                    <Card className="border-none shadow-2xl bg-sky-50/50 dark:bg-white/5 backdrop-blur-xl rounded-[2.5rem] overflow-hidden transition-all duration-500">
+                    <Card className="border-none shadow-none md:shadow-2xl bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-[3rem] overflow-hidden transition-all duration-500">
                         {/* Progress Header for Vendors */}
                         {role === 'vendor' && (
                             <div className="bg-sky-100/30 dark:bg-sky-900/10 flex justify-between items-center p-6 border-b dark:border-white/10">
@@ -368,9 +368,9 @@ const Register = () => {
                                         {step === 3 && (
                                             <div className="grid grid-cols-2 gap-3">
                                                 {["Cement", "Steel", "Electrical", "Plumbing", "Roofing", "Tiles", "Paints", "Tools"].map((cat) => (
-                                                    <div key={cat} className="flex items-center space-x-2 p-3 border rounded-xl hover:bg-slate-50 cursor-pointer">
+                                                    <div key={cat} className="flex items-center space-x-2 p-3 border dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 cursor-pointer transition-colors group">
                                                         <Checkbox checked={formData.categories.includes(cat)} onCheckedChange={() => handleCategoryToggle(cat)} />
-                                                        <span className="text-xs font-bold">{cat}</span>
+                                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white">{cat}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -379,7 +379,7 @@ const Register = () => {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div 
                                                     onClick={() => document.getElementById('biz-cert-upload')?.click()}
-                                                    className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${formData.bizCertificate ? 'border-green-500 bg-green-50/50' : 'hover:bg-slate-50 border-slate-200'}`}
+                                                    className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${formData.bizCertificate ? 'border-green-500 bg-green-50/50 dark:bg-green-500/10' : 'hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
                                                 >
                                                     <input 
                                                         id="biz-cert-upload"
@@ -394,7 +394,7 @@ const Register = () => {
                                                 </div>
                                                 <div 
                                                     onClick={() => document.getElementById('gov-id-upload')?.click()}
-                                                    className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${formData.govId ? 'border-green-500 bg-green-50/50' : 'hover:bg-slate-50 border-slate-200'}`}
+                                                    className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${formData.govId ? 'border-green-500 bg-green-50/50 dark:bg-green-500/10' : 'hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
                                                 >
                                                     <input 
                                                         id="gov-id-upload"
@@ -423,7 +423,7 @@ const Register = () => {
                                     <Button 
                                         onClick={handleNext} 
                                         disabled={isLoading} 
-                                        className="w-full md:w-auto h-14 md:px-10 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 gap-3 order-1 md:order-2"
+                                        className="w-full md:w-auto h-14 md:px-10 rounded-2xl font-black uppercase tracking-widest text-xs shadow-none md:shadow-xl md:shadow-primary/20 gap-3 order-1 md:order-2"
                                     >
                                         {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                                             <>
