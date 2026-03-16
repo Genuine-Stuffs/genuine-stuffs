@@ -239,3 +239,29 @@ All colors MUST be HSL.
     letter-spacing: -0.03em;
   }
 }
+/* ─── Mobile Performance & Flat UI Fix ────────────────────── */
+@media (max-width: 768px) {
+  * {
+    box-shadow: none !important;
+    transition-duration: 0ms !important;
+  }
+
+  .hover\:scale-110:hover,
+  .group:hover .group-hover\:scale-110 {
+    transform: none !important;
+  }
+
+  .bento-card:hover,
+  .glass-card:hover,
+  .Card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Ensure smooth scrolling isn't disabled if needed, but remove decorative transitions */
+  .transition-all, 
+  .transition-transform,
+  .transition-colors {
+    transition: none !important;
+  }
+}
