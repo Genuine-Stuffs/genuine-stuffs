@@ -253,12 +253,12 @@ const Register = () => {
                         {role === 'vendor' && (
                             <div className="bg-sky-100/30 dark:bg-sky-900/10 flex justify-between items-center p-6 border-b dark:border-white/10">
                                 {vendorSteps.map((s, idx) => (
-                                    <div key={s.id} className="flex items-center">
-                                        <div className={`flex items-center justify-center w-8 h-8 rounded-xl font-black text-[10px] transition-all ${step === s.id ? "bg-primary text-white scale-110" : step > s.id ? "bg-green-500 text-white" : "bg-slate-200 dark:bg-white/10 text-slate-400"}`}>
+                                    <div key={s.id} className={`flex items-center ${idx < vendorSteps.length - 1 ? "flex-1" : ""}`}>
+                                        <div className={`flex items-center justify-center w-8 h-8 rounded-xl font-black text-[10px] shrink-0 transition-all ${step === s.id ? "bg-primary text-white scale-110" : step > s.id ? "bg-green-500 text-white" : "bg-slate-200 dark:bg-white/10 text-slate-400"}`}>
                                             {step > s.id ? <Check className="w-4 h-4" /> : s.id}
                                         </div>
                                         {idx < vendorSteps.length - 1 && (
-                                            <div className="w-4 md:w-12 h-0.5 bg-slate-200 dark:bg-white/10 mx-2" />
+                                            <div className={`flex-1 h-0.5 mx-2 transition-all duration-500 ${step > s.id ? "bg-green-500" : "bg-slate-200 dark:bg-white/10"}`} />
                                         )}
                                     </div>
                                 ))}
