@@ -66,25 +66,25 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222 47% 12%; 
-    /* Logo-derived Deep Slate Navy - Vibrant but dimmer than pitch black */
+    --background: 222 42% 20%; 
+    /* Dimmer Slate Navy - Calibrated for high visibility */
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 16%;
-    /* Elevated Navy surfaces */
+    --card: 222 42% 30%;
+    /* 10% Lighter Cards - High contrast from background */
     --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 18%;
+    --popover: 222 42% 32%;
     --popover-foreground: 210 40% 98%;
 
     --primary: 354 100% 44%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 47% 20%;
+    --secondary: 222 42% 35%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 222 47% 22%;
-    --muted-foreground: 215 20.2% 75.1%;
+    --muted: 222 42% 38%;
+    --muted-foreground: 215 20.2% 85%;
 
     --accent: 354 100% 44%;
     --accent-foreground: 0 0% 100%;
@@ -92,9 +92,9 @@ All colors MUST be HSL.
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 222 47% 25% / 0.4;
+    --border: 222 42% 40% / 0.5;
     /* Soft semi-transparent borders for glass effect */
-    --input: 222 47% 25% / 0.4;
+    --input: 222 42% 40% / 0.5;
     --ring: 354 100% 44%;
 
     /* Midnight Aura specifics */
