@@ -39,10 +39,9 @@ const Navbar = () => {
           <Link to="/" className="flex items-center space-x-3 group">
             <div className="relative">
               <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-[45px] h-[45px] hover:scale-110 transition-transform" />
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-primary rounded-full border-2 border-white" />
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-lg leading-tight tracking-tight text-slate-900 dark:text-white group-hover:text-primary transition-colors">GENUINE STUFFS</span>
+              <span className="font-black text-lg leading-tight tracking-tight text-slate-900 dark:text-white group-hover:text-primary transition-colors">Genuine Stuffs</span>
               <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-widest leading-none">A Data-Driven Ecosystem</span>
             </div>
           </Link>
