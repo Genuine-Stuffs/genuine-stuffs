@@ -368,7 +368,7 @@ const Register = () => {
                                     <Button onClick={handleNext} disabled={isLoading} className="h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 gap-3">
                                         {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                                             <>
-                                                {role === 'professional' || step === 4 ? "Initialize Portal" : "Continue"}
+                                                {role === 'professional' || step === 4 ? "Complete Registration" : "Continue"}
                                                 <ChevronRight className="w-4 h-4" />
                                             </>
                                         )}
