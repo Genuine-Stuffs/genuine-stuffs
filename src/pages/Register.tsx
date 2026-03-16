@@ -24,6 +24,22 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+/*
+### 🎨 Aesthetic Overhaul (Calibrated)
+- **10% Contrast Gap**: Based on your feedback, I set the global **Background to 20% lightness** and the **Cards to 30% lightness**. This creates a sharp, premium separation while keeping the interface "dim" and comfortable.
+- **Vibrant Navy/Slate**: The tones are now directly pulled from the "GS" logo, creating a more cohesive brand experience.
+
+### 👤 Registration & Auth Fixes
+- **Logout Bug Resolved**: Added an explicit redirection to the home page inside the `logout` function. You will no longer see the dashboard after signing out.
+- **Field Splitting**: Pro Registration now demands **First Name** and **Surname** as separate fields.
+- **Button Rename**: The final button is now clearly labeled **"Complete Registration"**.
+
+## Verification Results
+
+### Build & Push
+- ✅ **`npm run build`**: Completed successfully.
+- ✅ **Git Sync**: All fixes (including the logout redirection) are pushed to the main repository.
+*/
 import { useAuth } from "@/context/AuthContext";
 import { supabase } from "backend/supabaseClient";
 import { toast } from "sonner";
