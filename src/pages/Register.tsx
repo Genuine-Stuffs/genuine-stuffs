@@ -42,7 +42,6 @@ const Register = () => {
     // Form Data
     const [formData, setFormData] = useState({
         // Generic
-        fullName: "",
         email: "",
         password: "",
         // Pro specific
@@ -82,7 +81,8 @@ const Register = () => {
                 password: formData.password,
                 options: {
                     data: {
-                        full_name: formData.fullName,
+                        first_name: formData.firstName,
+                        last_name: formData.lastName,
                         role: 'professional'
                     }
                 }
@@ -93,7 +93,7 @@ const Register = () => {
             if (authData.user) {
                 const { error: profileError } = await supabase.from('professionals').insert({
                     id: authData.user.id,
-                    full_name: formData.fullName,
+                    full_name: `${formData.firstName} ${formData.lastName}`.trim(),
                     specialty: formData.proType,
                     credits: 10
                 });
@@ -266,8 +266,12 @@ const Register = () => {
                                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label htmlFor="pro-name">Full Name</Label>
-                                                <Input id="pro-name" placeholder="John Doe" value={formData.fullName} onChange={(e) => handleInputChange('fullName', e.target.value)} />
+                                                <Label htmlFor="pro-first-name">First Name</Label>
+                                                <Input id="pro-first-name" placeholder="John" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="pro-last-name">Surname</Label>
+                                                <Input id="pro-last-name" placeholder="Doe" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="pro-type">Discipline</Label>
