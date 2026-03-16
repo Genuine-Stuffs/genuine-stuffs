@@ -331,7 +331,21 @@ const Register = () => {
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label>Password</Label>
-                                                    <Input type="password" value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} />
+                                                    <div className="relative">
+                                                        <Input 
+                                                            type={showPassword ? "text" : "password"} 
+                                                            value={formData.password} 
+                                                            onChange={(e) => handleInputChange('password', e.target.value)} 
+                                                            className="pr-12"
+                                                        />
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => setShowPassword(!showPassword)} 
+                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                                        >
+                                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
