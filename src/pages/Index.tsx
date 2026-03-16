@@ -132,7 +132,7 @@ const Index = () => {
                 Find <span className="text-primary italic">Genuine</span> Building Materials
               </h1>
               <p className="text-sm md:text-xl font-bold text-slate-100 uppercase tracking-[0.3em] mb-8 drop-shadow-lg">
-                Direct Marketplace Access & Verified Professionals
+                Digital Marketplace Access & Verified Professionals
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button asChild size="lg" className="h-14 md:h-16 px-10 md:px-14 text-lg font-black rounded-2xl shadow-md md:shadow-lg md:hover:scale-[1.03] transition-transform">
