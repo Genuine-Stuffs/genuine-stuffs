@@ -71,7 +71,9 @@ const Register = () => {
         address: "",
         city: "",
         phone: "",
-        categories: [] as string[]
+        categories: [] as string[],
+        bizCertificate: null as File | null,
+        govId: null as File | null
     });
 
     const handleInputChange = (field: string, value: any) => {
@@ -276,7 +278,7 @@ const Register = () => {
                                 </p>
                             </div>
 
-                            <div className="space-y-6">
+                            <div className="space-y-8">
                                 {role === 'professional' ? (
                                     /* PRO FORM */
                                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
@@ -360,28 +362,55 @@ const Register = () => {
                                             </div>
                                         )}
                                         {step === 4 && (
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="border-2 border-dashed rounded-3xl p-8 text-center hover:bg-slate-50 cursor-pointer transition-all">
-                                                    <Upload className="w-8 h-8 text-primary mx-auto mb-4" />
-                                                    <p className="text-[10px] font-black uppercase tracking-widest">Biz Certificate</p>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div 
+                                                    onClick={() => document.getElementById('biz-cert-upload')?.click()}
+                                                    className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${formData.bizCertificate ? 'border-green-500 bg-green-50/50' : 'hover:bg-slate-50 border-slate-200'}`}
+                                                >
+                                                    <input 
+                                                        id="biz-cert-upload"
+                                                        type="file" 
+                                                        className="hidden" 
+                                                        onChange={(e) => handleInputChange('bizCertificate', e.target.files?.[0])}
+                                                    />
+                                                    <Upload className={`w-8 h-8 mx-auto mb-4 ${formData.bizCertificate ? 'text-green-500' : 'text-primary'}`} />
+                                                    <p className="text-[10px] font-black uppercase tracking-widest truncate max-w-full px-2">
+                                                        {formData.bizCertificate ? formData.bizCertificate.name : "Biz Certificate"}
+                                                    </p>
                                                 </div>
-                                                <div className="border-2 border-dashed rounded-3xl p-8 text-center hover:bg-slate-50 cursor-pointer transition-all">
-                                                    <Upload className="w-8 h-8 text-primary mx-auto mb-4" />
-                                                    <p className="text-[10px] font-black uppercase tracking-widest">Gov ID</p>
+                                                <div 
+                                                    onClick={() => document.getElementById('gov-id-upload')?.click()}
+                                                    className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${formData.govId ? 'border-green-500 bg-green-50/50' : 'hover:bg-slate-50 border-slate-200'}`}
+                                                >
+                                                    <input 
+                                                        id="gov-id-upload"
+                                                        type="file" 
+                                                        className="hidden" 
+                                                        onChange={(e) => handleInputChange('govId', e.target.files?.[0])}
+                                                    />
+                                                    <Upload className={`w-8 h-8 mx-auto mb-4 ${formData.govId ? 'text-green-500' : 'text-primary'}`} />
+                                                    <p className="text-[10px] font-black uppercase tracking-widest truncate max-w-full px-2">
+                                                        {formData.govId ? formData.govId.name : "Gov ID"}
+                                                    </p>
                                                 </div>
                                             </div>
                                         )}
                                     </div>
                                 )}
 
-                                <div className="pt-10 flex justify-between items-center border-t dark:border-white/10">
-                                    {role === 'vendor' && step > 1 ? (
-                                        <Button variant="ghost" onClick={handleBack} className="font-black uppercase tracking-widest text-[10px] gap-2">
-                                            <ChevronLeft className="w-4 h-4" /> Back
-                                        </Button>
-                                    ) : <div />}
-
-                                    <Button onClick={handleNext} disabled={isLoading} className="h-14 px-10 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 gap-3">
+                                <div className="pt-10 flex flex-col md:flex-row justify-between items-center gap-4 border-t dark:border-white/10">
+                                    <div className="w-full md:w-auto order-2 md:order-1">
+                                        {role === 'vendor' && step > 1 && (
+                                            <Button variant="ghost" onClick={handleBack} className="w-full md:w-auto h-12 md:h-14 font-black uppercase tracking-widest text-[10px] gap-2 hover:bg-slate-100 dark:hover:bg-white/5">
+                                                <ChevronLeft className="w-4 h-4" /> Back
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <Button 
+                                        onClick={handleNext} 
+                                        disabled={isLoading} 
+                                        className="w-full md:w-auto h-14 md:px-10 rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 gap-3 order-1 md:order-2"
+                                    >
                                         {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
                                             <>
                                                 {role === 'professional' || step === 4 ? "Complete Registration" : "Continue"}
