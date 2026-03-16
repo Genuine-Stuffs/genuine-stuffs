@@ -10,7 +10,9 @@ const Footer = () => {
           {/* Company Info */}
           <div className="lg:col-span-4 space-y-6">
             <div className="flex items-center space-x-3">
-              <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-auto h-16 object-contain" />
+              <div className="relative overflow-hidden rounded-xl w-14 h-14">
+                <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-full h-full object-cover scale-[1.3]" />
+              </div>
               <span className="font-black text-xl text-slate-900 tracking-tight">Genuine Stuffs Ltd</span>
             </div>
             <p className="text-sm text-slate-500 leading-relaxed font-medium md:max-w-sm">

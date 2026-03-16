@@ -37,8 +37,8 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center space-x-3 group">
-            <div className="relative">
-              <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-[45px] h-[45px] hover:scale-110 transition-transform" />
+            <div className="relative overflow-hidden rounded-xl w-[45px] h-[45px]">
+              <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-full h-full object-cover scale-[1.3] hover:scale-[1.4] transition-transform origin-center" />
             </div>
             <div className="flex flex-col">
               <span className="font-black text-lg leading-tight tracking-tight text-slate-900 dark:text-white group-hover:text-primary transition-colors">Genuine Stuffs</span>
