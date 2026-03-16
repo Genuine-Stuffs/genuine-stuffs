@@ -294,18 +294,20 @@ const Marketplace = () => {
                             </Button>
                         </div>
 
-                        <div className="flex-1 md:w-32">
+                        <div className="flex-1 min-w-0 md:w-32">
                             <Select value={sortBy} onValueChange={setSortBy}>
-                                <SelectTrigger className="w-full h-9 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-[10px] font-bold md:font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-                                    <div className="flex items-center gap-1">
+                                <SelectTrigger className="w-full h-9 rounded-xl border border-slate-200 dark:border-border bg-white dark:bg-card text-[10px] font-bold md:font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-200 px-2 overflow-hidden">
+                                    <div className="flex items-center gap-1 w-full overflow-hidden">
                                         <ArrowUpDown className="w-3 h-3 text-primary shrink-0" />
-                                        <SelectValue placeholder="Sort" />
+                                        <div className="truncate flex-1 text-left">
+                                            <SelectValue placeholder="Sort" />
+                                        </div>
                                     </div>
                                 </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="newest" className="text-xs font-bold uppercase tracking-wider">Newest</SelectItem>
-                                    <SelectItem value="price-asc" className="text-xs font-bold uppercase tracking-wider">Price: Low to High</SelectItem>
-                                    <SelectItem value="price-desc" className="text-xs font-bold uppercase tracking-wider">Price: High to Low</SelectItem>
+                                <SelectContent className="dark:bg-slate-900 dark:border-border">
+                                    <SelectItem value="newest" className="text-[10px] font-bold uppercase tracking-wider">Newest</SelectItem>
+                                    <SelectItem value="price-asc" className="text-[10px] font-bold uppercase tracking-wider">Price: Low-High</SelectItem>
+                                    <SelectItem value="price-desc" className="text-[10px] font-bold uppercase tracking-wider">Price: High-Low</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
