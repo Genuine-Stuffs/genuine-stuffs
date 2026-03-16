@@ -217,7 +217,7 @@ const Register = () => {
                     </div>
 
                     {/* Role Toggle */}
-                    <div className="flex p-1.5 bg-slate-100 dark:bg-white/5 rounded-2xl mb-12 max-w-md mx-auto border dark:border-white/10">
+                    <div className="flex p-1.5 bg-sky-100/30 dark:bg-white/5 rounded-2xl mb-12 max-w-md mx-auto border dark:border-white/10">
                         <button
                             onClick={() => { setRole('professional'); setStep(1); }}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${role === 'professional' ? 'bg-white dark:bg-white/10 shadow-sm text-primary' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
@@ -232,10 +232,10 @@ const Register = () => {
                         </button>
                     </div>
 
-                    <Card className="border-none shadow-2xl dark:bg-card rounded-[2.5rem] overflow-hidden transition-all duration-500">
+                    <Card className="border-none shadow-2xl bg-sky-50/50 dark:bg-white/5 backdrop-blur-xl rounded-[2.5rem] overflow-hidden transition-all duration-500">
                         {/* Progress Header for Vendors */}
                         {role === 'vendor' && (
-                            <div className="bg-slate-50 dark:bg-white/5 flex justify-between items-center p-6 border-b dark:border-white/10">
+                            <div className="bg-sky-100/30 dark:bg-sky-900/10 flex justify-between items-center p-6 border-b dark:border-white/10">
                                 {vendorSteps.map((s, idx) => (
                                     <div key={s.id} className="flex items-center">
                                         <div className={`flex items-center justify-center w-8 h-8 rounded-xl font-black text-[10px] transition-all ${step === s.id ? "bg-primary text-white scale-110" : step > s.id ? "bg-green-500 text-white" : "bg-slate-200 dark:bg-white/10 text-slate-400"}`}>

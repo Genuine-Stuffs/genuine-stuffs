@@ -66,12 +66,12 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222 47% 11%;
-    /* Deep Studio Navy - Relatable aura, not pitch black */
+    --background: 222 47% 12%; 
+    /* Logo-derived Deep Slate Navy - Vibrant but dimmer than pitch black */
     --foreground: 210 40% 98%;
 
-    --card: 222 47% 15%;
-    /* Elevated Navy surface */
+    --card: 222 47% 16%;
+    /* Elevated Navy surfaces */
     --card-foreground: 210 40% 98%;
 
     --popover: 222 47% 18%;

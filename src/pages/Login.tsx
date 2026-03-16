@@ -66,8 +66,8 @@ const Login = () => {
                         </p>
                     </div>
 
-                    <Card className="border-none shadow-2xl dark:bg-card rounded-[3rem] overflow-hidden transition-all duration-500">
-                        <CardHeader className="bg-slate-50 dark:bg-white/5 p-10 text-center border-b dark:border-white/10">
+                    <Card className="border-none shadow-2xl bg-sky-50/50 dark:bg-white/5 backdrop-blur-xl rounded-[3rem] overflow-hidden transition-all duration-500">
+                        <CardHeader className="bg-sky-100/50 dark:bg-sky-900/10 p-10 text-center border-b dark:border-white/10">
                             <CardTitle className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center justify-center gap-3">
                                 <KeyRound className="w-6 h-6 text-primary" /> Secure Gateway
                             </CardTitle>
