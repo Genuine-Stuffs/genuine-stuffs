@@ -29,15 +29,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Phone, MessageCircle, ShieldAlert, CheckCircle2, Search, Filter, Grid, List, ArrowUpDown, ShoppingBag, ShoppingCart, Info, Leaf, DollarSign, User, Loader2, SlidersHorizontal, ExternalLink, MapPin, History, ArrowRight, ChevronDown } from "lucide-react";
+import { Phone, MessageCircle, ShieldAlert, CheckCircle2, Search, Filter, Grid, List, ArrowUpDown, ShoppingBag, ShoppingCart, Info, Leaf, DollarSign, User, Loader2, SlidersHorizontal, ExternalLink, MapPin, History, ArrowRight, ChevronDown, Heart } from "lucide-react";
 import { supabase } from "backend/supabaseClient";
 import type { Database } from "backend/types";
 import { useAuth } from "@/context/AuthContext";
+import { useCart } from "@/context/CartContext";
 
 type MaterialRow = Database['public']['Tables']['materials']['Row'];
 
 const Marketplace = () => {
     const { user, role } = useAuth();
+    const { addToCart, items: cartItems } = useCart();
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [viewMode, setViewMode] = useState<"grid-4" | "grid-5" | "list">("grid-4");
@@ -354,13 +356,34 @@ const Marketplace = () => {
                                             alt={m.name}
                                             className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                                         />
-                                        {!isList && (
-                                            <div className="absolute top-2 right-2 z-10">
+                                        <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
+                                            {!isList && (
                                                 <Badge className="bg-white/95 dark:bg-background/95 text-slate-900 dark:text-white border-none font-bold text-[8px] uppercase shadow-md px-1.5 py-1">
                                                     {m.category.split(' ')[0]}
                                                 </Badge>
-                                            </div>
-                                        )}
+                                            )}
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className={`w-8 h-8 rounded-full shadow-lg backdrop-blur-md transition-all duration-300 ${cartItems.some(i => i.id === m.id)
+                                                        ? "bg-primary text-white scale-110"
+                                                        : "bg-white/80 dark:bg-black/40 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white"
+                                                    }`}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    addToCart({
+                                                        id: m.id,
+                                                        name: m.name,
+                                                        price: Number(m.price),
+                                                        image_url: m.image_url,
+                                                        unit: m.unit,
+                                                        vendor_name: m.vendor_name
+                                                    });
+                                                }}
+                                            >
+                                                <Heart className={`w-4 h-4 ${cartItems.some(i => i.id === m.id) ? "fill-current" : ""}`} />
+                                            </Button>
+                                        </div>
                                     </div>
 
                                     {/* Content Section */}
@@ -489,17 +512,39 @@ const Marketplace = () => {
 
                                 {/* Action Area */}
                                 <div className="space-y-3 mt-auto pt-6 border-t dark:border-white/5">
-                                    <Button
-                                        className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3"
-                                        onClick={() => {
-                                            const nextState = !showContact;
-                                            setShowContact(nextState);
-                                            if (nextState) logInteraction('phone_reveal');
-                                        }}
-                                    >
-                                        <Phone className="w-5 h-5" />
-                                        {showContact ? (selectedMaterial as any).vendor?.phone || "0803 123 4567" : "SHOW CONTACT"}
-                                    </Button>
+                                    <div className="flex gap-2">
+                                        <Button
+                                            className="flex-1 h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-widest shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3"
+                                            onClick={() => {
+                                                const nextState = !showContact;
+                                                setShowContact(nextState);
+                                                if (nextState) logInteraction('phone_reveal');
+                                            }}
+                                        >
+                                            <Phone className="w-5 h-5" />
+                                            {showContact ? (selectedMaterial as any).vendor?.phone || "0803 123 4567" : "SHOW CONTACT"}
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="icon"
+                                            className={`h-14 w-14 rounded-2xl border-2 transition-all duration-300 ${cartItems.some(i => i.id === selectedMaterial.id)
+                                                    ? "bg-primary border-primary text-white scale-105"
+                                                    : "border-slate-200 dark:border-border text-slate-400 hover:border-primary hover:text-primary"
+                                                }`}
+                                            onClick={() => {
+                                                addToCart({
+                                                    id: selectedMaterial.id,
+                                                    name: selectedMaterial.name,
+                                                    price: Number(selectedMaterial.price),
+                                                    image_url: selectedMaterial.image_url,
+                                                    unit: selectedMaterial.unit,
+                                                    vendor_name: (selectedMaterial as any).vendor?.name || selectedMaterial.vendor_name
+                                                });
+                                            }}
+                                        >
+                                            <Heart className={`w-6 h-6 ${cartItems.some(i => i.id === selectedMaterial.id) ? "fill-current" : ""}`} />
+                                        </Button>
+                                    </div>
                                     <Button
                                         variant="outline"
                                         className="w-full h-14 rounded-2xl border-2 border-green-600/50 hover:bg-green-600 hover:text-white text-green-600 font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-3"
