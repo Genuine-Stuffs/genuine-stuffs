@@ -3,7 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, User, ChevronDown, Rocket, ShieldCheck, ShoppingBag, LayoutDashboard, Search, Settings } from "lucide-react";
 import { ModeToggle } from "./ModeToggle";
 import { Button } from "@/components/ui/button";
-import logoIcon from "@/assets/logo-icon.png";
+import logoFullDark from "@/assets/logo-full-dark.png";
+import logoFullLight from "@/assets/logo-full-light.png";
 import { useAuth } from "@/context/AuthContext";
 import {
   DropdownMenu,
@@ -36,13 +37,10 @@ const Navbar = () => {
     <nav className="sticky top-0 z-50 bg-white/80 dark:bg-background/80 backdrop-blur-xl border-b border-slate-100 dark:border-border transition-colors duration-300">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
-          <Link to="/" className="flex items-center space-x-3 group">
-            <div className="relative overflow-hidden rounded-xl w-[45px] h-[45px]">
-              <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-full h-full object-cover scale-[1.3] hover:scale-[1.4] transition-transform origin-center" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-black text-lg leading-tight tracking-tight text-slate-900 dark:text-white group-hover:text-primary transition-colors">Genuine Stuffs</span>
-              <span className="text-[10px] font-black text-slate-400 dark:text-slate-500 tracking-widest leading-none">A Data-Driven Ecosystem</span>
+          <Link to="/" className="flex items-center group">
+            <div className="h-10 md:h-12 w-auto">
+              <img src={logoFullDark} alt="Genuine Stuffs Ltd" className="h-full w-auto block dark:hidden object-contain" />
+              <img src={logoFullLight} alt="Genuine Stuffs Ltd" className="h-full w-auto hidden dark:block object-contain" />
             </div>
           </Link>
 

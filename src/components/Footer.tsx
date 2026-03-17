@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone, Linkedin } from "lucide-react";
-import logoIcon from "@/assets/logo-icon.png";
+import logoFullDark from "@/assets/logo-full-dark.png";
+import logoFullLight from "@/assets/logo-full-light.png";
 
 const Footer = () => {
   return (
@@ -9,11 +10,11 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-8">
           {/* Company Info */}
           <div className="lg:col-span-4 space-y-6">
-            <div className="flex items-center space-x-3">
-              <div className="relative overflow-hidden rounded-xl w-14 h-14">
-                <img src={logoIcon} alt="Genuine Stuffs Ltd" className="w-full h-full object-cover scale-[1.3]" />
+            <div className="flex items-center">
+              <div className="h-12 w-auto">
+                <img src={logoFullDark} alt="Genuine Stuffs Ltd" className="h-full w-auto block dark:hidden object-contain" />
+                <img src={logoFullLight} alt="Genuine Stuffs Ltd" className="h-full w-auto hidden dark:block object-contain" />
               </div>
-              <span className="font-black text-xl text-slate-900 tracking-tight">Genuine Stuffs Ltd</span>
             </div>
             <p className="text-sm text-slate-500 leading-relaxed font-medium md:max-w-sm">
               A Data-Driven Construction Operating Ecosystem built to restore confidence, quality, and long-term value in the built environment.
