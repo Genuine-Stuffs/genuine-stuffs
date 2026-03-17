@@ -356,18 +356,45 @@ const Marketplace = () => {
                                             alt={m.name}
                                             className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                                         />
-                                        <div className="absolute top-2 right-2 z-10 flex flex-col gap-2">
+                                        <div className="absolute top-2 right-2 z-10 text-white">
                                             {!isList && (
                                                 <Badge className="bg-white/95 dark:bg-background/95 text-slate-900 dark:text-white border-none font-bold text-[8px] uppercase shadow-md px-1.5 py-1">
                                                     {m.category.split(' ')[0]}
                                                 </Badge>
                                             )}
+                                        </div>
+                                    </div>
+
+                                    {/* Content Section */}
+                                    <div className={`flex flex-col p-3 md:p-4 flex-1 min-w-0 ${isList ? 'justify-center' : 'gap-1'}`}>
+                                        <div className="flex flex-col gap-0.5">
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span className={`${isList ? 'text-base md:text-xl' : 'text-sm md:text-lg'} font-black text-primary`}>₦{Number(m.price).toLocaleString()}</span>
+                                                <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight">/{m.unit || "unit"}</span>
+                                            </div>
+                                            <h3 className={`font-bold ${isList ? 'text-xs md:text-base' : 'text-[11px] md:text-sm'} text-slate-800 dark:text-slate-200 leading-tight line-clamp-2`}>{m.name}</h3>
+                                        </div>
+
+                                        <div className="mt-2 flex items-center justify-between gap-2">
+                                            <div className="flex flex-col space-y-1.5 min-w-0 flex-1">
+                                                <div className="flex items-center gap-1.5 text-[9px] md:text-xs text-slate-500 font-medium">
+                                                    <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                                                    <span className="truncate">Lagos, Ikeja</span>
+                                                </div>
+                                                {isList && (
+                                                    <div className="hidden md:flex items-center gap-2 text-[10px] text-slate-400">
+                                                        <Badge variant="outline" className="text-[8px] px-1.5 py-0 rounded-md border-slate-200">Verified ID</Badge>
+                                                        <Badge variant="outline" className="text-[8px] px-1.5 py-0 rounded-md border-slate-200">3+ Years</Badge>
+                                                    </div>
+                                                )}
+                                            </div>
+
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className={`w-8 h-8 rounded-full shadow-lg backdrop-blur-md transition-all duration-300 ${cartItems.some(i => i.id === m.id)
-                                                        ? "bg-primary text-white scale-110"
-                                                        : "bg-white/80 dark:bg-black/40 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white"
+                                                className={`w-8 h-8 rounded-full transition-all duration-300 ${cartItems.some(i => i.id === m.id)
+                                                        ? "bg-primary/10 text-primary scale-110"
+                                                        : "text-slate-300 hover:text-primary hover:bg-primary/5"
                                                     }`}
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -383,30 +410,6 @@ const Marketplace = () => {
                                             >
                                                 <Heart className={`w-4 h-4 ${cartItems.some(i => i.id === m.id) ? "fill-current" : ""}`} />
                                             </Button>
-                                        </div>
-                                    </div>
-
-                                    {/* Content Section */}
-                                    <div className={`flex flex-col p-3 md:p-4 flex-1 min-w-0 ${isList ? 'justify-center' : 'gap-1'}`}>
-                                        <div className="flex flex-col gap-0.5">
-                                            <div className="flex items-baseline gap-1.5">
-                                                <span className={`${isList ? 'text-base md:text-xl' : 'text-sm md:text-lg'} font-black text-primary`}>₦{Number(m.price).toLocaleString()}</span>
-                                                <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight">/{m.unit || "unit"}</span>
-                                            </div>
-                                            <h3 className={`font-bold ${isList ? 'text-xs md:text-base' : 'text-[11px] md:text-sm'} text-slate-800 dark:text-slate-200 leading-tight line-clamp-2`}>{m.name}</h3>
-                                        </div>
-
-                                        <div className="mt-2 space-y-1.5">
-                                            <div className="flex items-center gap-1.5 text-[9px] md:text-xs text-slate-500 font-medium">
-                                                <MapPin className="w-3 h-3 text-slate-400" />
-                                                <span className="truncate">Lagos, Ikeja</span>
-                                            </div>
-                                            {isList && (
-                                                <div className="hidden md:flex items-center gap-2 text-[10px] text-slate-400">
-                                                    <Badge variant="outline" className="text-[8px] px-1.5 py-0 rounded-md border-slate-200">Verified ID</Badge>
-                                                    <Badge variant="outline" className="text-[8px] px-1.5 py-0 rounded-md border-slate-200">3+ Years</Badge>
-                                                </div>
-                                            )}
                                         </div>
 
                                         {!isList && (
