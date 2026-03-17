@@ -197,7 +197,7 @@ const Marketplace = () => {
                                     <MapPin className="w-3.5 h-3.5 text-primary" />
                                 </div>
                                 <Select value={location} onValueChange={setLocation}>
-                                    <SelectTrigger className="w-full h-10 md:h-12 border-none bg-transparent text-[11px] md:text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 shadow-none pl-7 md:pl-9 pr-1 md:pr-2">
+                                    <SelectTrigger className="w-full h-10 md:h-12 border-none bg-transparent text-[11px] md:text-sm font-bold text-slate-700 dark:text-slate-200 focus:ring-0 focus:outline-none focus-visible:ring-0 shadow-none pl-7 md:pl-9 pr-1 md:pr-2">
                                         <SelectValue placeholder="Location" />
                                     </SelectTrigger>
                                     <SelectContent position="popper" className="max-h-[300px] z-50">
@@ -215,7 +215,7 @@ const Marketplace = () => {
                                 {/* Search Input */}
                                 <div className="flex-1 relative min-w-0">
                                     <input
-                                        className="w-full h-10 md:h-12 pl-10 pr-2 md:pr-4 bg-transparent border-none focus:ring-0 text-xs md:text-base text-slate-700 dark:text-slate-200 font-bold placeholder:font-medium placeholder:text-slate-400"
+                                        className="w-full h-10 md:h-12 pl-10 pr-2 md:pr-4 bg-transparent border-none focus:ring-0 focus:outline-none focus-visible:ring-0 text-xs md:text-base text-slate-700 dark:text-slate-200 font-bold placeholder:font-medium placeholder:text-slate-400"
                                         placeholder="I am looking for..."
                                         value={searchQuery}
                                         onChange={(e) => setSearchQuery(e.target.value)}
