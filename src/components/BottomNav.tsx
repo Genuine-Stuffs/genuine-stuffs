@@ -12,7 +12,7 @@ const BottomNav = () => {
         { label: "Home", icon: Home, path: "/" },
         { label: "Shop", icon: ShoppingBag, path: "/marketplace" },
         { label: "Cart", icon: ShoppingCart, path: "/cart" },
-        { label: "Profile", icon: User, path: role === 'professional' ? "/pro-portal" : role === 'vendor' ? "/vendor-dashboard" : "/login" },
+        { label: "Profile", icon: User, path: "/profile" },
     ];
 
     return (

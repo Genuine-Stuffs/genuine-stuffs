@@ -19,6 +19,8 @@ import Login from "./pages/Login";
 import VendorDashboard from "./pages/VendorDashboard";
 import ProDashboard from "./pages/ProDashboard";
 import Settings from "./pages/Settings";
+import Cart from "./pages/Cart";
+import ClientProfile from "./pages/ClientProfile";
 import { AuthProvider } from "./context/AuthContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import BottomNav from "./components/BottomNav";
@@ -56,6 +58,8 @@ const App = () => (
                   <Route path="/register" element={<Register />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/settings" element={<Settings />} />
+                  <Route path="/cart" element={<Cart />} />
+                  <Route path="/profile" element={<ClientProfile />} />
 
                   {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                   <Route path="*" element={<NotFound />} />

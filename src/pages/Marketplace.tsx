@@ -225,12 +225,16 @@ const Marketplace = () => {
 
                                 {/* Actions Group */}
                                 <div className="flex items-center justify-end gap-1 shrink-0">
-                                    <Button variant="ghost" size="icon" className="hidden md:flex h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
-                                        <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                                    </Button>
-                                    <Button variant="ghost" size="icon" className="hidden md:flex h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
-                                        <ShoppingCart className="w-4 h-4 text-slate-500 dark:text-slate-400" />
-                                    </Button>
+                                    <Link to="/profile">
+                                        <Button variant="ghost" size="icon" className="hidden md:flex h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
+                                            <User className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                                        </Button>
+                                    </Link>
+                                    <Link to="/cart">
+                                        <Button variant="ghost" size="icon" className="hidden md:flex h-8 w-8 md:h-10 md:w-10 rounded-lg text-slate-500 hover:text-primary hover:bg-slate-200/50 dark:hover:bg-muted/50 transition-colors">
+                                            <ShoppingCart className="w-4 h-4 text-slate-500 dark:text-slate-400" />
+                                        </Button>
+                                    </Link>
                                     <Button className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm ml-1">
                                         <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
                                     </Button>
