@@ -95,7 +95,13 @@ const Index = () => {
   ];
 
   const categories = [
-    { title: "Cement & Aggregates", img: "/images/cats/cement.png" },
+    { title: "Hire Professionals", img: "/images/cats/professionals.png", link: "/pros" },
+    { title: "Hire Artisans", img: "/images/cats/artisans.png", link: "/pros" },
+    { title: "Equipment", img: "/images/cats/equipment.png" },
+    { title: "Sand", img: "/images/cats/sand.png" },
+    { title: "Stones", img: "/images/cats/stones.png" },
+    { title: "Cement", img: "/images/cats/cement.png" },
+    { title: "Site Water", img: "/images/cats/water.png" },
     { title: "Steel & Rebars", img: "/images/cats/steel.png" },
     { title: "Roofing & Ceiling", img: "/images/cats/roofing.png" },
     { title: "Electricals", img: "/images/cats/electricals.png" },
@@ -103,12 +109,8 @@ const Index = () => {
     { title: "Finishing & Tiles", img: "/images/cats/finishing.png" },
     { title: "Bricks", img: "/images/cats/bricks.png" },
     { title: "Blocks", img: "/images/cats/blocks.png" },
-    { title: "Site Water", img: "/images/cats/water.png" },
     { title: "Logistics", img: "/images/cats/logistics.png" },
-    { title: "Hire Professionals", img: "/images/cats/professionals.png", link: "/pros" },
-    { title: "Hire Artisans", img: "/images/cats/artisans.png", link: "/pros" },
     { title: "Tools", img: "/images/cats/tools.png" },
-    { title: "Equipment", img: "/images/cats/equipment.png" },
     { title: "Building AI Studio", img: "/images/cats/ai.png", link: "/pro/ai-studio" },
   ];
 
