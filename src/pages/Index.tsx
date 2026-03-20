@@ -107,7 +107,8 @@ const Index = () => {
     { title: "Logistics", img: "/images/cats/logistics.png" },
     { title: "Hire Professionals", img: "/images/cats/professionals.png", link: "/pros" },
     { title: "Hire Artisans", img: "/images/cats/artisans.png", link: "/pros" },
-    { title: "Tools & Equipment", img: "/images/cats/tools.png" },
+    { title: "Tools", img: "/images/cats/tools.png" },
+    { title: "Equipment", img: "/images/cats/equipment.png" },
     { title: "Building AI Studio", img: "/images/cats/ai.png", link: "/pro/ai-studio" },
   ];
 
