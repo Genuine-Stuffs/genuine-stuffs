@@ -95,14 +95,20 @@ const Index = () => {
   ];
 
   const categories = [
-    { title: "Cement & Aggregates", icon: Construction, color: "bg-blue-500/10 text-blue-600" },
-    { title: "Steel & Rebars", icon: Layers, color: "bg-orange-500/10 text-orange-600" },
-    { title: "Roofing & Ceiling", icon: Layers, color: "bg-green-500/10 text-green-600" },
-    { title: "Electrical & Plumbing", icon: Wrench, color: "bg-purple-500/10 text-purple-600" },
-    { title: "Finishing & Tiles", icon: Construction, color: "bg-pink-500/10 text-pink-600" },
-    { title: "Building / AI Studio", icon: Cpu, color: "bg-cyan-500/10 text-cyan-600", link: "/pro/ai-studio" },
-    { title: "Hire Professionals/Artisans", icon: Users, color: "bg-indigo-500/10 text-indigo-600" },
-    { title: "Tools & Equipment", icon: HardHat, color: "bg-amber-500/10 text-amber-600" },
+    { title: "Cement & Aggregates", img: "/images/cats/cement.png" },
+    { title: "Steel & Rebars", img: "/images/cats/steel.png" },
+    { title: "Roofing & Ceiling", img: "/images/cats/roofing.png" },
+    { title: "Electricals", img: "/images/cats/electricals.png" },
+    { title: "Plumbing", img: "/images/cats/plumbing.png" },
+    { title: "Finishing & Tiles", img: "/images/cats/finishing.png" },
+    { title: "Bricks", img: "/images/cats/bricks.png" },
+    { title: "Blocks", img: "/images/cats/blocks.png" },
+    { title: "Site Water", img: "/images/cats/water.png" },
+    { title: "Logistics", img: "/images/cats/logistics.png" },
+    { title: "Hire Professionals", img: "/images/cats/professionals.png", link: "/pros" },
+    { title: "Hire Artisans", img: "/images/cats/artisans.png", link: "/pros" },
+    { title: "Tools & Equipment", img: "/images/cats/tools.png" },
+    { title: "Building AI Studio", img: "/images/cats/ai.png", link: "/pro/ai-studio" },
   ];
 
   return (
@@ -168,23 +174,14 @@ const Index = () => {
               <Link
                 key={i}
                 to={cat.link || `/marketplace?category=${encodeURIComponent(cat.title)}`}
-                className="group flex flex-col items-center p-3 md:p-6 rounded-3xl border border-slate-100 dark:border-border bg-slate-50/50 dark:bg-card md:hover:bg-white dark:md:hover:bg-muted/50 md:hover:border-primary md:hover:shadow-lg md:hover:shadow-primary/5 transition-all duration-500 backdrop-blur-sm relative overflow-hidden"
+                className="group flex flex-col items-center justify-start text-center cursor-pointer transition-transform md:hover:scale-105"
               >
-                <div className={`w-10 h-10 md:w-14 md:h-14 rounded-2xl flex items-center justify-center mb-2 md:mb-4 ${cat.color} md:group-hover:scale-105 transition-transform shadow-none md:shadow-sm md:group-hover:shadow-md`}>
-                  <cat.icon className="w-5 h-5 md:w-7 md:h-7" />
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-[1.2rem] flex items-center justify-center mb-2 md:mb-3 shadow-sm border border-slate-200/50 dark:border-slate-800 overflow-hidden bg-slate-900">
+                  <img src={cat.img} alt={cat.title} className="w-full h-full object-cover mix-blend-screen" />
                 </div>
-                <span className="text-[9px] md:text-[10px] font-black text-center text-slate-700 dark:text-slate-300 leading-[1.1] md:group-hover:text-primary uppercase tracking-tighter transition-colors">
-                  {cat.title.includes('/') ? (
-                    cat.title.split('/').map((part, i) => (
-                      <span key={i} className="block">
-                        {part.trim()}{i === 0 ? '/' : ''}
-                      </span>
-                    ))
-                  ) : (
-                    cat.title
-                  )}
+                <span className="text-[10px] md:text-xs font-bold text-slate-800 dark:text-slate-300 leading-tight md:group-hover:text-primary transition-colors max-w-[80px] md:max-w-full">
+                  {cat.title}
                 </span>
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12 md:group-hover:bg-primary/10 transition-colors hidden md:block" />
               </Link>
             ))}
           </div>
