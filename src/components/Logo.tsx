@@ -13,10 +13,10 @@ const Logo = ({ className = "", iconClassName = "h-10 md:h-12", textClassName = 
         className={`${iconClassName} w-auto object-contain transition-transform duration-300 group-hover:scale-105`} 
       />
       <div className={`flex flex-col justify-center ${textClassName}`}>
-        <span className="text-xl md:text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">
+        <span className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">
           Genuine Stuffs
         </span>
-        <span className="text-[10px] md:text-xs font-extrabold text-[#708090] dark:text-slate-400 uppercase tracking-[0.15em] mt-1.5">
+        <span className="text-[10px] md:text-xs font-bold text-[#708090] dark:text-slate-400 mt-1">
           A Data-Driven Ecosystem
         </span>
       </div>
