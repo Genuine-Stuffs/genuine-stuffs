@@ -173,7 +173,17 @@ const Index = () => {
                 <div className={`w-10 h-10 md:w-14 md:h-14 rounded-2xl flex items-center justify-center mb-2 md:mb-4 ${cat.color} md:group-hover:scale-105 transition-transform shadow-none md:shadow-sm md:group-hover:shadow-md`}>
                   <cat.icon className="w-5 h-5 md:w-7 md:h-7" />
                 </div>
-                <span className="text-[9px] md:text-[10px] font-black text-center text-slate-700 dark:text-slate-300 leading-tight md:group-hover:text-primary uppercase tracking-tighter transition-colors">{cat.title}</span>
+                <span className="text-[9px] md:text-[10px] font-black text-center text-slate-700 dark:text-slate-300 leading-[1.1] md:group-hover:text-primary uppercase tracking-tighter transition-colors">
+                  {cat.title.includes('/') ? (
+                    cat.title.split('/').map((part, i) => (
+                      <span key={i} className="block">
+                        {part.trim()}{i === 0 ? '/' : ''}
+                      </span>
+                    ))
+                  ) : (
+                    cat.title
+                  )}
+                </span>
                 <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-full blur-2xl -mr-12 -mt-12 md:group-hover:bg-primary/10 transition-colors hidden md:block" />
               </Link>
             ))}
