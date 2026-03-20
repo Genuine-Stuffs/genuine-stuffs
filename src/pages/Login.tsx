@@ -73,32 +73,32 @@ const Login = () => {
                 </div>
             </div>
 
-            <main className="flex-1 container mx-auto px-4 pt-6 md:pt-10 pb-12 flex flex-col items-center">
-                <div className="w-full max-w-xl">
-                    <div className="text-center mb-10">
-                        <h1 className="text-4xl md:text-5xl font-black mb-4 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
+            <main className="flex-1 container mx-auto px-4 pt-2 md:pt-4 pb-8 flex flex-col items-center justify-center">
+                <div className="w-full max-w-lg">
+                    <div className="text-center mb-6">
+                        <h1 className="text-3xl md:text-4xl font-black mb-2 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
                             Welcome <span className="text-primary italic">Back</span>
                         </h1>
-                        <p className="text-lg text-muted-foreground dark:text-slate-400 font-medium italic">
+                        <p className="text-sm md:text-base text-muted-foreground dark:text-slate-400 font-medium italic">
                             Enter your credentials to access your construction workspace.
                         </p>
                     </div>
 
-                    <Card className="border-none shadow-2xl bg-sky-50/50 dark:bg-white/5 backdrop-blur-xl rounded-[3rem] overflow-hidden transition-all duration-500">
-                        <CardHeader className="bg-sky-100/50 dark:bg-sky-900/10 p-10 text-center border-b dark:border-white/10">
-                            <CardTitle className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center justify-center gap-3">
-                                <KeyRound className="w-6 h-6 text-primary" /> Secure Gateway
+                    <Card className="border-none shadow-2xl bg-sky-50/50 dark:bg-white/5 backdrop-blur-xl rounded-[2.5rem] overflow-hidden transition-all duration-500">
+                        <CardHeader className="bg-sky-100/50 dark:bg-sky-900/10 p-6 text-center border-b dark:border-white/10">
+                            <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center justify-center gap-3">
+                                <KeyRound className="w-5 h-5 text-primary" /> Secure Gateway
                             </CardTitle>
                         </CardHeader>
 
-                        <CardContent className="p-10 md:p-12">
-                            <div className="space-y-8">
+                        <CardContent className="p-6 md:p-8">
+                            <div className="space-y-6">
                                 <Button
                                     onClick={signInWithGoogle}
                                     variant="outline"
-                                    className="w-full h-14 rounded-2xl border-2 border-slate-100 dark:border-white/10 font-black uppercase tracking-widest text-[10px] gap-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
+                                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-white/10 font-black uppercase tracking-widest text-[10px] gap-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
                                 >
-                                    <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                    <svg className="w-4 h-4" viewBox="0 0 24 24">
                                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
                                         <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
                                         <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05" />
@@ -112,35 +112,35 @@ const Login = () => {
                                         <span className="w-full border-t dark:border-white/10" />
                                     </div>
                                     <div className="relative flex justify-center text-[10px] uppercase">
-                                        <span className="bg-white dark:bg-card px-4 text-slate-400 font-black tracking-widest">Or use credentials</span>
+                                        <span className="bg-white dark:bg-card px-4 text-slate-400 font-black tracking-widest italic">Or use credentials</span>
                                     </div>
                                 </div>
 
-                                <form onSubmit={handleSubmit} className="space-y-6">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="email" className="text-xs font-black uppercase tracking-widest text-slate-400">Email Address</Label>
+                                <form onSubmit={handleSubmit} className="space-y-4">
+                                    <div className="space-y-1.5">
+                                        <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Address</Label>
                                         <Input
                                             id="email"
                                             type="email"
                                             placeholder="pro@genuine.com"
                                             required
-                                            className="h-14 rounded-xl"
+                                            className="h-12 rounded-xl"
                                             value={formData.email}
                                             onChange={(e) => handleInputChange('email', e.target.value)}
                                         />
                                     </div>
 
-                                    <div className="space-y-2">
+                                    <div className="space-y-1.5">
                                         <div className="flex justify-between items-center">
-                                            <Label htmlFor="password" title="password" className="text-xs font-black uppercase tracking-widest text-slate-400">Password</Label>
-                                            <Link to="#" className="text-[10px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity">Forgot?</Link>
+                                            <Label htmlFor="password" title="password" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Password</Label>
+                                            <Link to="#" className="text-[9px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity">Forgot?</Link>
                                         </div>
                                         <div className="relative">
                                             <Input
                                                 id="password"
                                                 type={showPassword ? "text" : "password"}
                                                 required
-                                                className="h-14 rounded-xl pr-12"
+                                                className="h-12 rounded-xl pr-12"
                                                 value={formData.password}
                                                 onChange={(e) => handleInputChange('password', e.target.value)}
                                             />
@@ -149,18 +149,18 @@ const Login = () => {
                                                 onClick={() => setShowPassword(!showPassword)}
                                                 className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                                             >
-                                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                             </button>
                                         </div>
                                     </div>
 
                                     <Button
                                         type="submit"
-                                        className="w-full h-14 rounded-2xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-2xl transition-all font-black uppercase tracking-[0.2em] text-xs gap-2"
+                                        className="w-full h-12 rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-xl transition-all font-black uppercase tracking-[0.2em] text-[11px] gap-2"
                                         disabled={isLoading}
                                     >
                                         {isLoading ? (
-                                            <Loader2 className="w-5 h-5 animate-spin" />
+                                            <Loader2 className="w-4 h-4 animate-spin" />
                                         ) : (
                                             <>Authenticate <ArrowRight className="w-4 h-4" /></>
                                         )}
