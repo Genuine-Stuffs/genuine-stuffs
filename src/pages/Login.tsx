@@ -49,28 +49,33 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background transition-colors duration-300 flex flex-col relative">
-            {/* Minimalist Top-Left Logo */}
-            <div className="absolute top-6 left-6 z-50">
-                <Link to="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
-                    <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                        <span className="text-white font-black text-lg md:text-xl">GS</span>
+        <div className="min-h-screen bg-background transition-colors duration-300 flex flex-col">
+            {/* Header with Logo and Star on the same line */}
+            <div className="w-full px-6 pt-6 md:pt-10 flex items-center relative">
+                <div className="absolute left-6 md:left-10">
+                    <Link to="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
+                        <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+                            <span className="text-white font-black text-lg md:text-xl">GS</span>
+                        </div>
+                        <div className="hidden sm:flex flex-col">
+                            <span className="text-sm md:text-base font-black tracking-tighter leading-none dark:text-white uppercase transition-colors group-hover:text-primary">
+                                GENUINE<span className="text-primary italic group-hover:text-inherit">STUFFS</span>
+                            </span>
+                            <span className="text-[6px] md:text-[7px] font-bold tracking-[0.2em] text-slate-500 uppercase">A Data-Driven Ecosystem</span>
+                        </div>
+                    </Link>
+                </div>
+                
+                <div className="mx-auto">
+                    <div className="inline-flex p-3 bg-primary/5 rounded-2xl">
+                        <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                     </div>
-                    <div className="hidden sm:flex flex-col">
-                        <span className="text-sm md:text-base font-black tracking-tighter leading-none dark:text-white uppercase transition-colors group-hover:text-primary">
-                            GENUINE<span className="text-primary italic group-hover:text-inherit">STUFFS</span>
-                        </span>
-                        <span className="text-[6px] md:text-[7px] font-bold tracking-[0.2em] text-slate-500 uppercase">A Data-Driven Ecosystem</span>
-                    </div>
-                </Link>
+                </div>
             </div>
 
-            <main className="flex-1 container mx-auto px-4 pt-12 md:pt-16 pb-12 flex flex-col items-center">
+            <main className="flex-1 container mx-auto px-4 pt-6 md:pt-10 pb-12 flex flex-col items-center">
                 <div className="w-full max-w-xl">
                     <div className="text-center mb-10">
-                        <div className="inline-flex p-3 bg-primary/5 rounded-2xl mb-6">
-                            <Sparkles className="w-8 h-8 text-primary" />
-                        </div>
                         <h1 className="text-4xl md:text-5xl font-black mb-4 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
                             Welcome <span className="text-primary italic">Back</span>
                         </h1>
