@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { Mail, Phone, Linkedin } from "lucide-react";
-import logoFullDark from "@/assets/logo-full-dark.png";
-import logoFullLight from "@/assets/logo-full-light.png";
+import Logo from "./Logo";
 
 const Footer = () => {
   return (
@@ -11,10 +10,7 @@ const Footer = () => {
           {/* Company Info */}
           <div className="lg:col-span-4 space-y-6">
             <div className="flex items-center">
-              <div className="h-12 w-auto">
-                <img src={logoFullDark} alt="Genuine Stuffs Ltd" className="h-full w-auto block dark:hidden object-contain" />
-                <img src={logoFullLight} alt="Genuine Stuffs Ltd" className="h-full w-auto hidden dark:block object-contain" />
-              </div>
+              <Logo />
             </div>
             <p className="text-sm text-slate-500 leading-relaxed font-medium md:max-w-sm">
               A Data-Driven Construction Operating Ecosystem built to restore confidence, quality, and long-term value in the built environment.
