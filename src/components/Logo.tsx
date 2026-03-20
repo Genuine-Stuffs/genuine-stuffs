@@ -10,7 +10,7 @@ const Logo = ({ className = "", iconClassName = "h-10 md:h-12", textClassName = 
       <img 
         src="/logo-gs.png" 
         alt="Genuine Stuffs Logo" 
-        className={`${iconClassName} w-auto object-contain rounded-xl transition-transform duration-300 group-hover:scale-105 shadow-sm`} 
+        className={`${iconClassName} w-auto object-contain rounded-lg transition-transform duration-300 group-hover:scale-105 shadow-sm`} 
       />
       <div className={`flex flex-col justify-center ${textClassName}`}>
         <span className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">
