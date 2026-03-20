@@ -125,7 +125,7 @@ const VendorDashboard = () => {
                                 </div>
                                 <AddMaterialDialog />
                                 <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-card rounded-xl hidden md:flex shrink-0">
-                                    <Bell className="w-4 h-4 text-slate-600" />
+                                    <Bell className="w-4 h-4 text-slate-600 dark:text-slate-300" />
                                 </Button>
                             </div>
                         </header>
