@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Loader2 } from "lucide-react";
+import { Plus, Loader2, Upload, ImageIcon } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "backend/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
@@ -29,12 +29,48 @@ export function AddMaterialDialog() {
     category: "",
     price: "",
     unit: "",
+    unit: "",
     description: "",
     availability: "In Stock"
   });
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
   const mutation = useMutation({
     mutationFn: async (newMaterial: any) => {
+      let uploadedImageUrl = "/images/materials/cement_bags.png";
+
+      if (selectedFile) {
+        const fileExt = selectedFile.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+        const filePath = `${user?.id || 'public'}/${fileName}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('materials')
+          .upload(filePath, selectedFile);
+
+        if (!uploadError) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('materials')
+            .getPublicUrl(filePath);
+          uploadedImageUrl = publicUrl;
+        } else {
+          console.warn("Storage bucker 'materials' might not exist or be accessible, using fallback image.");
+        }
+      }
+
+      newMaterial.image_url = uploadedImageUrl;
+
       const { data, error } = await supabase
         .from('materials')
         .insert([newMaterial])
@@ -55,6 +91,8 @@ export function AddMaterialDialog() {
         description: "",
         availability: "In Stock"
       });
+      setSelectedFile(null);
+      setPreviewUrl(null);
     },
     onError: (error: any) => {
       toast.error(`Failed to add material: ${error.message}`);
@@ -76,7 +114,6 @@ export function AddMaterialDialog() {
       availability: formData.availability,
       vendor_id: user.id,
       vendor_name: user?.user_metadata?.full_name || "Vendor", // fallback
-      image_url: "/images/materials/cement_bags.png", // Default placeholder
       is_verified: true,
       rating: 5.0,
       tags: [],
@@ -176,6 +213,39 @@ export function AddMaterialDialog() {
               className="col-span-3 min-h-[100px] rounded-xl border-slate-200 dark:border-slate-800 focus-visible:ring-primary shadow-sm font-bold resize-none placeholder:font-medium placeholder:italic"
               placeholder="Brief details about the material..."
             />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label className="text-right font-black text-[10px] uppercase tracking-widest text-slate-500">
+              Image
+            </Label>
+            <div className="col-span-3">
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                onChange={handleFileChange} 
+                accept="image/*" 
+                className="hidden" 
+              />
+              <div 
+                onClick={() => fileInputRef.current?.click()}
+                className={`flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${previewUrl ? 'border-primary/50 bg-primary/5' : 'border-slate-200 hover:border-primary/50 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900'}`}
+              >
+                {previewUrl ? (
+                  <div className="relative w-full h-32 rounded-lg overflow-hidden group">
+                    <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="text-white text-[10px] font-black uppercase tracking-widest">Change Image</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-4 text-slate-500">
+                    <Upload className="w-8 h-8 mb-2 opacity-50" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Click to upload</span>
+                    <span className="text-xs font-medium italic mt-1 opacity-70">JPG, PNG or WEBP</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </form>
         <DialogFooter className="px-2 pt-4">
