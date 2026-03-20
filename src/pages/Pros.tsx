@@ -77,7 +77,7 @@ const Pros = () => {
                     <div className="max-w-4xl mx-auto space-y-2 md:space-y-4">
                         <div className="hidden md:flex text-slate-800 dark:text-white text-center mb-1 items-center justify-center gap-2">
                             <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter flex items-center gap-2">
-                                <Star className="w-5 h-5 text-primary" /> Find Your Professional Expert
+                                <Star className="w-5 h-5 text-primary" /> Find Your Professional/Artisan Expert
                             </h2>
                         </div>
                         
@@ -118,9 +118,9 @@ const Pros = () => {
             <main className="container mx-auto px-4 py-8">
                 {/* Header Text (Adjusted) */}
                 <div className="text-center mb-8 md:mb-12">
-                    <h1 className="text-2xl md:text-5xl font-black mb-4 uppercase tracking-tighter">
-                        Hire Certified <span className="text-primary italic">Professionals</span>
-                    </h1>
+                        <h1 className="text-2xl md:text-5xl font-black mb-4 uppercase tracking-tighter">
+                            Hire Certified <span className="text-primary italic">Professionals/Artisans</span>
+                        </h1>
                     <p className="text-muted-foreground text-[10px] md:text-base font-medium max-w-2xl mx-auto italic leading-relaxed">
                         Find vetted experts to execute your construction projects with precision and integrity.
                     </p>

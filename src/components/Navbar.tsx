@@ -22,7 +22,7 @@ const Navbar = () => {
   const navLinks = [
     { path: "/", label: "Home" },
     { path: "/marketplace", label: "Marketplace" },
-    { path: role === "professional" ? "/resources" : "/pros", label: role === "professional" ? "Resources" : "Hire Professionals" },
+    { path: role === "professional" ? "/resources" : "/pros", label: role === "professional" ? "Resources" : "Hire Professionals/Artisans" },
     { path: "/pro/ai-studio", label: "AI Studio", role: "professional" },
     { path: "/pro-portal", label: "Dashboard", role: "professional" },
     { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },

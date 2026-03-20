@@ -101,7 +101,7 @@ const Index = () => {
     { title: "Electrical & Plumbing", icon: Wrench, color: "bg-purple-500/10 text-purple-600" },
     { title: "Finishing & Tiles", icon: Construction, color: "bg-pink-500/10 text-pink-600" },
     { title: "Building / AI Studio", icon: Cpu, color: "bg-cyan-500/10 text-cyan-600", link: "/pro/ai-studio" },
-    { title: "Hire Professionals", icon: Users, color: "bg-indigo-500/10 text-indigo-600" },
+    { title: "Hire Professionals/Artisans", icon: Users, color: "bg-indigo-500/10 text-indigo-600" },
     { title: "Tools & Equipment", icon: HardHat, color: "bg-amber-500/10 text-amber-600" },
   ];
 
@@ -132,7 +132,7 @@ const Index = () => {
                 Find <span className="text-primary italic">Genuine</span> Building Materials
               </h1>
               <p className="text-sm md:text-xl font-bold text-slate-100 uppercase tracking-[0.3em] mb-8 drop-shadow-lg">
-                Digital Marketplace Access & Verified Professionals
+                Digital Marketplace Access & Verified Professionals/Artisans
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button asChild size="lg" className="h-14 md:h-16 px-10 md:px-14 text-lg font-black rounded-2xl shadow-md md:shadow-lg md:hover:scale-[1.03] transition-transform">
