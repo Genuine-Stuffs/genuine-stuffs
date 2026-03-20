@@ -3,7 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { Menu, X, User, ChevronDown, Rocket, ShieldCheck, ShoppingBag, LayoutDashboard, Search, Settings } from "lucide-react";
 import { ModeToggle } from "./ModeToggle";
 import { Button } from "@/components/ui/button";
-import Logo from "./Logo";
+import logoFullDark from "@/assets/logo-full-dark.png";
+import logoFullLight from "@/assets/logo-full-light.png";
 import { useAuth } from "@/context/AuthContext";
 import {
   DropdownMenu,
@@ -37,7 +38,10 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center group">
-            <Logo />
+            <div className="h-10 md:h-12 w-auto">
+              <img src={logoFullDark} alt="Genuine Stuffs Ltd" className="h-full w-auto block dark:hidden object-contain" />
+              <img src={logoFullLight} alt="Genuine Stuffs Ltd" className="h-full w-auto hidden dark:block object-contain" />
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
