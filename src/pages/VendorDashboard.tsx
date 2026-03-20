@@ -5,24 +5,48 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-    BarChart3,
-    TrendingUp,
-    Users,
-    Package,
-    ShoppingCart,
-    Settings,
     Plus,
     Bell,
     Search,
     Filter,
     DollarSign,
+    ShoppingCart,
+    Package,
     Eye,
-    Loader2
+    Loader2,
+    TrendingUp,
+    ArrowUpRight,
+    Calendar
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { VerificationBanner } from "@/components/VerificationBanner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "backend/supabaseClient";
+import VendorSidebar from "@/components/vendor/VendorSidebar";
+import { 
+    AreaChart, 
+    Area, 
+    XAxis, 
+    YAxis, 
+    CartesianGrid, 
+    Tooltip, 
+    ResponsiveContainer,
+    PieChart,
+    Pie,
+    Cell
+} from 'recharts';
+
+const chartData = [
+    { name: 'Mon', sales: 4000 },
+    { name: 'Tue', sales: 3000 },
+    { name: 'Wed', sales: 5000 },
+    { name: 'Thu', sales: 2780 },
+    { name: 'Fri', sales: 1890 },
+    { name: 'Sat', sales: 2390 },
+    { name: 'Sun', sales: 3490 },
+];
+
+const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042'];
 
 const VendorDashboard = () => {
     const { user, role } = useAuth();
@@ -46,152 +70,263 @@ const VendorDashboard = () => {
     const lowStockCount = myMaterials.filter(m => m.availability === 'Low Stock' || m.availability === 'Out of Stock').length;
 
     const stats = [
-        { title: "Total Sales", value: "₦ 0", icon: DollarSign, trend: "Stable", color: "text-green-600" },
-        { title: "Active Orders", value: "0", icon: ShoppingCart, trend: "No active", color: "text-blue-600" },
-        { title: "Material Inventory", value: `${myMaterials.length} Items`, icon: Package, trend: `${lowStockCount} Alert`, color: "text-orange-600" },
-        { title: "Market Visibility", value: totalViews.toLocaleString(), icon: Eye, trend: "Real-time", color: "text-purple-600" },
+        { title: "Total Sales", value: "₦ 0", icon: DollarSign, trend: "+0%", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/30" },
+        { title: "Active Orders", value: "0", icon: ShoppingCart, trend: "Stable", color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-950/30" },
+        { title: "Inventory Items", value: `${myMaterials.length}`, icon: Package, trend: `${lowStockCount} low`, color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-950/30" },
+        { title: "Market Visibility", value: totalViews.toLocaleString(), icon: Eye, trend: "Real-time", color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-950/30" },
+    ];
+
+    const pieData = [
+        { name: 'Cement', value: 400 },
+        { name: 'Steel', value: 300 },
+        { name: 'Aggregates', value: 300 },
+        { name: 'Others', value: 200 },
     ];
 
     return (
-        <div className="min-h-screen bg-background transition-colors duration-300">
+        <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors duration-300">
             <Navbar />
-            <VerificationBanner />
+            
+            <div className="flex">
+                {/* Desktop Sidebar */}
+                <VendorSidebar />
 
-            <main className="container mx-auto px-4 py-8">
-                {!isVendor && (
-                    <div className="mb-8 p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800/50 rounded-2xl flex items-center justify-between transition-colors">
-                        <p className="text-orange-800 dark:text-orange-300 font-bold text-sm">You are viewing this as a <span className="underline">{role}</span>. Some vendor features are restricted.</p>
-                        <Button variant="outline" className="text-orange-800 border-orange-200 hover:bg-orange-100 dark:hover:bg-orange-900/40 font-black uppercase tracking-widest text-[10px] h-8 px-4" asChild>
-                            <Link to="/">Go Home</Link>
-                        </Button>
-                    </div>
-                )}
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
-                    <div>
-                        <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Vendor Portal</h1>
-                        <p className="text-muted-foreground dark:text-slate-400 font-medium italic mt-1">Manage your materials and track sales. <span className="font-black text-primary uppercase tracking-widest text-xs ml-2">Partner Account</span></p>
-                    </div>
-                    <div className="flex gap-3">
-                        <Button className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 transition-all font-black uppercase tracking-widest text-xs h-11 px-6 rounded-xl">
-                            <Plus className="w-4 h-4" /> Add Material
-                        </Button>
-                        <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-card dark:border-border rounded-xl">
-                            <Bell className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                        </Button>
-                        <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-card dark:border-border rounded-xl">
-                            <Settings className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                        </Button>
-                    </div>
-                </header>
+                {/* Main Content Area */}
+                <main className="flex-1 overflow-hidden">
+                    <VerificationBanner />
+                    
+                    <div className="p-4 md:p-8 space-y-8 max-w-7xl mx-auto">
+                        {!isVendor && (
+                            <div className="mb-8 p-4 bg-orange-50/80 dark:bg-orange-900/10 border border-orange-200/50 dark:border-orange-800/30 rounded-2xl flex items-center justify-between backdrop-blur-sm">
+                                <p className="text-orange-800 dark:text-orange-300 font-bold text-sm">You are viewing this as a <span className="underline">{role}</span>. Some vendor features are restricted.</p>
+                                <Button variant="outline" className="text-orange-800 border-orange-200 hover:bg-orange-100 font-black uppercase tracking-widest text-[10px] h-8" asChild>
+                                    <Link to="/">Go Home</Link>
+                                </Button>
+                            </div>
+                        )}
 
-                {/* Stats Overview */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-                    {stats.map((stat, i) => (
-                        <Card key={i} className="group border border-slate-100 dark:border-white/5 hover:border-primary/50 shadow-sm hover:shadow-2xl hover:shadow-primary/5 transition-all duration-500 bg-white dark:bg-card rounded-[2rem] overflow-hidden relative">
-                            <CardContent className="p-6 relative z-10">
-                                <div className="flex justify-between items-start mb-6">
-                                    <div className={`p-4 rounded-[1.25rem] bg-slate-50 dark:bg-muted/50 shadow-inner border dark:border-border transition-all group-hover:scale-110 group-hover:shadow-lg ${stat.color}`}>
-                                        <stat.icon className="w-6 h-6" />
-                                    </div>
-                                    <span className={`text-[10px] font-black px-3 py-1.5 rounded-full bg-slate-100 dark:bg-muted/30 border dark:border-border uppercase tracking-widest ${stat.color}`}>
-                                        {stat.trend}
-                                    </span>
-                                </div>
-                                <div className="relative">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 group-hover:text-primary transition-colors">{stat.title}</p>
-                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white leading-tight tabular-nums truncate tracking-tight">{stat.value}</h3>
-                                </div>
-                            </CardContent>
-                            <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-primary/5 rounded-full blur-2xl group-hover:bg-primary/10 transition-colors" />
-                        </Card>
-                    ))}
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Recent Orders */}
-                    <Card className="lg:col-span-2 border-none shadow-sm dark:bg-card rounded-[2.5rem] transition-colors">
-                        <CardHeader className="p-8 flex flex-row items-center justify-between">
+                        {/* Top Header Section */}
+                        <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                             <div>
-                                <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Recent Orders</CardTitle>
-                                <CardDescription className="dark:text-slate-400 font-medium italic mt-1">Real-time site manager requisitions.</CardDescription>
+                                <div className="flex items-center gap-2 mb-1">
+                                    <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Vendor Portal</h1>
+                                    <span className="bg-primary/10 text-primary text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">PRO</span>
+                                </div>
+                                <p className="text-muted-foreground dark:text-slate-400 font-medium italic">
+                                    Manage your materials and track sales performance.
+                                    <span className="hidden lg:inline ml-2 text-primary font-black uppercase text-[10px] tracking-[0.2em]">Partner Hub</span>
+                                </p>
                             </div>
-                            <Button variant="ghost" className="text-primary text-[10px] font-black uppercase tracking-widest h-8 px-4 bg-primary/5 hover:bg-primary/10 rounded-full">View All</Button>
-                        </CardHeader>
-                        <CardContent className="px-8 pb-8">
-                            <div className="space-y-4">
-                                {[
-                                    { order: "#ORD-5421", client: "David Okonkwo", item: "Portland Cement x200", status: "Processing", date: "2 mins ago" },
-                                    { order: "#ORD-5420", client: "Amina Bello", item: "Steel Rebars (16mm) x50", status: "Shipped", date: "1 hour ago" },
-                                    { order: "#ORD-5419", client: "Premium Dev", item: "Sharp Sand (10 Tons)", status: "Delivered", date: "3 hours ago" },
-                                    { order: "#ORD-5418", client: "Metro Builders", item: "Concrete Aggregates", status: "Pending", date: "Yesterday" },
-                                ].map((order, i) => (
-                                    <div key={i} className="flex items-center justify-between p-5 rounded-2xl border border-slate-50 dark:border-border hover:bg-slate-50/50 dark:hover:bg-muted/20 transition-all group">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-muted flex items-center justify-center font-black text-xs text-slate-500 dark:text-slate-400 shadow-inner group-hover:scale-110 transition-transform">
-                                                {order.client.split(' ').map(n => n[0]).join('')}
-                                            </div>
-                                            <div>
-                                                <p className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-tight">{order.client} <span className="text-primary font-black ml-2 tabular-nums">{order.order}</span></p>
-                                                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium italic mt-0.5">{order.item}</p>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className={`text-[10px] font-black uppercase tracking-widest mb-1.5 px-3 py-1 rounded-md ${order.status === 'Delivered' ? 'bg-green-50 dark:bg-green-950/40 text-green-600' :
-                                                order.status === 'Shipped' ? 'bg-blue-50 dark:bg-blue-950/40 text-blue-600' : 'bg-orange-50 dark:bg-orange-950/40 text-orange-600'
-                                                }`}>
-                                                {order.status}
-                                            </p>
-                                            <p className="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-tighter">{order.date}</p>
-                                        </div>
-                                    </div>
-                                ))}
+                            <div className="flex items-center gap-3 w-full md:w-auto">
+                                <div className="relative flex-1 md:w-64">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <Input className="pl-10 bg-white dark:bg-card border-none rounded-xl font-bold shadow-sm" placeholder="Global search..." />
+                                </div>
+                                <Button className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 font-black uppercase tracking-widest text-xs h-11 px-6 rounded-xl shrink-0">
+                                    <Plus className="w-4 h-4" /> Add Material
+                                </Button>
+                                <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-card rounded-xl hidden md:flex shrink-0">
+                                    <Bell className="w-4 h-4 text-slate-600" />
+                                </Button>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </header>
 
-                    {/* Quick Inventory Search */}
-                    <Card className="border-none shadow-sm dark:bg-card rounded-[2.5rem] transition-colors">
-                        <CardHeader className="p-8">
-                            <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Stock Quick Look</CardTitle>
-                            <CardDescription className="dark:text-slate-400 font-medium italic mt-1">Filter by stock level or category.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="px-8 pb-8 space-y-6">
-                            <div className="relative group">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
-                                <Input className="pl-11 h-12 bg-slate-50 dark:bg-background border-none rounded-xl font-bold focus:ring-4 focus:ring-primary/10 dark:text-white transition-all" placeholder="Search my inventory..." />
-                            </div>
-                            <div className="flex flex-wrap gap-2 mb-4">
-                                <Button variant="outline" size="sm" className="h-9 rounded-full text-[10px] font-black uppercase tracking-widest border-slate-200 dark:border-border dark:text-slate-400">Low Stock</Button>
-                                <Button variant="outline" size="sm" className="h-9 rounded-full text-[10px] font-black uppercase tracking-widest border-slate-200 dark:border-border dark:text-slate-400">Recently Added</Button>
-                                <Button variant="outline" size="sm" className="h-9 rounded-full text-[10px] font-black uppercase tracking-widest bg-slate-50 dark:bg-muted border-none text-primary">All Categories <Filter className="w-3.5 h-3.5 ml-2" /></Button>
-                            </div>
-                            <div className="space-y-3">
-                                {isLoading ? (
-                                    <div className="flex justify-center p-8"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
-                                ) : myMaterials.length > 0 ? (
-                                    myMaterials.slice(0, 5).map((item, i) => (
-                                        <div key={i} className="flex justify-between items-center p-4 rounded-xl bg-slate-50 dark:bg-muted/20 border dark:border-border transition-colors group cursor-pointer hover:bg-primary hover:text-white hover:border-primary">
-                                            <div className="flex flex-col gap-0.5">
-                                                <span className="text-xs font-black uppercase tracking-tight line-clamp-1">{item.name}</span>
-                                                <span className="text-[10px] font-bold opacity-60 flex items-center gap-1">
-                                                    <Eye className="w-2.5 h-2.5" /> {(item as any).views_count || 0} views
+                        {/* Stats Summary Area */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            {stats.map((stat, i) => (
+                                <Card key={i} className="group border-none shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative rounded-[2rem]">
+                                    <CardContent className="p-6">
+                                        <div className="flex justify-between items-start mb-4">
+                                            <div className={`p-3 rounded-2xl transition-transform group-hover:scale-110 ${stat.bg} ${stat.color}`}>
+                                                <stat.icon className="w-6 h-6" />
+                                            </div>
+                                            <div className="flex flex-col items-end">
+                                                <span className={`flex items-center gap-1 text-[11px] font-black tracking-tight ${stat.color}`}>
+                                                    {stat.trend}
+                                                    {stat.trend.startsWith('+') && <ArrowUpRight className="w-3 h-3" />}
                                                 </span>
                                             </div>
-                                            <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded ${item.availability === 'Low Stock' || item.availability === 'Out of Stock' ? 'bg-orange-500 text-white' : 'text-slate-400 group-hover:text-white/80'}`}>
-                                                {item.availability}
-                                            </span>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center p-8 text-slate-400 text-xs italic">No materials listed yet.</div>
-                                )}
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-            </main>
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 mb-1 group-hover:text-primary transition-colors">{stat.title}</p>
+                                            <h3 className="text-2xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">{stat.value}</h3>
+                                        </div>
+                                    </CardContent>
+                                    <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
+                                </Card>
+                            ))}
+                        </div>
 
-            <Footer />
+                        {/* Middle Section: Visualization and Inventory */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* Charts Section */}
+                            <Card className="lg:col-span-2 border-none shadow-sm rounded-[2.5rem] overflow-hidden">
+                                <CardHeader className="p-8 flex flex-row items-center justify-between pb-2">
+                                    <div>
+                                        <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Sales Overview</CardTitle>
+                                        <CardDescription className="italic font-medium">Performance trends for the current week.</CardDescription>
+                                    </div>
+                                    <Button variant="ghost" className="h-9 px-4 rounded-full bg-slate-100 dark:bg-muted font-black text-[10px] uppercase tracking-widest gap-2">
+                                        <Calendar className="w-3 h-3" /> This Week
+                                    </Button>
+                                </CardHeader>
+                                <CardContent className="h-[300px] p-8 pt-0">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={chartData}>
+                                            <defs>
+                                                <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                                            <XAxis 
+                                                dataKey="name" 
+                                                axisLine={false} 
+                                                tickLine={false} 
+                                                tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 700 }}
+                                                dy={10}
+                                            />
+                                            <YAxis 
+                                                axisLine={false} 
+                                                tickLine={false} 
+                                                tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 700 }}
+                                            />
+                                            <Tooltip 
+                                                contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                            />
+                                            <Area 
+                                                type="monotone" 
+                                                dataKey="sales" 
+                                                stroke="#3b82f6" 
+                                                strokeWidth={3}
+                                                fillOpacity={1} 
+                                                fill="url(#colorSales)" 
+                                            />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </CardContent>
+                            </Card>
+
+                            <Card className="border-none shadow-sm rounded-[2.5rem] overflow-hidden">
+                                <CardHeader className="p-8 pb-2">
+                                    <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight text-center">Material Mix</CardTitle>
+                                    <CardDescription className="text-center italic font-medium">Inventory distribution by category.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="h-[250px] p-4">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <PieChart>
+                                            <Pie
+                                                data={pieData}
+                                                cx="50%"
+                                                cy="50%"
+                                                innerRadius={60}
+                                                outerRadius={80}
+                                                paddingAngle={5}
+                                                dataKey="value"
+                                            >
+                                                {pieData.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                                                ))}
+                                            </Pie>
+                                            <Tooltip />
+                                        </PieChart>
+                                    </ResponsiveContainer>
+                                    <div className="flex justify-center flex-wrap gap-4 mt-4">
+                                        {pieData.map((item, i) => (
+                                            <div key={i} className="flex items-center gap-1.5">
+                                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i] }} />
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{item.name}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* Bottom Section: Orders and Inventory List */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
+                            {/* Recent Orders List */}
+                            <Card className="lg:col-span-2 border-none shadow-sm rounded-[2.5rem] overflow-hidden">
+                                <CardHeader className="p-8 flex flex-row items-center justify-between">
+                                    <div>
+                                        <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Recent Orders</CardTitle>
+                                        <CardDescription className="italic font-medium">Real-time requisition feed.</CardDescription>
+                                    </div>
+                                    <Button variant="ghost" className="text-primary text-[10px] font-black uppercase tracking-widest h-8 px-4 bg-primary/5 hover:bg-primary/10 rounded-full">Explore All</Button>
+                                </CardHeader>
+                                <CardContent className="px-8 pb-8">
+                                    <div className="space-y-4">
+                                        {[
+                                            { order: "#ORD-5421", client: "David Okonkwo", item: "Portland Cement x200", status: "Processing", date: "2 mins ago" },
+                                            { order: "#ORD-5420", client: "Amina Bello", item: "Steel Rebars (16mm) x50", status: "Shipped", date: "1 hour ago" },
+                                            { order: "#ORD-5419", client: "Premium Dev", item: "Sharp Sand (10 Tons)", status: "Delivered", date: "3 hours ago" },
+                                        ].map((order, i) => (
+                                            <div key={i} className="flex items-center justify-between p-5 rounded-[1.5rem] bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all group">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center font-black text-xs text-slate-400">
+                                                        {order.client.split(' ').map(n => n[0]).join('')}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-tight">{order.client} <span className="text-primary font-black ml-2 tabular-nums">{order.order}</span></p>
+                                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-bold italic">{order.item}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-1 inline-block ${order.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600' :
+                                                        order.status === 'Shipped' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
+                                                        }`}>
+                                                        {order.status}
+                                                    </p>
+                                                    <p className="text-[10px] text-slate-400 font-bold uppercase block">{order.date}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+
+                            {/* Inventory Filter/Status */}
+                            <Card className="border-none shadow-sm rounded-[2.5rem] overflow-hidden">
+                                <CardHeader className="p-8">
+                                    <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight text-center">My Stock</CardTitle>
+                                    <CardDescription className="text-center italic font-medium">Quick inventory check.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="px-8 pb-8 space-y-4">
+                                    <div className="flex flex-wrap gap-2 justify-center mb-6">
+                                        <Button size="sm" className="h-8 rounded-full text-[9px] font-black uppercase tracking-widest bg-primary text-white">All Items</Button>
+                                        <Button variant="outline" size="sm" className="h-8 rounded-full text-[9px] font-black uppercase tracking-widest border-slate-200">Critical Stock</Button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {isLoading ? (
+                                            <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
+                                        ) : myMaterials.length > 0 ? (
+                                            myMaterials.slice(0, 4).map((item, i) => (
+                                                <div key={i} className="group p-4 rounded-2xl bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 hover:border-primary transition-all cursor-pointer">
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <span className="text-xs font-black uppercase tracking-tight leading-tight line-clamp-1 flex-1">{item.name}</span>
+                                                        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ml-2 ${item.availability === 'Low Stock' || item.availability === 'Out of Stock' ? 'bg-orange-500 text-white' : 'text-slate-400 group-hover:text-primary'}`}>
+                                                            {item.availability}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center justify-between text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                                        <span>ID: {item.id.slice(0, 8)}</span>
+                                                        <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {(item as any).views_count || 0}</span>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-10 text-slate-400 text-[10px] font-bold uppercase italic tracking-widest">No listings found.</div>
+                                        )}
+                                    </div>
+                                    <Button variant="outline" className="w-full text-[10px] font-black uppercase tracking-[0.2em] h-10 border-slate-200 rounded-xl mt-4">Manage Inventory</Button>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                    <Footer />
+                </main>
+            </div>
         </div>
     );
 };
