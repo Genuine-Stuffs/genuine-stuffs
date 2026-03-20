@@ -23,6 +23,7 @@ import { VerificationBanner } from "@/components/VerificationBanner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "backend/supabaseClient";
 import VendorSidebar from "@/components/vendor/VendorSidebar";
+import { AddMaterialDialog } from "@/components/vendor/AddMaterialDialog";
 import { 
     AreaChart, 
     Area, 
@@ -122,9 +123,7 @@ const VendorDashboard = () => {
                                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                                     <Input className="pl-10 bg-white dark:bg-card border-none rounded-xl font-bold shadow-sm" placeholder="Global search..." />
                                 </div>
-                                <Button className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 font-black uppercase tracking-widest text-xs h-11 px-6 rounded-xl shrink-0">
-                                    <Plus className="w-4 h-4" /> Add Material
-                                </Button>
+                                <AddMaterialDialog />
                                 <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-card rounded-xl hidden md:flex shrink-0">
                                     <Bell className="w-4 h-4 text-slate-600" />
                                 </Button>
