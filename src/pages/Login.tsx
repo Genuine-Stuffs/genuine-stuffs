@@ -65,25 +65,18 @@ const Login = () => {
                         </div>
                     </Link>
                 </div>
-                
-                <div className="mx-auto">
-                    <div className="inline-flex p-3 bg-primary/5 rounded-2xl">
-                        <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-primary" />
-                    </div>
+                <div className="mx-auto text-center mt-2 md:mt-0">
+                    <h1 className="text-3xl md:text-4xl font-black mb-1 md:mb-2 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
+                        Welcome <span className="text-primary italic">Back</span>
+                    </h1>
+                    <p className="text-xs md:text-sm text-muted-foreground dark:text-slate-400 font-medium italic hidden sm:block">
+                        Enter your credentials to access your construction workspace.
+                    </p>
                 </div>
             </div>
 
-            <main className="flex-1 container mx-auto px-4 pt-2 md:pt-4 pb-8 flex flex-col items-center justify-center">
+            <main className="flex-1 container mx-auto px-4 pt-6 md:pt-4 pb-8 flex flex-col items-center justify-center">
                 <div className="w-full max-w-lg">
-                    <div className="text-center mb-6">
-                        <h1 className="text-3xl md:text-4xl font-black mb-2 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
-                            Welcome <span className="text-primary italic">Back</span>
-                        </h1>
-                        <p className="text-sm md:text-base text-muted-foreground dark:text-slate-400 font-medium italic">
-                            Enter your credentials to access your construction workspace.
-                        </p>
-                    </div>
-
                     <Card className="border-none shadow-2xl bg-sky-50/50 dark:bg-white/5 backdrop-blur-xl rounded-[2.5rem] overflow-hidden transition-all duration-500">
                         <CardHeader className="bg-sky-100/50 dark:bg-sky-900/10 p-6 text-center border-b dark:border-white/10">
                             <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center justify-center gap-3">
