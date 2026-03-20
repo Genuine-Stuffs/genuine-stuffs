@@ -95,23 +95,23 @@ const Index = () => {
   ];
 
   const categories = [
-    { title: "Hire Professionals", img: "/images/cats/professionals.png", link: "/pros" },
-    { title: "Hire Artisans", img: "/images/cats/artisans.png", link: "/pros" },
-    { title: "Equipment", img: "/images/cats/equipment.png" },
-    { title: "Sand", img: "/images/cats/sand.png" },
-    { title: "Stones", img: "/images/cats/stones.png" },
-    { title: "Cement", img: "/images/cats/cement.png" },
-    { title: "Site Water", img: "/images/cats/water.png" },
-    { title: "Steel & Rebars", img: "/images/cats/steel.png" },
-    { title: "Roofing & Ceiling", img: "/images/cats/roofing.png" },
-    { title: "Electricals", img: "/images/cats/electricals.png" },
-    { title: "Plumbing", img: "/images/cats/plumbing.png" },
-    { title: "Finishing & Tiles", img: "/images/cats/finishing.png" },
-    { title: "Bricks", img: "/images/cats/bricks.png" },
-    { title: "Blocks", img: "/images/cats/blocks.png" },
-    { title: "Logistics", img: "/images/cats/logistics.png" },
-    { title: "Tools", img: "/images/cats/tools.png" },
-    { title: "Building AI Studio", img: "/images/cats/ai.png", link: "/pro/ai-studio" },
+    { title: "Hire Professionals", img: "/images/cats/professionals.png", link: "/pros", blend: true },
+    { title: "Hire Artisans", img: "/images/cats/artisans.png", link: "/pros", blend: true },
+    { title: "Equipment", img: "/images/cats/equipment.png", scale: "scale-100", blend: false },
+    { title: "Sand", img: "/images/cats/sand.png", scale: "scale-100", blend: false },
+    { title: "Stones", img: "/images/cats/stones.png", scale: "scale-100", blend: false },
+    { title: "Cement", img: "/images/cats/cement.png", scale: "scale-[1.6]", blend: true },
+    { title: "Site Water", img: "/images/cats/water.png", scale: "scale-[1.6]", blend: true },
+    { title: "Steel & Rebars", img: "/images/cats/steel.png", scale: "scale-[1.3]", blend: true },
+    { title: "Roofing & Ceiling", img: "/images/cats/roofing.png", scale: "scale-[1.3]", blend: true },
+    { title: "Electricals", img: "/images/cats/electricals.png", scale: "scale-[1.35]", blend: true },
+    { title: "Plumbing", img: "/images/cats/plumbing.png", scale: "scale-[1.35]", blend: true },
+    { title: "Finishing & Tiles", img: "/images/cats/finishing.png", scale: "scale-100", blend: false },
+    { title: "Bricks", img: "/images/cats/bricks.png", scale: "scale-[1.5]", blend: true },
+    { title: "Blocks", img: "/images/cats/blocks.png", scale: "scale-[1.5]", blend: true },
+    { title: "Logistics", img: "/images/cats/logistics.png", scale: "scale-100", blend: false },
+    { title: "Tools", img: "/images/cats/tools.png", scale: "scale-[1.3]", blend: true },
+    { title: "Building AI Studio", img: "/images/cats/ai.png", link: "/pro/ai-studio", scale: "scale-[1.2]", blend: true },
   ];
 
   return (
@@ -179,8 +179,12 @@ const Index = () => {
                 to={cat.link || `/marketplace?category=${encodeURIComponent(cat.title)}`}
                 className="group flex flex-col items-center justify-start text-center cursor-pointer transition-transform md:hover:scale-105"
               >
-                <div className="w-16 h-16 md:w-20 md:h-20 rounded-[1.2rem] flex items-center justify-center mb-2 md:mb-3 shadow-sm border border-slate-200/50 dark:border-slate-800 overflow-hidden bg-slate-900">
-                  <img src={cat.img} alt={cat.title} className="w-full h-full object-cover mix-blend-screen" />
+                <div className="w-16 h-16 md:w-20 md:h-20 rounded-[1.2rem] flex items-center justify-center mb-2 md:mb-3 shadow-sm border border-slate-200/50 dark:border-slate-800 overflow-hidden bg-slate-900 relative">
+                  <img 
+                    src={cat.img} 
+                    alt={cat.title} 
+                    className={`w-full h-full object-cover transition-transform duration-300 ${cat.blend !== false ? 'mix-blend-screen' : ''} ${cat.scale || 'scale-[1.1]'}`} 
+                  />
                 </div>
                 <span className="text-[10px] md:text-xs font-bold text-slate-800 dark:text-slate-300 leading-tight md:group-hover:text-primary transition-colors max-w-[80px] md:max-w-full">
                   {cat.title}
