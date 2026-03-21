@@ -231,42 +231,40 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Brand Purpose / Why We Exist - Dark Mode Enhanced */}
-      <section className="relative min-h-[600px] flex items-center overflow-hidden border-y border-slate-100 dark:border-border lg:py-0 py-16">
-        {/* Full-bleed Image Background (No global dimming) */}
+      {/* Brand Purpose / Why We Exist - Integrated Overlay */}
+      <section className="relative min-h-[420px] flex items-center overflow-hidden border-y border-slate-100 dark:border-border lg:py-0 py-16">
+        {/* Full-bleed Image Background with Gradient Overlay */}
         <div className="absolute inset-0 z-0">
           <img 
             src={trustImage} 
             alt="Verified construction materials on site" 
             className="w-full h-full object-cover" 
           />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-900/90 via-slate-900/40 to-transparent" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2">
-            {/* The Text Box with the "Drak Dimming/Filter" */}
-            <div className="bg-slate-900/80 backdrop-blur-md p-8 md:p-16 rounded-3xl lg:rounded-r-none lg:-ml-4 shadow-2xl border border-white/10 max-w-2xl">
-              <div className="inline-block p-2 bg-primary/10 rounded-lg text-primary text-xs font-black uppercase tracking-widest mb-6">Our Core Focus</div>
-              <h2 className="text-4xl md:text-5xl font-black mb-8 leading-tight text-white italic">Restoring <span className="text-primary">Trust</span> to the Site</h2>
-              <p className="text-lg text-slate-200 mb-8 leading-relaxed">
-                We believe that every successful project starts with quality inputs. Our ecosystem bridges the gap between major suppliers and end-users.
-              </p>
-              <div className="space-y-4">
-                {[
-                  { label: "Verification", desc: "Rigorous screening for all listed suppliers." },
-                  { label: "Quality Control", desc: "Materials must meet minimum NIS standards." },
-                  { label: "Expert Advisory", desc: "Site management guidance from seasoned pros." },
-                  { label: "Price Transparency", desc: "Eliminating the 'middle-man' markup." }
-                ].map((item, i) => (
-                  <div key={i} className="flex gap-4 items-start p-4 rounded-2xl bg-white/10 dark:bg-slate-800/40 border border-white/10 dark:border-slate-700">
-                    <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
-                    <div>
-                      <h4 className="font-black text-white uppercase tracking-tighter">{item.label}</h4>
-                      <p className="text-sm text-slate-300 font-medium">{item.desc}</p>
-                    </div>
+          <div className="max-w-2xl text-white">
+            <div className="inline-block p-2 bg-primary/20 backdrop-blur-md rounded-lg text-white text-[10px] font-black uppercase tracking-widest mb-6 border border-white/10">Our Core Focus</div>
+            <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight text-white drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] italic">Restoring <span className="text-primary">Trust</span> to the Site</h2>
+            <p className="text-lg md:text-xl text-slate-100 mb-10 leading-relaxed font-bold drop-shadow-md max-w-xl">
+              We believe that every successful project starts with quality inputs. Our ecosystem bridges the gap between major suppliers and end-users.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                { label: "Verification", desc: "Rigorous screening for all listed suppliers." },
+                { label: "Quality Control", desc: "Materials must meet minimum NIS standards." },
+                { label: "Expert Advisory", desc: "Site management guidance from seasoned pros." },
+                { label: "Price Transparency", desc: "Eliminating the 'middle-man' markup." }
+              ].map((item, i) => (
+                <div key={i} className="flex gap-4 items-start p-4 rounded-2xl bg-black/20 backdrop-blur-[2px] border border-white/10">
+                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0" />
+                  <div>
+                    <h4 className="font-black text-white uppercase tracking-tighter drop-shadow-sm text-xs">{item.label}</h4>
+                    <p className="text-[10px] text-slate-300 font-bold leading-tight">{item.desc}</p>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -357,43 +355,41 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Material Quality Visual - Overlay Refined */}
-      <section className="relative min-h-[600px] flex items-center overflow-hidden border-y border-slate-900 lg:py-0 py-16">
-        {/* Full-bleed Image Background (No global dimming) */}
+      {/* Material Quality Visual - Integrated Overlay */}
+      <section className="relative min-h-[480px] flex items-center overflow-hidden border-y border-slate-200 dark:border-slate-800 lg:py-0 py-16">
+        {/* Full-bleed Image Background with Gradient Overlay */}
         <div className="absolute inset-0 z-0">
           <img
             src={valueImage}
             alt="High-quality building materials on a construction site"
             className="w-full h-full object-cover"
           />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/90 via-slate-950/40 to-transparent" />
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2">
-            {/* The Text Box with the "Drak Dimming/Filter" */}
-            <div className="bg-slate-900/80 backdrop-blur-md p-8 md:p-16 rounded-3xl shadow-2xl border border-white/10 max-w-2xl">
-              <h2 className="text-3xl md:text-5xl font-black mb-8 leading-tight text-white uppercase tracking-tight italic">
-                Quality <span className="text-primary">Materials</span> = Long-Term Value
-              </h2>
-              <p className="text-lg text-slate-200 mb-8 leading-relaxed">
-                Research shows that buildings using sub-standard materials can incur up to 40% higher maintenance costs over 20 years. Poor material choices lead to:
-              </p>
-              <ul className="space-y-6">
-                {[
-                  "Premature structural degradation",
-                  "Increased repair and replacement frequency",
-                  "Lower property valuations",
-                  "Compliance failures and legal risks",
-                ].map((item, index) => (
-                  <li key={index} className="flex items-start gap-4">
-                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
-                      <CheckCircle2 className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="text-lg text-slate-100 font-medium">{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <div className="max-w-2xl text-white">
+            <h2 className="text-3xl md:text-6xl font-black mb-8 leading-tight text-white uppercase tracking-tight italic drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
+              Quality <span className="text-primary">Materials</span> = Long-Term Value
+            </h2>
+            <p className="text-lg md:text-xl text-slate-100 mb-10 leading-relaxed font-bold drop-shadow-md max-w-xl">
+              Research shows that buildings using sub-standard materials can incur up to 40% higher maintenance costs over 20 years. Poor material choices lead to:
+            </p>
+            <ul className="space-y-6">
+              {[
+                "Premature structural degradation",
+                "Increased repair and replacement frequency",
+                "Lower property valuations",
+                "Compliance failures and legal risks",
+              ].map((item, index) => (
+                <li key={index} className="flex items-start gap-4">
+                  <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                  </div>
+                  <span className="text-lg md:text-xl text-white font-bold drop-shadow-md">{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       </section>
