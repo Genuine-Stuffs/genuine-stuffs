@@ -232,13 +232,23 @@ const Index = () => {
       </section>
 
       {/* Brand Purpose / Why We Exist - Dark Mode Enhanced */}
-      <section className="py-24 bg-white dark:bg-background border-y border-slate-100 dark:border-border">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-            <div className="order-2 lg:order-1">
+      <section className="relative min-h-[600px] flex items-center overflow-hidden border-y border-slate-100 dark:border-border lg:py-0 py-16">
+        {/* Full-bleed Image Background (No global dimming) */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src={trustImage} 
+            alt="Verified construction materials on site" 
+            className="w-full h-full object-cover" 
+          />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            {/* The Text Box with the "Drak Dimming/Filter" */}
+            <div className="bg-slate-900/80 backdrop-blur-md p-8 md:p-16 rounded-3xl lg:rounded-r-none lg:-ml-4 shadow-2xl border border-white/10 max-w-2xl">
               <div className="inline-block p-2 bg-primary/10 rounded-lg text-primary text-xs font-black uppercase tracking-widest mb-6">Our Core Focus</div>
-              <h2 className="text-4xl md:text-5xl font-black mb-8 leading-tight text-slate-900 dark:text-white">Restoring <span className="text-primary italic">Trust</span> to the Site</h2>
-              <p className="text-lg text-slate-600 dark:text-slate-400 mb-8 leading-relaxed">
+              <h2 className="text-4xl md:text-5xl font-black mb-8 leading-tight text-white italic">Restoring <span className="text-primary">Trust</span> to the Site</h2>
+              <p className="text-lg text-slate-200 mb-8 leading-relaxed">
                 We believe that every successful project starts with quality inputs. Our ecosystem bridges the gap between major suppliers and end-users.
               </p>
               <div className="space-y-4">
@@ -248,21 +258,14 @@ const Index = () => {
                   { label: "Expert Advisory", desc: "Site management guidance from seasoned pros." },
                   { label: "Price Transparency", desc: "Eliminating the 'middle-man' markup." }
                 ].map((item, i) => (
-                  <div key={i} className="flex gap-4 items-start p-4 rounded-2xl bg-slate-50 dark:bg-card border border-slate-100 dark:border-border">
+                  <div key={i} className="flex gap-4 items-start p-4 rounded-2xl bg-white/10 dark:bg-slate-800/40 border border-white/10 dark:border-slate-700">
                     <CheckCircle2 className="w-6 h-6 text-primary flex-shrink-0" />
                     <div>
-                      <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-tighter">{item.label}</h4>
-                      <p className="text-sm text-slate-500 dark:text-slate-500 font-medium">{item.desc}</p>
+                      <h4 className="font-black text-white uppercase tracking-tighter">{item.label}</h4>
+                      <p className="text-sm text-slate-300 font-medium">{item.desc}</p>
                     </div>
                   </div>
                 ))}
-              </div>
-            </div>
-            <div className="order-1 lg:order-2 rounded-3xl overflow-hidden md:shadow-xl relative aspect-square lg:aspect-video border-8 border-white dark:border-card">
-              <img src={trustImage} alt="Verified construction materials on site" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 to-transparent" />
-              <div className="absolute bottom-8 left-8 right-8">
-                <p className="text-white text-xl md:text-2xl font-black italic tracking-tight leading-tight">"Efficiency is not just speed; it is building with the right materials the first time."</p>
               </div>
             </div>
           </div>
@@ -354,37 +357,42 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Material Quality Visual */}
-      <section className="py-20 bg-secondary/30">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl md:text-4xl font-bold mb-6">
-                Quality Materials = Long-Term Value
+      {/* Material Quality Visual - Overlay Refined */}
+      <section className="relative min-h-[600px] flex items-center overflow-hidden border-y border-slate-900 lg:py-0 py-16">
+        {/* Full-bleed Image Background (No global dimming) */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src={valueImage}
+            alt="High-quality building materials on a construction site"
+            className="w-full h-full object-cover"
+          />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            {/* The Text Box with the "Drak Dimming/Filter" */}
+            <div className="bg-slate-900/80 backdrop-blur-md p-8 md:p-16 rounded-3xl shadow-2xl border border-white/10 max-w-2xl">
+              <h2 className="text-3xl md:text-5xl font-black mb-8 leading-tight text-white uppercase tracking-tight italic">
+                Quality <span className="text-primary">Materials</span> = Long-Term Value
               </h2>
-              <p className="text-lg text-muted-foreground mb-6">
+              <p className="text-lg text-slate-200 mb-8 leading-relaxed">
                 Research shows that buildings using sub-standard materials can incur up to 40% higher maintenance costs over 20 years. Poor material choices lead to:
               </p>
-              <ul className="space-y-4">
+              <ul className="space-y-6">
                 {[
                   "Premature structural degradation",
                   "Increased repair and replacement frequency",
                   "Lower property valuations",
                   "Compliance failures and legal risks",
                 ].map((item, index) => (
-                  <li key={index} className="flex items-start">
-                    <CheckCircle2 className="w-6 h-6 text-primary mr-3 flex-shrink-0 mt-0.5" />
-                    <span className="text-lg">{item}</span>
+                  <li key={index} className="flex items-start gap-4">
+                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0 mt-1">
+                      <CheckCircle2 className="w-4 h-4 text-primary" />
+                    </div>
+                    <span className="text-lg text-slate-100 font-medium">{item}</span>
                   </li>
                 ))}
               </ul>
-            </div>
-            <div className="rounded-lg overflow-hidden md:shadow-md aspect-video">
-              <img
-                src={valueImage}
-                alt="High-quality building materials on a construction site"
-                className="w-full h-full object-cover"
-              />
             </div>
           </div>
         </div>
