@@ -97,7 +97,7 @@ const Index = () => {
   const categories = [
     { title: "Hire Professionals", img: "/images/cats/professionals.png", link: "/pros", blend: true },
     { title: "Hire Artisans", img: "/images/cats/artisans.png", link: "/pros", blend: true },
-    { title: "Equipment", img: "/images/cats/equipment.png", scale: "scale-100", blend: false },
+    { title: "Equipment", img: "/images/cats/equipment.png", scale: "scale-100", blend: true },
     { title: "Sand", img: "/images/cats/sand.png", scale: "scale-100", blend: false },
     { title: "Stones", img: "/images/cats/stones.png", scale: "scale-100", blend: false },
     { title: "Cement", img: "/images/cats/cement.png", scale: "scale-[1.6]", blend: true },
@@ -109,7 +109,7 @@ const Index = () => {
     { title: "Finishing & Tiles", img: "/images/cats/finishing.png", scale: "scale-100", blend: false },
     { title: "Bricks", img: "/images/cats/bricks.png", scale: "scale-[1.5]", blend: true },
     { title: "Blocks", img: "/images/cats/blocks.png", scale: "scale-[1.5]", blend: true },
-    { title: "Logistics", img: "/images/cats/logistics.png", scale: "scale-100", blend: false },
+    { title: "Logistics", img: "/images/cats/logistics.png", scale: "scale-100", blend: true },
     { title: "Tools", img: "/images/cats/tools.png", scale: "scale-[1.3]", blend: true },
     { title: "Building AI Studio", img: "/images/cats/ai.png", link: "/pro/ai-studio", scale: "scale-[1.2]", blend: true },
   ];
