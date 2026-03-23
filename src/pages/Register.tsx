@@ -616,27 +616,6 @@ const Register = () => {
                                     </div>
                                 )}
 
-                                <div className="pt-10 flex flex-col md:flex-row justify-between items-center gap-4 border-t dark:border-white/10">
-                                    <div className="w-full md:w-auto order-2 md:order-1">
-                                        {role === 'vendor' && step > 1 && (
-                                            <Button variant="ghost" onClick={handleBack} className="w-full md:w-auto h-12 md:h-14 font-black uppercase tracking-widest text-[10px] gap-2 hover:bg-slate-100 dark:hover:bg-white/5">
-                                                <ChevronLeft className="w-4 h-4" /> Back
-                                            </Button>
-                                        )}
-                                    </div>
-                                    <Button 
-                                        onClick={handleNext} 
-                                        disabled={isLoading} 
-                                        className="w-full md:w-auto h-14 md:px-10 rounded-2xl font-black uppercase tracking-widest text-xs shadow-none md:shadow-xl md:shadow-primary/20 gap-3 order-1 md:order-2"
-                                    >
-                                        {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
-                                            <>
-                                                {role === 'professional' || step === 4 ? "Complete Registration" : "Continue"}
-                                                <ChevronRight className="w-4 h-4" />
-                                            </>
-                                        )}
-                                    </Button>
-                                </div>
                             </div>
                         </CardContent>
                     </Card>
