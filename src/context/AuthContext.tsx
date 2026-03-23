@@ -38,15 +38,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         initAuth();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            setSession(session);
-            setUser(session?.user ?? null);
-            const userRole = (session?.user?.user_metadata?.role as Role) || 'guest';
-            setRole(userRole);
-            setIsLoading(false);
-
-            // Removed aggressive global redirection to prevent unintended "page flips" during navigation.
-            // Redirections are now handled explicitly in login/registration flows.
-            if (event === 'SIGNED_IN') {
+            if (event === 'SIGNED_OUT') {
+                // Explicitly clear all auth state immediately
+                setUser(null);
+                setSession(null);
+                setRole('guest');
+                setIsLoading(false);
+                navigate("/");
+            } else {
+                setSession(session);
+                setUser(session?.user ?? null);
+                const userRole = (session?.user?.user_metadata?.role as Role) || 'guest';
+                setRole(userRole);
                 setIsLoading(false);
             }
         });
@@ -74,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const logout = async () => {
         await supabase.auth.signOut();
-        navigate("/");
+        // Navigation and state clearing now handled by the SIGNED_OUT event in onAuthStateChange
         toast.success("Successfully logged out.");
     };
 
