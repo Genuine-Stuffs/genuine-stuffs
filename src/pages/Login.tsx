@@ -51,7 +51,7 @@ const Login = () => {
     return (
         <div className="min-h-screen bg-background transition-colors duration-300 flex flex-col">
             {/* Header with Logo and Star on the same line */}
-            <div className="w-full px-6 pt-6 md:pt-10 flex items-center relative">
+            <div className="w-full px-6 pt-2 md:pt-10 flex items-center relative">
                 <div className="absolute left-6 md:left-10">
                     <Link to="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
                         <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
@@ -75,17 +75,17 @@ const Login = () => {
                 </div>
             </div>
 
-            <main className="flex-1 container mx-auto px-4 pt-6 md:pt-4 pb-8 flex flex-col items-center justify-center">
+            <main className="flex-1 container mx-auto px-4 pt-2 md:pt-4 pb-8 flex flex-col items-center justify-center">
                 <div className="w-full max-w-lg">
                     <Card className="border-none shadow-2xl bg-sky-50/50 dark:bg-white/5 backdrop-blur-xl rounded-[2.5rem] overflow-hidden transition-all duration-500">
-                        <CardHeader className="bg-sky-100/50 dark:bg-sky-900/10 p-6 text-center border-b dark:border-white/10">
+                        <CardHeader className="bg-sky-100/50 dark:bg-sky-900/10 p-4 md:p-6 text-center border-b dark:border-white/10">
                             <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center justify-center gap-3">
                                 <KeyRound className="w-5 h-5 text-primary" /> Secure Gateway
                             </CardTitle>
                         </CardHeader>
 
-                        <CardContent className="p-6 md:p-8">
-                            <div className="space-y-6">
+                        <CardContent className="p-4 md:p-8">
+                            <div className="space-y-2 md:space-y-6">
                                 <Button
                                     onClick={signInWithGoogle}
                                     variant="outline"
@@ -163,7 +163,7 @@ const Login = () => {
                         </CardContent>
                     </Card>
 
-                    <div className="mt-10 text-center space-y-4">
+                    <div className="mt-2 text-center space-y-4">
                         <p className="text-xs font-medium text-slate-500">
                             New here? <Link to="/register" className="text-primary font-black uppercase tracking-widest text-[10px] ml-1 hover:underline">Join the ecosystem</Link>
                         </p>
