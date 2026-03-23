@@ -19,25 +19,25 @@ const Footer = () => {
 
           {/* Quick Links */}
           <div className="lg:col-span-2">
-            <h3 className="font-bold text-slate-900 text-base uppercase tracking-wider mb-6">Quick Links</h3>
+            <h3 className="font-bold text-slate-900 dark:text-white text-base uppercase tracking-wider mb-6">Quick Links</h3>
             <ul className="space-y-4">
               <li>
-                <Link to="/services" className="text-sm text-slate-500 font-medium hover:text-primary transition-colors block">
+                <Link to="/services" className="text-sm text-slate-500 dark:text-slate-400 font-medium hover:text-primary transition-colors block">
                   Our Services
                 </Link>
               </li>
               <li>
-                <Link to="/resources" className="text-sm text-slate-500 font-medium hover:text-primary transition-colors block">
+                <Link to="/resources" className="text-sm text-slate-500 dark:text-slate-400 font-medium hover:text-primary transition-colors block">
                   Resources
                 </Link>
               </li>
               <li>
-                <Link to="/about" className="text-sm text-slate-500 font-medium hover:text-primary transition-colors block">
+                <Link to="/about" className="text-sm text-slate-500 dark:text-slate-400 font-medium hover:text-primary transition-colors block">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link to="/contact" className="text-sm text-slate-500 font-medium hover:text-primary transition-colors block">
+                <Link to="/contact" className="text-sm text-slate-500 dark:text-slate-400 font-medium hover:text-primary transition-colors block">
                   Contact
                 </Link>
               </li>
@@ -46,7 +46,7 @@ const Footer = () => {
 
           {/* Specialties */}
           <div className="lg:col-span-3">
-            <h3 className="font-bold text-slate-900 text-base uppercase tracking-wider mb-6">Our Specialties</h3>
+            <h3 className="font-bold text-slate-900 dark:text-white text-base uppercase tracking-wider mb-6">Our Specialties</h3>
             <ul className="space-y-4">
               {[
                 "Verified Materials Marketplace",
@@ -56,24 +56,24 @@ const Footer = () => {
                 "Value Assurance Services",
                 "Training & Knowledge Hub"
               ].map((specialty, i) => (
-                <li key={i} className="text-sm text-slate-500 font-medium">{specialty}</li>
+                <li key={i} className="text-sm text-slate-500 dark:text-slate-400 font-medium">{specialty}</li>
               ))}
             </ul>
           </div>
 
           {/* Contact */}
           <div className="lg:col-span-3">
-            <h3 className="font-bold text-slate-900 text-base uppercase tracking-wider mb-6">Contact Us</h3>
+            <h3 className="font-bold text-slate-900 dark:text-white text-base uppercase tracking-wider mb-6">Contact Us</h3>
             <ul className="space-y-4">
-              <li className="flex items-center space-x-3 text-sm text-slate-500 font-medium">
+              <li className="flex items-center space-x-3 text-sm text-slate-500 dark:text-slate-400 font-medium">
                 <Mail className="w-5 h-5 text-primary" />
-                <span>contact@genuinestuffs.com</span>
+                <span className="dark:text-slate-300">contact@genuinestuffs.com</span>
               </li>
-              <li className="flex items-start space-x-3 text-sm text-slate-500 font-medium">
+              <li className="flex items-start space-x-3 text-sm text-slate-500 dark:text-slate-400 font-medium">
                 <Linkedin className="w-5 h-5 text-primary mt-0.5" />
                 <div>
-                  <a href="#" className="hover:text-primary transition-colors block font-semibold text-slate-700">LinkedIn</a>
-                  <span className="block mt-1">Ikoyi, Lagos, Nigeria</span>
+                  <a href="#" className="hover:text-primary transition-colors block font-semibold text-slate-700 dark:text-slate-200">LinkedIn</a>
+                  <span className="block mt-1 dark:text-slate-400">Ikoyi, Lagos, Nigeria</span>
                 </div>
               </li>
             </ul>
