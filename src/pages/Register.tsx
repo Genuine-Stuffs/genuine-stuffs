@@ -440,16 +440,16 @@ const Register = () => {
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label>Personal State *</Label>
+                                                        <Label>State *</Label>
                                                         <Input placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label>Personal City *</Label>
+                                                        <Label>City *</Label>
                                                         <Input placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label>Personal Street Address *</Label>
+                                                    <Label>Street Address *</Label>
                                                     <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} />
                                                 </div>
                                             </div>
@@ -472,16 +472,16 @@ const Register = () => {
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label>Business State *</Label>
+                                                        <Label>State *</Label>
                                                         <Input placeholder="Lagos" value={formData.bizState} onChange={(e) => handleInputChange('bizState', e.target.value)} />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label>Business City *</Label>
+                                                        <Label>City *</Label>
                                                         <Input placeholder="Ikeja" value={formData.bizCity} onChange={(e) => handleInputChange('bizCity', e.target.value)} />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label>Business Street Address *</Label>
+                                                    <Label>Street Address *</Label>
                                                     <Input placeholder="123 Main St" value={formData.bizStreetAddress} onChange={(e) => handleInputChange('bizStreetAddress', e.target.value)} />
                                                 </div>
                                             </div>
