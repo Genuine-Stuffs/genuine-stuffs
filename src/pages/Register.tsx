@@ -99,6 +99,19 @@ const Register = () => {
         if (e) e.preventDefault();
         setIsLoading(true);
 
+        // Validation
+        const requiredFields = [
+            'firstName', 'lastName', 'proType', 'email', 'password',
+            'streetAddress', 'city', 'state', 'country', 'nationality'
+        ];
+        const missingFields = requiredFields.filter(f => !formData[f as keyof typeof formData]);
+        
+        if (missingFields.length > 0) {
+            toast.error("Please fill in all required fields marked with *");
+            setIsLoading(false);
+            return;
+        }
+
         try {
             const { data: authData, error: authError } = await supabase.auth.signUp({
                 email: formData.email,
@@ -183,21 +196,42 @@ const Register = () => {
     };
 
     const vendorSteps = [
-        { id: 1, title: "Owner Info", icon: User },
-        { id: 2, title: "Company", icon: Building2 },
-        { id: 3, title: "Inventory", icon: FileText },
-        { id: 4, title: "Trust", icon: CheckCircle2 },
+        { id: 1, title: "Owner Info *", icon: User },
+        { id: 2, title: "Company *", icon: Building2 },
+        { id: 3, title: "Inventory *", icon: FileText },
+        { id: 4, title: "Trust *", icon: CheckCircle2 },
     ];
 
     const handleNext = () => {
         if (role === 'professional') {
             handleProSubmit();
         } else {
-            if (step === 4) {
+            // Vendor Validation by Step
+            if (step === 1) {
+                if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+                    toast.error("Please fill in all owner information");
+                    return;
+                }
+            } else if (step === 2) {
+                const step2Fields = ['companyName', 'bizRegNumber', 'phone', 'nationality', 'country', 'state', 'city', 'streetAddress'];
+                if (step2Fields.some(f => !formData[f as keyof typeof formData])) {
+                    toast.error("Please fill in all company information");
+                    return;
+                }
+            } else if (step === 3) {
+                if (formData.categories.length === 0) {
+                    toast.error("Please select at least one category");
+                    return;
+                }
+            } else if (step === 4) {
+                if (!formData.bizCertificate || !formData.govId) {
+                    toast.error("Please upload all required documents");
+                    return;
+                }
                 handleVendorSubmit();
-            } else {
-                setStep(prev => prev + 1);
+                return;
             }
+            setStep(prev => prev + 1);
         }
     };
 
@@ -305,44 +339,44 @@ const Register = () => {
                                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label htmlFor="pro-first-name">First Name</Label>
+                                                <Label htmlFor="pro-first-name">First Name *</Label>
                                                 <Input id="pro-first-name" placeholder="John" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="pro-last-name">Surname</Label>
+                                                <Label htmlFor="pro-last-name">Surname *</Label>
                                                 <Input id="pro-last-name" placeholder="Doe" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="pro-type">Discipline</Label>
+                                                <Label htmlFor="pro-type">Discipline *</Label>
                                                 <Input id="pro-type" placeholder="e.g. Architect" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="pro-nationality">Nationality</Label>
+                                                <Label htmlFor="pro-nationality">Nationality *</Label>
                                                 <Input id="pro-nationality" placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="pro-country">Country of Residence</Label>
+                                                <Label htmlFor="pro-country">Country of Residence *</Label>
                                                 <Input id="pro-country" placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="pro-state">State</Label>
+                                                <Label htmlFor="pro-state">State *</Label>
                                                 <Input id="pro-state" placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="pro-city">City</Label>
+                                                <Label htmlFor="pro-city">City *</Label>
                                                 <Input id="pro-city" placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label htmlFor="pro-address">Street Address</Label>
+                                                <Label htmlFor="pro-address">Street Address *</Label>
                                                 <Input id="pro-address" placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="pro-email">Email Address</Label>
+                                            <Label htmlFor="pro-email">Email Address *</Label>
                                             <Input id="pro-email" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} />
                                         </div>
                                         <div className="space-y-2">
-                                            <Label htmlFor="pro-password">Password</Label>
+                                            <Label htmlFor="pro-password">Password *</Label>
                                             <div className="relative">
                                                 <Input id="pro-password" type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} />
                                                 <button onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -358,20 +392,20 @@ const Register = () => {
                                             <div className="space-y-4">
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label>First Name</Label>
+                                                        <Label>First Name *</Label>
                                                         <Input value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label>Last Name</Label>
+                                                        <Label>Last Name *</Label>
                                                         <Input value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label>Email</Label>
+                                                    <Label>Email *</Label>
                                                     <Input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label>Password</Label>
+                                                    <Label>Password *</Label>
                                                     <div className="relative">
                                                         <Input 
                                                             type={showPassword ? "text" : "password"} 
@@ -393,41 +427,41 @@ const Register = () => {
                                         {step === 2 && (
                                             <div className="space-y-4">
                                                 <div className="space-y-2">
-                                                    <Label>Company Name</Label>
+                                                    <Label>Company Name *</Label>
                                                     <Input value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} />
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label>CAC / Reg Number</Label>
+                                                        <Label>CAC / Reg Number *</Label>
                                                         <Input value={formData.bizRegNumber} onChange={(e) => handleInputChange('bizRegNumber', e.target.value)} />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label>Phone</Label>
+                                                        <Label>Phone *</Label>
                                                         <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label>Nationality</Label>
+                                                        <Label>Nationality *</Label>
                                                         <Input placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label>Country of Residence</Label>
+                                                        <Label>Country of Residence *</Label>
                                                         <Input placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} />
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label>State</Label>
+                                                        <Label>State *</Label>
                                                         <Input placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label>City</Label>
+                                                        <Label>City *</Label>
                                                         <Input placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label>Street Address</Label>
+                                                    <Label>Street Address *</Label>
                                                     <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} />
                                                 </div>
                                             </div>
@@ -456,7 +490,7 @@ const Register = () => {
                                                     />
                                                     <Upload className={`w-8 h-8 mx-auto mb-4 ${formData.bizCertificate ? 'text-green-500' : 'text-primary'}`} />
                                                     <p className="text-[10px] font-black uppercase tracking-widest truncate max-w-full px-2">
-                                                        {formData.bizCertificate ? formData.bizCertificate.name : "Biz Certificate"}
+                                                        {formData.bizCertificate ? formData.bizCertificate.name : "Biz Certificate *"}
                                                     </p>
                                                 </div>
                                                 <div 
@@ -471,7 +505,7 @@ const Register = () => {
                                                     />
                                                     <Upload className={`w-8 h-8 mx-auto mb-4 ${formData.govId ? 'text-green-500' : 'text-primary'}`} />
                                                     <p className="text-[10px] font-black uppercase tracking-widest truncate max-w-full px-2">
-                                                        {formData.govId ? formData.govId.name : "Gov ID"}
+                                                        {formData.govId ? formData.govId.name : "Gov ID *"}
                                                     </p>
                                                 </div>
                                             </div>
