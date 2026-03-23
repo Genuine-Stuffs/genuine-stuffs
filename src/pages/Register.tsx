@@ -74,8 +74,6 @@ const Register = () => {
         lastName: "",
         companyName: "",
         bizRegNumber: "",
-        address: "",
-        city: "",
         phone: "",
         categories: [] as string[],
         bizCertificate: null as File | null,
@@ -208,12 +206,12 @@ const Register = () => {
         } else {
             // Vendor Validation by Step
             if (step === 1) {
-                if (!formData.firstName || !formData.lastName || !formData.email || !formData.password) {
+                if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.nationality || !formData.country) {
                     toast.error("Please fill in all owner information");
                     return;
                 }
             } else if (step === 2) {
-                const step2Fields = ['companyName', 'bizRegNumber', 'phone', 'nationality', 'country', 'state', 'city', 'streetAddress'];
+                const step2Fields = ['companyName', 'bizRegNumber', 'phone', 'state', 'city', 'streetAddress'];
                 if (step2Fields.some(f => !formData[f as keyof typeof formData])) {
                     toast.error("Please fill in all company information");
                     return;
@@ -422,6 +420,16 @@ const Register = () => {
                                                         </button>
                                                     </div>
                                                 </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label>Nationality *</Label>
+                                                        <Input placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Country of Residence *</Label>
+                                                        <Input placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} />
+                                                    </div>
+                                                </div>
                                             </div>
                                         )}
                                         {step === 2 && (
@@ -438,16 +446,6 @@ const Register = () => {
                                                     <div className="space-y-2">
                                                         <Label>Phone *</Label>
                                                         <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
-                                                    </div>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-2">
-                                                        <Label>Nationality *</Label>
-                                                        <Input placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label>Country of Residence *</Label>
-                                                        <Input placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} />
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
