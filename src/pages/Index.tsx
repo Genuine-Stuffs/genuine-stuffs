@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import {
   CheckCircle2,
   TrendingDown,
@@ -28,8 +30,7 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
+  type CarouselApi,
 } from "@/components/ui/carousel";
 
 import Autoplay from "embla-carousel-autoplay";
@@ -43,6 +44,20 @@ import valueImage from "@/assets/thematic/value.png";
 
 const Index = () => {
   const { role } = useAuth();
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (!api) return;
+
+    setCount(api.scrollSnapList().length);
+    setCurrent(api.selectedScrollSnap());
+
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+    });
+  }, [api]);
   const benefits = [
     {
       icon: TrendingDown,
@@ -122,10 +137,11 @@ const Index = () => {
       <Navbar />
 
       {/* Panoramic Hero Carousel */}
-      <section className="relative w-full overflow-hidden bg-slate-900">
+      <section className="relative w-full overflow-hidden bg-slate-900 border-b border-sky-100 dark:border-border">
         <Carousel 
           className="w-full" 
           opts={{ loop: true }}
+          setApi={setApi}
           plugins={[
             Autoplay({
               delay: 12000,
@@ -170,9 +186,21 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-8 z-30">
-            <CarouselPrevious className="relative left-0 translate-y-0 h-12 w-12 bg-white/20 hover:bg-white/40 border-none text-white transition-all backdrop-blur-md" />
-            <CarouselNext className="relative right-0 translate-y-0 h-12 w-12 bg-white/20 hover:bg-white/40 border-none text-white transition-all backdrop-blur-md" />
+          {/* Pagination Dots */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
+            {Array.from({ length: count }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => api?.scrollTo(i)}
+                className={cn(
+                  "w-2.5 h-2.5 rounded-full transition-all duration-300",
+                  current === i 
+                    ? "bg-white w-8" 
+                    : "bg-white/40 hover:bg-white/60"
+                )}
+                aria-label={`Go to slide ${i + 1}`}
+              />
+            ))}
           </div>
         </Carousel>
       </section>
