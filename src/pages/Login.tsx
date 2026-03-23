@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Logo from "@/components/Logo";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
@@ -50,22 +51,13 @@ const Login = () => {
 
     return (
         <div className="min-h-screen bg-background transition-colors duration-300 flex flex-col">
-            {/* Header with Logo and Star on the same line */}
-            <div className="w-full px-6 pt-2 md:pt-10 flex items-center relative">
-                <div className="absolute left-6 md:left-10">
-                    <Link to="/" className="flex items-center gap-2 group transition-transform hover:scale-105">
-                        <div className="w-8 h-8 md:w-10 md:h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
-                            <span className="text-white font-black text-lg md:text-xl">GS</span>
-                        </div>
-                        <div className="hidden sm:flex flex-col">
-                            <span className="text-sm md:text-base font-black tracking-tighter leading-none dark:text-white uppercase transition-colors group-hover:text-primary">
-                                GENUINE<span className="text-primary italic group-hover:text-inherit">STUFFS</span>
-                            </span>
-                            <span className="text-[6px] md:text-[7px] font-bold tracking-[0.2em] text-slate-500 uppercase">A Data-Driven Ecosystem</span>
-                        </div>
+            <div className="w-full px-6 pt-4 md:pt-10 flex flex-col md:flex-row items-center md:items-center relative">
+                <div className="md:absolute md:left-10 mb-4 md:mb-0">
+                    <Link to="/" className="group transition-transform hover:scale-105">
+                        <Logo iconClassName="h-8 md:h-10" />
                     </Link>
                 </div>
-                <div className="mx-auto text-center mt-2 md:mt-0">
+                <div className="mx-auto text-center">
                     <h1 className="text-3xl md:text-4xl font-black mb-1 md:mb-2 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
                         Welcome <span className="text-primary italic">Back</span>
                     </h1>

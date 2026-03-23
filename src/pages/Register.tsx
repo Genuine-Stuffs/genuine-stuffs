@@ -24,6 +24,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import Logo from "@/components/Logo";
 /*
 ### 🎨 Aesthetic Overhaul (Calibrated)
 - **10% Contrast Gap**: Based on your feedback, I set the global **Background to 20% lightness** and the **Cards to 30% lightness**. This creates a sharp, premium separation while keeping the interface "dim" and comfortable.
@@ -221,21 +222,27 @@ const Register = () => {
     }
 
     return (
-        <div className="min-h-screen bg-background transition-colors duration-300">
-            <Navbar />
+        <div className="min-h-screen bg-background transition-colors duration-300 flex flex-col">
+            <div className="w-full px-6 pt-4 md:pt-10 flex flex-col md:flex-row items-center md:items-center relative">
+                <div className="md:absolute md:left-10 mb-4 md:mb-0">
+                    <Link to="/" className="group transition-transform hover:scale-105">
+                        <Logo iconClassName="h-8 md:h-10" />
+                    </Link>
+                </div>
+                <div className="mx-auto text-center">
+                    <h1 className="text-3xl md:text-4xl font-black mb-1 md:mb-2 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
+                        Join the <span className="text-primary italic">Ecosystem</span>
+                    </h1>
+                    <p className="text-[10px] md:text-sm text-muted-foreground dark:text-slate-400 font-medium italic hidden sm:block">
+                        Select your account type to proceed.
+                    </p>
+                </div>
+            </div>
 
-            <main className="container mx-auto px-4 py-12 flex justify-center">
+            <main className="flex-1 container mx-auto px-4 py-4 md:py-8 flex flex-col items-center justify-center">
                 <div className="w-full max-w-3xl">
-                    {/* Role Header */}
-                    <div className="text-center mb-8">
-                        <h1 className="text-4xl md:text-6xl font-black mb-4 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
-                            Join the <span className="text-primary italic">Ecosystem</span>
-                        </h1>
-                        <p className="text-muted-foreground dark:text-slate-400 font-medium italic">Select your account type to proceed.</p>
-                    </div>
-
                     {/* Role Toggle */}
-                    <div className="flex p-1.5 bg-sky-100/30 dark:bg-white/5 rounded-2xl mb-12 max-w-md mx-auto border dark:border-white/10">
+                    <div className="flex p-1.5 bg-sky-100/30 dark:bg-white/5 rounded-2xl mb-6 md:mb-12 max-w-md mx-auto border dark:border-white/10">
                         <button
                             onClick={() => { setRole('professional'); setStep(1); }}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${role === 'professional' ? 'bg-white dark:bg-white/10 shadow-sm text-primary' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
@@ -267,18 +274,18 @@ const Register = () => {
                             </div>
                         )}
 
-                        <CardContent className="p-8 md:p-12">
+                        <CardContent className="p-4 md:p-12">
                             {/* Common Header */}
-                            <div className="mb-10 text-center">
-                                <h2 className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
+                            <div className="mb-6 md:mb-10 text-center">
+                                <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
                                     {role === 'professional' ? "Pro Registration" : vendorSteps[step - 1].title}
                                 </h2>
-                                <p className="text-sm text-slate-500 italic mt-1 font-medium">
+                                <p className="text-xs md:text-sm text-slate-500 italic mt-1 font-medium">
                                     {role === 'professional' ? "Access AI-powered innovation tools." : "Tell us about your materials business."}
                                 </p>
                             </div>
 
-                            <div className="space-y-8">
+                            <div className="space-y-4 md:space-y-8">
                                 {role === 'professional' ? (
                                     /* PRO FORM */
                                     <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
