@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
     Check,
@@ -14,8 +14,16 @@ import {
     Upload,
     FileText,
     CheckCircle2,
-    Sparkles
+    Sparkles,
+    Globe
 } from "lucide-react";
+import { 
+    Select, 
+    SelectContent, 
+    SelectItem, 
+    SelectTrigger, 
+    SelectValue 
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,6 +65,20 @@ const Register = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState<Record<string, boolean>>({});
 
+    // Geographic Data State
+    const [countries, setCountries] = useState<string[]>([]);
+    const [states, setStates] = useState<string[]>([]);
+    const [cities, setCities] = useState<string[]>([]);
+    const [bizStates, setBizStates] = useState<string[]>([]);
+    const [bizCities, setBizCities] = useState<string[]>([]);
+    const [isLoadingGeo, setIsLoadingGeo] = useState({
+        countries: false,
+        states: false,
+        cities: false,
+        bizStates: false,
+        bizCities: false
+    });
+
     // Form Data
     const [formData, setFormData] = useState({
         // Generic
@@ -84,6 +106,132 @@ const Register = () => {
         bizCertificate: null as File | null,
         govId: null as File | null
     });
+
+    // Fetch Countries on Mount
+    useEffect(() => {
+        const fetchCountries = async () => {
+            setIsLoadingGeo(prev => ({ ...prev, countries: true }));
+            try {
+                const res = await fetch('https://countriesnow.space/api/v0.1/countries/positions');
+                const data = await res.json();
+                if (!data.error) {
+                    const countryNames = data.data.map((c: any) => c.name).sort();
+                    setCountries(countryNames);
+                }
+            } catch (err) {
+                console.error("Failed to fetch countries", err);
+            } finally {
+                setIsLoadingGeo(prev => ({ ...prev, countries: false }));
+            }
+        };
+        fetchCountries();
+    }, []);
+
+    // Fetch States for Country of Residence
+    useEffect(() => {
+        if (!formData.country) {
+            setStates([]);
+            return;
+        }
+        const fetchStates = async () => {
+            setIsLoadingGeo(prev => ({ ...prev, states: true }));
+            try {
+                const res = await fetch('https://countriesnow.space/api/v0.1/countries/states', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ country: formData.country })
+                });
+                const data = await res.json();
+                if (!data.error) {
+                    const stateNames = data.data.states.map((s: any) => s.name).sort();
+                    setStates(stateNames);
+                }
+            } catch (err) {
+                console.error("Failed to fetch states", err);
+            } finally {
+                setIsLoadingGeo(prev => ({ ...prev, states: false }));
+            }
+        };
+        fetchStates();
+    }, [formData.country]);
+
+    // Fetch Cities for State
+    useEffect(() => {
+        if (!formData.country || !formData.state) {
+            setCities([]);
+            return;
+        }
+        const fetchCities = async () => {
+            setIsLoadingGeo(prev => ({ ...prev, cities: true }));
+            try {
+                const res = await fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ country: formData.country, state: formData.state })
+                });
+                const data = await res.json();
+                if (!data.error) {
+                    setCities(data.data.sort());
+                }
+            } catch (err) {
+                console.error("Failed to fetch cities", err);
+            } finally {
+                setIsLoadingGeo(prev => ({ ...prev, cities: false }));
+            }
+        };
+        fetchCities();
+    }, [formData.country, formData.state]);
+
+    // Fetch States for Vendor Business Country (assume same country of residence for simplicity unless changed)
+    useEffect(() => {
+        // Business states/cities logic
+        if (role === 'vendor' && step === 2 && formData.country) {
+            const fetchBizStates = async () => {
+                setIsLoadingGeo(prev => ({ ...prev, bizStates: true }));
+                try {
+                    const res = await fetch('https://countriesnow.space/api/v0.1/countries/states', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ country: formData.country })
+                    });
+                    const data = await res.json();
+                    if (!data.error) {
+                        setBizStates(data.data.states.map((s: any) => s.name).sort());
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch biz states", err);
+                } finally {
+                    setIsLoadingGeo(prev => ({ ...prev, bizStates: false }));
+                }
+            };
+            fetchBizStates();
+        }
+    }, [role, step, formData.country]);
+
+    // Fetch Cities for Vendor Business State
+    useEffect(() => {
+        if (role === 'vendor' && step === 2 && formData.country && formData.bizState) {
+            const fetchBizCities = async () => {
+                setIsLoadingGeo(prev => ({ ...prev, bizCities: true }));
+                try {
+                    const res = await fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ country: formData.country, state: formData.bizState })
+                    });
+                    const data = await res.json();
+                    if (!data.error) {
+                        setBizCities(data.data.sort());
+                    }
+                } catch (err) {
+                    console.error("Failed to fetch biz cities", err);
+                } finally {
+                    setIsLoadingGeo(prev => ({ ...prev, bizCities: false }));
+                }
+            };
+            fetchBizCities();
+        }
+    }, [role, step, formData.country, formData.bizState]);
 
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -384,19 +532,55 @@ const Register = () => {
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-nationality" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nationality *</Label>
-                                                <Input id="pro-nationality" placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} className={`h-12 rounded-xl ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Select value={formData.nationality} onValueChange={(val) => handleInputChange('nationality', val)}>
+                                                    <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                        <SelectValue placeholder="Select Nationality" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="max-h-[300px]">
+                                                        {countries.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-country" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Country of Residence *</Label>
-                                                <Input id="pro-country" placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} className={`h-12 rounded-xl ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Select value={formData.country} onValueChange={(val) => { handleInputChange('country', val); handleInputChange('state', ''); handleInputChange('city', ''); }}>
+                                                    <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                        <SelectValue placeholder="Select Country" />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="max-h-[300px]">
+                                                        {countries.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-state" className="text-[10px] font-black uppercase tracking-widest text-slate-400">State *</Label>
-                                                <Input id="pro-state" placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} className={`h-12 rounded-xl ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Select 
+                                                    value={formData.state} 
+                                                    onValueChange={(val) => { handleInputChange('state', val); handleInputChange('city', ''); }}
+                                                    disabled={!formData.country || isLoadingGeo.states}
+                                                >
+                                                    <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                        <SelectValue placeholder={isLoadingGeo.states ? "Loading..." : "Select State"} />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="max-h-[300px]">
+                                                        {states.map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-city" className="text-[10px] font-black uppercase tracking-widest text-slate-400">City *</Label>
-                                                <Input id="pro-city" placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} className={`h-12 rounded-xl ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Select 
+                                                    value={formData.city} 
+                                                    onValueChange={(val) => handleInputChange('city', val)}
+                                                    disabled={!formData.state || isLoadingGeo.cities}
+                                                >
+                                                    <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                        <SelectValue placeholder={isLoadingGeo.cities ? "Loading..." : "Select City"} />
+                                                    </SelectTrigger>
+                                                    <SelectContent className="max-h-[300px]">
+                                                        {cities.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-address" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Street Address *</Label>
@@ -471,21 +655,57 @@ const Register = () => {
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nationality *</Label>
-                                                        <Input placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} className={`h-12 rounded-xl ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Select value={formData.nationality} onValueChange={(val) => handleInputChange('nationality', val)}>
+                                                            <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                                <SelectValue placeholder="Select Nationality" />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="max-h-[300px]">
+                                                                {countries.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                                                            </SelectContent>
+                                                        </Select>
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Country of Residence *</Label>
-                                                        <Input placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} className={`h-12 rounded-xl ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Select value={formData.country} onValueChange={(val) => { handleInputChange('country', val); handleInputChange('state', ''); handleInputChange('city', ''); }}>
+                                                            <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                                <SelectValue placeholder="Select Country" />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="max-h-[300px]">
+                                                                {countries.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                                                            </SelectContent>
+                                                        </Select>
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">State *</Label>
-                                                        <Input placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} className={`h-12 rounded-xl ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Select 
+                                                            value={formData.state} 
+                                                            onValueChange={(val) => { handleInputChange('state', val); handleInputChange('city', ''); }}
+                                                            disabled={!formData.country || isLoadingGeo.states}
+                                                        >
+                                                            <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                                <SelectValue placeholder={isLoadingGeo.states ? "Loading..." : "Select State"} />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="max-h-[300px]">
+                                                                {states.map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
+                                                            </SelectContent>
+                                                        </Select>
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">City *</Label>
-                                                        <Input placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} className={`h-12 rounded-xl ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Select 
+                                                            value={formData.city} 
+                                                            onValueChange={(val) => handleInputChange('city', val)}
+                                                            disabled={!formData.state || isLoadingGeo.cities}
+                                                        >
+                                                            <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                                <SelectValue placeholder={isLoadingGeo.cities ? "Loading..." : "Select City"} />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="max-h-[300px]">
+                                                                {cities.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                                                            </SelectContent>
+                                                        </Select>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1.5">
@@ -513,11 +733,33 @@ const Register = () => {
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">State *</Label>
-                                                        <Input placeholder="Lagos" value={formData.bizState} onChange={(e) => handleInputChange('bizState', e.target.value)} className={`h-12 rounded-xl ${errors.bizState ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Select 
+                                                            value={formData.bizState} 
+                                                            onValueChange={(val) => { handleInputChange('bizState', val); handleInputChange('bizCity', ''); }}
+                                                            disabled={!formData.country || isLoadingGeo.bizStates}
+                                                        >
+                                                            <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.bizState ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                                <SelectValue placeholder={isLoadingGeo.bizStates ? "Loading..." : "Select State"} />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="max-h-[300px]">
+                                                                {bizStates.map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
+                                                            </SelectContent>
+                                                        </Select>
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">City *</Label>
-                                                        <Input placeholder="Ikeja" value={formData.bizCity} onChange={(e) => handleInputChange('bizCity', e.target.value)} className={`h-12 rounded-xl ${errors.bizCity ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Select 
+                                                            value={formData.bizCity} 
+                                                            onValueChange={(val) => handleInputChange('bizCity', val)}
+                                                            disabled={!formData.bizState || isLoadingGeo.bizCities}
+                                                        >
+                                                            <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.bizCity ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                                <SelectValue placeholder={isLoadingGeo.bizCities ? "Loading..." : "Select City"} />
+                                                            </SelectTrigger>
+                                                            <SelectContent className="max-h-[300px]">
+                                                                {bizCities.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                                                            </SelectContent>
+                                                        </Select>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1.5">
