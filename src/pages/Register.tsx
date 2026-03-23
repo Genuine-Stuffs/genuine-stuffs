@@ -313,16 +313,16 @@ const Register = () => {
                     <h1 className="text-3xl md:text-4xl font-black mb-1 md:mb-2 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
                         Join the <span className="text-primary italic">Ecosystem</span>
                     </h1>
-                    <p className="text-[10px] md:text-sm text-muted-foreground dark:text-slate-400 font-medium italic hidden sm:block">
+                    <p className="text-xs md:text-sm text-muted-foreground dark:text-slate-400 font-medium italic hidden sm:block">
                         Select your account type to proceed.
                     </p>
                 </div>
             </div>
 
-            <main className="flex-1 container mx-auto px-4 py-4 md:py-8 flex flex-col items-center justify-center">
-                <div className="w-full max-w-3xl">
+            <main className="flex-1 container mx-auto px-4 pt-2 md:pt-4 pb-8 flex flex-col items-center justify-center">
+                <div className="w-full max-w-2xl">
                     {/* Role Toggle */}
-                    <div className="flex p-1.5 bg-sky-100/30 dark:bg-white/5 rounded-2xl mb-6 md:mb-12 max-w-md mx-auto border dark:border-white/10">
+                    <div className="flex p-1.5 bg-sky-100/30 dark:bg-white/5 rounded-2xl mb-6 md:mb-8 max-w-md mx-auto border dark:border-white/10">
                         <button
                             onClick={() => { setRole('professional'); setStep(1); }}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${role === 'professional' ? 'bg-white dark:bg-white/10 shadow-sm text-primary' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
@@ -337,10 +337,10 @@ const Register = () => {
                         </button>
                     </div>
 
-                    <Card className="border-none shadow-none md:shadow-2xl bg-white/80 dark:bg-white/5 backdrop-blur-xl rounded-[3rem] overflow-hidden transition-all duration-500">
+                    <Card className="border-none shadow-none md:shadow-2xl bg-sky-50/50 dark:bg-white/5 backdrop-blur-xl md:rounded-[2.5rem] overflow-hidden transition-all duration-500">
                         {/* Progress Header for Vendors */}
                         {role === 'vendor' && (
-                            <div className="bg-sky-100/30 dark:bg-sky-900/10 flex justify-between items-center p-6 border-b dark:border-white/10">
+                            <div className="bg-sky-100/50 dark:bg-sky-900/10 flex justify-between items-center p-4 md:p-6 border-b dark:border-white/10">
                                 {vendorSteps.map((s, idx) => (
                                     <div key={s.id} className={`flex items-center ${idx < vendorSteps.length - 1 ? "flex-1" : ""}`}>
                                         <div className={`flex items-center justify-center w-8 h-8 rounded-xl font-black text-[10px] shrink-0 transition-all ${step === s.id ? "bg-primary text-white scale-110" : step > s.id ? "bg-green-500 text-white" : "bg-slate-200 dark:bg-white/10 text-slate-400"}`}>
@@ -354,208 +354,265 @@ const Register = () => {
                             </div>
                         )}
 
-                        <CardContent className="p-4 md:p-12">
+                        <CardContent className="p-4 md:p-8">
                             {/* Common Header */}
-                            <div className="mb-6 md:mb-10 text-center">
-                                <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
-                                    {role === 'professional' ? "Pro Registration" : vendorSteps[step - 1].title}
+                            <div className="mb-6 md:mb-8 text-center">
+                                <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white flex items-center justify-center gap-3">
+                                    {role === 'professional' ? <><Sparkles className="w-5 h-5 text-primary" /> Pro Registration</> : vendorSteps[step - 1].title}
                                 </h2>
-                                <p className="text-xs md:text-sm text-slate-500 italic mt-1 font-medium">
+                                <p className="text-[10px] md:text-xs text-slate-500 italic mt-1 font-medium tracking-widest uppercase">
                                     {role === 'professional' ? "Access AI-powered innovation tools." : "Tell us about your materials business."}
                                 </p>
                             </div>
 
-                            <div className="space-y-4 md:space-y-8">
+                            <div className="space-y-4 md:space-y-6">
                                 {role === 'professional' ? (
                                     /* PRO FORM */
-                                    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label htmlFor="pro-first-name">First Name *</Label>
-                                                <Input id="pro-first-name" placeholder="John" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={errors.firstName ? "border-red-500 ring-offset-red-500" : ""} />
+                                    <div className="space-y-1.5 md:space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="pro-first-name" className="text-[10px] font-black uppercase tracking-widest text-slate-400">First Name *</Label>
+                                                <Input id="pro-first-name" placeholder="John" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={`h-12 rounded-xl ${errors.firstName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="pro-last-name">Surname *</Label>
-                                                <Input id="pro-last-name" placeholder="Doe" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={errors.lastName ? "border-red-500 ring-offset-red-500" : ""} />
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="pro-last-name" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Surname *</Label>
+                                                <Input id="pro-last-name" placeholder="Doe" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="pro-type">Discipline *</Label>
-                                                <Input id="pro-type" placeholder="e.g. Architect" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} className={errors.proType ? "border-red-500 ring-offset-red-500" : ""} />
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="pro-type" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Discipline *</Label>
+                                                <Input id="pro-type" placeholder="e.g. Architect" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} className={`h-12 rounded-xl ${errors.proType ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="pro-nationality">Nationality *</Label>
-                                                <Input id="pro-nationality" placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} className={errors.nationality ? "border-red-500 ring-offset-red-500" : ""} />
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="pro-nationality" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nationality *</Label>
+                                                <Input id="pro-nationality" placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} className={`h-12 rounded-xl ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="pro-country">Country of Residence *</Label>
-                                                <Input id="pro-country" placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} className={errors.country ? "border-red-500 ring-offset-red-500" : ""} />
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="pro-country" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Country of Residence *</Label>
+                                                <Input id="pro-country" placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} className={`h-12 rounded-xl ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="pro-state">State *</Label>
-                                                <Input id="pro-state" placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} className={errors.state ? "border-red-500 ring-offset-red-500" : ""} />
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="pro-state" className="text-[10px] font-black uppercase tracking-widest text-slate-400">State *</Label>
+                                                <Input id="pro-state" placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} className={`h-12 rounded-xl ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="pro-city">City *</Label>
-                                                <Input id="pro-city" placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} className={errors.city ? "border-red-500 ring-offset-red-500" : ""} />
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="pro-city" className="text-[10px] font-black uppercase tracking-widest text-slate-400">City *</Label>
+                                                <Input id="pro-city" placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} className={`h-12 rounded-xl ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label htmlFor="pro-address">Street Address *</Label>
-                                                <Input id="pro-address" placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""} />
+                                            <div className="space-y-1.5">
+                                                <Label htmlFor="pro-address" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Street Address *</Label>
+                                                <Input id="pro-address" placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={`h-12 rounded-xl ${errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="pro-email">Email Address *</Label>
-                                            <Input id="pro-email" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={errors.email ? "border-red-500 ring-offset-red-500" : ""} />
+                                        <div className="space-y-1.5">
+                                            <Label htmlFor="pro-email" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Address *</Label>
+                                            <Input id="pro-email" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={`h-12 rounded-xl ${errors.email ? "border-red-500 ring-offset-red-500" : ""}`} />
                                         </div>
-                                        <div className="space-y-2">
-                                            <Label htmlFor="pro-password">Password *</Label>
+                                        <div className="space-y-1.5">
+                                            <Label htmlFor="pro-password" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Password *</Label>
                                             <div className="relative">
-                                                <Input id="pro-password" type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} className={errors.password ? "border-red-500 ring-offset-red-500" : ""} />
-                                                <button onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                                <Input id="pro-password" type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} className={`h-12 rounded-xl pr-12 ${errors.password ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                                                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                                 </button>
                                             </div>
                                         </div>
+
+                                        <Button
+                                            onClick={(e) => handleProSubmit(e)}
+                                            className="w-full h-12 mt-4 rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-xl transition-all font-black uppercase tracking-[0.2em] text-[11px] gap-2"
+                                            disabled={isLoading}
+                                        >
+                                            {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                                                <>
+                                                    Complete Registration <ChevronRight className="w-4 h-4" />
+                                                </>
+                                            )}
+                                        </Button>
                                     </div>
                                 ) : (
                                     /* VENDOR FORM STEPS */
                                     <div className="animate-in fade-in slide-in-from-right-4 duration-300">
                                         {step === 1 && (
-                                            <div className="space-y-4">
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-2">
-                                                        <Label>First Name *</Label>
-                                                        <Input value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={errors.firstName ? "border-red-500 ring-offset-red-500" : ""} />
+                                            <div className="space-y-1.5 md:space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">First Name *</Label>
+                                                        <Input value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={`h-12 rounded-xl ${errors.firstName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
-                                                    <div className="space-y-2">
-                                                        <Label>Last Name *</Label>
-                                                        <Input value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={errors.lastName ? "border-red-500 ring-offset-red-500" : ""} />
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Last Name *</Label>
+                                                        <Input value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <Label>Email *</Label>
-                                                    <Input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={errors.email ? "border-red-500 ring-offset-red-500" : ""} />
+                                                <div className="space-y-1.5">
+                                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email *</Label>
+                                                    <Input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={`h-12 rounded-xl ${errors.email ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <Label>Password *</Label>
+                                                <div className="space-y-1.5">
+                                                    <div className="flex justify-between items-center">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Password *</Label>
+                                                    </div>
                                                     <div className="relative">
                                                         <Input 
                                                             type={showPassword ? "text" : "password"} 
                                                             value={formData.password} 
                                                             onChange={(e) => handleInputChange('password', e.target.value)} 
-                                                            className={`pr-12 ${errors.password ? "border-red-500 ring-offset-red-500" : ""}`}
+                                                            className={`h-12 rounded-xl pr-12 ${errors.password ? "border-red-500 ring-offset-red-500" : ""}`}
                                                         />
                                                         <button 
                                                             type="button"
                                                             onClick={() => setShowPassword(!showPassword)} 
-                                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                                                         >
                                                             {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                                         </button>
                                                     </div>
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-2">
-                                                        <Label>Nationality *</Label>
-                                                        <Input placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} className={errors.nationality ? "border-red-500 ring-offset-red-500" : ""} />
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nationality *</Label>
+                                                        <Input placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} className={`h-12 rounded-xl ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
-                                                    <div className="space-y-2">
-                                                        <Label>Country of Residence *</Label>
-                                                        <Input placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} className={errors.country ? "border-red-500 ring-offset-red-500" : ""} />
-                                                    </div>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-2">
-                                                        <Label>State *</Label>
-                                                        <Input placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} className={errors.state ? "border-red-500 ring-offset-red-500" : ""} />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label>City *</Label>
-                                                        <Input placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} className={errors.city ? "border-red-500 ring-offset-red-500" : ""} />
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Country of Residence *</Label>
+                                                        <Input placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} className={`h-12 rounded-xl ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <Label>Street Address *</Label>
-                                                    <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""} />
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">State *</Label>
+                                                        <Input placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} className={`h-12 rounded-xl ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">City *</Label>
+                                                        <Input placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} className={`h-12 rounded-xl ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Street Address *</Label>
+                                                    <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={`h-12 rounded-xl ${errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 </div>
                                             </div>
                                         )}
                                         {step === 2 && (
-                                            <div className="space-y-4">
-                                                <div className="space-y-2">
-                                                    <Label>Company Name *</Label>
-                                                    <Input value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} className={errors.companyName ? "border-red-500 ring-offset-red-500" : ""} />
+                                            <div className="space-y-1.5 md:space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                                                <div className="space-y-1.5">
+                                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Company Name *</Label>
+                                                    <Input value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} className={`h-12 rounded-xl ${errors.companyName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-2">
-                                                        <Label>CAC / Reg Number *</Label>
-                                                        <Input value={formData.bizRegNumber} onChange={(e) => handleInputChange('bizRegNumber', e.target.value)} className={errors.bizRegNumber ? "border-red-500 ring-offset-red-500" : ""} />
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">CAC / Reg Number *</Label>
+                                                        <Input value={formData.bizRegNumber} onChange={(e) => handleInputChange('bizRegNumber', e.target.value)} className={`h-12 rounded-xl ${errors.bizRegNumber ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
-                                                    <div className="space-y-2">
-                                                        <Label>Phone *</Label>
-                                                        <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className={errors.phone ? "border-red-500 ring-offset-red-500" : ""} />
-                                                    </div>
-                                                </div>
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-2">
-                                                        <Label>State *</Label>
-                                                        <Input placeholder="Lagos" value={formData.bizState} onChange={(e) => handleInputChange('bizState', e.target.value)} className={errors.bizState ? "border-red-500 ring-offset-red-500" : ""} />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <Label>City *</Label>
-                                                        <Input placeholder="Ikeja" value={formData.bizCity} onChange={(e) => handleInputChange('bizCity', e.target.value)} className={errors.bizCity ? "border-red-500 ring-offset-red-500" : ""} />
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Phone *</Label>
+                                                        <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className={`h-12 rounded-xl ${errors.phone ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <Label>Street Address *</Label>
-                                                    <Input placeholder="123 Main St" value={formData.bizStreetAddress} onChange={(e) => handleInputChange('bizStreetAddress', e.target.value)} className={errors.bizStreetAddress ? "border-red-500 ring-offset-red-500" : ""} />
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">State *</Label>
+                                                        <Input placeholder="Lagos" value={formData.bizState} onChange={(e) => handleInputChange('bizState', e.target.value)} className={`h-12 rounded-xl ${errors.bizState ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                    </div>
+                                                    <div className="space-y-1.5">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">City *</Label>
+                                                        <Input placeholder="Ikeja" value={formData.bizCity} onChange={(e) => handleInputChange('bizCity', e.target.value)} className={`h-12 rounded-xl ${errors.bizCity ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Street Address *</Label>
+                                                    <Input placeholder="123 Main St" value={formData.bizStreetAddress} onChange={(e) => handleInputChange('bizStreetAddress', e.target.value)} className={`h-12 rounded-xl ${errors.bizStreetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 </div>
                                             </div>
                                         )}
                                         {step === 3 && (
-                                            <div className={`grid grid-cols-2 gap-3 p-4 rounded-3xl transition-all duration-300 ${errors.categories ? 'bg-red-50/50 border-2 border-dashed border-red-500' : ''}`}>
-                                                {["Cement", "Steel", "Electrical", "Plumbing", "Roofing", "Tiles", "Paints", "Tools"].map((cat) => (
-                                                    <div key={cat} onClick={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} className="flex items-center space-x-2 p-3 border dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 cursor-pointer transition-colors group">
-                                                        <Checkbox checked={formData.categories.includes(cat)} onCheckedChange={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} />
-                                                        <span className="text-xs font-bold text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white">{cat}</span>
-                                                    </div>
-                                                ))}
+                                            <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                                                <div className="space-y-2">
+                                                    <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Select Business Categories *</Label>
+                                                    <p className="text-[10px] md:text-xs text-slate-500 italic mt-1 font-medium tracking-widest uppercase">Choose all that apply to your inventory.</p>
+                                                </div>
+                                                <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 p-3 md:p-4 rounded-3xl ${errors.categories ? "border-2 border-dashed border-red-500 bg-red-50 dark:bg-red-900/10" : "bg-white dark:bg-white/5"}`}>
+                                                    {["Cement", "Steel", "Electrical", "Plumbing", "Roofing", "Tiles", "Paints", "Tools"].map((cat) => (
+                                                        <div key={cat} onClick={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} className={`flex items-center space-x-2 md:space-x-3 p-3 md:p-4 border dark:border-white/10 rounded-2xl cursor-pointer transition-colors group ${formData.categories.includes(cat) ? "border-primary bg-primary/5" : "hover:bg-slate-50 dark:hover:bg-white/10"}`}>
+                                                            <Checkbox checked={formData.categories.includes(cat)} onCheckedChange={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} />
+                                                            <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white">{cat}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
                                         )}
                                         {step === 4 && (
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div 
-                                                    onClick={() => document.getElementById('biz-cert-upload')?.click()}
-                                                    className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${formData.bizCertificate ? 'border-green-500 bg-green-50/50 dark:bg-green-500/10' : errors.bizCertificate ? 'border-red-500 bg-red-50/50' : 'hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
-                                                >
-                                                    <input 
-                                                        id="biz-cert-upload"
-                                                        type="file" 
-                                                        className="hidden" 
-                                                        onChange={(e) => handleInputChange('bizCertificate', e.target.files?.[0])}
-                                                    />
-                                                    <Upload className={`w-8 h-8 mx-auto mb-4 ${formData.bizCertificate ? 'text-green-500' : errors.bizCertificate ? 'text-red-500' : 'text-primary'}`} />
-                                                    <p className={`text-[10px] font-black uppercase tracking-widest truncate max-w-full px-2 ${errors.bizCertificate ? 'text-red-600' : ''}`}>
-                                                        {formData.bizCertificate ? formData.bizCertificate.name : "Biz Certificate *"}
-                                                    </p>
-                                                </div>
-                                                <div 
-                                                    onClick={() => document.getElementById('gov-id-upload')?.click()}
-                                                    className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${formData.govId ? 'border-green-500 bg-green-50/50 dark:bg-green-500/10' : errors.govId ? 'border-red-500 bg-red-50/50' : 'hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
-                                                >
-                                                    <input 
-                                                        id="gov-id-upload"
-                                                        type="file" 
-                                                        className="hidden" 
-                                                        onChange={(e) => handleInputChange('govId', e.target.files?.[0])}
-                                                    />
-                                                    <Upload className={`w-8 h-8 mx-auto mb-4 ${formData.govId ? 'text-green-500' : errors.govId ? 'text-red-500' : 'text-primary'}`} />
-                                                    <p className={`text-[10px] font-black uppercase tracking-widest truncate max-w-full px-2 ${errors.govId ? 'text-red-600' : ''}`}>
-                                                        {formData.govId ? formData.govId.name : "Gov ID *"}
-                                                    </p>
+                                            <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center justify-between">
+                                                            Biz Certificate * {errors.bizCertificate && <span className="text-red-500">Required</span>}
+                                                        </Label>
+                                                        <div 
+                                                            onClick={() => document.getElementById('biz-cert-upload')?.click()}
+                                                            className={`border-2 border-dashed rounded-3xl p-6 md:p-8 text-center cursor-pointer transition-all ${formData.bizCertificate ? 'border-green-500 bg-green-50/50 dark:bg-green-500/10' : errors.bizCertificate ? 'border-red-500 bg-red-50/50' : 'hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
+                                                        >
+                                                            <input 
+                                                                id="biz-cert-upload"
+                                                                type="file" 
+                                                                className="hidden" 
+                                                                onChange={(e) => handleInputChange('bizCertificate', e.target.files?.[0])}
+                                                            />
+                                                            <Upload className={`w-6 h-6 md:w-8 h-8 mx-auto mb-2 md:mb-4 ${formData.bizCertificate ? 'text-green-500' : errors.bizCertificate ? 'text-red-500' : 'text-primary'}`} />
+                                                            <p className={`text-[10px] font-black uppercase tracking-widest truncate max-w-full px-2 ${errors.bizCertificate ? 'text-red-600' : ''}`}>
+                                                                {formData.bizCertificate ? formData.bizCertificate.name : "Upload Document"}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400 flex items-center justify-between">
+                                                            Gov ID * {errors.govId && <span className="text-red-500">Required</span>}
+                                                        </Label>
+                                                        <div 
+                                                            onClick={() => document.getElementById('gov-id-upload')?.click()}
+                                                            className={`border-2 border-dashed rounded-3xl p-6 md:p-8 text-center cursor-pointer transition-all ${formData.govId ? 'border-green-500 bg-green-50/50 dark:bg-green-500/10' : errors.govId ? 'border-red-500 bg-red-50/50' : 'hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
+                                                        >
+                                                            <input 
+                                                                id="gov-id-upload"
+                                                                type="file" 
+                                                                className="hidden" 
+                                                                onChange={(e) => handleInputChange('govId', e.target.files?.[0])}
+                                                            />
+                                                            <ShieldCheck className={`w-6 h-6 md:w-8 h-8 mx-auto mb-2 md:mb-4 ${formData.govId ? 'text-green-500' : errors.govId ? 'text-red-500' : 'text-primary'}`} />
+                                                            <p className={`text-[10px] font-black uppercase tracking-widest truncate max-w-full px-2 ${errors.govId ? 'text-red-600' : ''}`}>
+                                                                {formData.govId ? formData.govId.name : "Upload Document"}
+                                                            </p>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
+
+                                        <div className="flex gap-3 md:gap-4 mt-6 md:mt-8 pt-6 md:pt-8 border-t dark:border-white/10">
+                                            {step > 1 && (
+                                                <Button
+                                                    variant="outline"
+                                                    onClick={handleBack}
+                                                    className="w-1/3 h-12 rounded-xl font-black uppercase tracking-widest text-[9px] md:text-[10px] border-2 border-slate-200 dark:border-white/20"
+                                                    disabled={isLoading}
+                                                >
+                                                    <ChevronLeft className="w-4 h-4 mr-1 md:mr-2" /> Back
+                                                </Button>
+                                            )}
+                                            <Button
+                                                onClick={handleNext}
+                                                className={`h-12 rounded-xl font-black uppercase tracking-[0.1em] md:tracking-[0.2em] text-[9px] md:text-[11px] gap-1 md:gap-2 shadow-xl ${step === 1 ? "w-full" : "flex-1"} bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-all`}
+                                                disabled={isLoading}
+                                            >
+                                                {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
+                                                    <>
+                                                        {step === vendorSteps.length ? "Complete Registration" : "Continue"}
+                                                        {step < vendorSteps.length && <ChevronRight className="w-4 h-4" />}
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </div>
                                     </div>
                                 )}
 

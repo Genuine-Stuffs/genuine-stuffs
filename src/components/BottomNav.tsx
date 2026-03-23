@@ -6,6 +6,10 @@ const BottomNav = () => {
     const location = useLocation();
     const { role } = useAuth();
 
+    if (location.pathname === "/login" || location.pathname === "/register") {
+        return null;
+    }
+
     const isActive = (path: string) => location.pathname === path;
 
     const navItems = [
