@@ -19,6 +19,259 @@ import { supabase } from "backend/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
+// ── Comprehensive Material Catalogue ────────────────────────────────
+const materialCatalogue: Record<string, string[]> = {
+  "Cement & Aggregates": [
+    "Cement (OPC)",
+    "Cement (PPC)",
+    "Granite/Gravel",
+    "Sharp Sand",
+    "Plaster Sand",
+    "Laterite Sand",
+    "Stone Dust",
+    "Hard-core Stone",
+    "Site Water",
+    "Sandcrete Hollow Block",
+    "Concrete Hollow Block",
+    "Brick",
+    "Precast Concrete Slab",
+  ],
+  "Steel & Iron": [
+    "Rebar (Y10)",
+    "Rebar (Y12)",
+    "Rebar (Y16)",
+    "Rebar (Y20)",
+    "Rebar (Y25)",
+    "Steel Sheet",
+    "Binding Wire",
+    "BRC Wire Mesh",
+    "H Beam (Steel)",
+    "Angle Iron",
+    "Steel Pipe",
+    "Flat Bar",
+    "Channel Iron",
+    "Nails (Various Sizes)",
+  ],
+  "Roofing": [
+    "Roof Sheet (Corrugated)",
+    "Roof Sheet (Step Tile)",
+    "Roof Sheet (Long Span)",
+    "Roof Sheet (Stone Coated)",
+    "Bituminous Felt",
+    "Roof Truss",
+    "Fascia Board",
+    "Ridge Cap",
+    "Gutter & Downpipe",
+  ],
+  "Flooring": [
+    "Floor Tiles (Ceramic)",
+    "Floor Tiles (Porcelain)",
+    "Floor Tiles (Vitrified)",
+    "Wall Tiles",
+    "Granite Tile",
+    "Marble Tile",
+    "Terrazzo Tile",
+    "Tile Adhesive",
+    "Tile Grout",
+    "Interlocking Stone",
+    "Kerb Stone",
+  ],
+  "Finishing": [
+    "Paint (Emulsion)",
+    "Paint (Gloss/Oil)",
+    "Paint (Textured)",
+    "Paint (Screeding)",
+    "Primer & Undercoat",
+    "POP (Plaster of Paris)",
+    "Wall Putty / Filler",
+    "Sandpaper",
+    "Waterproof Coating",
+    "Sealant & Caulk",
+    "Epoxy Coating",
+  ],
+  "Electrical": [
+    "Electrical Cable & Wire",
+    "Armoured Cable",
+    "Recline Cable",
+    "Electrical Conduit/Pipe",
+    "Switch (Socket)",
+    "Junction Box",
+    "Circuit Breaker",
+    "Distribution Board",
+    "Lightning/Thunder Arrestor",
+    "Metering Device",
+    "Lighting Bulb",
+    "Chandelier",
+    "Fluorescent Fitting",
+    "LED Panel Light",
+    "Transformer",
+    "Electricity Pole (Wooden)",
+    "Electricity Pole (Concrete)",
+  ],
+  "Plumbing": [
+    "PVC Pipe",
+    "PPR Pipe",
+    "CPVC Pipe",
+    "Plumbing Fittings (Elbow, Tee, etc.)",
+    "Water Heater",
+    "Floor Drain",
+    "Wash Hand Basin",
+    "Kitchen Sink",
+    "Bathtub",
+    "Bidet",
+    "WC / Toilet",
+    "Shower Set",
+    "Water Tap / Faucet",
+    "Septic Tank",
+    "DPC / DPM",
+    "Water Hose",
+  ],
+  "Doors, Windows & Glazing": [
+    "Door (Wooden)",
+    "Door (Metal/Steel)",
+    "Door (Flush)",
+    "Door (Panel)",
+    "Door Handle & Lock",
+    "Aluminium Window",
+    "Aluminium Subframe",
+    "Glass & Glazing",
+    "Burglar Proof",
+    "Gate (Metal)",
+    "Gate (Sliding)",
+  ],
+  "Ceiling & Interior": [
+    "POP Ceiling",
+    "PVC Ceiling",
+    "Wood Ceiling",
+    "Suspended Ceiling Grid",
+    "Kitchen Cabinet",
+    "Wardrobe",
+    "Air-Conditioning Unit (Split)",
+    "Air-Conditioning Unit (Window)",
+  ],
+  "Wood & Timber": [
+    "1×12 Wood",
+    "2×2 Wood Bracing",
+    "2×3 Wood",
+    "2×4 Wood",
+    "2×6 Wood",
+    "H Beam Timber",
+    "Marine Board",
+    "Plywood",
+    "MDF Board",
+    "HDF Board",
+    "Particle Board",
+    "Wooden Peg",
+  ],
+  "Paving & Roadworks": [
+    "Asphalt",
+    "Bituminous Felt",
+    "Stone Base",
+    "Interlocking Stone",
+    "Kerb Stone",
+    "Stone Dust",
+    "Concrete Slab",
+    "Road Marking Paint",
+    "Speed Bump (Rubber)",
+    "Traffic Cone",
+  ],
+  "Water & Pumps": [
+    "Submersible Pump",
+    "Surface Pump",
+    "Booster Pump",
+    "Water Storage Tank (Plastic)",
+    "Water Storage Tank (Steel)",
+    "Water Treatment Equipment",
+    "Overhead Tank Stand",
+    "Pressure Tank",
+  ],
+  "Power & Energy": [
+    "Generator Set",
+    "Solar Panel",
+    "Inverter",
+    "Battery (Solar/Inverter)",
+    "Change-Over Switch",
+    "Voltage Regulator / Stabilizer",
+    "Power Cable Tray",
+  ],
+  "Security & Outdoor": [
+    "Concertina Barbed Wire",
+    "Razor Wire",
+    "Security Camera (CCTV)",
+    "Outdoor Lighting",
+    "Solar Street Light",
+    "Fence Post",
+    "Electric Fence Kit",
+    "Perimeter Alarm",
+    "Motion Sensor",
+  ],
+  "Tools": [
+    "Hand Saw",
+    "Electric Saw (Circular)",
+    "Hammer",
+    "Measuring Tape",
+    "Spirit Level",
+    "Plumb Bob",
+    "Nail (Assorted)",
+    "Line / Rope",
+    "Ranging Pole",
+    "Cutlass",
+    "Shovel",
+    "Hand Trowel",
+    "Hand Pan",
+    "Wheelbarrow",
+    "Crowbar / Wrecking Bar",
+    "Chisel (Cold & Wood)",
+    "Drill Machine",
+    "Angle Grinder",
+    "Paint Roller & Tray",
+    "Screwdriver Set",
+    "Spanner / Wrench Set",
+    "Pipe Wrench",
+  ],
+  "Safety Gear": [
+    "Helmet",
+    "Reflective Jacket / Vest",
+    "Rain Boot",
+    "Site Boot (Safety)",
+    "Hand Glove",
+    "Nose Mask / Respirator",
+    "Eye Protector / Goggles",
+    "Ear Muff / Plug",
+    "Safety Harness",
+    "First Aid Kit",
+    "Fire Extinguisher",
+    "Deldrex Anti-Termite",
+  ],
+  "Equipment": [
+    "Bulldozer",
+    "Excavator",
+    "Swamp Buggy",
+    "Grader",
+    "Payloader",
+    "Digger",
+    "Concrete Mixer",
+    "Metal Formwork",
+    "Plastic Formwork",
+    "Galvanised Props",
+    "Compactor Machine",
+    "Vibrator Machine",
+    "Water Spray Machine",
+    "Levelling Instrument",
+    "Theodolite",
+    "Total Station",
+    "Differential GPS",
+    "Scaffolding Set",
+    "Crane (Mobile)",
+    "Boom Lift",
+    "Jack Hammer",
+    "Plate Compactor",
+  ],
+};
+
+const allCategories = Object.keys(materialCatalogue);
+// ────────────────────────────────────────────────────────────────────
+
 export function AddMaterialDialog() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -29,7 +282,6 @@ export function AddMaterialDialog() {
     category: "",
     price: "",
     unit: "",
-    unit: "",
     description: "",
     availability: "In Stock"
   });
@@ -37,6 +289,13 @@ export function AddMaterialDialog() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // When category changes, reset the name selection
+  const handleCategoryChange = (val: string) => {
+    setFormData({ ...formData, category: val, name: "" });
+  };
+
+  const availableNames = formData.category ? materialCatalogue[formData.category] || [] : [];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -65,7 +324,7 @@ export function AddMaterialDialog() {
             .getPublicUrl(filePath);
           uploadedImageUrl = publicUrl;
         } else {
-          console.warn("Storage bucker 'materials' might not exist or be accessible, using fallback image.");
+          console.warn("Storage bucket 'materials' might not exist or be accessible, using fallback image.");
         }
       }
 
@@ -113,7 +372,7 @@ export function AddMaterialDialog() {
       description: formData.description,
       availability: formData.availability,
       vendor_id: user.id,
-      vendor_name: user?.user_metadata?.full_name || "Vendor", // fallback
+      vendor_name: user?.user_metadata?.full_name || "Vendor",
       is_verified: true,
       rating: 5.0,
       tags: [],
@@ -136,43 +395,47 @@ export function AddMaterialDialog() {
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4 px-2">
+          {/* ── Category Select ── */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="category" className="text-right font-black text-[10px] uppercase tracking-widest text-slate-500">
               Category
             </Label>
             <Select 
                 value={formData.category} 
-                onValueChange={(val) => setFormData({...formData, category: val})}
+                onValueChange={handleCategoryChange}
                 required
             >
               <SelectTrigger className="col-span-3 h-11 rounded-xl border-slate-200 dark:border-slate-800 focus:ring-primary shadow-sm font-bold">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800 font-bold max-h-48">
-                <SelectItem value="Cement & Aggregates">Cement & Aggregates</SelectItem>
-                <SelectItem value="Steel & Iron">Steel & Iron</SelectItem>
-                <SelectItem value="Flooring">Flooring</SelectItem>
-                <SelectItem value="Roofing">Roofing</SelectItem>
-                <SelectItem value="Finishing">Finishing</SelectItem>
-                <SelectItem value="Electrical">Electrical</SelectItem>
-                <SelectItem value="Plumbing">Plumbing</SelectItem>
+              <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800 font-bold max-h-60">
+                {allCategories.map((cat) => (
+                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
+          {/* ── Name Select (filtered by category) ── */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="name" className="text-right font-black text-[10px] uppercase tracking-widest text-slate-500">
               Name
             </Label>
-            <Input
-              id="name"
-              required
+            <Select
               value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="col-span-3 h-11 rounded-xl border-slate-200 dark:border-slate-800 focus-visible:ring-primary shadow-sm font-bold placeholder:font-medium placeholder:italic"
-              placeholder="e.g. Portland Cement"
-            />
+              onValueChange={(val) => setFormData({ ...formData, name: val })}
+              required
+              disabled={!formData.category}
+            >
+              <SelectTrigger className={`col-span-3 h-11 rounded-xl border-slate-200 dark:border-slate-800 focus:ring-primary shadow-sm font-bold ${!formData.category ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                <SelectValue placeholder={formData.category ? "Select material" : "Pick a category first"} />
+              </SelectTrigger>
+              <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800 font-bold max-h-60">
+                {availableNames.map((name) => (
+                  <SelectItem key={name} value={name}>{name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          {/* Old Category dropdown removed from here */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="price" className="text-right font-black text-[10px] uppercase tracking-widest text-slate-500">
               Price (₦)
