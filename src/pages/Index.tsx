@@ -118,7 +118,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-background transition-colors duration-300 pb-24 md:pb-0">
+    <div className="min-h-screen bg-sky-50 dark:bg-background transition-colors duration-300 pb-24 md:pb-0">
       <Navbar />
 
       {/* Panoramic Hero Carousel */}
@@ -178,7 +178,7 @@ const Index = () => {
       </section>
 
       {/* Browse By Category - Prominent & Card Style */}
-      <section className="py-12 bg-white dark:bg-background border-b border-slate-100 dark:border-border">
+      <section className="py-12 bg-sky-50 dark:bg-background border-b border-sky-100 dark:border-border">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
@@ -212,7 +212,7 @@ const Index = () => {
       </section>
 
       {/* Trending / Promoted Materials Section - NEW */}
-      <section className="py-16 bg-slate-50 dark:bg-background transition-colors">
+      <section className="py-16 bg-sky-100/50 dark:bg-background transition-colors">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
@@ -314,7 +314,7 @@ const Index = () => {
       </section>
 
       {/* How We Work Section */}
-      <section className="py-20 bg-white dark:bg-background z-0 relative">
+      <section className="py-20 bg-sky-50 dark:bg-background z-0 relative">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">How We Work</h2>
@@ -343,7 +343,7 @@ const Index = () => {
       </section>
 
       {/* Specialties Section - Dark Mode Enhanced */}
-      <section className="py-24 bg-slate-50 dark:bg-black transition-colors">
+      <section className="py-24 bg-sky-100/50 dark:bg-black transition-colors">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16 px-4">
             <div className="inline-block p-2 bg-primary/10 rounded-lg text-primary text-[10px] font-black uppercase tracking-widest mb-6">Capabilities</div>
