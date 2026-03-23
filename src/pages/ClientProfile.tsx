@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -16,26 +15,16 @@ import {
     CreditCard, 
     MapPin,
     Calendar,
-    ArrowRight
+    ArrowRight,
+    LogIn
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const ClientProfile = () => {
-    const { user, role, logout, isLoading } = useAuth();
+    const { user, role, logout } = useAuth();
     const navigate = useNavigate();
-
-    // Redirect unauthenticated users to login
-    useEffect(() => {
-        if (!isLoading && (!user || role === 'guest')) {
-            navigate("/login");
-        }
-    }, [user, role, isLoading, navigate]);
-
-    // Don't render while auth is loading or if not authenticated
-    if (isLoading || !user || role === 'guest') {
-        return null;
-    }
+    const isGuest = !user || role === 'guest';
 
     const sections = [
         {
@@ -74,10 +63,10 @@ const ClientProfile = () => {
                             <div className="flex-1">
                                 <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-2">
                                     <h1 className="text-3xl md:text-4xl font-black uppercase tracking-tighter">
-                                        {user?.email?.split('@')[0] || "Client Profile"}
+                                        {user?.email?.split('@')[0] || "Guest User"}
                                     </h1>
                                     <Badge className="w-fit mx-auto md:mx-0 bg-slate-100 dark:bg-muted text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest text-[10px] px-3 py-1 border-none">
-                                        Standard Client
+                                        {isGuest ? "Guest" : "Standard Client"}
                                     </Badge>
                                 </div>
                                 <p className="text-slate-500 font-medium italic mb-6">
@@ -85,19 +74,41 @@ const ClientProfile = () => {
                                 </p>
                                 
                                 <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                                    <Button 
-                                        onClick={() => navigate("/settings")}
-                                        className="rounded-xl h-10 px-6 font-black uppercase tracking-widest text-[10px] gap-2 bg-slate-900 dark:bg-white dark:text-slate-900"
-                                    >
-                                        <Settings className="w-3.5 h-3.5" /> Edit Profile
-                                    </Button>
-                                    <Button 
-                                        variant="outline"
-                                        onClick={logout}
-                                        className="rounded-xl h-10 px-6 font-black uppercase tracking-widest text-[10px] gap-2 border-slate-200 dark:border-border text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
-                                    >
-                                        <LogOut className="w-3.5 h-3.5" /> Logout
-                                    </Button>
+                                    {isGuest ? (
+                                        // Guest CTAs
+                                        <>
+                                            <Button 
+                                                onClick={() => navigate("/login")}
+                                                className="rounded-xl h-10 px-6 font-black uppercase tracking-widest text-[10px] gap-2 bg-slate-900 dark:bg-white dark:text-slate-900"
+                                            >
+                                                <LogIn className="w-3.5 h-3.5" /> Log In
+                                            </Button>
+                                            <Button 
+                                                variant="outline"
+                                                onClick={() => navigate("/register")}
+                                                className="rounded-xl h-10 px-6 font-black uppercase tracking-widest text-[10px] gap-2 border-slate-200"
+                                            >
+                                                Join Platform
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        // Authenticated user CTAs
+                                        <>
+                                            <Button 
+                                                onClick={() => navigate("/settings")}
+                                                className="rounded-xl h-10 px-6 font-black uppercase tracking-widest text-[10px] gap-2 bg-slate-900 dark:bg-white dark:text-slate-900"
+                                            >
+                                                <Settings className="w-3.5 h-3.5" /> Edit Profile
+                                            </Button>
+                                            <Button 
+                                                variant="outline"
+                                                onClick={logout}
+                                                className="rounded-xl h-10 px-6 font-black uppercase tracking-widest text-[10px] gap-2 border-slate-200 dark:border-border text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-500/10"
+                                            >
+                                                <LogOut className="w-3.5 h-3.5" /> Logout
+                                            </Button>
+                                        </>
+                                    )}
                                 </div>
                             </div>
 
