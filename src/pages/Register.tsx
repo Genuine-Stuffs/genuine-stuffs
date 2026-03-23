@@ -66,6 +66,10 @@ const Register = () => {
         state: "",
         country: "",
         nationality: "",
+        // Vendor specific business address
+        bizStreetAddress: "",
+        bizCity: "",
+        bizState: "",
         // Pro specific
         proType: "",
         registrationType: "individual",
@@ -171,11 +175,14 @@ const Register = () => {
                 const { error: profileError } = await supabase.from('vendors').insert({
                     id: authData.user.id,
                     company_name: formData.companyName,
-                    address: formData.streetAddress,
-                    city: formData.city,
-                    state: formData.state,
+                    street_address: formData.bizStreetAddress,
+                    city: formData.bizCity,
+                    state: formData.bizState,
                     country: formData.country,
                     nationality: formData.nationality,
+                    personal_street_address: formData.streetAddress,
+                    personal_city: formData.city,
+                    personal_state: formData.state,
                     cac_number: formData.bizRegNumber,
                     phone: formData.phone,
                     categories: formData.categories
@@ -206,14 +213,15 @@ const Register = () => {
         } else {
             // Vendor Validation by Step
             if (step === 1) {
-                if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.nationality || !formData.country) {
-                    toast.error("Please fill in all owner information");
+                const step1Fields = ['firstName', 'lastName', 'email', 'password', 'nationality', 'country', 'state', 'city', 'streetAddress'];
+                if (step1Fields.some(f => !formData[f as keyof typeof formData])) {
+                    toast.error("Please fill in all owner and personal address information");
                     return;
                 }
             } else if (step === 2) {
-                const step2Fields = ['companyName', 'bizRegNumber', 'phone', 'state', 'city', 'streetAddress'];
+                const step2Fields = ['companyName', 'bizRegNumber', 'phone', 'bizState', 'bizCity', 'bizStreetAddress'];
                 if (step2Fields.some(f => !formData[f as keyof typeof formData])) {
-                    toast.error("Please fill in all company information");
+                    toast.error("Please fill in all company and business address information");
                     return;
                 }
             } else if (step === 3) {
@@ -430,6 +438,20 @@ const Register = () => {
                                                         <Input placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} />
                                                     </div>
                                                 </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label>Personal State *</Label>
+                                                        <Input placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Personal City *</Label>
+                                                        <Input placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label>Personal Street Address *</Label>
+                                                    <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} />
+                                                </div>
                                             </div>
                                         )}
                                         {step === 2 && (
@@ -450,17 +472,17 @@ const Register = () => {
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label>State *</Label>
-                                                        <Input placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} />
+                                                        <Label>Business State *</Label>
+                                                        <Input placeholder="Lagos" value={formData.bizState} onChange={(e) => handleInputChange('bizState', e.target.value)} />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label>City *</Label>
-                                                        <Input placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} />
+                                                        <Label>Business City *</Label>
+                                                        <Input placeholder="Ikeja" value={formData.bizCity} onChange={(e) => handleInputChange('bizCity', e.target.value)} />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label>Street Address *</Label>
-                                                    <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} />
+                                                    <Label>Business Street Address *</Label>
+                                                    <Input placeholder="123 Main St" value={formData.bizStreetAddress} onChange={(e) => handleInputChange('bizStreetAddress', e.target.value)} />
                                                 </div>
                                             </div>
                                         )}
