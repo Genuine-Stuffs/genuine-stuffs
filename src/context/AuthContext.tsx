@@ -76,17 +76,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const logout = async () => {
-        // Use 'local' scope so client state clears even if server returns 403
-        // (which happens when the server-side session has already expired)
-        try {
-            await supabase.auth.signOut({ scope: 'local' });
-        } catch (_) {
-            // If signOut fails, manually clear state anyway
-            setUser(null);
-            setSession(null);
-            setRole('guest');
-            navigate("/");
-        }
+        // Always force-clear local auth state FIRST, then attempt server-side signout.
+        // We do not rely on the SIGNED_OUT event because it may not fire
+        // when the server session has already expired (403 Forbidden).
+        setUser(null);
+        setSession(null);
+        setRole('guest');
+
+        // Attempt deletion of the server session (scope: 'local' avoids the 403 on stale sessions)
+        await supabase.auth.signOut({ scope: 'local' }).catch(() => {
+            // Silently ignore - state is already cleared above
+        });
+
+        navigate("/");
         toast.success("Successfully logged out.");
     };
 
