@@ -32,9 +32,12 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-import cityscape from "@/assets/hero/cityscape.png";
-import construction from "@/assets/hero/construction.png";
-import highrise from "@/assets/hero/highrise.png";
+import Autoplay from "embla-carousel-autoplay";
+
+import townBefore1 from "@/assets/hero/town_before_1.png";
+import townAfter1 from "@/assets/hero/town_after_1.png";
+import townBefore2 from "@/assets/hero/town_before_2.png";
+import townAfter2 from "@/assets/hero/town_after_2.png";
 import trustImage from "@/assets/thematic/trust.png";
 import valueImage from "@/assets/thematic/value.png";
 
@@ -120,11 +123,24 @@ const Index = () => {
 
       {/* Panoramic Hero Carousel */}
       <section className="relative w-full overflow-hidden bg-slate-900">
-        <Carousel className="w-full" opts={{ loop: true }}>
+        <Carousel 
+          className="w-full" 
+          opts={{ loop: true }}
+          plugins={[
+            Autoplay({
+              delay: 12000,
+            }),
+          ]}
+        >
           <CarouselContent>
-            {[cityscape, construction, highrise].map((img, i) => (
+            {[
+              { src: townBefore1, label: "Before: Lack of Infrastructure" },
+              { src: townAfter1, label: "After: Professional Development" },
+              { src: townBefore2, label: "Before: Poorly Built Structures" },
+              { src: townAfter2, label: "After: Premium Quality Living" }
+            ].map((img, i) => (
               <CarouselItem key={i} className="relative h-[60vh] md:h-[80vh] pl-0">
-                <img src={img} alt={`Hero ${i + 1}`} className="w-full h-full object-cover" />
+                <img src={img.src} alt={img.label} className="w-full h-full object-cover" />
                 <div className="absolute inset-0 bg-black/40 pointer-events-none" />
               </CarouselItem>
             ))}

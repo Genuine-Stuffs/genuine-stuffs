@@ -12,6 +12,7 @@ const professionals = [
         id: 1,
         name: "Engr. David Okon",
         role: "Civil Engineer",
+        type: "professional",
         rating: 4.9,
         reviews: 24,
         location: "Lagos, Lekki",
@@ -24,6 +25,7 @@ const professionals = [
         id: 2,
         name: "Arc. Sarah Yusuf",
         role: "Architect",
+        type: "professional",
         rating: 4.8,
         reviews: 18,
         location: "Abuja, Wuse 2",
@@ -36,6 +38,7 @@ const professionals = [
         id: 3,
         name: "QS Michael Chen",
         role: "Quantity Surveyor",
+        type: "professional",
         rating: 4.7,
         reviews: 12,
         location: "Port Harcourt",
@@ -48,6 +51,7 @@ const professionals = [
         id: 4,
         name: "Engr. Blessing Ade",
         role: "Electrical Engineer",
+        type: "professional",
         rating: 4.9,
         reviews: 31,
         location: "Lagos, Ikeja",
@@ -55,12 +59,39 @@ const professionals = [
         image: "https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=100&h=100&auto=format&fit=crop",
         specialties: ["Solar Installation", "Industrial Wiring"],
         projects: 22,
+    },
+    {
+        id: 5,
+        name: "Musa Ibrahim",
+        role: "Master Mason",
+        type: "artisan",
+        rating: 4.9,
+        reviews: 56,
+        location: "Kano, Central",
+        verified: true,
+        image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=100&h=100&auto=format&fit=crop",
+        specialties: ["Bricklaying", "Plastering"],
+        projects: 89,
+    },
+    {
+        id: 6,
+        name: "Chidi Okafor",
+        role: "Lead Plumber",
+        type: "artisan",
+        rating: 4.8,
+        reviews: 42,
+        location: "Enugu, Independent Layout",
+        verified: true,
+        image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&h=100&auto=format&fit=crop",
+        specialties: ["Pipe Fitting", "Drainage Systems"],
+        projects: 124,
     }
 ];
 
 const Pros = () => {
     const [searchQuery, setSearchQuery] = useState("");
     const [location, setLocation] = useState("All Nigeria");
+    const [activeType, setActiveType] = useState<"professional" | "artisan">("professional");
     const locations = [
         "All Nigeria", "Abia", "Adamawa", "Akwa Ibom", "Anambra", "Bauchi", "Bayelsa", "Benue", "Borno", 
         "Cross River", "Delta", "Ebonyi", "Edo", "Ekiti", "Enugu", "FCT Abuja", "Gombe", "Imo", "Jigawa", 
@@ -96,20 +127,36 @@ const Pros = () => {
                             </div>
 
                             {/* Search Input */}
-                            <div className="flex-1 relative">
+                            <div className="flex-1 relative flex items-center">
+                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10" />
                                 <input
                                     className="w-full h-10 md:h-12 pl-10 pr-4 bg-transparent border-none focus:ring-0 text-xs md:text-base text-slate-700 dark:text-slate-200 font-bold placeholder:font-medium placeholder:text-slate-400"
-                                    placeholder="Search by role or name (e.g. Architect, Lagos)"
+                                    placeholder={`Search for ${activeType === 'professional' ? 'Professionals' : 'Artisans'}...`}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
-                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                            </div>
+                                
+                                {/* Search Button (more integrated) */}
+                                <Button className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm mr-2 ml-1">
+                                    <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
+                                </Button>
 
-                            {/* Search Icon Button */}
-                            <Button className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm m-1 md:m-1">
-                                <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
-                            </Button>
+                                {/* Pro/Artisan Toggle */}
+                                <div className="hidden md:flex items-center gap-1 p-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-border mr-1 shadow-sm">
+                                    <button
+                                        onClick={() => setActiveType('professional')}
+                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeType === 'professional' ? 'bg-primary text-white shadow-md' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                                    >
+                                        Professionals
+                                    </button>
+                                    <button
+                                        onClick={() => setActiveType('artisan')}
+                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeType === 'artisan' ? 'bg-primary text-white shadow-md' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                                    >
+                                        Artisans
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -128,7 +175,13 @@ const Pros = () => {
 
                 {/* Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    {professionals.map((pro) => (
+                    {professionals
+                        .filter(pro => pro.type === activeType)
+                        .filter(pro => 
+                            pro.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                            pro.role.toLowerCase().includes(searchQuery.toLowerCase())
+                        )
+                        .map((pro) => (
                         <Card key={pro.id} className="overflow-hidden border-none shadow-xl hover:shadow-2xl transition-all group rounded-[2rem]">
                             <CardContent className="p-0">
                                 <div className="p-6 text-center">
