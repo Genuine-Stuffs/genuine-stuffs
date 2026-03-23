@@ -128,27 +128,14 @@ export function AddMaterialDialog() {
             <Plus className="w-4 h-4" /> Add Material
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[500px] rounded-[2rem] border-none shadow-2xl">
-        <DialogHeader className="px-2 space-y-3">
+      <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto rounded-[2rem] border-none shadow-2xl">
+        <DialogHeader className="px-2 space-y-3 shrink-0">
           <DialogTitle className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">Add New Material</DialogTitle>
           <DialogDescription className="text-sm font-medium italic text-slate-500">
             List a new product to your inventory.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-5 py-4 px-2">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right font-black text-[10px] uppercase tracking-widest text-slate-500">
-              Name
-            </Label>
-            <Input
-              id="name"
-              required
-              value={formData.name}
-              onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="col-span-3 h-12 rounded-xl border-slate-200 dark:border-slate-800 focus-visible:ring-primary shadow-sm font-bold placeholder:font-medium placeholder:italic"
-              placeholder="e.g. Portland Cement"
-            />
-          </div>
+        <form onSubmit={handleSubmit} className="grid gap-4 py-4 px-2">
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="category" className="text-right font-black text-[10px] uppercase tracking-widest text-slate-500">
               Category
@@ -158,10 +145,10 @@ export function AddMaterialDialog() {
                 onValueChange={(val) => setFormData({...formData, category: val})}
                 required
             >
-              <SelectTrigger className="col-span-3 h-12 rounded-xl border-slate-200 dark:border-slate-800 focus:ring-primary shadow-sm font-bold">
+              <SelectTrigger className="col-span-3 h-11 rounded-xl border-slate-200 dark:border-slate-800 focus:ring-primary shadow-sm font-bold">
                 <SelectValue placeholder="Select category" />
               </SelectTrigger>
-              <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800 font-bold">
+              <SelectContent className="rounded-xl border-slate-200 dark:border-slate-800 font-bold max-h-48">
                 <SelectItem value="Cement & Aggregates">Cement & Aggregates</SelectItem>
                 <SelectItem value="Steel & Iron">Steel & Iron</SelectItem>
                 <SelectItem value="Flooring">Flooring</SelectItem>
@@ -172,6 +159,20 @@ export function AddMaterialDialog() {
               </SelectContent>
             </Select>
           </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="name" className="text-right font-black text-[10px] uppercase tracking-widest text-slate-500">
+              Name
+            </Label>
+            <Input
+              id="name"
+              required
+              value={formData.name}
+              onChange={(e) => setFormData({...formData, name: e.target.value})}
+              className="col-span-3 h-11 rounded-xl border-slate-200 dark:border-slate-800 focus-visible:ring-primary shadow-sm font-bold placeholder:font-medium placeholder:italic"
+              placeholder="e.g. Portland Cement"
+            />
+          </div>
+          {/* Old Category dropdown removed from here */}
           <div className="grid grid-cols-4 items-center gap-4">
             <Label htmlFor="price" className="text-right font-black text-[10px] uppercase tracking-widest text-slate-500">
               Price (₦)
@@ -184,7 +185,7 @@ export function AddMaterialDialog() {
               step="0.01"
               value={formData.price}
               onChange={(e) => setFormData({...formData, price: e.target.value})}
-              className="col-span-3 h-12 rounded-xl border-slate-200 dark:border-slate-800 focus-visible:ring-primary shadow-sm font-bold"
+              className="col-span-3 h-11 rounded-xl border-slate-200 dark:border-slate-800 focus-visible:ring-primary shadow-sm font-bold"
               placeholder="0.00"
             />
           </div>
@@ -197,7 +198,7 @@ export function AddMaterialDialog() {
               required
               value={formData.unit}
               onChange={(e) => setFormData({...formData, unit: e.target.value})}
-              className="col-span-3 h-12 rounded-xl border-slate-200 dark:border-slate-800 focus-visible:ring-primary shadow-sm font-bold placeholder:font-medium placeholder:italic"
+              className="col-span-3 h-11 rounded-xl border-slate-200 dark:border-slate-800 focus-visible:ring-primary shadow-sm font-bold placeholder:font-medium placeholder:italic"
               placeholder="e.g. 50kg Bag, Ton, sqm"
             />
           </div>
@@ -210,7 +211,7 @@ export function AddMaterialDialog() {
               required
               value={formData.description}
               onChange={(e) => setFormData({...formData, description: e.target.value})}
-              className="col-span-3 min-h-[100px] rounded-xl border-slate-200 dark:border-slate-800 focus-visible:ring-primary shadow-sm font-bold resize-none placeholder:font-medium placeholder:italic"
+              className="col-span-3 min-h-[80px] rounded-xl border-slate-200 dark:border-slate-800 focus-visible:ring-primary shadow-sm font-bold resize-none placeholder:font-medium placeholder:italic text-sm"
               placeholder="Brief details about the material..."
             />
           </div>
@@ -228,20 +229,20 @@ export function AddMaterialDialog() {
               />
               <div 
                 onClick={() => fileInputRef.current?.click()}
-                className={`flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${previewUrl ? 'border-primary/50 bg-primary/5' : 'border-slate-200 hover:border-primary/50 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900'}`}
+                className={`flex flex-col items-center justify-center p-3 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${previewUrl ? 'border-primary/50 bg-primary/5' : 'border-slate-200 hover:border-primary/50 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900'}`}
               >
                 {previewUrl ? (
-                  <div className="relative w-full h-32 rounded-lg overflow-hidden group">
+                  <div className="relative w-full h-24 rounded-lg overflow-hidden group">
                     <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                       <span className="text-white text-[10px] font-black uppercase tracking-widest">Change Image</span>
                     </div>
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-4 text-slate-500">
-                    <Upload className="w-8 h-8 mb-2 opacity-50" />
+                  <div className="flex flex-col items-center justify-center py-2 text-slate-500">
+                    <Upload className="w-6 h-6 mb-1 opacity-50" />
                     <span className="text-[10px] font-black uppercase tracking-widest">Click to upload</span>
-                    <span className="text-xs font-medium italic mt-1 opacity-70">JPG, PNG or WEBP</span>
+                    <span className="text-[10px] font-medium italic mt-1 opacity-70">JPG, PNG or WEBP</span>
                   </div>
                 )}
               </div>
