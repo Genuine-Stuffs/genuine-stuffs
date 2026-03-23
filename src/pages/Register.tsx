@@ -55,6 +55,7 @@ const Register = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [submitted, setSubmitted] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [errors, setErrors] = useState<Record<string, boolean>>({});
 
     // Form Data
     const [formData, setFormData] = useState({
@@ -86,6 +87,14 @@ const Register = () => {
 
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+        // Clear error when user changes the field
+        if (errors[field]) {
+            setErrors(prev => {
+                const newErrors = { ...prev };
+                delete newErrors[field];
+                return newErrors;
+            });
+        }
     };
 
     const handleCategoryToggle = (cat: string) => {
@@ -109,6 +118,9 @@ const Register = () => {
         const missingFields = requiredFields.filter(f => !formData[f as keyof typeof formData]);
         
         if (missingFields.length > 0) {
+            const newErrors: Record<string, boolean> = {};
+            missingFields.forEach(f => newErrors[f] = true);
+            setErrors(newErrors);
             toast.error("Please fill in all required fields marked with *");
             setIsLoading(false);
             return;
@@ -214,23 +226,37 @@ const Register = () => {
             // Vendor Validation by Step
             if (step === 1) {
                 const step1Fields = ['firstName', 'lastName', 'email', 'password', 'nationality', 'country', 'state', 'city', 'streetAddress'];
-                if (step1Fields.some(f => !formData[f as keyof typeof formData])) {
+                const missing = step1Fields.filter(f => !formData[f as keyof typeof formData]);
+                if (missing.length > 0) {
+                    const newErrors: Record<string, boolean> = {};
+                    missing.forEach(f => newErrors[f] = true);
+                    setErrors(prev => ({ ...prev, ...newErrors }));
                     toast.error("Please fill in all owner and personal address information");
                     return;
                 }
             } else if (step === 2) {
                 const step2Fields = ['companyName', 'bizRegNumber', 'phone', 'bizState', 'bizCity', 'bizStreetAddress'];
-                if (step2Fields.some(f => !formData[f as keyof typeof formData])) {
+                const missing = step2Fields.filter(f => !formData[f as keyof typeof formData]);
+                if (missing.length > 0) {
+                    const newErrors: Record<string, boolean> = {};
+                    missing.forEach(f => newErrors[f] = true);
+                    setErrors(prev => ({ ...prev, ...newErrors }));
                     toast.error("Please fill in all company and business address information");
                     return;
                 }
             } else if (step === 3) {
                 if (formData.categories.length === 0) {
+                    setErrors(prev => ({ ...prev, categories: true }));
                     toast.error("Please select at least one category");
                     return;
                 }
             } else if (step === 4) {
-                if (!formData.bizCertificate || !formData.govId) {
+                const missingDocs: Record<string, boolean> = {};
+                if (!formData.bizCertificate) missingDocs.bizCertificate = true;
+                if (!formData.govId) missingDocs.govId = true;
+
+                if (Object.keys(missingDocs).length > 0) {
+                    setErrors(prev => ({ ...prev, ...missingDocs }));
                     toast.error("Please upload all required documents");
                     return;
                 }
@@ -346,45 +372,45 @@ const Register = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div className="space-y-2">
                                                 <Label htmlFor="pro-first-name">First Name *</Label>
-                                                <Input id="pro-first-name" placeholder="John" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} />
+                                                <Input id="pro-first-name" placeholder="John" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={errors.firstName ? "border-red-500 ring-offset-red-500" : ""} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="pro-last-name">Surname *</Label>
-                                                <Input id="pro-last-name" placeholder="Doe" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} />
+                                                <Input id="pro-last-name" placeholder="Doe" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={errors.lastName ? "border-red-500 ring-offset-red-500" : ""} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="pro-type">Discipline *</Label>
-                                                <Input id="pro-type" placeholder="e.g. Architect" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} />
+                                                <Input id="pro-type" placeholder="e.g. Architect" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} className={errors.proType ? "border-red-500 ring-offset-red-500" : ""} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="pro-nationality">Nationality *</Label>
-                                                <Input id="pro-nationality" placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} />
+                                                <Input id="pro-nationality" placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} className={errors.nationality ? "border-red-500 ring-offset-red-500" : ""} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="pro-country">Country of Residence *</Label>
-                                                <Input id="pro-country" placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} />
+                                                <Input id="pro-country" placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} className={errors.country ? "border-red-500 ring-offset-red-500" : ""} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="pro-state">State *</Label>
-                                                <Input id="pro-state" placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} />
+                                                <Input id="pro-state" placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} className={errors.state ? "border-red-500 ring-offset-red-500" : ""} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="pro-city">City *</Label>
-                                                <Input id="pro-city" placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} />
+                                                <Input id="pro-city" placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} className={errors.city ? "border-red-500 ring-offset-red-500" : ""} />
                                             </div>
                                             <div className="space-y-2">
                                                 <Label htmlFor="pro-address">Street Address *</Label>
-                                                <Input id="pro-address" placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} />
+                                                <Input id="pro-address" placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""} />
                                             </div>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="pro-email">Email Address *</Label>
-                                            <Input id="pro-email" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} />
+                                            <Input id="pro-email" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={errors.email ? "border-red-500 ring-offset-red-500" : ""} />
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="pro-password">Password *</Label>
                                             <div className="relative">
-                                                <Input id="pro-password" type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} />
+                                                <Input id="pro-password" type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} className={errors.password ? "border-red-500 ring-offset-red-500" : ""} />
                                                 <button onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
                                                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                                 </button>
@@ -399,16 +425,16 @@ const Register = () => {
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
                                                         <Label>First Name *</Label>
-                                                        <Input value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} />
+                                                        <Input value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={errors.firstName ? "border-red-500 ring-offset-red-500" : ""} />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <Label>Last Name *</Label>
-                                                        <Input value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} />
+                                                        <Input value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={errors.lastName ? "border-red-500 ring-offset-red-500" : ""} />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label>Email *</Label>
-                                                    <Input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} />
+                                                    <Input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={errors.email ? "border-red-500 ring-offset-red-500" : ""} />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label>Password *</Label>
@@ -417,7 +443,7 @@ const Register = () => {
                                                             type={showPassword ? "text" : "password"} 
                                                             value={formData.password} 
                                                             onChange={(e) => handleInputChange('password', e.target.value)} 
-                                                            className="pr-12"
+                                                            className={`pr-12 ${errors.password ? "border-red-500 ring-offset-red-500" : ""}`}
                                                         />
                                                         <button 
                                                             type="button"
@@ -431,26 +457,26 @@ const Register = () => {
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
                                                         <Label>Nationality *</Label>
-                                                        <Input placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} />
+                                                        <Input placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} className={errors.nationality ? "border-red-500 ring-offset-red-500" : ""} />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <Label>Country of Residence *</Label>
-                                                        <Input placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} />
+                                                        <Input placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} className={errors.country ? "border-red-500 ring-offset-red-500" : ""} />
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
                                                         <Label>State *</Label>
-                                                        <Input placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} />
+                                                        <Input placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} className={errors.state ? "border-red-500 ring-offset-red-500" : ""} />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <Label>City *</Label>
-                                                        <Input placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} />
+                                                        <Input placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} className={errors.city ? "border-red-500 ring-offset-red-500" : ""} />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label>Street Address *</Label>
-                                                    <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} />
+                                                    <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""} />
                                                 </div>
                                             </div>
                                         )}
@@ -458,39 +484,39 @@ const Register = () => {
                                             <div className="space-y-4">
                                                 <div className="space-y-2">
                                                     <Label>Company Name *</Label>
-                                                    <Input value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} />
+                                                    <Input value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} className={errors.companyName ? "border-red-500 ring-offset-red-500" : ""} />
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
                                                         <Label>CAC / Reg Number *</Label>
-                                                        <Input value={formData.bizRegNumber} onChange={(e) => handleInputChange('bizRegNumber', e.target.value)} />
+                                                        <Input value={formData.bizRegNumber} onChange={(e) => handleInputChange('bizRegNumber', e.target.value)} className={errors.bizRegNumber ? "border-red-500 ring-offset-red-500" : ""} />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <Label>Phone *</Label>
-                                                        <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                                                        <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className={errors.phone ? "border-red-500 ring-offset-red-500" : ""} />
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
                                                         <Label>State *</Label>
-                                                        <Input placeholder="Lagos" value={formData.bizState} onChange={(e) => handleInputChange('bizState', e.target.value)} />
+                                                        <Input placeholder="Lagos" value={formData.bizState} onChange={(e) => handleInputChange('bizState', e.target.value)} className={errors.bizState ? "border-red-500 ring-offset-red-500" : ""} />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <Label>City *</Label>
-                                                        <Input placeholder="Ikeja" value={formData.bizCity} onChange={(e) => handleInputChange('bizCity', e.target.value)} />
+                                                        <Input placeholder="Ikeja" value={formData.bizCity} onChange={(e) => handleInputChange('bizCity', e.target.value)} className={errors.bizCity ? "border-red-500 ring-offset-red-500" : ""} />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <Label>Street Address *</Label>
-                                                    <Input placeholder="123 Main St" value={formData.bizStreetAddress} onChange={(e) => handleInputChange('bizStreetAddress', e.target.value)} />
+                                                    <Input placeholder="123 Main St" value={formData.bizStreetAddress} onChange={(e) => handleInputChange('bizStreetAddress', e.target.value)} className={errors.bizStreetAddress ? "border-red-500 ring-offset-red-500" : ""} />
                                                 </div>
                                             </div>
                                         )}
                                         {step === 3 && (
-                                            <div className="grid grid-cols-2 gap-3">
+                                            <div className={`grid grid-cols-2 gap-3 p-4 rounded-3xl transition-all duration-300 ${errors.categories ? 'bg-red-50/50 border-2 border-dashed border-red-500' : ''}`}>
                                                 {["Cement", "Steel", "Electrical", "Plumbing", "Roofing", "Tiles", "Paints", "Tools"].map((cat) => (
-                                                    <div key={cat} className="flex items-center space-x-2 p-3 border dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 cursor-pointer transition-colors group">
-                                                        <Checkbox checked={formData.categories.includes(cat)} onCheckedChange={() => handleCategoryToggle(cat)} />
+                                                    <div key={cat} onClick={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} className="flex items-center space-x-2 p-3 border dark:border-white/10 rounded-xl hover:bg-slate-50 dark:hover:bg-white/10 cursor-pointer transition-colors group">
+                                                        <Checkbox checked={formData.categories.includes(cat)} onCheckedChange={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} />
                                                         <span className="text-xs font-bold text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white">{cat}</span>
                                                     </div>
                                                 ))}
@@ -500,7 +526,7 @@ const Register = () => {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                 <div 
                                                     onClick={() => document.getElementById('biz-cert-upload')?.click()}
-                                                    className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${formData.bizCertificate ? 'border-green-500 bg-green-50/50 dark:bg-green-500/10' : 'hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
+                                                    className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${formData.bizCertificate ? 'border-green-500 bg-green-50/50 dark:bg-green-500/10' : errors.bizCertificate ? 'border-red-500 bg-red-50/50' : 'hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
                                                 >
                                                     <input 
                                                         id="biz-cert-upload"
@@ -508,14 +534,14 @@ const Register = () => {
                                                         className="hidden" 
                                                         onChange={(e) => handleInputChange('bizCertificate', e.target.files?.[0])}
                                                     />
-                                                    <Upload className={`w-8 h-8 mx-auto mb-4 ${formData.bizCertificate ? 'text-green-500' : 'text-primary'}`} />
-                                                    <p className="text-[10px] font-black uppercase tracking-widest truncate max-w-full px-2">
+                                                    <Upload className={`w-8 h-8 mx-auto mb-4 ${formData.bizCertificate ? 'text-green-500' : errors.bizCertificate ? 'text-red-500' : 'text-primary'}`} />
+                                                    <p className={`text-[10px] font-black uppercase tracking-widest truncate max-w-full px-2 ${errors.bizCertificate ? 'text-red-600' : ''}`}>
                                                         {formData.bizCertificate ? formData.bizCertificate.name : "Biz Certificate *"}
                                                     </p>
                                                 </div>
                                                 <div 
                                                     onClick={() => document.getElementById('gov-id-upload')?.click()}
-                                                    className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${formData.govId ? 'border-green-500 bg-green-50/50 dark:bg-green-500/10' : 'hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
+                                                    className={`border-2 border-dashed rounded-3xl p-8 text-center cursor-pointer transition-all ${formData.govId ? 'border-green-500 bg-green-50/50 dark:bg-green-500/10' : errors.govId ? 'border-red-500 bg-red-50/50' : 'hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
                                                 >
                                                     <input 
                                                         id="gov-id-upload"
@@ -523,8 +549,8 @@ const Register = () => {
                                                         className="hidden" 
                                                         onChange={(e) => handleInputChange('govId', e.target.files?.[0])}
                                                     />
-                                                    <Upload className={`w-8 h-8 mx-auto mb-4 ${formData.govId ? 'text-green-500' : 'text-primary'}`} />
-                                                    <p className="text-[10px] font-black uppercase tracking-widest truncate max-w-full px-2">
+                                                    <Upload className={`w-8 h-8 mx-auto mb-4 ${formData.govId ? 'text-green-500' : errors.govId ? 'text-red-500' : 'text-primary'}`} />
+                                                    <p className={`text-[10px] font-black uppercase tracking-widest truncate max-w-full px-2 ${errors.govId ? 'text-red-600' : ''}`}>
                                                         {formData.govId ? formData.govId.name : "Gov ID *"}
                                                     </p>
                                                 </div>
