@@ -61,6 +61,11 @@ const Register = () => {
         // Generic
         email: "",
         password: "",
+        streetAddress: "",
+        city: "",
+        state: "",
+        country: "",
+        nationality: "",
         // Pro specific
         proType: "",
         registrationType: "individual",
@@ -114,6 +119,11 @@ const Register = () => {
                     id: authData.user.id,
                     full_name: `${formData.firstName} ${formData.lastName}`.trim(),
                     specialty: formData.proType,
+                    street_address: formData.streetAddress,
+                    city: formData.city,
+                    state: formData.state,
+                    country: formData.country,
+                    nationality: formData.nationality,
                     credits: 10
                 });
 
@@ -150,7 +160,11 @@ const Register = () => {
                 const { error: profileError } = await supabase.from('vendors').insert({
                     id: authData.user.id,
                     company_name: formData.companyName,
-                    address: `${formData.address}, ${formData.city}`,
+                    address: formData.streetAddress,
+                    city: formData.city,
+                    state: formData.state,
+                    country: formData.country,
+                    nationality: formData.nationality,
                     cac_number: formData.bizRegNumber,
                     phone: formData.phone,
                     categories: formData.categories
@@ -302,6 +316,26 @@ const Register = () => {
                                                 <Label htmlFor="pro-type">Discipline</Label>
                                                 <Input id="pro-type" placeholder="e.g. Architect" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} />
                                             </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="pro-nationality">Nationality</Label>
+                                                <Input id="pro-nationality" placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="pro-country">Country of Residence</Label>
+                                                <Input id="pro-country" placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="pro-state">State</Label>
+                                                <Input id="pro-state" placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="pro-city">City</Label>
+                                                <Input id="pro-city" placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label htmlFor="pro-address">Street Address</Label>
+                                                <Input id="pro-address" placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} />
+                                            </div>
                                         </div>
                                         <div className="space-y-2">
                                             <Label htmlFor="pro-email">Email Address</Label>
@@ -362,13 +396,39 @@ const Register = () => {
                                                     <Label>Company Name</Label>
                                                     <Input value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} />
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <Label>CAC / Reg Number</Label>
-                                                    <Input value={formData.bizRegNumber} onChange={(e) => handleInputChange('bizRegNumber', e.target.value)} />
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label>CAC / Reg Number</Label>
+                                                        <Input value={formData.bizRegNumber} onChange={(e) => handleInputChange('bizRegNumber', e.target.value)} />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Phone</Label>
+                                                        <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label>Nationality</Label>
+                                                        <Input placeholder="Nigerian" value={formData.nationality} onChange={(e) => handleInputChange('nationality', e.target.value)} />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>Country of Residence</Label>
+                                                        <Input placeholder="Nigeria" value={formData.country} onChange={(e) => handleInputChange('country', e.target.value)} />
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <Label>State</Label>
+                                                        <Input placeholder="Lagos" value={formData.state} onChange={(e) => handleInputChange('state', e.target.value)} />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <Label>City</Label>
+                                                        <Input placeholder="Ikeja" value={formData.city} onChange={(e) => handleInputChange('city', e.target.value)} />
+                                                    </div>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label>Phone</Label>
-                                                    <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} />
+                                                    <Label>Street Address</Label>
+                                                    <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} />
                                                 </div>
                                             </div>
                                         )}
