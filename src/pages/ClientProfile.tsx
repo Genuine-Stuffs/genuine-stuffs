@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -21,8 +22,20 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
 const ClientProfile = () => {
-    const { user, logout } = useAuth();
+    const { user, role, logout, isLoading } = useAuth();
     const navigate = useNavigate();
+
+    // Redirect unauthenticated users to login
+    useEffect(() => {
+        if (!isLoading && (!user || role === 'guest')) {
+            navigate("/login");
+        }
+    }, [user, role, isLoading, navigate]);
+
+    // Don't render while auth is loading or if not authenticated
+    if (isLoading || !user || role === 'guest') {
+        return null;
+    }
 
     const sections = [
         {
