@@ -95,22 +95,21 @@ const VendorAnalytics = () => {
                         </header>
 
                         {/* Performance Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                             {performanceStats.map((stat, i) => (
-                                <Card key={i} className="group border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-[2rem] overflow-hidden">
-                                    <CardContent className="p-6">
-                                        <div className="flex justify-between items-center mb-4">
-                                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl group-hover:scale-110 transition-transform">
-                                                <stat.icon className="w-5 h-5 text-slate-500 dark:text-slate-300" />
+                                <Card key={i} className="group border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-[1.5rem] md:rounded-[2rem] overflow-hidden">
+                                    <CardContent className="p-4 md:p-6">
+                                        <div className="flex justify-between items-start mb-2 md:mb-4">
+                                            <div className="p-2 md:p-3 bg-slate-100 dark:bg-slate-800 rounded-xl md:rounded-2xl group-hover:scale-110 transition-transform">
+                                                <stat.icon className="w-4 h-4 md:w-5 md:h-5 text-slate-500 dark:text-slate-300" />
                                             </div>
-                                            <Badge className={`rounded-full text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border-none shadow-none ${stat.positive ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-                                                {stat.positive ? <ArrowUpRight className="w-2.5 h-2.5 mr-1" /> : <ArrowDownRight className="w-2.5 h-2.5 mr-1" />}
+                                            <Badge className={`rounded-full text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 md:px-2 py-0.5 border-none shadow-none ${stat.positive ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
                                                 {stat.trend}
                                             </Badge>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-200 mb-1">{stat.title}</p>
-                                            <h3 className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{stat.value}</h3>
+                                            <p className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-200 mb-0.5 md:mb-1">{stat.title}</p>
+                                            <h3 className="text-lg md:text-2xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">{stat.value}</h3>
                                         </div>
                                     </CardContent>
                                 </Card>

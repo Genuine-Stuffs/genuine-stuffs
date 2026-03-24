@@ -114,24 +114,23 @@ const VendorOrders = () => {
                         </header>
 
                         {/* Stats Summary Area */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                             {stats.map((stat, i) => (
-                                <Card key={i} className="group border-none shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative rounded-[2rem]">
-                                    <CardContent className="p-6">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className={`p-3 rounded-2xl transition-transform group-hover:scale-110 ${stat.bg} ${stat.color}`}>
-                                                <stat.icon className="w-6 h-6" />
+                                <Card key={i} className="group border-none shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative rounded-[1.5rem] md:rounded-[2rem]">
+                                    <CardContent className="p-4 md:p-6">
+                                        <div className="flex justify-between items-start mb-2 md:mb-4">
+                                            <div className={`p-2.5 md:p-3 rounded-xl md:rounded-2xl transition-transform group-hover:scale-110 ${stat.bg} ${stat.color}`}>
+                                                <stat.icon className="w-5 h-5 md:w-6 md:h-6" />
                                             </div>
                                             <div className="flex flex-col items-end">
-                                                <span className={`flex items-center gap-1 text-[11px] font-black tracking-tight ${stat.color}`}>
+                                                <span className={`flex items-center gap-1 text-[9px] md:text-[11px] font-black tracking-tight ${stat.color}`}>
                                                     {stat.trend}
-                                                    {stat.trend.startsWith('+') && <ArrowUpRight className="w-3 h-3" />}
                                                 </span>
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-200 mb-1 group-hover:text-primary transition-colors">{stat.title}</p>
-                                            <h3 className="text-2xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">{stat.value}</h3>
+                                            <p className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-200 mb-0.5 md:mb-1 group-hover:text-primary transition-colors">{stat.title}</p>
+                                            <h3 className="text-lg md:text-2xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">{stat.value}</h3>
                                         </div>
                                     </CardContent>
                                     <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
