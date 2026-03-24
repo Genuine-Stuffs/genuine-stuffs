@@ -202,7 +202,7 @@ const VendorInventory = () => {
                                                                         }
                                                                     />
                                                                     <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-2 cursor-pointer" asChild>
-                                                                        <Link to={`/product/${item.id}`}>
+                                                                        <Link to={`/marketplace?search=${encodeURIComponent(item.name)}`}>
                                                                             <ExternalLink className="w-3.5 h-3.5" /> View Public
                                                                         </Link>
                                                                     </DropdownMenuItem>
@@ -273,7 +273,7 @@ const VendorInventory = () => {
                                                             }
                                                         />
                                                         <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl" asChild>
-                                                            <Link to={`/product/${item.id}`}>
+                                                            <Link to={`/marketplace?search=${encodeURIComponent(item.name)}`}>
                                                                 <ExternalLink className="w-4 h-4 text-slate-400" /> View Public
                                                             </Link>
                                                         </DropdownMenuItem>
