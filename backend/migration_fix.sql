@@ -1,0 +1,19 @@
+-- RUN THIS IN SUPABASE SQL EDITOR
+
+-- Update Vendors table
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS street_address TEXT;
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS state TEXT;
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS country TEXT;
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS nationality TEXT;
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS personal_street_address TEXT;
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS personal_city TEXT;
+ALTER TABLE vendors ADD COLUMN IF NOT EXISTS personal_state TEXT;
+ALTER TABLE vendors ALTER COLUMN address DROP NOT NULL;
+
+-- Update Professionals table
+ALTER TABLE professionals ADD COLUMN IF NOT EXISTS street_address TEXT;
+ALTER TABLE professionals ADD COLUMN IF NOT EXISTS city TEXT;
+ALTER TABLE professionals ADD COLUMN IF NOT EXISTS state TEXT;
+ALTER TABLE professionals ADD COLUMN IF NOT EXISTS country TEXT;
+ALTER TABLE professionals ADD COLUMN IF NOT EXISTS nationality TEXT;

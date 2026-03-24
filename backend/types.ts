@@ -70,7 +70,15 @@ export type Database = {
         Row: {
           id: string
           company_name: string
-          address: string
+          address: string | null
+          street_address: string | null
+          city: string | null
+          state: string | null
+          country: string | null
+          nationality: string | null
+          personal_street_address: string | null
+          personal_city: string | null
+          personal_state: string | null
           cac_number: string
           phone: string | null
           categories: string[] | null
@@ -82,7 +90,15 @@ export type Database = {
         Insert: {
           id: string
           company_name: string
-          address: string
+          address?: string | null
+          street_address?: string | null
+          city?: string | null
+          state?: string | null
+          country?: string | null
+          nationality?: string | null
+          personal_street_address?: string | null
+          personal_city?: string | null
+          personal_state?: string | null
           cac_number: string
           phone?: string | null
           categories?: string[] | null
@@ -94,7 +110,15 @@ export type Database = {
         Update: {
           id?: string
           company_name?: string
-          address?: string
+          address?: string | null
+          street_address?: string | null
+          city?: string | null
+          state?: string | null
+          country?: string | null
+          nationality?: string | null
+          personal_street_address?: string | null
+          personal_city?: string | null
+          personal_state?: string | null
           cac_number?: string
           phone?: string | null
           categories?: string[] | null
@@ -112,6 +136,11 @@ export type Database = {
           specialty: string
           license_number: string | null
           phone: string | null
+          street_address: string | null
+          city: string | null
+          state: string | null
+          country: string | null
+          nationality: string | null
           bio: string | null
           avatar_url: string | null
           is_verified: boolean
@@ -138,6 +167,11 @@ export type Database = {
           specialty?: string
           license_number?: string | null
           phone?: string | null
+          street_address?: string | null
+          city?: string | null
+          state?: string | null
+          country?: string | null
+          nationality?: string | null
           bio?: string | null
           avatar_url?: string | null
           is_verified?: boolean

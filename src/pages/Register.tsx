@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import {
     Check,
     ChevronRight,
@@ -56,6 +56,7 @@ import { toast } from "sonner";
 const Register = () => {
     const { signInWithGoogle } = useAuth();
     const [searchParams] = useSearchParams();
+    const navigate = useNavigate();
     const initialRole = (searchParams.get("role") as "professional" | "vendor") || "professional";
 
     const [role, setRole] = useState<"professional" | "vendor">(initialRole);
@@ -233,6 +234,17 @@ const Register = () => {
         }
     }, [role, step, formData.country, formData.bizState]);
 
+    // Automatic Redirect after registration
+    useEffect(() => {
+        if (submitted) {
+            // Give the user 2 seconds to see the success message
+            const timer = setTimeout(() => {
+                navigate(role === 'professional' ? "/pro-portal" : "/vendor-dashboard");
+            }, 2000);
+            return () => clearTimeout(timer);
+        }
+    }, [submitted, navigate, role]);
+
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
         // Clear error when user changes the field
@@ -308,7 +320,12 @@ const Register = () => {
             toast.success("Professional account created!");
             setSubmitted(true);
         } catch (err: any) {
-            toast.error(err.message || "Registration failed");
+            console.error("Pro Registration Error:", err);
+            if (err.message?.includes("already registered") || err.status === 422) {
+                toast.error("Account already exists with this email. Please try logging in.");
+            } else {
+                toast.error(err.message || "Registration failed");
+            }
         } finally {
             setIsLoading(false);
         }
@@ -354,7 +371,12 @@ const Register = () => {
             toast.success("Vendor registration complete!");
             setSubmitted(true);
         } catch (err: any) {
-            toast.error(err.message || "Registration failed");
+            console.error("Vendor Registration Error:", err);
+            if (err.message?.includes("already registered") || err.status === 422) {
+                toast.error("Account already exists with this email. Please try logging in.");
+            } else {
+                toast.error(err.message || "Registration failed");
+            }
         } finally {
             setIsLoading(false);
         }
