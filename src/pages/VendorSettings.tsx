@@ -119,7 +119,7 @@ const VendorSettings = () => {
                                             ].map((item) => (
                                                 <button 
                                                     key={item.id}
-                                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-bold text-sm ${item.id === 'profile' ? 'bg-primary text-white' : 'text-slate-500 hover:bg-slate-50'}`}
+                                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300 font-bold text-sm ${item.id === 'profile' ? 'bg-primary text-white' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                                                 >
                                                     <item.icon className="w-4 h-4" />
                                                     {item.label}
@@ -237,15 +237,15 @@ const VendorSettings = () => {
                                         </CardHeader>
                                         <CardContent className="p-8 pt-0 space-y-4">
                                             <div className="flex items-center justify-between">
-                                                <span className="text-xs font-bold text-slate-600">Email Notifications</span>
+                                                <span className="text-xs font-bold text-slate-900 dark:text-slate-300">Email Notifications</span>
                                                 <Switch checked />
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-xs font-bold text-slate-600">SMS Alerts</span>
+                                                <span className="text-xs font-bold text-slate-900 dark:text-slate-300">SMS Alerts</span>
                                                 <Switch />
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-xs font-bold text-slate-600">Inventory Status</span>
+                                                <span className="text-xs font-bold text-slate-900 dark:text-slate-300">Inventory Status</span>
                                                 <Switch checked />
                                             </div>
                                         </CardContent>

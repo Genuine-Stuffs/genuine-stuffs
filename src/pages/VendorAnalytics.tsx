@@ -99,8 +99,8 @@ const VendorAnalytics = () => {
                                 <Card key={i} className="group border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-[2rem] overflow-hidden">
                                     <CardContent className="p-6">
                                         <div className="flex justify-between items-center mb-4">
-                                            <div className="p-2 bg-slate-100 dark:bg-slate-900 rounded-xl group-hover:scale-110 transition-transform">
-                                                <stat.icon className="w-5 h-5 text-slate-500" />
+                                            <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-xl group-hover:scale-110 transition-transform">
+                                                <stat.icon className="w-5 h-5 text-slate-500 dark:text-slate-300" />
                                             </div>
                                             <Badge className={`rounded-full text-[9px] font-black uppercase tracking-widest px-2 py-0.5 border-none shadow-none ${stat.positive ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
                                                 {stat.positive ? <ArrowUpRight className="w-2.5 h-2.5 mr-1" /> : <ArrowDownRight className="w-2.5 h-2.5 mr-1" />}

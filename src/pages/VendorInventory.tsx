@@ -127,7 +127,7 @@ const VendorInventory = () => {
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
-                                                <tr className="bg-slate-50/50 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.2em] font-black text-slate-400 border-b border-slate-100 dark:border-slate-800">
+                                                <tr className="bg-slate-50/50 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.2em] font-black text-slate-500 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800">
                                                     <th className="px-8 py-4">Material</th>
                                                     <th className="px-8 py-4">Category</th>
                                                     <th className="px-8 py-4">Price</th>
