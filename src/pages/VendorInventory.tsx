@@ -37,6 +37,11 @@ const VendorInventory = () => {
     const { user } = useAuth();
     const [searchQuery, setSearchQuery] = useState("");
     const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<string>("All Categories");
+    const [selectedAvailability, setSelectedAvailability] = useState<string>("All Status");
+
+    const categories = ["All Categories", "Steel & Iron", "Plumbing", "Electrical", "Cement", "Finishing & Tiles"];
+    const availabilityOptions = ["All Status", "In Stock", "Low Stock", "Out of Stock"];
 
     const { data: materials = [], isLoading, refetch } = useQuery({
         queryKey: ['vendor-inventory', user?.id],
@@ -53,10 +58,12 @@ const VendorInventory = () => {
         enabled: !!user
     });
 
-    const filteredMaterials = materials.filter(m => 
-        m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.category?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredMaterials = materials.filter(m => {
+        const matchesSearch = m.name.toLowerCase().includes(searchQuery.toLowerCase()) || m.category?.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = selectedCategory === "All Categories" || m.category === selectedCategory;
+        const matchesAvailability = selectedAvailability === "All Status" || m.availability === selectedAvailability;
+        return matchesSearch && matchesCategory && matchesAvailability;
+    });
 
     const handleDelete = async (id: string) => {
         if (!confirm("Are you sure you want to delete this material?")) return;
@@ -117,9 +124,55 @@ const VendorInventory = () => {
                                         <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Active Listings</CardTitle>
                                         <CardDescription className="italic font-medium">You have {materials.length} materials in your inventory.</CardDescription>
                                     </div>
-                                    <Button variant="outline" className="h-10 rounded-xl gap-2 text-xs font-black uppercase tracking-widest border-slate-200">
-                                        <Filter className="w-4 h-4" /> Filter
-                                    </Button>
+                                    <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                            <Button variant="outline" className="h-10 rounded-xl gap-2 text-xs font-black uppercase tracking-widest border-slate-200">
+                                                <Filter className="w-4 h-4" /> Filter {(selectedCategory !== "All Categories" || selectedAvailability !== "All Status") && "•"}
+                                            </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="w-56 rounded-2xl font-black p-3 shadow-2xl border-slate-200 dark:border-slate-800">
+                                            <div className="space-y-4">
+                                                <div className="space-y-2">
+                                                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 px-1">Category</p>
+                                                    <div className="grid grid-cols-1 gap-1">
+                                                        {categories.map((cat) => (
+                                                            <DropdownMenuItem 
+                                                                key={cat}
+                                                                onSelect={() => setSelectedCategory(cat)}
+                                                                className={`text-[10px] uppercase tracking-widest py-2 px-3 cursor-pointer rounded-lg ${selectedCategory === cat ? 'bg-primary text-white' : ''}`}
+                                                            >
+                                                                {cat}
+                                                            </DropdownMenuItem>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <p className="text-[10px] uppercase tracking-[0.2em] text-slate-400 px-1">Availability</p>
+                                                    <div className="grid grid-cols-1 gap-1">
+                                                        {availabilityOptions.map((opt) => (
+                                                            <DropdownMenuItem 
+                                                                key={opt}
+                                                                onSelect={() => setSelectedAvailability(opt)}
+                                                                className={`text-[10px] uppercase tracking-widest py-2 px-3 cursor-pointer rounded-lg ${selectedAvailability === opt ? 'bg-primary text-white' : ''}`}
+                                                            >
+                                                                {opt}
+                                                            </DropdownMenuItem>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    className="w-full text-[9px] uppercase tracking-widest h-8 font-black text-rose-500 hover:text-rose-600 hover:bg-rose-50"
+                                                    onClick={() => {
+                                                        setSelectedCategory("All Categories");
+                                                        setSelectedAvailability("All Status");
+                                                    }}
+                                                >
+                                                    Reset Filters
+                                                </Button>
+                                            </div>
+                                        </DropdownMenuContent>
+                                    </DropdownMenu>
                                 </div>
                             </CardHeader>
                             <CardContent className="p-0">
