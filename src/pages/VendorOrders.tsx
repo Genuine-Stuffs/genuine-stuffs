@@ -230,27 +230,46 @@ const VendorOrders = () => {
                                         {/* Mobile Compact List View */}
                                         <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
                                             {filteredOrders.map((order) => (
-                                                <div key={order.id} className="p-4 flex flex-col gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors">
-                                                    <div className="flex justify-between items-start">
-                                                        <div className="flex flex-col">
-                                                            <span className="font-black text-[11px] text-primary tabular-nums leading-none mb-1">{order.id}</span>
-                                                            <p className="text-[9px] text-slate-400 dark:text-slate-200 font-bold uppercase">{order.date}</p>
+                                                <DropdownMenu key={order.id}>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <div className="p-4 flex flex-col gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors cursor-pointer active:scale-[0.98] duration-200">
+                                                            {/* Header Row: Client & Amount */}
+                                                            <div className="flex justify-between items-start">
+                                                                <p className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1">{order.client}</p>
+                                                                <p className="font-black text-[11px] text-slate-900 dark:text-white tabular-nums tracking-tight">₦{order.total.toLocaleString()}</p>
+                                                            </div>
+                                                            
+                                                            {/* Middle: Order ID & Items */}
+                                                            <div className="flex flex-col gap-1">
+                                                                <span className="font-black text-[10px] text-primary tabular-nums leading-none">ORD-{order.id.replace('ORD-', '')}</span>
+                                                                <p className="text-[10px] text-slate-500 dark:text-slate-400 italic line-clamp-1">{order.item}</p>
+                                                            </div>
+
+                                                            {/* Footer: Date & Status */}
+                                                            <div className="flex justify-between items-center">
+                                                                <p className="text-[9px] text-slate-400 dark:text-slate-200 font-bold uppercase">{order.date}</p>
+                                                                <Badge className={`rounded-full text-[8px] font-black uppercase tracking-widest px-2 py-0.5 gap-1 ${getStatusColor(order.status)}`}>
+                                                                    {order.status}
+                                                                </Badge>
+                                                            </div>
                                                         </div>
-                                                        <Badge className={`rounded-full text-[8px] font-black uppercase tracking-widest px-2 py-0.5 gap-1 ${getStatusColor(order.status)}`}>
-                                                            {order.status}
-                                                        </Badge>
-                                                    </div>
-                                                    
-                                                    <div className="flex justify-between items-end">
-                                                        <div className="flex-1 min-w-0 pr-4">
-                                                            <p className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1 mb-0.5">{order.client}</p>
-                                                            <p className="text-[10px] text-slate-500 dark:text-slate-400 italic line-clamp-1">{order.item}</p>
-                                                        </div>
-                                                        <div className="text-right shrink-0">
-                                                            <p className="font-black text-[11px] text-slate-900 dark:text-white tabular-nums tracking-tight">₦{order.total.toLocaleString()}</p>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="w-48 rounded-2xl font-black p-2 shadow-2xl border-slate-200 dark:border-slate-800">
+                                                        <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl">
+                                                            <Eye className="w-4 h-4 text-primary" /> View Details
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl">
+                                                            <Clock className="w-4 h-4 text-slate-400" /> Mark Processing
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl">
+                                                            <Truck className="w-4 h-4 text-slate-400" /> Mark Shipped
+                                                        </DropdownMenuItem>
+                                                        <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+                                                        <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 text-primary cursor-pointer rounded-xl">
+                                                            <Download className="w-4 h-4" /> Invoice PDF
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             ))}
                                         </div>
                                     </div>
