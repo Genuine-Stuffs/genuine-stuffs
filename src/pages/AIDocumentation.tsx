@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import {
     Sparkles, Zap, Target, TrendingUp, ShieldCheck, Cpu, Wand2, Layers,
     Calculator, Map, FileText, History, Compass, Trees, HardHat,
@@ -470,7 +469,6 @@ const AIDocumentation = () => {
                 </div>
             </div>
 
-            <Footer />
         </div>
     );
 };

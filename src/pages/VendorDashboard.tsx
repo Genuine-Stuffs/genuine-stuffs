@@ -1,6 +1,4 @@
-import { useState } from "react";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -384,7 +382,6 @@ const VendorDashboard = () => {
                             </Card>
                         </div>
                     </div>
-                    <Footer />
                 </main>
             </div>
         </div>

@@ -1,5 +1,4 @@
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -281,8 +280,6 @@ const ProDashboard = () => {
 
                 </div>
             </main>
-
-            <Footer />
         </div>
     );
 };
