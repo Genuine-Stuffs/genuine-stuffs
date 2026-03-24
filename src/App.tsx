@@ -23,6 +23,7 @@ import VendorAnalytics from "./pages/VendorAnalytics";
 import VendorSettings from "./pages/VendorSettings";
 import ProDashboard from "./pages/ProDashboard";
 import Settings from "./pages/Settings";
+import HelpSupport from "./pages/HelpSupport";
 import Cart from "./pages/Cart";
 import ClientProfile from "./pages/ClientProfile";
 import { AuthProvider } from "./context/AuthContext";
@@ -51,6 +52,7 @@ const App = () => (
                     <Route path="/resources" element={<Resources />} />
                     <Route path="/about" element={<About />} />
                     <Route path="/contact" element={<Contact />} />
+                    <Route path="/help" element={<HelpSupport />} />
 
                     {/* New Industry Transformation Routes */}
                     <Route path="/marketplace" element={<Marketplace />} />
