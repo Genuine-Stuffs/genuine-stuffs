@@ -272,22 +272,28 @@ const materialCatalogue: Record<string, string[]> = {
 const allCategories = Object.keys(materialCatalogue);
 // ────────────────────────────────────────────────────────────────────
 
-export function AddMaterialDialog() {
+interface AddMaterialDialogProps {
+  material?: any;
+  trigger?: React.ReactNode;
+}
+
+export function AddMaterialDialog({ material, trigger }: AddMaterialDialogProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const isEditing = !!material;
 
   const [formData, setFormData] = useState({
-    name: "",
-    category: "",
-    price: "",
-    unit: "",
-    description: "",
-    availability: "In Stock"
+    name: material?.name || "",
+    category: material?.category || "",
+    price: material?.price?.toString() || "",
+    unit: material?.unit || "",
+    description: material?.description || "",
+    availability: material?.availability || "In Stock"
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(material?.image_url || null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // When category changes, reset the name selection
@@ -306,8 +312,8 @@ export function AddMaterialDialog() {
   };
 
   const mutation = useMutation({
-    mutationFn: async (newMaterial: any) => {
-      let uploadedImageUrl = "/images/materials/cement_bags.png";
+    mutationFn: async (materialData: any) => {
+      let uploadedImageUrl = material?.image_url || "/images/materials/cement_bags.png";
 
       if (selectedFile) {
         const fileExt = selectedFile.name.split('.').pop();
@@ -328,40 +334,52 @@ export function AddMaterialDialog() {
         }
       }
 
-      newMaterial.image_url = uploadedImageUrl;
+      materialData.image_url = uploadedImageUrl;
 
-      const { data, error } = await supabase
-        .from('materials')
-        .insert([newMaterial])
-        .select();
-
-      if (error) throw error;
-      return data;
+      if (isEditing) {
+        const { data, error } = await supabase
+          .from('materials')
+          .update(materialData)
+          .eq('id', material.id)
+          .select();
+        if (error) throw error;
+        return data;
+      } else {
+        const { data, error } = await supabase
+          .from('materials')
+          .insert([materialData])
+          .select();
+        if (error) throw error;
+        return data;
+      }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vendor-inventory'] });
       queryClient.invalidateQueries({ queryKey: ['vendor-materials'] });
-      toast.success("Material added successfully!");
+      toast.success(isEditing ? "Material updated successfully!" : "Material added successfully!");
       setOpen(false);
-      setFormData({
-        name: "",
-        category: "",
-        price: "",
-        unit: "",
-        description: "",
-        availability: "In Stock"
-      });
-      setSelectedFile(null);
-      setPreviewUrl(null);
+      if (!isEditing) {
+        setFormData({
+          name: "",
+          category: "",
+          price: "",
+          unit: "",
+          description: "",
+          availability: "In Stock"
+        });
+        setSelectedFile(null);
+        setPreviewUrl(null);
+      }
     },
     onError: (error: any) => {
-      toast.error(`Failed to add material: ${error.message}`);
+      toast.error(`Failed to ${isEditing ? 'update' : 'add'} material: ${error.message}`);
     }
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
-        toast.error("You must be logged in to add a material.");
+        toast.error("You must be logged in to manage materials.");
         return;
     }
     mutation.mutate({
@@ -374,24 +392,28 @@ export function AddMaterialDialog() {
       vendor_id: user.id,
       vendor_name: user?.user_metadata?.full_name || "Vendor",
       is_verified: true,
-      rating: 5.0,
-      tags: [],
-      co2_footprint: "Low Impact"
+      rating: material?.rating || 5.0,
+      tags: material?.tags || [],
+      co2_footprint: material?.co2_footprint || "Low Impact"
     });
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 font-black uppercase tracking-widest text-xs h-11 px-6 rounded-xl shrink-0">
-            <Plus className="w-4 h-4" /> Add Material
-        </Button>
+        {trigger || (
+          <Button className="gap-2 bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/20 font-black uppercase tracking-widest text-xs h-11 px-6 rounded-xl shrink-0">
+              <Plus className="w-4 h-4" /> Add Material
+          </Button>
+        )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-[500px] max-h-[85vh] overflow-y-auto rounded-[2rem] border-none shadow-2xl">
         <DialogHeader className="px-2 space-y-3 shrink-0">
-          <DialogTitle className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">Add New Material</DialogTitle>
+          <DialogTitle className="text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white">
+            {isEditing ? "Edit Material" : "Add New Material"}
+          </DialogTitle>
           <DialogDescription className="text-sm font-medium italic text-slate-500">
-            List a new product to your inventory.
+            {isEditing ? "Update your product details." : "List a new product to your inventory."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="grid gap-4 py-4 px-2">
@@ -528,7 +550,7 @@ export function AddMaterialDialog() {
             className="w-full sm:w-auto rounded-xl font-black uppercase tracking-widest text-xs h-11 px-8 shadow-lg shadow-primary/20"
            >
             {mutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            List Product
+            {isEditing ? "Save Changes" : "List Product"}
           </Button>
         </DialogFooter>
       </DialogContent>

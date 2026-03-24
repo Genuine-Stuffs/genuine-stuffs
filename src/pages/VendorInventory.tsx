@@ -190,11 +190,21 @@ const VendorInventory = () => {
                                                                     </Button>
                                                                 </DropdownMenuTrigger>
                                                                 <DropdownMenuContent align="end" className="w-40 rounded-xl font-bold">
-                                                                    <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-2 cursor-pointer">
-                                                                        <Edit className="w-3.5 h-3.5" /> Edit Details
-                                                                    </DropdownMenuItem>
-                                                                    <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-2 cursor-pointer">
-                                                                        <ExternalLink className="w-3.5 h-3.5" /> View Public
+                                                                    <AddMaterialDialog 
+                                                                        material={item} 
+                                                                        trigger={
+                                                                            <DropdownMenuItem 
+                                                                                onSelect={(e) => e.preventDefault()}
+                                                                                className="text-[10px] uppercase tracking-widest gap-2 cursor-pointer"
+                                                                            >
+                                                                                <Edit className="w-3.5 h-3.5" /> Edit Details
+                                                                            </DropdownMenuItem>
+                                                                        }
+                                                                    />
+                                                                    <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-2 cursor-pointer" asChild>
+                                                                        <Link to={`/product/${item.id}`}>
+                                                                            <ExternalLink className="w-3.5 h-3.5" /> View Public
+                                                                        </Link>
                                                                     </DropdownMenuItem>
                                                                     <DropdownMenuItem 
                                                                         className="text-[10px] uppercase tracking-widest gap-2 text-destructive cursor-pointer"
@@ -251,11 +261,21 @@ const VendorInventory = () => {
                                                         </div>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end" className="w-48 rounded-2xl font-black p-2 shadow-2xl border-slate-200 dark:border-slate-800">
-                                                        <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl">
-                                                            <Edit className="w-4 h-4 text-primary" /> Edit Details
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl">
-                                                            <ExternalLink className="w-4 h-4 text-slate-400" /> View Public
+                                                        <AddMaterialDialog 
+                                                            material={item} 
+                                                            trigger={
+                                                                <DropdownMenuItem 
+                                                                    onSelect={(e) => e.preventDefault()}
+                                                                    className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl"
+                                                                >
+                                                                    <Edit className="w-4 h-4 text-primary" /> Edit Details
+                                                                </DropdownMenuItem>
+                                                            }
+                                                        />
+                                                        <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl" asChild>
+                                                            <Link to={`/product/${item.id}`}>
+                                                                <ExternalLink className="w-4 h-4 text-slate-400" /> View Public
+                                                            </Link>
                                                         </DropdownMenuItem>
                                                         <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
                                                         <DropdownMenuItem 
