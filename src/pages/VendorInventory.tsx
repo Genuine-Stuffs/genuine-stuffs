@@ -213,40 +213,59 @@ const VendorInventory = () => {
                                         {/* Mobile Compact List View */}
                                         <div className="md:hidden divide-y divide-slate-100 dark:divide-slate-800">
                                             {filteredMaterials.map((item) => (
-                                                <div key={item.id} className="p-4 flex gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors">
-                                                    <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shrink-0 flex items-center justify-center">
-                                                        {item.image_url ? (
-                                                            <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
-                                                        ) : (
-                                                            <Package className="w-5 h-5 text-slate-300" />
-                                                        )}
-                                                    </div>
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex justify-between items-start mb-1 gap-2">
-                                                            <p className="font-bold text-[11px] text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1">{item.name}</p>
-                                                            <Badge variant="outline" className="rounded-full text-[7px] font-black uppercase tracking-[0.05em] px-1.5 py-0 bg-white dark:bg-muted border-slate-200 text-slate-500 dark:text-slate-200 shrink-0">
-                                                                {item.category || "General"}
-                                                            </Badge>
-                                                        </div>
-                                                        <div className="flex justify-between items-end">
-                                                            <div className="flex flex-col gap-0.5">
-                                                                <p className="text-[9px] text-slate-400 dark:text-slate-200 font-bold uppercase tabular-nums">ID: {item.id.slice(0, 8)}</p>
-                                                                <p className="font-black text-[10px] text-slate-900 dark:text-white tabular-nums">₦{item.price?.toLocaleString() || "0"}</p>
+                                                <DropdownMenu key={item.id}>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <div className="p-4 flex gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors cursor-pointer active:scale-[0.98] duration-200">
+                                                            <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shrink-0 flex items-center justify-center">
+                                                                {item.image_url ? (
+                                                                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <Package className="w-5 h-5 text-slate-300" />
+                                                                )}
                                                             </div>
-                                                            <div className="flex flex-col items-end gap-1">
-                                                                <div className="flex items-center gap-1.5 text-[8px] font-bold">
-                                                                    <span className={item.availability === 'Low Stock' || item.availability === 'Out of Stock' ? "text-orange-500" : "text-slate-500 dark:text-slate-300"}>
-                                                                        {item.availability || "In Stock"}
-                                                                    </span>
-                                                                    <div className="flex items-center gap-0.5 text-slate-400">
-                                                                        <Eye className="w-2.5 h-2.5" />
-                                                                        {item.views_count || 0}
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex justify-between items-start mb-1 gap-2">
+                                                                    <p className="font-bold text-[11px] text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1">{item.name}</p>
+                                                                    <Badge variant="outline" className="rounded-full text-[7px] font-black uppercase tracking-[0.05em] px-1.5 py-0 bg-white dark:bg-muted border-slate-200 text-slate-500 dark:text-slate-200 shrink-0">
+                                                                        {item.category || "General"}
+                                                                    </Badge>
+                                                                </div>
+                                                                <div className="flex justify-between items-end">
+                                                                    <div className="flex flex-col gap-0.5">
+                                                                        <p className="text-[9px] text-slate-400 dark:text-slate-200 font-bold uppercase tabular-nums">ID: {item.id.slice(0, 8)}</p>
+                                                                        <p className="font-black text-[10px] text-slate-900 dark:text-white tabular-nums">₦{item.price?.toLocaleString() || "0"}</p>
+                                                                    </div>
+                                                                    <div className="flex flex-col items-end gap-1">
+                                                                        <div className="flex items-center gap-1.5 text-[8px] font-bold">
+                                                                            <span className={item.availability === 'Low Stock' || item.availability === 'Out of Stock' ? "text-orange-500" : "text-slate-500 dark:text-slate-300"}>
+                                                                                {item.availability || "In Stock"}
+                                                                            </span>
+                                                                            <div className="flex items-center gap-0.5 text-slate-400">
+                                                                                <Eye className="w-2.5 h-2.5" />
+                                                                                {item.views_count || 0}
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                </div>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="w-48 rounded-2xl font-black p-2 shadow-2xl border-slate-200 dark:border-slate-800">
+                                                        <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl">
+                                                            <Edit className="w-4 h-4 text-primary" /> Edit Details
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl">
+                                                            <ExternalLink className="w-4 h-4 text-slate-400" /> View Public
+                                                        </DropdownMenuItem>
+                                                        <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
+                                                        <DropdownMenuItem 
+                                                            className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 text-destructive cursor-pointer rounded-xl hover:bg-destructive/5"
+                                                            onClick={() => handleDelete(item.id)}
+                                                        >
+                                                            <Trash2 className="w-4 h-4" /> Remove Item
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             ))}
                                         </div>
                                     </div>
