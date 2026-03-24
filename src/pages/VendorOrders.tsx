@@ -243,6 +243,9 @@ const VendorOrders = () => {
                     </div>
                 </main>
             </div>
+
+            {/* Mobile Bottom Navigation */}
+            <BottomNav />
         </div>
     );
 };

@@ -287,6 +287,9 @@ const VendorAnalytics = () => {
                     </div>
                 </main>
             </div>
+
+            {/* Mobile Bottom Navigation */}
+            <BottomNav />
         </div>
     );
 };

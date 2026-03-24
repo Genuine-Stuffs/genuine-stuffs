@@ -226,6 +226,9 @@ const VendorInventory = () => {
                     </div>
                 </main>
             </div>
+            
+            {/* Mobile Bottom Navigation */}
+            <BottomNav />
         </div>
     );
 };
