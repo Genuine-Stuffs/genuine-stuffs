@@ -31,7 +31,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import Logo from "@/components/Logo";
 /*
 ### 🎨 Aesthetic Overhaul (Calibrated)
@@ -466,7 +465,6 @@ const Register = () => {
                         </div>
                     </Card>
                 </main>
-                <Footer />
             </div>
         );
     }
@@ -889,8 +887,6 @@ const Register = () => {
                     </p>
                 </div>
             </main>
-
-            <Footer />
         </div>
     );
 };
