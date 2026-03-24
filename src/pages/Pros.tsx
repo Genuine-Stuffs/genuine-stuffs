@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Search, MapPin, Star, ShieldCheck, Mail, Phone, ExternalLink, ShoppingBag, ChevronDown } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -235,7 +234,6 @@ const Pros = () => {
                 </div>
             </main>
 
-            <Footer />
         </div>
     );
 };
