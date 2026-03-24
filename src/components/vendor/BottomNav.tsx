@@ -39,8 +39,8 @@ const BottomNav = () => {
             >
               <Icon className={cn("w-5 h-5 mb-0.5 transition-transform", isActive ? "text-white" : "text-slate-400")} />
               <span className={cn(
-                "text-[7px] font-black uppercase tracking-tighter transition-all text-center px-1 leading-[1.1]",
-                isActive ? "opacity-100 translate-y-0" : "opacity-0 translate-y-1"
+                "text-[7px] font-black uppercase tracking-tighter transition-all text-center px-0.5 leading-[1.1]",
+                isActive ? "text-white" : "text-slate-500"
               )}>
                 {item.label}
               </span>
