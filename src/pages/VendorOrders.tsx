@@ -232,7 +232,7 @@ const VendorOrders = () => {
                                             {filteredOrders.map((order) => (
                                                 <DropdownMenu key={order.id}>
                                                     <DropdownMenuTrigger asChild>
-                                                        <div className="p-4 flex flex-col gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors cursor-pointer active:scale-[0.98] duration-200">
+                                                        <div className="p-3 flex flex-col gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors cursor-pointer active:scale-[0.98] duration-200">
                                                             {/* Header Row: Client & Amount */}
                                                             <div className="flex justify-between items-center">
                                                                 <p className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1">{order.client}</p>
@@ -240,19 +240,19 @@ const VendorOrders = () => {
                                                             </div>
                                                             
                                                             {/* Middle: Order ID & Status Badge */}
-                                                            <div className="flex justify-between items-center gap-2">
-                                                                <div className="flex flex-col gap-1 min-w-0">
-                                                                    <span className="font-black text-[10px] text-primary tabular-nums leading-none">ORD-{order.id.replace('ORD-', '')}</span>
-                                                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 italic line-clamp-1">{order.item}</p>
+                                                            <div className="flex justify-between items-start gap-2">
+                                                                <div className="flex flex-col min-w-0">
+                                                                    <span className="font-black text-[10px] text-primary tabular-nums leading-none mb-0.5">ORD-{order.id.replace('ORD-', '')}</span>
+                                                                    <p className="text-[10px] text-slate-500 dark:text-slate-400 italic line-clamp-1 leading-tight">{order.item}</p>
                                                                 </div>
-                                                                <Badge className={`rounded-full text-[7px] font-black uppercase tracking-widest px-2 py-0.5 leading-none h-auto shrink-0 ${getStatusColor(order.status)}`}>
+                                                                <Badge className={`rounded-full text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 leading-none h-auto shrink-0 mt-0.5 ${getStatusColor(order.status)}`}>
                                                                     {order.status}
                                                                 </Badge>
                                                             </div>
 
                                                             {/* Footer: Date */}
                                                             <div className="flex justify-between items-center">
-                                                                <p className="text-[9px] text-slate-400 dark:text-slate-200 font-bold uppercase">{order.date}</p>
+                                                                <p className="text-[9px] text-slate-400 dark:text-slate-200 font-bold uppercase leading-none">{order.date}</p>
                                                             </div>
                                                         </div>
                                                     </DropdownMenuTrigger>
