@@ -84,6 +84,84 @@ const professionals = [
         image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=100&h=100&auto=format&fit=crop",
         specialties: ["Pipe Fitting", "Drainage Systems"],
         projects: 124,
+    },
+    {
+        id: 7,
+        name: "Engr. Nnamdi Azu",
+        role: "Structural Engineer",
+        type: "professional",
+        rating: 4.9,
+        reviews: 35,
+        location: "Owerri, Imo State",
+        verified: true,
+        image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=100&h=100&auto=format&fit=crop",
+        specialties: ["Building Design", "Material Testing"],
+        projects: 42,
+    },
+    {
+        id: 8,
+        name: "Amina Bello",
+        role: "Interior Decorator",
+        type: "professional",
+        rating: 4.7,
+        reviews: 28,
+        location: "Kaduna, GRA",
+        verified: true,
+        image: "https://images.unsplash.com/photo-1567532939604-b6c5b0adcc2c?q=80&w=100&h=100&auto=format&fit=crop",
+        specialties: ["Space Planning", "Color Theory"],
+        projects: 15,
+    },
+    {
+        id: 9,
+        name: "Samuel Etim",
+        role: "Senior Carpenter",
+        type: "artisan",
+        rating: 4.8,
+        reviews: 64,
+        location: "Uyo, Akwa Ibom",
+        verified: true,
+        image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=100&h=100&auto=format&fit=crop",
+        specialties: ["Roofing Woodwork", "Furniture"],
+        projects: 215,
+    },
+    {
+        id: 10,
+        name: "Tunde Balogun",
+        role: "Pro Painter",
+        type: "artisan",
+        rating: 4.9,
+        reviews: 82,
+        location: "Lagos, Surulere",
+        verified: true,
+        image: "https://images.unsplash.com/photo-1544168190-79c17527004f?q=80&w=100&h=100&auto=format&fit=crop",
+        specialties: ["Exterior Painting", "Wall Mural"],
+        projects: 145,
+    },
+    {
+        id: 11,
+        name: "Kelechi Iheanacho",
+        role: "Solar Technician",
+        type: "professional",
+        rating: 4.8,
+        reviews: 19,
+        location: "Enugu, State",
+        verified: true,
+        image: "https://images.unsplash.com/photo-1531427186611-ecfd6d936c79?q=80&w=100&h=100&auto=format&fit=crop",
+        specialties: ["Inverter Setup", "Battery Maintenance"],
+        projects: 31,
+    },
+    {
+        id: 12,
+        name: "Mary Odogwu",
+        role: "Real Estate Consultant",
+        type: "professional",
+        rating: 4.9,
+        reviews: 47,
+        location: "Abuja, Maitama",
+        verified: true,
+        image: "https://images.unsplash.com/photo-1594744803329-a581326e7f36?q=80&w=100&h=100&auto=format&fit=crop",
+        specialties: ["Property Valuation", "Legal Advisor"],
+        projects: 68,
     }
 ];
 
@@ -140,7 +218,7 @@ const Pros = () => {
                                     <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
                                 </Button>
 
-                                {/* Pro/Artisan Toggle */}
+                                {/* Desktop Toggle (DO NOT TOUCH) */}
                                 <div className="hidden md:flex items-center gap-1 p-1 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-border mr-1 shadow-sm">
                                     <button
                                         onClick={() => setActiveType('professional')}
@@ -156,6 +234,22 @@ const Pros = () => {
                                     </button>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Mobile Toggle (NEW) */}
+                        <div className="flex md:hidden items-center p-1 bg-slate-50 dark:bg-muted/10 rounded-xl border border-slate-100 dark:border-border shadow-sm">
+                            <button
+                                onClick={() => setActiveType('professional')}
+                                className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeType === 'professional' ? 'bg-primary text-white shadow-md' : 'text-slate-400'}`}
+                            >
+                                Professionals
+                            </button>
+                            <button
+                                onClick={() => setActiveType('artisan')}
+                                className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeType === 'artisan' ? 'bg-primary text-white shadow-md' : 'text-slate-400'}`}
+                            >
+                                Artisans
+                            </button>
                         </div>
                     </div>
                 </div>
