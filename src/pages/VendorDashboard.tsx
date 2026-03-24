@@ -2,6 +2,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +37,13 @@ import {
     Pie,
     Cell
 } from 'recharts';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
 
 const chartData = [
     { name: 'Mon', sales: 4000 },
@@ -51,7 +59,15 @@ const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042'];
 
 const VendorDashboard = () => {
     const { user, role } = useAuth();
+    const navigate = useNavigate();
     const isVendor = role === "vendor";
+    const [stockFilter, setStockFilter] = useState<'all' | 'critical'>('all');
+
+    const notifications = [
+        { id: 1, title: "New Order", message: "ORD-5421 from David Okonkwo", time: "2 mins ago", type: "order" },
+        { id: 2, title: "Low Stock Alert", message: "Portland Cement level is at 15%", time: "1 hour ago", type: "stock" },
+        { id: 3, title: "Payment Received", message: "₦250,400 released to your account", time: "3 hours ago", type: "payment" },
+    ];
 
     const { data: myMaterials = [], isLoading } = useQuery({
         queryKey: ['vendor-materials', user?.id],
@@ -124,9 +140,31 @@ const VendorDashboard = () => {
                                     <Input className="pl-10 bg-white dark:bg-card border-none rounded-xl font-bold shadow-sm" placeholder="Global search..." />
                                 </div>
                                 <AddMaterialDialog />
-                                <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-card rounded-xl hidden md:flex shrink-0">
-                                    <Bell className="w-4 h-4 text-slate-600 dark:text-slate-300" />
-                                </Button>
+                                <Popover>
+                                    <PopoverTrigger asChild>
+                                        <Button variant="outline" className="h-11 w-11 p-0 bg-white dark:bg-card rounded-xl hidden md:flex shrink-0 relative">
+                                            <Bell className="w-4 h-4 text-slate-600 dark:text-slate-300" />
+                                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-primary rounded-full border-2 border-white dark:border-slate-800" />
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-80 p-0 rounded-2xl border-none shadow-2xl overflow-hidden" align="end">
+                                        <div className="bg-slate-900 p-4">
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-primary">Notifications</p>
+                                        </div>
+                                        <div className="max-h-[300px] overflow-y-auto divide-y divide-slate-100 dark:divide-slate-800">
+                                            {notifications.map((n) => (
+                                                <div key={n.id} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer group">
+                                                    <p className="text-[11px] font-black uppercase tracking-tight text-slate-900 group-hover:text-primary transition-colors">{n.title}</p>
+                                                    <p className="text-xs text-slate-500 font-medium italic mb-1">{n.message}</p>
+                                                    <p className="text-[9px] text-slate-400 font-bold uppercase">{n.time}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        <div className="p-3 bg-slate-50 text-center">
+                                            <Button variant="ghost" className="h-8 text-[9px] font-black uppercase tracking-widest text-primary hover:bg-primary/5">Clear All</Button>
+                                        </div>
+                                    </PopoverContent>
+                                </Popover>
                             </div>
                         </header>
 
@@ -293,14 +331,30 @@ const VendorDashboard = () => {
                                 </CardHeader>
                                 <CardContent className="px-8 pb-8 space-y-4">
                                     <div className="flex flex-wrap gap-2 justify-center mb-6">
-                                        <Button size="sm" className="h-8 rounded-full text-[9px] font-black uppercase tracking-widest bg-primary text-white">All Items</Button>
-                                        <Button variant="outline" size="sm" className="h-8 rounded-full text-[9px] font-black uppercase tracking-widest border-slate-200">Critical Stock</Button>
+                                        <Button 
+                                            size="sm" 
+                                            className={cn("h-8 rounded-full text-[9px] font-black uppercase tracking-widest transition-all", stockFilter === 'all' ? "bg-primary text-white shadow-lg" : "bg-transparent text-slate-400 hover:text-slate-600")}
+                                            onClick={() => setStockFilter('all')}
+                                        >
+                                            All Items
+                                        </Button>
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm" 
+                                            className={cn("h-8 rounded-full text-[9px] font-black uppercase tracking-widest transition-all", stockFilter === 'critical' ? "bg-primary text-white border-primary shadow-lg" : "border-slate-200 text-slate-400 hover:text-slate-600")}
+                                            onClick={() => setStockFilter('critical')}
+                                        >
+                                            Critical Stock
+                                        </Button>
                                     </div>
                                     <div className="space-y-3">
                                         {isLoading ? (
                                             <div className="flex justify-center py-10"><Loader2 className="w-6 h-6 animate-spin text-primary" /></div>
                                         ) : myMaterials.length > 0 ? (
-                                            myMaterials.slice(0, 4).map((item, i) => (
+                                            myMaterials
+                                                .filter(item => stockFilter === 'all' || item.availability === 'Low Stock' || item.availability === 'Out of Stock')
+                                                .slice(0, 4)
+                                                .map((item, i) => (
                                                 <div key={i} className="group p-4 rounded-2xl bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 hover:border-primary transition-all cursor-pointer">
                                                     <div className="flex justify-between items-start mb-2">
                                                         <span className="text-xs font-black uppercase tracking-tight leading-tight line-clamp-1 flex-1">{item.name}</span>
@@ -318,7 +372,13 @@ const VendorDashboard = () => {
                                             <div className="text-center py-10 text-slate-400 text-[10px] font-bold uppercase italic tracking-widest">No listings found.</div>
                                         )}
                                     </div>
-                                    <Button variant="outline" className="w-full text-[10px] font-black uppercase tracking-[0.2em] h-10 border-slate-200 rounded-xl mt-4">Manage Inventory</Button>
+                                    <Button 
+                                        variant="outline" 
+                                        className="w-full text-[10px] font-black uppercase tracking-[0.2em] h-10 border-slate-200 rounded-xl mt-4 hover:bg-primary hover:text-white hover:border-primary transition-all"
+                                        onClick={() => navigate('/vendor-inventory')}
+                                    >
+                                        Manage Inventory
+                                    </Button>
                                 </CardContent>
                             </Card>
                         </div>
