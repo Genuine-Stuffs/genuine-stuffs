@@ -232,7 +232,30 @@ const VendorOrders = () => {
                                             {filteredOrders.map((order) => (
                                                 <DropdownMenu key={order.id}>
                                                     <DropdownMenuTrigger asChild>
-                                                        <div className="p-3 flex flex-col gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors cursor-pointer active:scale-[0.98] duration-200">
+                                                        <div 
+                                                            className="p-3 flex flex-col gap-1.5 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors cursor-pointer active:scale-[0.98] duration-200"
+                                                            onTouchStart={(e) => {
+                                                                setTouchStart({
+                                                                    x: e.touches[0].clientX,
+                                                                    y: e.touches[0].clientY
+                                                                });
+                                                            }}
+                                                            onTouchEnd={(e) => {
+                                                                if (!touchStart) return;
+                                                                const touchEnd = {
+                                                                    x: e.changedTouches[0].clientX,
+                                                                    y: e.changedTouches[0].clientY
+                                                                };
+                                                                const dx = Math.abs(touchEnd.x - touchStart.x);
+                                                                const dy = Math.abs(touchEnd.y - touchStart.y);
+                                                                
+                                                                // If moved more than 10px, it's a scroll, prevent dropdown
+                                                                if (dx > 10 || dy > 10) {
+                                                                    e.preventDefault();
+                                                                }
+                                                                setTouchStart(null);
+                                                            }}
+                                                        >
                                                             {/* Header Row: Client & Amount */}
                                                             <div className="flex justify-between items-center">
                                                                 <p className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1">{order.client}</p>

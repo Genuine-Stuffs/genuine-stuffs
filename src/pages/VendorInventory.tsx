@@ -230,7 +230,30 @@ const VendorInventory = () => {
                                             {filteredMaterials.map((item) => (
                                                 <DropdownMenu key={item.id}>
                                                     <DropdownMenuTrigger asChild>
-                                                        <div className="p-4 flex gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors cursor-pointer active:scale-[0.98] duration-200">
+                                                        <div 
+                                                            className="p-4 flex gap-3 hover:bg-slate-50 dark:hover:bg-slate-900/30 transition-colors cursor-pointer active:scale-[0.98] duration-200"
+                                                            onTouchStart={(e) => {
+                                                                setTouchStart({
+                                                                    x: e.touches[0].clientX,
+                                                                    y: e.touches[0].clientY
+                                                                });
+                                                            }}
+                                                            onTouchEnd={(e) => {
+                                                                if (!touchStart) return;
+                                                                const touchEnd = {
+                                                                    x: e.changedTouches[0].clientX,
+                                                                    y: e.changedTouches[0].clientY
+                                                                };
+                                                                const dx = Math.abs(touchEnd.x - touchStart.x);
+                                                                const dy = Math.abs(touchEnd.y - touchStart.y);
+                                                                
+                                                                // If moved more than 10px, it's a scroll, prevent dropdown
+                                                                if (dx > 10 || dy > 10) {
+                                                                    e.preventDefault();
+                                                                }
+                                                                setTouchStart(null);
+                                                            }}
+                                                        >
                                                             <div className="w-12 h-12 rounded-xl overflow-hidden bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shrink-0 flex items-center justify-center">
                                                                 {item.image_url ? (
                                                                     <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
