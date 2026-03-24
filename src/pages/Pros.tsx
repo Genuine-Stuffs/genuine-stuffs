@@ -258,7 +258,7 @@ const Pros = () => {
             <main className="container mx-auto px-4 py-8">
                 {/* Header Text (Adjusted) */}
                 <div className="text-center mb-8 md:mb-12">
-                        <h1 className="text-[20px] md:text-[32px] font-black mb-4 uppercase tracking-tighter">
+                        <h1 className="text-[20px] md:text-[32px] font-black mb-0 leading-tight uppercase tracking-tighter">
                             Hire Certified <span className="text-primary italic">Professionals/Artisans</span>
                         </h1>
                     <p className="text-muted-foreground text-[10px] md:text-base font-medium max-w-2xl mx-auto italic leading-relaxed">
