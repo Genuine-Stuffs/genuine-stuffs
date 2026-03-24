@@ -233,16 +233,6 @@ const Register = () => {
         }
     }, [role, step, formData.country, formData.bizState]);
 
-    // Automatic Redirect after registration
-    useEffect(() => {
-        if (submitted) {
-            // Give the user 2 seconds to see the success message
-            const timer = setTimeout(() => {
-                navigate(role === 'professional' ? "/pro-portal" : "/vendor-dashboard");
-            }, 2000);
-            return () => clearTimeout(timer);
-        }
-    }, [submitted, navigate, role]);
 
     const handleInputChange = (field: string, value: any) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -457,7 +447,7 @@ const Register = () => {
                         </p>
                         <div className="flex flex-col gap-4">
                             <Button asChild size="lg" className={`h-14 rounded-2xl font-black uppercase tracking-widest text-xs ${role === 'professional' ? 'bg-primary' : 'bg-green-600 hover:bg-green-700'}`}>
-                                <Link to={role === 'professional' ? "/pro-portal" : "/vendor-dashboard"}>Enter Dashboard</Link>
+                                <Link to={role === 'professional' ? "/pro-portal" : "/vendor-dashboard"}>Continue To Dashboard</Link>
                             </Button>
                             <Button asChild variant="ghost" className="h-14 rounded-2xl font-black uppercase tracking-widest text-xs">
                                 <Link to="/">Return to Home</Link>
