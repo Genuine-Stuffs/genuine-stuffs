@@ -99,9 +99,9 @@ BEGIN
         (
             'LED Panel Light (18W)', 
             'Electrical', 
-            4500, 
+            23485.11, 
             'Unit', 
-            'Energy-efficient recessed LED panel light for interior ceilings.', 
+            'Aolyty 18W Ultra Thin LED Ceiling Panel Light (8.89"). Cool White 6000K, non-dimmable, anti-scratch finish. Ideal for homes, offices, and malls.', 
             'In Stock', 
             v_id, 
             v_name, 
