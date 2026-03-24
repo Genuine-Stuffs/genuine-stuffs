@@ -6,7 +6,12 @@ const BottomNav = () => {
     const location = useLocation();
     const { role } = useAuth();
 
-    if (location.pathname === "/login" || location.pathname === "/register") {
+    if (
+        location.pathname === "/login" || 
+        location.pathname === "/register" || 
+        location.pathname.startsWith("/vendor-") ||
+        location.pathname === "/pro-portal"
+    ) {
         return null;
     }
 
