@@ -88,10 +88,10 @@ const VendorDashboard = () => {
     const lowStockCount = myMaterials.filter(m => m.availability === 'Low Stock' || m.availability === 'Out of Stock').length;
 
     const stats = [
-        { title: "Total Sales", value: "₦ 0", icon: DollarSign, trend: "+0%", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/30" },
-        { title: "Active Orders", value: "0", icon: ShoppingCart, trend: "Stable", color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-950/30" },
-        { title: "Inventory Items", value: `${myMaterials.length}`, icon: Package, trend: `${lowStockCount} low`, color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-950/30" },
-        { title: "Market Visibility", value: totalViews.toLocaleString(), icon: Eye, trend: "Real-time", color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-950/30" },
+        { title: "Total Sales", value: "₦ 0", icon: DollarSign, trend: "+0%", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/30" },
+        { title: "Active Orders", value: "0", icon: ShoppingCart, trend: "Stable", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/30" },
+        { title: "Inventory Items", value: `${myMaterials.length}`, icon: Package, trend: `${lowStockCount} low`, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/30" },
+        { title: "Market Visibility", value: totalViews.toLocaleString(), icon: Eye, trend: "Real-time", color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-950/30" },
     ];
 
     const pieData = [
@@ -137,7 +137,7 @@ const VendorDashboard = () => {
                             </div>
                             <div className="flex items-center gap-3 w-full md:w-auto">
                                 <div className="relative flex-1 md:w-64">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-200" />
                                     <Input className="pl-10 bg-white dark:bg-card border-none rounded-xl font-bold shadow-sm" placeholder="Global search..." />
                                 </div>
                                 <AddMaterialDialog />
@@ -186,7 +186,7 @@ const VendorDashboard = () => {
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.1em] md:tracking-[0.15em] text-slate-400 mb-0.5 md:mb-1 group-hover:text-primary transition-colors">{stat.title}</p>
+                                            <p className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.1em] md:tracking-[0.15em] text-slate-400 dark:text-slate-200 mb-0.5 md:mb-1 group-hover:text-primary transition-colors">{stat.title}</p>
                                             <h3 className="text-lg md:text-2xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">{stat.value}</h3>
                                         </div>
                                     </CardContent>
@@ -222,13 +222,13 @@ const VendorDashboard = () => {
                                                 dataKey="name" 
                                                 axisLine={false} 
                                                 tickLine={false} 
-                                                tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 700 }}
+                                                tick={{ fill: '#E2E8F0', fontSize: 10, fontWeight: 700 }}
                                                 dy={10}
                                             />
                                             <YAxis 
                                                 axisLine={false} 
                                                 tickLine={false} 
-                                                tick={{ fill: '#94A3B8', fontSize: 10, fontWeight: 700 }}
+                                                tick={{ fill: '#E2E8F0', fontSize: 10, fontWeight: 700 }}
                                             />
                                             <Tooltip 
                                                 contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
@@ -274,7 +274,7 @@ const VendorDashboard = () => {
                                         {pieData.map((item, i) => (
                                             <div key={i} className="flex items-center gap-1.5">
                                                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i] }} />
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{item.name}</span>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-200">{item.name}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -309,16 +309,16 @@ const VendorDashboard = () => {
                                                         <p className="font-black text-xs md:text-sm text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1">
                                                             {order.client} <span className="text-primary font-black ml-1 md:ml-2 tabular-nums">{order.order}</span>
                                                         </p>
-                                                        <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 font-bold italic line-clamp-1">{order.item}</p>
+                                                        <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-200 font-bold italic line-clamp-1">{order.item}</p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right flex flex-col items-end shrink-0">
-                                                    <p className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 md:px-2.5 py-0.5 md:py-1 rounded-full mb-1 inline-block ${order.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600' :
-                                                        order.status === 'Shipped' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
+                                                    <p className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 md:px-2.5 py-0.5 md:py-1 rounded-full mb-1 inline-block ${order.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                                                        order.status === 'Shipped' ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-orange-50 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400'
                                                         }`}>
                                                         {order.status}
                                                     </p>
-                                                    <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase block">{order.date}</p>
+                                                    <p className="text-[8px] md:text-[10px] text-slate-400 dark:text-slate-200 font-bold uppercase block">{order.date}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -360,12 +360,12 @@ const VendorDashboard = () => {
                                                 .map((item, i) => (
                                                 <div key={i} className="group p-4 rounded-2xl bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 hover:border-primary transition-all cursor-pointer">
                                                     <div className="flex justify-between items-start mb-2">
-                                                        <span className="text-xs font-black uppercase tracking-tight leading-tight line-clamp-1 flex-1">{item.name}</span>
-                                                        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ml-2 ${item.availability === 'Low Stock' || item.availability === 'Out of Stock' ? 'bg-orange-500 text-white' : 'text-slate-400 group-hover:text-primary'}`}>
+                                                        <span className="text-xs font-black uppercase tracking-tight leading-tight line-clamp-1 flex-1 text-slate-900 dark:text-white">{item.name}</span>
+                                                        <span className={`text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded ml-2 ${item.availability === 'Low Stock' || item.availability === 'Out of Stock' ? 'bg-orange-500 text-white' : 'text-slate-400 dark:text-slate-200 group-hover:text-primary'}`}>
                                                             {item.availability}
                                                         </span>
                                                     </div>
-                                                    <div className="flex items-center justify-between text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                                    <div className="flex items-center justify-between text-[9px] font-bold text-slate-400 dark:text-slate-300 uppercase tracking-widest">
                                                         <span>ID: {item.id.slice(0, 8)}</span>
                                                         <span className="flex items-center gap-1"><Eye className="w-3 h-3" /> {(item as any).views_count || 0}</span>
                                                     </div>

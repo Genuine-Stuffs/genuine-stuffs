@@ -80,7 +80,7 @@ const VendorAnalytics = () => {
                         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                             <div>
                                 <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Analytics Dashboard</h1>
-                                <p className="text-muted-foreground dark:text-slate-400 font-medium italic">
+                                <p className="text-muted-foreground dark:text-slate-200 font-medium italic">
                                     Strategic insights for your construction supply business.
                                 </p>
                             </div>
@@ -109,7 +109,7 @@ const VendorAnalytics = () => {
                                             </Badge>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 mb-1">{stat.title}</p>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-200 mb-1">{stat.title}</p>
                                             <h3 className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">{stat.value}</h3>
                                         </div>
                                     </CardContent>
@@ -144,13 +144,13 @@ const VendorAnalytics = () => {
                                                 dataKey="name" 
                                                 axisLine={false} 
                                                 tickLine={false} 
-                                                tick={{fontSize: 10, fontWeight: 800, fill: '#64748B'}} 
+                                                tick={{fontSize: 10, fontWeight: 800, fill: '#E2E8F0'}} 
                                                 dy={10}
                                             />
                                             <YAxis 
                                                 axisLine={false} 
                                                 tickLine={false} 
-                                                tick={{fontSize: 10, fontWeight: 800, fill: '#64748B'}}
+                                                tick={{fontSize: 10, fontWeight: 800, fill: '#E2E8F0'}}
                                                 tickFormatter={(value) => `₦${value/1000}k`}
                                             />
                                             <Tooltip 
@@ -201,8 +201,8 @@ const VendorAnalytics = () => {
                                         {categoryData.map((cat, i) => (
                                             <div key={i} className="flex items-center gap-2">
                                                 <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
-                                                <span className="text-[10px] font-black uppercase tracking-tight text-slate-500">{cat.name}</span>
-                                                <span className="text-[10px] font-black ml-auto tabular-nums">{cat.value}%</span>
+                                                <span className="text-[10px] font-black uppercase tracking-tight text-slate-500 dark:text-slate-200">{cat.name}</span>
+                                                <span className="text-[10px] font-black ml-auto tabular-nums dark:text-white">{cat.value}%</span>
                                             </div>
                                         ))}
                                     </div>
@@ -230,12 +230,12 @@ const VendorAnalytics = () => {
                                         ].map((item, i) => (
                                             <div key={i} className="px-8 py-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
                                                 <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 bg-slate-100 rounded-lg flex items-center justify-center font-black text-xs text-slate-500">{i+1}</div>
+                                                    <div className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center font-black text-xs text-slate-500 dark:text-white">{i+1}</div>
                                                     <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-tight">{item.name}</span>
                                                 </div>
                                                 <div className="flex items-center gap-4">
                                                     <div className="text-right">
-                                                        <p className="text-[10px] font-black tabular-nums">{item.sales} Orders</p>
+                                                        <p className="text-[10px] font-black tabular-nums dark:text-white">{item.sales} Orders</p>
                                                         <p className={`text-[9px] font-black ${item.growth.startsWith('+') ? 'text-emerald-500' : 'text-red-500'}`}>{item.growth}</p>
                                                     </div>
                                                 </div>
@@ -263,19 +263,19 @@ const VendorAnalytics = () => {
                                     <div className="space-y-4">
                                         <div>
                                             <div className="flex justify-between items-center mb-1">
-                                                <span className="text-[10px] font-black uppercase tracking-tight text-slate-400">Inventory Health</span>
-                                                <span className="text-[10px] font-black">84%</span>
+                                                <span className="text-[10px] font-black uppercase tracking-tight text-slate-400 dark:text-slate-200">Inventory Health</span>
+                                                <span className="text-[10px] font-black dark:text-white">84%</span>
                                             </div>
-                                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                                 <div className="h-full bg-emerald-500 rounded-full" style={{ width: '84%' }} />
                                             </div>
                                         </div>
                                         <div>
                                             <div className="flex justify-between items-center mb-1">
-                                                <span className="text-[10px] font-black uppercase tracking-tight text-slate-400">Logistics Efficiency</span>
-                                                <span className="text-[10px] font-black">62%</span>
+                                                <span className="text-[10px] font-black uppercase tracking-tight text-slate-400 dark:text-slate-200">Logistics Efficiency</span>
+                                                <span className="text-[10px] font-black dark:text-white">62%</span>
                                             </div>
-                                            <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                                            <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                                 <div className="h-full bg-orange-500 rounded-full" style={{ width: '62%' }} />
                                             </div>
                                         </div>

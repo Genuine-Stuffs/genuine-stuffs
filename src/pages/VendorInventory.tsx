@@ -93,7 +93,7 @@ const VendorInventory = () => {
                             </div>
                             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                                 <div className="relative flex-1 md:w-64 min-w-[200px]">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-200" />
                                     <Input 
                                         className="pl-10 bg-white dark:bg-card border-none rounded-xl font-bold shadow-sm" 
                                         placeholder="Search materials..." 
@@ -128,7 +128,7 @@ const VendorInventory = () => {
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
-                                                <tr className="bg-slate-50/50 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.2em] font-black text-slate-500 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800">
+                                                <tr className="bg-slate-50/50 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.2em] font-black text-slate-500 dark:text-white border-b border-slate-100 dark:border-slate-800">
                                                     <th className="px-8 py-4">Material</th>
                                                     <th className="px-8 py-4">Category</th>
                                                     <th className="px-8 py-4">Price</th>
@@ -151,7 +151,7 @@ const VendorInventory = () => {
                                                                 </div>
                                                                 <div>
                                                                     <p className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-tight">{item.name}</p>
-                                                                    <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID: {item.id.slice(0, 8)}</p>
+                                                                    <p className="text-[10px] text-slate-400 dark:text-slate-200 font-bold uppercase tracking-widest">ID: {item.id.slice(0, 8)}</p>
                                                                 </div>
                                                             </div>
                                                         </td>
@@ -162,7 +162,7 @@ const VendorInventory = () => {
                                                         </td>
                                                         <td className="px-8 py-6">
                                                             <p className="font-black text-sm text-slate-900 dark:text-white tabular-nums">₦ {item.price?.toLocaleString() || "0"}</p>
-                                                            <p className="text-[9px] text-slate-400 font-bold uppercase">{item.unit || "Unit"}</p>
+                                                            <p className="text-[9px] text-slate-400 dark:text-slate-200 font-bold uppercase">{item.unit || "Unit"}</p>
                                                         </td>
                                                         <td className="px-8 py-6">
                                                             <Badge 
@@ -176,8 +176,8 @@ const VendorInventory = () => {
                                                             </Badge>
                                                         </td>
                                                         <td className="px-8 py-6">
-                                                            <div className="flex items-center gap-1.5 text-slate-500 font-bold tabular-nums text-xs">
-                                                                <Eye className="w-4 h-4 text-slate-400" />
+                                                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-200 font-bold tabular-nums text-xs">
+                                                                <Eye className="w-4 h-4 text-slate-400 dark:text-slate-200" />
                                                                 {item.views_count || 0}
                                                             </div>
                                                         </td>

@@ -60,11 +60,11 @@ const VendorOrders = () => {
 
     const getStatusColor = (status: string) => {
         switch (status) {
-            case 'Delivered': return 'bg-emerald-500 text-white';
-            case 'Shipped': return 'bg-blue-500 text-white';
-            case 'Processing': return 'bg-orange-500 text-white';
-            case 'Canceled': return 'bg-red-500 text-white';
-            default: return 'bg-slate-500 text-white';
+            case 'Delivered': return 'bg-emerald-500 text-white dark:bg-emerald-600';
+            case 'Shipped': return 'bg-blue-500 text-white dark:bg-blue-600';
+            case 'Processing': return 'bg-orange-500 text-white dark:bg-orange-600';
+            case 'Canceled': return 'bg-red-500 text-white dark:bg-red-600';
+            default: return 'bg-slate-500 text-white dark:bg-slate-600';
         }
     };
 
@@ -99,7 +99,7 @@ const VendorOrders = () => {
                             </div>
                             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                                 <div className="relative flex-1 md:w-64 min-w-[200px]">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 dark:text-slate-200" />
                                     <Input 
                                         className="pl-10 bg-white dark:bg-card border-none rounded-xl font-bold shadow-sm" 
                                         placeholder="Search by client or ID..." 
@@ -130,7 +130,7 @@ const VendorOrders = () => {
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 mb-1 group-hover:text-primary transition-colors">{stat.title}</p>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 dark:text-slate-200 mb-1 group-hover:text-primary transition-colors">{stat.title}</p>
                                             <h3 className="text-2xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">{stat.value}</h3>
                                         </div>
                                     </CardContent>
@@ -165,7 +165,7 @@ const VendorOrders = () => {
                                     <div className="overflow-x-auto">
                                         <table className="w-full text-left border-collapse">
                                             <thead>
-                                                <tr className="bg-slate-50/50 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.2em] font-black text-slate-500 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800">
+                                                <tr className="bg-slate-50/50 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.2em] font-black text-slate-500 dark:text-white border-b border-slate-100 dark:border-slate-800">
                                                     <th className="px-8 py-4">Order ID</th>
                                                     <th className="px-8 py-4">Client</th>
                                                     <th className="px-8 py-4">Items</th>
@@ -179,12 +179,12 @@ const VendorOrders = () => {
                                                     <tr key={order.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors">
                                                         <td className="px-8 py-6">
                                                             <span className="font-black text-sm text-primary tabular-nums">{order.id}</span>
-                                                            <p className="text-[9px] text-slate-400 font-bold uppercase">{order.date}</p>
+                                                            <p className="text-[9px] text-slate-400 dark:text-slate-200 font-bold uppercase">{order.date}</p>
                                                         </td>
                                                         <td className="px-8 py-6">
                                                             <div>
                                                                 <p className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-tight">{order.client}</p>
-                                                                <p className="text-[9px] text-slate-400 font-bold uppercase italic">{order.location}</p>
+                                                                <p className="text-[9px] text-slate-400 dark:text-slate-200 font-bold uppercase italic">{order.location}</p>
                                                             </div>
                                                         </td>
                                                         <td className="px-8 py-6">

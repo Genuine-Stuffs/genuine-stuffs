@@ -92,7 +92,7 @@ const VendorSettings = () => {
                         <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                             <div>
                                 <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Account Settings</h1>
-                                <p className="text-muted-foreground dark:text-slate-400 font-medium italic">
+                                <p className="text-muted-foreground dark:text-slate-200 font-medium italic">
                                     Manage your vendor profile and business preferences.
                                 </p>
                             </div>
@@ -135,8 +135,8 @@ const VendorSettings = () => {
                                 {/* Profile Section */}
                                 <Card className="border-none shadow-sm rounded-[2.5rem] overflow-hidden">
                                     <CardHeader className="p-8 border-b border-slate-100 dark:border-slate-800">
-                                        <CardTitle className="text-lg font-black uppercase tracking-tight">Public Profile</CardTitle>
-                                        <CardDescription className="italic font-medium">This information will be visible to potential clients.</CardDescription>
+                                        <CardTitle className="text-lg font-black uppercase tracking-tight dark:text-white">Public Profile</CardTitle>
+                                        <CardDescription className="italic font-medium dark:text-slate-200">This information will be visible to potential clients.</CardDescription>
                                     </CardHeader>
                                     <CardContent className="p-8 space-y-8">
                                         <div className="flex flex-col md:flex-row items-center gap-8">
@@ -156,17 +156,17 @@ const VendorSettings = () => {
                                             <div className="flex-1 space-y-4 w-full">
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Company Name</Label>
-                                                        <Input defaultValue={vendorData?.company_name} placeholder="e.g. Acme Construction Supplies" className="h-11 rounded-xl bg-slate-50/50 border-none font-bold" />
+                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-slate-200">Company Name</Label>
+                                                        <Input defaultValue={vendorData?.company_name} placeholder="e.g. Acme Construction Supplies" className="h-11 rounded-xl bg-slate-50/50 dark:bg-slate-900 border-none font-bold" />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Display Category</Label>
-                                                        <Input defaultValue={vendorData?.categories?.[0]} placeholder="e.g. Cement & Aggregates" className="h-11 rounded-xl bg-slate-50/50 border-none font-bold" />
+                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-slate-200">Display Category</Label>
+                                                        <Input defaultValue={vendorData?.categories?.[0]} placeholder="e.g. Cement & Aggregates" className="h-11 rounded-xl bg-slate-50/50 dark:bg-slate-900 border-none font-bold" />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Company Bio</Label>
-                                                    <Textarea defaultValue={vendorData?.bio} placeholder="Describe your business and specialties..." className="min-h-[100px] rounded-2xl bg-slate-50/50 border-none font-medium text-sm p-4" />
+                                                    <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-slate-200">Company Bio</Label>
+                                                    <Textarea defaultValue={vendorData?.bio} placeholder="Describe your business and specialties..." className="min-h-[100px] rounded-2xl bg-slate-50/50 dark:bg-slate-900 border-none font-medium text-sm p-4" />
                                                 </div>
                                             </div>
                                         </div>
@@ -176,8 +176,8 @@ const VendorSettings = () => {
                                 {/* Business Verification Section */}
                                 <Card className="border-none shadow-sm rounded-[2.5rem] overflow-hidden">
                                     <CardHeader className="p-8 border-b border-slate-100 dark:border-slate-800">
-                                        <CardTitle className="text-lg font-black uppercase tracking-tight">Business Verification</CardTitle>
-                                        <CardDescription className="italic font-medium">Verify your credentials to build trust with clients.</CardDescription>
+                                        <CardTitle className="text-lg font-black uppercase tracking-tight dark:text-white">Business Verification</CardTitle>
+                                        <CardDescription className="italic font-medium dark:text-slate-200">Verify your credentials to build trust with clients.</CardDescription>
                                     </CardHeader>
                                     <CardContent className="p-8 space-y-6">
                                         <div className={`p-6 rounded-3xl border flex items-start gap-4 ${vendorData?.verified_status === 'approved' ? 'bg-emerald-50/50 border-emerald-100 text-emerald-800' : 'bg-orange-50/50 border-orange-100 text-orange-800'}`}>
@@ -196,33 +196,33 @@ const VendorSettings = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-4">
                                                 <div className="flex items-center gap-3">
-                                                    <Briefcase className="w-4 h-4 text-slate-400" />
+                                                    <Briefcase className="w-4 h-4 text-slate-400 dark:text-slate-200" />
                                                     <div className="flex-1">
-                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">CAC Number</Label>
-                                                        <p className="font-black text-sm tabular-nums">{vendorData?.cac_number || 'RC-892341'}</p>
+                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-slate-200">CAC Number</Label>
+                                                        <p className="font-black text-sm tabular-nums dark:text-white">{vendorData?.cac_number || 'RC-892341'}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-3">
-                                                    <Mail className="w-4 h-4 text-slate-400" />
+                                                    <Mail className="w-4 h-4 text-slate-400 dark:text-slate-200" />
                                                     <div className="flex-1">
-                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Business Email</Label>
-                                                        <p className="font-black text-sm">{user?.email}</p>
+                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-slate-200">Business Email</Label>
+                                                        <p className="font-black text-sm dark:text-white">{user?.email}</p>
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="space-y-4">
                                                 <div className="flex items-center gap-3">
-                                                    <Phone className="w-4 h-4 text-slate-400" />
+                                                    <Phone className="w-4 h-4 text-slate-400 dark:text-slate-200" />
                                                     <div className="flex-1">
-                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Phone Number</Label>
-                                                        <p className="font-black text-sm tabular-nums">{vendorData?.phone || '+234 801 234 5678'}</p>
+                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-slate-200">Phone Number</Label>
+                                                        <p className="font-black text-sm tabular-nums dark:text-white">{vendorData?.phone || '+234 801 234 5678'}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-3">
-                                                    <MapPin className="w-4 h-4 text-slate-400" />
+                                                    <MapPin className="w-4 h-4 text-slate-400 dark:text-slate-200" />
                                                     <div className="flex-1">
-                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Primary Location</Label>
-                                                        <p className="font-black text-sm">{vendorData?.city || 'Lagos'}, {vendorData?.country || 'Nigeria'}</p>
+                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-slate-200">Primary Location</Label>
+                                                        <p className="font-black text-sm dark:text-white">{vendorData?.city || 'Lagos'}, {vendorData?.country || 'Nigeria'}</p>
                                                     </div>
                                                 </div>
                                             </div>
