@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Link } from "react-router-dom";
+import { useState, useMemo, useEffect } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -39,7 +39,10 @@ type MaterialRow = Database['public']['Tables']['materials']['Row'];
 const Marketplace = () => {
     const { user, role } = useAuth();
     const { addToCart, items: cartItems } = useCart();
-    const [searchQuery, setSearchQuery] = useState("");
+    const [searchParams] = useSearchParams();
+    const initialSearch = searchParams.get("search") || "";
+    
+    const [searchQuery, setSearchQuery] = useState(initialSearch);
     const [selectedCategory, setSelectedCategory] = useState("All");
     const [viewMode, setViewMode] = useState<"grid-4" | "grid-5" | "list">("grid-4");
     const [mobileView, setMobileView] = useState<"grid" | "list">("grid");
@@ -50,6 +53,14 @@ const Marketplace = () => {
     const [isReporting, setIsReporting] = useState(false);
     const [reportStatus, setReportStatus] = useState<"idle" | "submitting" | "success">("idle");
     const [sortBy, setSortBy] = useState<string>("newest");
+
+    // Handle URL search parameter updates
+    useEffect(() => {
+        const search = searchParams.get("search");
+        if (search !== null) {
+            setSearchQuery(search);
+        }
+    }, [searchParams]);
 
     const logInteraction = async (type: 'phone_reveal' | 'whatsapp_chat') => {
         if (!user || !selectedMaterial || role !== 'professional') return;

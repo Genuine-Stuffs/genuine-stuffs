@@ -31,6 +31,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 const VendorInventory = () => {
     const { user } = useAuth();
@@ -66,9 +67,11 @@ const VendorInventory = () => {
                 .eq('id', id);
             
             if (error) throw error;
+            toast.success("Material deleted successfully!");
             refetch();
         } catch (err) {
             console.error("Error deleting material:", err);
+            toast.error("Failed to delete material.");
         }
     };
 
