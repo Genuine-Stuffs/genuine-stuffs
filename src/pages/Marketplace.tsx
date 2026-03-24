@@ -137,7 +137,7 @@ const Marketplace = () => {
         queryFn: async () => {
             const { data, error } = await supabase
                 .from('vendors')
-                .select('id, phone');
+                .select('id, phone, city, state');
             if (error) throw error;
             return data || [];
         }
@@ -378,7 +378,7 @@ const Marketplace = () => {
                                             <div className="flex flex-col space-y-1.5 min-w-0 flex-1">
                                                 <div className="flex items-center gap-1.5 text-[9px] md:text-xs text-slate-500 font-medium">
                                                     <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                                                    <span className="truncate">Lagos, Ikeja</span>
+                                                    <span className="truncate">{m.vendor?.city || 'Lagos'}, {m.vendor?.state || 'Ikeja'}</span>
                                                 </div>
                                                 {isList && (
                                                     <div className="hidden md:flex items-center gap-2 text-[10px] text-slate-400">
