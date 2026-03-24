@@ -132,45 +132,47 @@ const VendorInventory = () => {
                                         {/* Desktop Table View */}
                                         <table className="w-full text-left border-collapse hidden md:table">
                                             <thead>
-                                                <tr className="bg-slate-50/50 dark:bg-slate-900/50 text-[10px] uppercase tracking-[0.2em] font-black text-slate-500 dark:text-white border-b border-slate-100 dark:border-slate-800">
-                                                    <th className="px-8 py-4">Material</th>
-                                                    <th className="px-8 py-4">Category</th>
-                                                    <th className="px-8 py-4">Price</th>
-                                                    <th className="px-8 py-4">Status</th>
-                                                    <th className="px-8 py-4">Views</th>
-                                                    <th className="px-8 py-4 text-right">Actions</th>
+                                                <tr className="bg-slate-50/50 dark:bg-muted/30 border-b dark:border-border transition-colors">
+                                                    <th className="px-6 py-4 text-left font-black text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400 w-[35%]">Product Details</th>
+                                                    <th className="px-6 py-4 text-left font-black text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">Category</th>
+                                                    <th className="px-6 py-4 text-left font-black text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">Price</th>
+                                                    <th className="px-6 py-4 text-left font-black text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">Status</th>
+                                                    <th className="px-6 py-4 text-left font-black text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">Views</th>
+                                                    <th className="px-6 py-4 text-right font-black text-[10px] uppercase tracking-widest text-slate-500 dark:text-slate-400">Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                                                 {filteredMaterials.map((item) => (
                                                     <tr key={item.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-900/30 transition-colors">
-                                                        <td className="px-8 py-6">
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0">
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center overflow-hidden shrink-0 border border-slate-100 dark:border-slate-800">
                                                                     {item.image_url ? (
                                                                         <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                                                                     ) : (
-                                                                        <Package className="w-6 h-6 text-slate-300" />
+                                                                        <Package className="w-5 h-5 text-slate-300" />
                                                                     )}
                                                                 </div>
-                                                                <div>
-                                                                    <p className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-tight">{item.name}</p>
-                                                                    <p className="text-[10px] text-slate-400 dark:text-slate-200 font-bold uppercase tracking-widest">ID: {item.id.slice(0, 8)}</p>
+                                                                <div className="min-w-0">
+                                                                    <p className="font-black text-xs text-slate-900 dark:text-white uppercase tracking-tight truncate">{item.name}</p>
+                                                                    <p className="text-[9px] text-slate-400 dark:text-slate-200 font-bold uppercase tabular-nums">ID: {item.id.slice(0, 8)}</p>
                                                                 </div>
                                                             </div>
                                                         </td>
-                                                        <td className="px-8 py-6">
-                                                            <Badge variant="outline" className="rounded-lg text-[9px] font-black uppercase tracking-widest border-slate-200">
+                                                        <td className="px-6 py-5">
+                                                            <Badge variant="outline" className="rounded-lg text-[8px] font-black uppercase tracking-widest border-slate-200 bg-white dark:bg-muted">
                                                                 {item.category || "General"}
                                                             </Badge>
                                                         </td>
-                                                        <td className="px-8 py-6">
-                                                            <p className="font-black text-sm text-slate-900 dark:text-white tabular-nums">₦ {item.price?.toLocaleString() || "0"}</p>
-                                                            <p className="text-[9px] text-slate-400 dark:text-slate-200 font-bold uppercase">{item.unit || "Unit"}</p>
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex flex-col">
+                                                                <p className="font-black text-xs text-slate-900 dark:text-white tabular-nums tracking-tight">₦{item.price?.toLocaleString() || "0"}</p>
+                                                                <p className="text-[8px] text-slate-400 dark:text-slate-200 font-bold uppercase tracking-tighter">{item.unit || "Unit"}</p>
+                                                            </div>
                                                         </td>
-                                                        <td className="px-8 py-6">
+                                                        <td className="px-6 py-5">
                                                             <Badge 
-                                                                className={`rounded-full text-[9px] font-black uppercase tracking-widest px-3 py-1 ${
+                                                                className={`rounded-full text-[8px] font-black uppercase tracking-widest px-2.5 py-0.5 ${
                                                                     item.availability === 'Low Stock' || item.availability === 'Out of Stock' 
                                                                     ? 'bg-orange-500 text-white' 
                                                                     : 'bg-emerald-500 text-white'
@@ -179,13 +181,13 @@ const VendorInventory = () => {
                                                                 {item.availability || "In Stock"}
                                                             </Badge>
                                                         </td>
-                                                        <td className="px-8 py-6">
-                                                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-200 font-bold tabular-nums text-xs">
-                                                                <Eye className="w-4 h-4 text-slate-400 dark:text-slate-200" />
+                                                        <td className="px-6 py-5">
+                                                            <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-200 font-bold tabular-nums text-[10px]">
+                                                                <Eye className="w-3.5 h-3.5 text-slate-400 dark:text-slate-200" />
                                                                 {item.views_count || 0}
                                                             </div>
                                                         </td>
-                                                        <td className="px-8 py-6 text-right">
+                                                        <td className="px-6 py-5 text-right">
                                                             <DropdownMenu>
                                                                 <DropdownMenuTrigger asChild>
                                                                     <Button variant="ghost" className="h-8 w-8 p-0 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg">
