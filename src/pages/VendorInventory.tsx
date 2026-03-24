@@ -36,6 +36,7 @@ import { toast } from "sonner";
 const VendorInventory = () => {
     const { user } = useAuth();
     const [searchQuery, setSearchQuery] = useState("");
+    const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null);
 
     const { data: materials = [], isLoading, refetch } = useQuery({
         queryKey: ['vendor-inventory', user?.id],

@@ -36,6 +36,7 @@ const VendorOrders = () => {
     const { user } = useAuth();
     const [searchQuery, setSearchQuery] = useState("");
     const [isLoading, setIsLoading] = useState(false);
+    const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null);
 
     // Mock data for now since backend doesn't have orders table yet
     const orders = [
