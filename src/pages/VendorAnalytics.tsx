@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { VerificationBanner } from "@/components/VerificationBanner";
 import VendorSidebar from "@/components/vendor/VendorSidebar";
+import BottomNav from "@/components/vendor/BottomNav";
 import {
     LineChart,
     Line,

@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { VerificationBanner } from "@/components/VerificationBanner";
 import VendorSidebar from "@/components/vendor/VendorSidebar";
+import BottomNav from "@/components/vendor/BottomNav";
 import { useState } from "react";
 import {
     DropdownMenu,

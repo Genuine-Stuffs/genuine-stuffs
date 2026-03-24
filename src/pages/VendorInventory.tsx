@@ -21,6 +21,7 @@ import { VerificationBanner } from "@/components/VerificationBanner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "backend/supabaseClient";
 import VendorSidebar from "@/components/vendor/VendorSidebar";
+import BottomNav from "@/components/vendor/BottomNav";
 import { AddMaterialDialog } from "@/components/vendor/AddMaterialDialog";
 import { useState } from "react";
 import {

@@ -24,6 +24,7 @@ import { VerificationBanner } from "@/components/VerificationBanner";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "backend/supabaseClient";
 import VendorSidebar from "@/components/vendor/VendorSidebar";
+import BottomNav from "@/components/vendor/BottomNav";
 import { AddMaterialDialog } from "@/components/vendor/AddMaterialDialog";
 import { 
     AreaChart, 
@@ -169,24 +170,24 @@ const VendorDashboard = () => {
                         </header>
 
                         {/* Stats Summary Area */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                             {stats.map((stat, i) => (
-                                <Card key={i} className="group border-none shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative rounded-[2rem]">
-                                    <CardContent className="p-6">
-                                        <div className="flex justify-between items-start mb-4">
-                                            <div className={`p-3 rounded-2xl transition-transform group-hover:scale-110 ${stat.bg} ${stat.color}`}>
-                                                <stat.icon className="w-6 h-6" />
+                                <Card key={i} className="group border-none shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden relative rounded-[1.5rem] md:rounded-[2rem]">
+                                    <CardContent className="p-4 md:p-6">
+                                        <div className="flex justify-between items-start mb-2 md:mb-4">
+                                            <div className={`p-2.5 md:p-3 rounded-xl md:rounded-2xl transition-transform group-hover:scale-110 ${stat.bg} ${stat.color}`}>
+                                                <stat.icon className="w-5 h-5 md:w-6 md:h-6" />
                                             </div>
                                             <div className="flex flex-col items-end">
-                                                <span className={`flex items-center gap-1 text-[11px] font-black tracking-tight ${stat.color}`}>
+                                                <span className={`flex items-center gap-1 text-[9px] md:text-[11px] font-black tracking-tight ${stat.color}`}>
                                                     {stat.trend}
-                                                    {stat.trend.startsWith('+') && <ArrowUpRight className="w-3 h-3" />}
+                                                    {stat.trend.startsWith('+') && <ArrowUpRight className="w-2.5 h-2.5 md:w-3 md:h-3" />}
                                                 </span>
                                             </div>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-400 mb-1 group-hover:text-primary transition-colors">{stat.title}</p>
-                                            <h3 className="text-2xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">{stat.value}</h3>
+                                            <p className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.1em] md:tracking-[0.15em] text-slate-400 mb-0.5 md:mb-1 group-hover:text-primary transition-colors">{stat.title}</p>
+                                            <h3 className="text-lg md:text-2xl font-black text-slate-900 dark:text-white tabular-nums tracking-tight">{stat.value}</h3>
                                         </div>
                                     </CardContent>
                                     <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-primary/5 rounded-full blur-3xl" />
@@ -292,30 +293,32 @@ const VendorDashboard = () => {
                                     </div>
                                     <Button variant="ghost" className="text-primary text-[10px] font-black uppercase tracking-widest h-8 px-4 bg-primary/5 hover:bg-primary/10 rounded-full">Explore All</Button>
                                 </CardHeader>
-                                <CardContent className="px-8 pb-8">
-                                    <div className="space-y-4">
+                                <CardContent className="px-4 md:px-8 pb-4 md:pb-8">
+                                    <div className="space-y-3 md:space-y-4">
                                         {[
                                             { order: "#ORD-5421", client: "David Okonkwo", item: "Portland Cement x200", status: "Processing", date: "2 mins ago" },
                                             { order: "#ORD-5420", client: "Amina Bello", item: "Steel Rebars (16mm) x50", status: "Shipped", date: "1 hour ago" },
                                             { order: "#ORD-5419", client: "Premium Dev", item: "Sharp Sand (10 Tons)", status: "Delivered", date: "3 hours ago" },
                                         ].map((order, i) => (
-                                            <div key={i} className="flex items-center justify-between p-5 rounded-[1.5rem] bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all group">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center font-black text-xs text-slate-400">
+                                            <div key={i} className="flex items-center justify-between p-4 md:p-5 rounded-[1.2rem] md:rounded-[1.5rem] bg-white dark:bg-slate-900/50 border border-slate-100 dark:border-slate-800 hover:shadow-lg transition-all group">
+                                                <div className="flex items-center gap-3 md:gap-4">
+                                                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center font-black text-[10px] md:text-xs text-slate-400">
                                                         {order.client.split(' ').map(n => n[0]).join('')}
                                                     </div>
                                                     <div>
-                                                        <p className="font-black text-sm text-slate-900 dark:text-white uppercase tracking-tight">{order.client} <span className="text-primary font-black ml-2 tabular-nums">{order.order}</span></p>
-                                                        <p className="text-xs text-slate-500 dark:text-slate-400 font-bold italic">{order.item}</p>
+                                                        <p className="font-black text-xs md:text-sm text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1">
+                                                            {order.client} <span className="text-primary font-black ml-1 md:ml-2 tabular-nums">{order.order}</span>
+                                                        </p>
+                                                        <p className="text-[10px] md:text-xs text-slate-500 dark:text-slate-400 font-bold italic line-clamp-1">{order.item}</p>
                                                     </div>
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className={`text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full mb-1 inline-block ${order.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600' :
+                                                <div className="text-right flex flex-col items-end shrink-0">
+                                                    <p className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 md:px-2.5 py-0.5 md:py-1 rounded-full mb-1 inline-block ${order.status === 'Delivered' ? 'bg-emerald-50 text-emerald-600' :
                                                         order.status === 'Shipped' ? 'bg-blue-50 text-blue-600' : 'bg-orange-50 text-orange-600'
                                                         }`}>
                                                         {order.status}
                                                     </p>
-                                                    <p className="text-[10px] text-slate-400 font-bold uppercase block">{order.date}</p>
+                                                    <p className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase block">{order.date}</p>
                                                 </div>
                                             </div>
                                         ))}
@@ -385,6 +388,9 @@ const VendorDashboard = () => {
                     </div>
                 </main>
             </div>
+            
+            {/* Mobile Bottom Navigation */}
+            <BottomNav />
         </div>
     );
 };

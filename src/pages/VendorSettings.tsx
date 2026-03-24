@@ -152,6 +152,7 @@ const VendorSettings = () => {
                                                     <Camera className="w-3 h-3" />
                                                 </div>
                                             </div>
+                                            
                                             <div className="flex-1 space-y-4 w-full">
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                     <div className="space-y-2">
@@ -270,6 +271,9 @@ const VendorSettings = () => {
                     </div>
                 </main>
             </div>
+            
+            {/* Mobile Bottom Navigation */}
+            <BottomNav />
         </div>
     );
 };
