@@ -227,15 +227,15 @@ const VendorAnalytics = () => {
                                             { name: "Sharp River Sand", sales: 156, growth: "+22%" },
                                             { name: "Quarry Granite", sales: 42, growth: "-3%" },
                                         ].map((item, i) => (
-                                            <div key={i} className="px-8 py-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center font-black text-xs text-slate-500 dark:text-white">{i+1}</div>
-                                                    <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-tight">{item.name}</span>
+                                            <div key={i} className="px-4 md:px-8 py-3 md:py-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                                                <div className="flex items-center gap-2 md:gap-3">
+                                                    <div className="w-6 h-6 md:w-8 md:h-8 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center font-black text-[10px] md:text-xs text-slate-500 dark:text-white shrink-0">{i+1}</div>
+                                                    <span className="text-[11px] md:text-xs font-bold text-slate-900 dark:text-white uppercase tracking-tight line-clamp-1">{item.name}</span>
                                                 </div>
-                                                <div className="flex items-center gap-4">
+                                                <div className="flex items-center gap-3 md:gap-4">
                                                     <div className="text-right">
-                                                        <p className="text-[10px] font-black tabular-nums dark:text-white">{item.sales} Orders</p>
-                                                        <p className={`text-[9px] font-black ${item.growth.startsWith('+') ? 'text-emerald-500' : 'text-red-500'}`}>{item.growth}</p>
+                                                        <p className="text-[9px] md:text-[10px] font-black tabular-nums dark:text-white leading-none mb-1">{item.sales} Orders</p>
+                                                        <p className={`text-[8px] md:text-[9px] font-black ${item.growth.startsWith('+') ? 'text-emerald-500' : 'text-red-500'} leading-none`}>{item.growth}</p>
                                                     </div>
                                                 </div>
                                             </div>
