@@ -20,6 +20,7 @@ import VendorDashboard from "./pages/VendorDashboard";
 import VendorInventory from "./pages/VendorInventory";
 import VendorOrders from "./pages/VendorOrders";
 import VendorAnalytics from "./pages/VendorAnalytics";
+import VendorSettings from "./pages/VendorSettings";
 import ProDashboard from "./pages/ProDashboard";
 import Settings from "./pages/Settings";
 import Cart from "./pages/Cart";
@@ -59,6 +60,7 @@ const App = () => (
                     <Route path="/vendor-inventory" element={<VendorInventory />} />
                     <Route path="/vendor-orders" element={<VendorOrders />} />
                     <Route path="/vendor-analytics" element={<VendorAnalytics />} />
+                    <Route path="/vendor-settings" element={<VendorSettings />} />
                     <Route path="/pro-portal" element={<ProDashboard />} />
                     <Route path="/pro/ai-studio" element={<AIStudio />} />
                     <Route path="/pro/ai-documentation" element={<AIDocumentation />} />
