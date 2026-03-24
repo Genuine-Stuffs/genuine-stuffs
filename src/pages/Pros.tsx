@@ -107,7 +107,7 @@ const professionals = [
         reviews: 28,
         location: "Kaduna, GRA",
         verified: true,
-        image: "https://images.unsplash.com/photo-1567532939604-b6c5b0adcc2c?q=80&w=100&h=100&auto=format&fit=crop",
+        image: "/images/pros/amina_bello.png",
         specialties: ["Space Planning", "Color Theory"],
         projects: 15,
     },
@@ -159,7 +159,7 @@ const professionals = [
         reviews: 47,
         location: "Abuja, Maitama",
         verified: true,
-        image: "https://images.unsplash.com/photo-1594744803329-a581326e7f36?q=80&w=100&h=100&auto=format&fit=crop",
+        image: "/images/pros/mary_odogwu.png",
         specialties: ["Property Valuation", "Legal Advisor"],
         projects: 68,
     }
