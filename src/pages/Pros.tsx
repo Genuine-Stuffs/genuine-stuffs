@@ -55,42 +55,42 @@ const Pros = () => {
         <div className="min-h-screen bg-background transition-colors duration-300">
             <Navbar />
             
-            <div className="bg-white dark:bg-card pt-2 md:pt-4 pb-4 md:pb-6 sticky top-16 md:top-20 z-30 transition-all duration-300 overflow-hidden border-b dark:border-border">
+            <div className="bg-white dark:bg-card pt-1 md:pt-4 pb-2 md:pb-6 transition-all duration-300 overflow-hidden border-b dark:border-border">
                 <div className="container mx-auto px-4">
-                    <div className="max-w-4xl mx-auto space-y-2 md:space-y-4">
+                    <div className="max-w-4xl mx-auto space-y-1.5 md:space-y-4">
                         <div className="hidden md:flex text-slate-800 dark:text-white text-center mb-1 items-center justify-center gap-2">
                             <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter flex items-center gap-2">
                                 <Star className="w-5 h-5 text-primary" /> Find Your Professional/Artisan Expert
                             </h2>
                         </div>
                         
-                        <div className="bg-slate-50 dark:bg-muted/30 rounded-xl md:rounded-2xl p-1 flex flex-col md:flex-row gap-0 shadow-sm border border-slate-100 dark:border-border items-stretch">
+                        <div className="bg-slate-50 dark:bg-muted/30 rounded-xl md:rounded-2xl p-0.5 md:p-1 flex flex-col md:flex-row gap-0 shadow-sm border border-slate-100 dark:border-border items-stretch">
                             {/* Location Picker */}
                             <div className="relative flex-shrink-0 min-w-[120px] md:min-w-[140px] border-b md:border-b-0 md:border-r border-slate-200 dark:border-border/50">
                                 <select 
                                     value={location}
                                     onChange={(e) => setLocation(e.target.value)}
-                                    className="w-full h-10 md:h-12 pl-9 pr-6 bg-transparent text-[11px] md:text-sm font-bold text-slate-700 dark:text-slate-200 appearance-none focus:outline-none cursor-pointer"
+                                    className="w-full h-9 md:h-12 pl-8 pr-6 bg-transparent text-[10px] md:text-sm font-bold text-slate-700 dark:text-slate-200 appearance-none focus:outline-none cursor-pointer"
                                 >
                                     {locations.map(loc => <option key={loc} value={loc} className="dark:bg-card">{loc}</option>)}
                                 </select>
-                                <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-primary" />
+                                <MapPin className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3 h-3 text-primary" />
                                 <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400 pointer-events-none" />
                             </div>
 
                             {/* Search Input */}
                             <div className="flex-1 relative flex items-center">
-                                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 z-10" />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 z-10" />
                                 <input
-                                    className="w-full h-10 md:h-12 pl-10 pr-4 bg-transparent border-none focus:ring-0 text-xs md:text-base text-slate-700 dark:text-slate-200 font-bold placeholder:font-medium placeholder:text-slate-400"
-                                    placeholder={`Search for ${activeType === 'professional' ? 'Professionals' : 'Artisans'}...`}
+                                    className="w-full h-9 md:h-12 pl-9 pr-4 bg-transparent border-none focus:ring-0 text-[11px] md:text-base text-slate-700 dark:text-slate-200 font-bold placeholder:font-medium placeholder:text-slate-400"
+                                    placeholder={`Search for experts...`}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
                                 
-                                {/* Search Button (more integrated) */}
-                                <Button className="h-8 w-8 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm mr-2 ml-1">
-                                    <Search className="w-3.5 h-3.5 md:w-4 md:h-4 text-white" />
+                                {/* Search Button */}
+                                <Button className="h-7 w-7 md:h-10 md:w-10 p-0 rounded-lg md:rounded-xl bg-primary hover:bg-primary/90 flex-shrink-0 shadow-sm mr-1 ml-1">
+                                    <Search className="w-3 h-3 md:w-4 md:h-4 text-white" />
                                 </Button>
 
                                 {/* Desktop Toggle (DO NOT TOUCH) */}
@@ -112,16 +112,16 @@ const Pros = () => {
                         </div>
 
                         {/* Mobile Toggle (NEW) */}
-                        <div className="flex md:hidden items-center p-1 bg-slate-50 dark:bg-muted/10 rounded-xl border border-slate-100 dark:border-border shadow-sm">
+                        <div className="flex md:hidden items-center p-0.5 bg-slate-50 dark:bg-muted/10 rounded-xl border border-slate-100 dark:border-border shadow-sm">
                             <button
                                 onClick={() => setActiveType('professional')}
-                                className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeType === 'professional' ? 'bg-primary text-white shadow-md' : 'text-slate-400'}`}
+                                className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeType === 'professional' ? 'bg-primary text-white shadow-md' : 'text-slate-400'}`}
                             >
                                 Professionals
                             </button>
                             <button
                                 onClick={() => setActiveType('artisan')}
-                                className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeType === 'artisan' ? 'bg-primary text-white shadow-md' : 'text-slate-400'}`}
+                                className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeType === 'artisan' ? 'bg-primary text-white shadow-md' : 'text-slate-400'}`}
                             >
                                 Artisans
                             </button>
@@ -130,14 +130,14 @@ const Pros = () => {
                 </div>
             </div>
 
-            <main className="container mx-auto px-4 py-8">
+            <main className="container mx-auto px-4 py-4 md:py-8">
                 {/* Header Text (Adjusted) */}
-                <div className="text-center mb-8 md:mb-12">
-                        <h1 className="text-[20px] md:text-[32px] font-black mb-0 leading-tight uppercase tracking-tighter">
-                            Hire Certified <span className="text-primary italic">Professionals/Artisans</span>
+                <div className="text-center mb-6 md:mb-12">
+                        <h1 className="text-[18px] md:text-[32px] font-black mb-0.5 leading-tight uppercase tracking-tighter">
+                            Hire Certified <span className="text-primary italic">Experts</span>
                         </h1>
-                    <p className="text-muted-foreground text-[10px] md:text-base font-medium max-w-2xl mx-auto italic leading-relaxed">
-                        Find vetted experts to execute your construction projects with precision and integrity.
+                    <p className="text-muted-foreground text-[9px] md:text-base font-medium max-w-2xl mx-auto italic leading-relaxed">
+                        Find vetted AEC experts to execute your projects with precision.
                     </p>
                 </div>
 

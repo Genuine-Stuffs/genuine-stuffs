@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Home, ShoppingBag, ShoppingCart, User } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
@@ -5,6 +6,29 @@ import { useAuth } from "@/context/AuthContext";
 const BottomNav = () => {
     const location = useLocation();
     const { role } = useAuth();
+    const [isVisible, setIsVisible] = useState(true);
+    const [lastScrollY, setLastScrollY] = useState(0);
+
+    const isProsPage = location.pathname === "/pros";
+
+    useEffect(() => {
+        let lastY = window.scrollY;
+        const handleScroll = () => {
+            const currentY = window.scrollY;
+            
+            // Show if scrolling up, hide if scrolling down
+            if (currentY > lastY && currentY > 100) {
+                setIsVisible(false);
+            } else {
+                setIsVisible(true);
+            }
+            
+            lastY = currentY;
+        };
+
+        window.addEventListener("scroll", handleScroll, { passive: true });
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
 
     if (
         location.pathname === "/login" || 
@@ -25,7 +49,11 @@ const BottomNav = () => {
     ];
 
     return (
-        <div className="md:hidden fixed bottom-6 left-6 right-6 z-50">
+        <div 
+            className={`md:hidden fixed bottom-6 left-6 right-6 z-50 transition-all duration-500 transform ${
+                (!isVisible && isProsPage) ? "translate-y-[200%] opacity-0" : "translate-y-0 opacity-100"
+            }`}
+        >
             <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 rounded-3xl shadow-2xl px-6 py-4 flex items-center justify-between">
                 {navItems.map((item) => (
                     <Link
