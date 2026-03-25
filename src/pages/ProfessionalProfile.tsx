@@ -13,7 +13,8 @@ import {
     MessageCircle,
     Plus,
     Pencil,
-    Camera
+    Camera,
+    Sparkles
 } from "lucide-react";
 import ExperienceCard from "@/components/pro/ExperienceCard";
 import AddExperienceDialog from "@/components/pro/AddExperienceDialog";
@@ -35,6 +36,13 @@ const ProfessionalProfile = () => {
         if (!id) return;
         try {
             // Fetch basic profile info
+            // Sanitize ID: if it contains a URL, it's likely state corruption; abort to prevent 406 errors.
+            if (id.includes('http')) {
+                console.error("Malformed ID detected:", id);
+                setIsLoading(false);
+                return;
+            }
+
             const { data: profData, error: profError } = await supabase
                 .from('professionals')
                 .select('*')

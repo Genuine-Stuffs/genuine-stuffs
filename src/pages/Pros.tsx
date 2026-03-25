@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, MapPin, Star, ShieldCheck, Mail, Phone, ExternalLink, ShoppingBag, ChevronDown, X, Loader2 } from "lucide-react";
+import { Search, MapPin, Star, ShieldCheck, Mail, Phone, ExternalLink, ShoppingBag, ChevronDown, X, Loader2, Sparkles } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -60,7 +60,7 @@ const Pros = () => {
                     <div className="max-w-4xl mx-auto space-y-1.5 md:space-y-4">
                         <div className="hidden md:flex text-slate-800 dark:text-white text-center mb-1 items-center justify-center gap-2">
                             <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter flex items-center gap-2">
-                                <Star className="w-5 h-5 text-primary" /> Find Your Professional/Artisan Expert
+                                <Sparkles className="w-5 h-5 text-primary" /> Find Your Professional/Artisan Expert
                             </h2>
                         </div>
                         
@@ -224,12 +224,7 @@ const Pros = () => {
                                             className="w-full rounded-full h-8 md:h-10 bg-slate-100 dark:bg-slate-800 hover:bg-sky-500/10 text-sky-500 border-2 border-sky-500 font-black uppercase tracking-widest text-[9px] transition-all shadow-sm hover:shadow-md"
                                         >
                                             <Link to={`/pro/profile/${pro.id}`} className="flex items-center justify-center gap-1.5">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-3 h-3 text-sky-500">
-                                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                                    <circle cx="9" cy="7" r="4" />
-                                                    <line x1="19" y1="8" x2="19" y2="14" />
-                                                    <line x1="22" y1="11" x2="16" y2="11" />
-                                                </svg>
+                                                <Sparkles className="w-3.5 h-3.5" />
                                                 Connect
                                             </Link>
                                         </Button>
