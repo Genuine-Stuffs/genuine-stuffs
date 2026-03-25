@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "backend/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
@@ -23,7 +25,8 @@ import {
   Rocket,
   ShieldCheck,
   MapPin,
-  Heart
+  Heart,
+  Loader2
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -49,6 +52,19 @@ const Index = () => {
   const [api, setApi] = useState<CarouselApi>();
   const [current, setCurrent] = useState(0);
   const [count, setCount] = useState(0);
+  
+  const { data: promotedProducts = [], isLoading: isPromotedLoading } = useQuery<any[]>({
+    queryKey: ['promoted-materials'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('materials')
+        .select('*')
+        .eq('is_verified', true)
+        .limit(4);
+      if (error) throw error;
+      return data || [];
+    }
+  });
 
   useEffect(() => {
     if (!api) return;
@@ -252,61 +268,66 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-            {[
-              { title: "Standard Cement", price: "5200", unit: "bag", img: "/images/materials/cement.png", vendor: "Dangote Dist." },
-              { title: "Mild Steel Rebars", price: "850000", unit: "ton", img: "/images/materials/steel.png", vendor: "TMT Global" },
-              { title: "Granite (Hard Rock)", price: "180000", unit: "trip", img: "/images/materials/granite.png", vendor: "Quarry Direct" },
-              { title: "Sharp Sand", price: "45000", unit: "trip", img: "/images/materials/sand.png", vendor: "Dredge Masters" }
-            ].map((prod, i) => (
-              <Card key={i} className="group overflow-hidden border border-slate-100 dark:border-border hover:border-primary/40 hover:shadow-lg transition-all duration-300 rounded-2xl bg-white dark:bg-card shadow-sm flex flex-col h-full">
-                {/* Image Section */}
-                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-50 dark:bg-slate-800">
-                  <img
-                    src={prod.img}
-                    alt={prod.title}
-                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div className="absolute top-2 right-2 px-2 py-1 rounded-lg bg-orange-500 text-white text-[8px] md:text-[10px] font-black uppercase tracking-widest shadow-md z-10">
-                    PROMOTED
-                  </div>
-                </div>
-
-                {/* Content Section */}
-                <div className="flex flex-col p-3 md:p-4 flex-1 min-w-0 gap-1">
-                  <div className="flex flex-col gap-0.5">
-                    <div className="flex items-baseline gap-1.5">
-                      <span className="text-sm md:text-lg font-black text-primary">₦{Number(prod.price).toLocaleString()}</span>
-                      <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight">/{prod.unit}</span>
+            {isPromotedLoading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <Card key={i} className="aspect-[4/3] w-full animate-pulse bg-slate-200 dark:bg-muted/20 rounded-2xl" />
+              ))
+            ) : promotedProducts.length > 0 ? (
+              promotedProducts.map((prod, i) => (
+                <Card key={prod.id} className="group overflow-hidden border border-slate-100 dark:border-border hover:border-primary/40 hover:shadow-lg transition-all duration-300 rounded-2xl bg-white dark:bg-card shadow-sm flex flex-col h-full">
+                  {/* Image Section */}
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-50 dark:bg-slate-800">
+                    <img
+                      src={prod.image_url || "/images/materials/cement.png"}
+                      alt={prod.name}
+                      className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
+                    />
+                    <div className="absolute top-2 right-2 px-2 py-1 rounded-lg bg-orange-500 text-white text-[8px] md:text-[10px] font-black uppercase tracking-widest shadow-md z-10">
+                      PROMOTED
                     </div>
-                    <h3 className="font-bold text-[11px] md:text-sm text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{prod.title}</h3>
                   </div>
 
-                  <div className="mt-2 flex items-center justify-between gap-2">
-                    <div className="flex flex-col space-y-1.5 min-w-0 flex-1">
-                      <div className="flex items-center gap-1.5 text-[9px] md:text-xs text-slate-500 font-medium">
-                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                        <span className="truncate">{prod.vendor}</span>
+                  {/* Content Section */}
+                  <div className="flex flex-col p-3 md:p-4 flex-1 min-w-0 gap-1">
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-baseline gap-1.5">
+                        <span className="text-sm md:text-lg font-black text-primary">₦{Number(prod.price).toLocaleString()}</span>
+                        <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight">/{prod.unit}</span>
                       </div>
+                      <h3 className="font-bold text-[11px] md:text-sm text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{prod.name}</h3>
+                    </div>
+
+                    <div className="mt-2 flex items-center justify-between gap-2">
+                      <div className="flex flex-col space-y-1.5 min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 text-[9px] md:text-xs text-slate-500 font-medium">
+                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                          <span className="truncate">{prod.vendor_name || 'Verified Vendor'}</span>
+                        </div>
+                      </div>
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="w-8 h-8 rounded-full text-slate-300 hover:text-primary hover:bg-primary/5 transition-all duration-300"
+                      >
+                        <Heart className="w-4 h-4" />
+                      </Button>
                     </div>
 
                     <Button
-                      variant="ghost"
-                      size="icon"
-                      className="w-8 h-8 rounded-full text-slate-300 hover:text-primary hover:bg-primary/5 transition-all duration-300"
+                      className="mt-3 w-full bg-slate-50 dark:bg-muted/30 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-400 font-black h-8 md:h-9 rounded-xl transition-all text-[9px] uppercase tracking-[0.1em]"
+                      asChild
                     >
-                      <Heart className="w-4 h-4" />
+                      <Link to="/marketplace">Details</Link>
                     </Button>
                   </div>
-
-                  <Button
-                    className="mt-3 w-full bg-slate-50 dark:bg-muted/30 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-400 font-black h-8 md:h-9 rounded-xl transition-all text-[9px] uppercase tracking-[0.1em]"
-                    asChild
-                  >
-                    <Link to="/marketplace">Details</Link>
-                  </Button>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))
+            ) : (
+              <div className="col-span-full py-12 text-center text-slate-400 italic font-medium">
+                No promoted materials available at the moment.
+              </div>
+            )}
           </div>
         </div>
       </section>
