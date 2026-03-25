@@ -5,6 +5,7 @@ ALTER TABLE professionals ADD COLUMN IF NOT EXISTS headline TEXT;
 ALTER TABLE professionals ADD COLUMN IF NOT EXISTS cover_url TEXT;
 ALTER TABLE professionals ADD COLUMN IF NOT EXISTS followers_count INTEGER DEFAULT 0;
 ALTER TABLE professionals ADD COLUMN IF NOT EXISTS connections_count INTEGER DEFAULT 0;
+ALTER TABLE professionals ADD COLUMN IF NOT EXISTS professional_type TEXT DEFAULT 'professional' CHECK (professional_type IN ('professional', 'artisan'));
 
 -- Create professional_experiences table
 CREATE TABLE IF NOT EXISTS professional_experiences (
