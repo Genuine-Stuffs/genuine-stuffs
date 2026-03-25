@@ -33,6 +33,7 @@ serve(async (req: Request) => {
         const { prompt, type = 'image', model } = await req.json()
 
         // Check credits
+        console.log('Fetching profile for user:', user.id)
         const { data: profile, error: profileError } = await supabaseClient
             .from('professionals')
             .select('credits')
@@ -40,10 +41,13 @@ serve(async (req: Request) => {
             .single()
 
         if (profileError || !profile) {
-            throw new Error('Profile not found')
+            console.error('Profile error:', profileError)
+            throw new Error(`Profile not found: ${profileError?.message || 'Unknown error'}`)
         }
 
         const cost = type === 'image' ? 2 : 1
+        console.log(`Available credits: ${profile.credits}, Required: ${cost}`)
+        
         if (profile.credits < cost) {
             return new Response(JSON.stringify({ error: 'Insufficient credits' }), {
                 status: 402,
@@ -54,16 +58,14 @@ serve(async (req: Request) => {
         // Call OpenRouter
         const openRouterKey = Deno.env.get('OPENROUTER_API_KEY')
         if (!openRouterKey) {
-            throw new Error('OpenRouter API key not configured')
+            console.error('OPENROUTER_API_KEY is missing')
+            throw new Error('Internal Configuration Error: API key missing')
         }
 
+        console.log(`Calling OpenRouter for ${type} with prompt: ${prompt.substring(0, 50)}...`)
+        
         let result;
         if (type === 'image') {
-            // For images, we use a model that supports image generation if available through OpenRouter
-            // Note: OpenRouter primarily handles text models, but some providers offer image gen via chat endpoints
-            // or we can fallback to DALL-E directly if needed. 
-            // For this implementation, we'll assume a capable image model via OpenRouter or provide a clear error.
-
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -73,20 +75,29 @@ serve(async (req: Request) => {
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    "model": model || "openai/dall-e-3", // OpenRouter supports DALL-E 3
+                    "model": model || "openai/dall-e-3",
                     "messages": [
                         { "role": "user", "content": prompt }
                     ]
                 })
             });
 
-            const data = await response.json();
-            result = data.choices[0]?.message?.content || data.error?.message;
+            if (!response.ok) {
+                const errorData = await response.text();
+                console.error('OpenRouter Image Error:', errorData);
+                throw new Error(`AI Generation failed: ${response.statusText}`);
+            }
 
-            // If it's DALL-E 3 via OpenRouter, it usually returns a URL or base64 in the content if configured, 
-            // or we might need to use a specific image endpoint if OpenRouter provides one.
+            const data = await response.json();
+            console.log('OpenRouter Response Data:', JSON.stringify(data).substring(0, 200))
+            result = data.choices[0]?.message?.content || data.error?.message;
+            
+            if (!result) {
+                console.error('No result in OpenRouter response:', data);
+                throw new Error('AI returned an empty response');
+            }
         } else {
-            // Text generation (BoQ, Load Estimation)
+            // Text generation
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -104,11 +115,18 @@ serve(async (req: Request) => {
                 })
             });
 
+            if (!response.ok) {
+                const errorData = await response.text();
+                console.error('OpenRouter Text Error:', errorData);
+                throw new Error(`AI Text generation failed: ${response.statusText}`);
+            }
+
             const data = await response.json();
             result = data.choices[0]?.message?.content;
         }
 
         // Deduct credits on success
+        console.log('Deducting credits...')
         const { error: updateError } = await supabaseClient
             .from('professionals')
             .update({ credits: profile.credits - cost })
@@ -123,6 +141,7 @@ serve(async (req: Request) => {
         })
 
     } catch (error: any) {
+        console.error('Function catch error:', error)
         return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
