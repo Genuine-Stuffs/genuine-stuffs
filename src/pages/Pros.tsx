@@ -149,66 +149,76 @@ const Pros = () => {
                         </div>
                     ) : filteredPros.length > 0 ? (
                         filteredPros.map((pro) => (
-                            <Card key={pro.id} className="group relative bg-white dark:bg-card border-none shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl overflow-hidden flex flex-col h-full">
-                                {/* Card Header / Cover Image */}
-                                <div className="relative h-20 md:h-24 overflow-hidden">
-                                    <img 
-                                        src={pro.cover_url || `https://images.unsplash.com/photo-${(pro.professional_type || 'professional') === 'professional' ? '1486406146926-c627a92ad1ab' : '1504307651254-35680f356dfd'}?q=80&w=400&auto=format&fit=crop`}
-                                        className="w-full h-full object-cover opacity-80"
-                                        alt="cover"
-                                    />
-                                    <button className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/20 hover:bg-black/40 backdrop-blur-md flex items-center justify-center text-white transition-colors">
-                                        <X className="w-3.5 h-3.5" />
-                                    </button>
-                                </div>
-
-                                {/* Profile Image - Overlapping */}
-                                <div className="px-3 -mt-10 mb-2 relative z-10 flex justify-center">
-                                    <div className="relative">
-                                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-full border-4 border-white dark:border-card overflow-hidden bg-slate-100 shadow-md">
-                                            <img 
-                                                src={pro.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${pro.full_name}`} 
-                                                alt={pro.full_name} 
-                                                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                            />
-                                        </div>
-                                        {pro.is_verified && (
-                                            <div className="absolute bottom-1 right-1 bg-primary text-white p-1 rounded-full border-2 border-white dark:border-card shadow-lg">
-                                                <ShieldCheck className="w-3 h-3 md:w-4 md:h-4" />
-                                            </div>
-                                        )}
+                                <Card key={pro.id} className="group relative bg-white dark:bg-card border border-slate-200 dark:border-border shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl overflow-hidden flex flex-col h-full hover:-translate-y-1">
+                                    {/* Card Header / Cover Image */}
+                                    <div className="relative h-20 md:h-24 overflow-hidden">
+                                        <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 opacity-50" />
+                                        <img 
+                                            src={pro.cover_url || `https://images.unsplash.com/photo-${(pro.professional_type || 'professional') === 'professional' ? '1486406146926-c627a92ad1ab' : '1504307651254-35680f356dfd'}?q=80&w=400&auto=format&fit=crop`}
+                                            className="w-full h-full object-cover opacity-60 mix-blend-overlay"
+                                            alt="cover"
+                                        />
+                                        <button className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md flex items-center justify-center text-white transition-all z-20">
+                                            <X className="w-4 h-4" />
+                                        </button>
                                     </div>
-                                </div>
 
-                                <CardContent className="px-3 pb-4 pt-1 flex-1 flex flex-col text-center">
-                                    <div className="flex-1">
-                                        <h3 className="font-black text-xs md:text-sm text-slate-900 dark:text-white leading-tight mb-1 line-clamp-2">
-                                            {pro.full_name}
-                                        </h3>
-                                        <p className="text-[9px] md:text-[10px] font-medium text-slate-500 dark:text-slate-400 leading-tight mb-2 line-clamp-2 px-1">
-                                            {pro.headline || pro.specialty}
-                                        </p>
-                                        
-                                        {/* Connectivity Context (simulated) */}
-                                        <div className="flex items-center justify-center gap-1.5 mb-3">
-                                            <div className="flex -space-x-2">
-                                                <div className="w-4 h-4 rounded-full border border-white dark:border-card bg-slate-200" />
-                                                <div className="w-4 h-4 rounded-full border border-white dark:border-card bg-slate-300" />
+                                    {/* Profile Image - Overlapping */}
+                                    <div className="px-3 -mt-12 md:-mt-14 mb-2 relative z-10 flex justify-center">
+                                        <div className="relative">
+                                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-card overflow-hidden bg-slate-100 shadow-xl">
+                                                <img 
+                                                    src={pro.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${pro.full_name}`} 
+                                                    alt={pro.full_name} 
+                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                />
                                             </div>
-                                            <span className="text-[8px] md:text-[9px] text-slate-400 font-bold uppercase tracking-tighter">
-                                                {pro.connections_count || 0}+ connections
-                                            </span>
                                         </div>
                                     </div>
 
-                                    <Button 
-                                        asChild
-                                        className="w-full rounded-full h-8 md:h-9 bg-transparent hover:bg-primary/10 text-primary border-2 border-primary font-black uppercase tracking-widest text-[9px] transition-all"
-                                    >
-                                        <Link to={`/pro/profile/${pro.id}`}>Connect</Link>
-                                    </Button>
-                                </CardContent>
-                            </Card>
+                                    <CardContent className="px-4 pb-6 pt-1 flex-1 flex flex-col text-center">
+                                        <div className="flex-1">
+                                            <div className="flex items-center justify-center gap-1 mb-1">
+                                                <h3 className="font-black text-sm md:text-base text-slate-900 dark:text-white leading-tight line-clamp-1">
+                                                    {pro.full_name}
+                                                </h3>
+                                                {pro.is_verified && <ShieldCheck className="w-4 h-4 text-primary shrink-0" />}
+                                            </div>
+                                            <p className="text-[10px] md:text-xs font-semibold text-slate-500 dark:text-slate-400 leading-snug mb-4 line-clamp-2 min-h-[2.5rem] px-2">
+                                                {pro.headline || pro.specialty}
+                                            </p>
+                                            
+                                            {/* Mutual Connection (LinkedIn style) */}
+                                            <div className="flex items-center justify-center gap-2 mb-6">
+                                                <div className="relative w-5 h-5">
+                                                    <img 
+                                                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${pro.full_name}mutual`} 
+                                                        className="w-full h-full rounded-full border border-white dark:border-card bg-slate-100" 
+                                                        alt="mutual"
+                                                    />
+                                                </div>
+                                                <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight leading-none text-left">
+                                                    Collaborative<br/>connection
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <Button 
+                                            asChild
+                                            className="w-full rounded-full h-9 md:h-10 bg-white hover:bg-primary/5 text-primary border-2 border-primary font-black uppercase tracking-widest text-[10px] transition-all shadow-sm hover:shadow-md"
+                                        >
+                                            <Link to={`/pro/profile/${pro.id}`} className="flex items-center justify-center gap-2">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-3.5 h-3.5">
+                                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                                    <circle cx="9" cy="7" r="4" />
+                                                    <line x1="19" y1="8" x2="19" y2="14" />
+                                                    <line x1="22" y1="11" x2="16" y2="11" />
+                                                </svg>
+                                                Connect
+                                            </Link>
+                                        </Button>
+                                    </CardContent>
+                                </Card>
                         ))
                     ) : (
                         <div className="col-span-full text-center py-20 text-slate-400 italic">
