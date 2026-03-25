@@ -229,7 +229,7 @@ const ProfessionalProfile = () => {
                                         <Button 
                                             onClick={handleConnect}
                                             disabled={connectionStatus !== 'none'}
-                                            className="flex-1 md:flex-none h-11 rounded-full px-8 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+                                            className="flex-1 md:flex-none h-11 rounded-full px-8 bg-slate-100 dark:bg-slate-800 border-2 border-sky-500 text-sky-500 hover:bg-sky-500/10 font-black uppercase tracking-widest text-xs shadow-lg shadow-sky-500/10"
                                         >
                                             {connectionStatus === 'accepted' ? (
                                                 <>Connected</>
@@ -237,7 +237,7 @@ const ProfessionalProfile = () => {
                                                 <>Pending</>
                                             ) : (
                                                 <>
-                                                    <UserPlus className="w-4 h-4 mr-2" />
+                                                    <UserPlus className="w-4 h-4 mr-2 text-sky-500" />
                                                     Connect
                                                 </>
                                             )}

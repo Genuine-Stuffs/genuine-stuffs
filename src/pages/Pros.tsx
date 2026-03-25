@@ -221,10 +221,10 @@ const Pros = () => {
 
                                         <Button 
                                             asChild
-                                            className="w-full rounded-full h-8 md:h-10 bg-white hover:bg-primary/5 text-primary border-2 border-primary font-black uppercase tracking-widest text-[9px] transition-all shadow-sm hover:shadow-md"
+                                            className="w-full rounded-full h-8 md:h-10 bg-slate-100 dark:bg-slate-800 hover:bg-sky-500/10 text-sky-500 border-2 border-sky-500 font-black uppercase tracking-widest text-[9px] transition-all shadow-sm hover:shadow-md"
                                         >
                                             <Link to={`/pro/profile/${pro.id}`} className="flex items-center justify-center gap-1.5">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-3 h-3">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-3 h-3 text-sky-500">
                                                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                                                     <circle cx="9" cy="7" r="4" />
                                                     <line x1="19" y1="8" x2="19" y2="14" />
