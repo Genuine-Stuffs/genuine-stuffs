@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, ChevronDown, Rocket, ShieldCheck, ShoppingBag, LayoutDashboard, Search, Settings } from "lucide-react";
+import { Menu, X, User, ChevronDown, Rocket, ShieldCheck, ShoppingBag, LayoutDashboard, Search, Settings, BookOpen } from "lucide-react";
 import { ModeToggle } from "./ModeToggle";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
@@ -104,6 +104,13 @@ const Navbar = () => {
                     <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
                       <Link to={`/pro/profile/${user?.id}`}>
                         <User className="w-4 h-4 text-slate-400" /> <span>View Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {role === 'professional' && (
+                    <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
+                      <Link to="/resources">
+                        <BookOpen className="w-4 h-4 text-slate-400" /> <span>Resources</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
