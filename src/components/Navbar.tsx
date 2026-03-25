@@ -23,8 +23,6 @@ const Navbar = () => {
     { path: "/", label: "Home" },
     { path: "/marketplace", label: "Marketplace" },
     { path: "/pros", label: "Hire Professionals/Artisans", hideForRole: "professional" },
-    { path: `/pro/profile/${user?.id}`, label: "View Profile", role: "professional" },
-    { path: "/pro/ai-studio", label: "AI Studio", role: "professional" },
     { path: "/pro-portal", label: "Dashboard", role: "professional" },
     { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
   ];
@@ -95,6 +93,13 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 border-slate-100 shadow-2xl">
                   <DropdownMenuLabel className="px-4 py-2 text-xs font-black uppercase text-slate-400">Account</DropdownMenuLabel>
+                  {role === 'professional' && (
+                    <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
+                      <Link to="/pro/ai-studio">
+                        <Sparkles className="w-4 h-4 text-slate-400" /> <span>AI Studio</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   {role === 'professional' && (
                     <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
                       <Link to={`/pro/profile/${user?.id}`}>
