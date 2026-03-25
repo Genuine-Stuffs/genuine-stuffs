@@ -205,7 +205,12 @@ const ProfessionalProfile = () => {
                             </h2>
                             {isOwnProfile && (
                                 <div className="flex gap-2">
-                                    <Button size="icon" variant="ghost" className="rounded-full h-10 w-10 text-slate-400 hover:text-primary hover:bg-primary/10">
+                                    <Button 
+                                        size="icon" 
+                                        variant="ghost" 
+                                        onClick={() => setIsAddExpOpen(true)}
+                                        className="rounded-full h-10 w-10 text-slate-400 hover:text-primary hover:bg-primary/10"
+                                    >
                                         <Plus className="w-5 h-5" />
                                     </Button>
                                     <Button size="icon" variant="ghost" className="rounded-full h-10 w-10 text-slate-400 hover:text-primary hover:bg-primary/10">
@@ -232,6 +237,15 @@ const ProfessionalProfile = () => {
                         </div>
                     </CardContent>
                 </Card>
+
+                {isOwnProfile && profile && (
+                    <AddExperienceDialog 
+                        isOpen={isAddExpOpen} 
+                        onClose={() => setIsAddExpOpen(false)}
+                        professionalId={profile.id}
+                        onExperienceAdded={fetchProfileData}
+                    />
+                )}
 
             </main>
         </div>

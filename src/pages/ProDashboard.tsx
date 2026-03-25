@@ -150,6 +150,9 @@ const ProDashboard = () => {
                             <Button size="icon" variant="ghost" className="rounded-xl border border-slate-200 dark:border-white/10 hover:bg-primary/5">
                                 <Settings className="w-5 h-5" />
                             </Button>
+                            <Button asChild className="rounded-xl bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-[10px] px-6">
+                                <Link to={`/pro/profile/${user?.id}`}>View Profile</Link>
+                            </Button>
                         </div>
                     </div>
 
