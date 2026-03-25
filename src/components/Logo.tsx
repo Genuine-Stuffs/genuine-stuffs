@@ -16,7 +16,7 @@ const Logo = ({ className = "", iconClassName = "h-10 md:h-12", textClassName = 
         <span className="text-xl md:text-2xl font-extrabold text-slate-900 dark:text-white leading-none tracking-tight">
           Genuine Stuffs
         </span>
-        <span className="text-[10px] md:text-xs font-bold text-[#708090] dark:text-slate-400 mt-1">
+        <span className="text-[10px] md:text-xs font-bold text-[#708090] dark:text-white mt-1">
           A Data-Driven Ecosystem
         </span>
       </div>
