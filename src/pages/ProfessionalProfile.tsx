@@ -13,8 +13,7 @@ import {
     MessageCircle,
     Plus,
     Pencil,
-    Camera,
-    Sparkles
+    Camera
 } from "lucide-react";
 import ExperienceCard from "@/components/pro/ExperienceCard";
 import AddExperienceDialog from "@/components/pro/AddExperienceDialog";
@@ -28,84 +27,24 @@ const ProfessionalProfile = () => {
     const [experiences, setExperiences] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isAddExpOpen, setIsAddExpOpen] = useState(false);
-    const [connectionStatus, setConnectionStatus] = useState<'none' | 'pending' | 'accepted'>('none');
-    const [isFollowing, setIsFollowing] = useState(false);
     const isOwnProfile = user?.id === id;
 
     const fetchProfileData = async () => {
         if (!id) return;
         try {
             // Fetch basic profile info
-            // Sanitize ID: if it contains a URL, it's likely state corruption; abort to prevent 406 errors.
-            if (id.includes('http')) {
-                console.error("Malformed ID detected:", id);
-                setIsLoading(false);
-                return;
-            }
-
             const { data: profData, error: profError } = await supabase
                 .from('professionals')
                 .select('*')
                 .eq('id', id)
                 .single();
 
-            if (profError) {
-                // If the profile is missing and it's THE USER'S OWN profile, auto-create it (Self-healing)
-                if ((profError.code === 'PGRST116' || profError.status === 406) && isOwnProfile && user) {
-                    console.log("Profile missing for logged-in user. Auto-initializing...");
-                    const { error: insertError } = await supabase
-                        .from('professionals')
-                        .insert({
-                            id: user.id,
-                            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || "Professional",
-                            specialty: "Expert Professional",
-                            credits: 10,
-                            subscription_status: 'trial'
-                        });
-                    
-                    if (!insertError) {
-                        // Retry fetching once
-                        const { data: retryData } = await supabase
-                            .from('professionals')
-                            .select('*')
-                            .eq('id', id)
-                            .single();
-                        if (retryData) {
-                            setProfile(retryData);
-                            setIsLoading(false);
-                            return;
-                        }
-                    }
-                }
-                throw profError;
-            }
+            if (profError) throw profError;
             setProfile(profData);
-
-            // Fetch connection status if logged in
-            if (user?.id) {
-                const { data: connData } = await supabase
-                    .from('professional_connections' as any)
-                    .select('status, requester_id')
-                    .or(`and(requester_id.eq.${user.id},receiver_id.eq.${id}),and(requester_id.eq.${id},receiver_id.eq.${user.id})`)
-                    .maybeSingle();
-                
-                if (connData) {
-                    setConnectionStatus(connData.status as any);
-                }
-
-                const { data: followData } = await supabase
-                    .from('professional_followers' as any)
-                    .select('*')
-                    .eq('follower_id', user.id)
-                    .eq('following_id', id)
-                    .maybeSingle();
-                
-                setIsFollowing(!!followData);
-            }
 
             // Fetch experiences
             const { data: expData, error: expError } = await supabase
-                .from('professional_experiences' as any)
+                .from('professional_experiences')
                 .select('*')
                 .eq('professional_id', id)
                 .order('start_date', { ascending: false });
@@ -120,40 +59,10 @@ const ProfessionalProfile = () => {
         }
     };
 
-    const handleConnect = async () => {
-        if (!user?.id || !id) return;
-        try {
-            if (connectionStatus === 'none') {
-                const { error } = await supabase
-                    .from('professional_connections')
-                    .insert({ requester_id: user.id, receiver_id: id, status: 'pending' });
-                if (error) throw error;
-                setConnectionStatus('pending');
-            }
-        } catch (err) {
-            console.error("Error connecting:", err);
-        }
-    };
-
-    const handleFollow = async () => {
-        if (!user?.id || !id) return;
-        try {
-            if (!isFollowing) {
-                await supabase.from('professional_followers').insert({ follower_id: user.id, following_id: id });
-                setIsFollowing(true);
-            } else {
-                await supabase.from('professional_followers').delete().eq('follower_id', user.id).eq('following_id', id);
-                setIsFollowing(false);
-            }
-        } catch (err) {
-            console.error("Error following:", err);
-        }
-    };
-
     useEffect(() => {
         setIsLoading(true);
         fetchProfileData();
-    }, [id, user?.id]);
+    }, [id]);
 
     if (isLoading) {
         return (
@@ -263,30 +172,11 @@ const ProfessionalProfile = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <Button 
-                                            onClick={handleConnect}
-                                            disabled={connectionStatus !== 'none'}
-                                            className="flex-1 md:flex-none h-11 rounded-full px-8 bg-slate-100 dark:bg-slate-800 border-2 border-sky-500 text-sky-500 hover:bg-sky-500/10 font-black uppercase tracking-widest text-xs shadow-lg shadow-sky-500/10"
-                                        >
-                                            {connectionStatus === 'accepted' ? (
-                                                <>Connected</>
-                                            ) : connectionStatus === 'pending' ? (
-                                                <>Pending</>
-                                            ) : (
-                                                <>
-                                                    <UserPlus className="w-4 h-4 mr-2 text-sky-500" />
-                                                    Connect
-                                                </>
-                                            )}
+                                        <Button className="flex-1 md:flex-none h-11 rounded-full px-8 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20">
+                                            <UserPlus className="w-4 h-4 mr-2" />
+                                            Connect
                                         </Button>
-                                        <Button 
-                                            onClick={handleFollow}
-                                            variant="outline" 
-                                            className={`flex-1 md:flex-none h-11 rounded-full px-8 border-2 border-primary font-black uppercase tracking-widest text-xs ${isFollowing ? 'bg-primary text-white' : 'text-primary hover:bg-primary/5'}`}
-                                        >
-                                            {isFollowing ? 'Following' : 'Follow'}
-                                        </Button>
-                                        <Button variant="outline" className="flex-1 md:flex-none h-11 rounded-full px-8 border-2 border-slate-200 text-slate-600 hover:bg-slate-50 font-black uppercase tracking-widest text-xs">
+                                        <Button variant="outline" className="flex-1 md:flex-none h-11 rounded-full px-8 border-2 border-primary text-primary hover:bg-primary/5 font-black uppercase tracking-widest text-xs">
                                             <MessageCircle className="w-4 h-4 mr-2" />
                                             Message
                                         </Button>
@@ -315,12 +205,7 @@ const ProfessionalProfile = () => {
                             </h2>
                             {isOwnProfile && (
                                 <div className="flex gap-2">
-                                    <Button 
-                                        size="icon" 
-                                        variant="ghost" 
-                                        onClick={() => setIsAddExpOpen(true)}
-                                        className="rounded-full h-10 w-10 text-slate-400 hover:text-primary hover:bg-primary/10"
-                                    >
+                                    <Button size="icon" variant="ghost" className="rounded-full h-10 w-10 text-slate-400 hover:text-primary hover:bg-primary/10">
                                         <Plus className="w-5 h-5" />
                                     </Button>
                                     <Button size="icon" variant="ghost" className="rounded-full h-10 w-10 text-slate-400 hover:text-primary hover:bg-primary/10">
@@ -347,15 +232,6 @@ const ProfessionalProfile = () => {
                         </div>
                     </CardContent>
                 </Card>
-
-                {isOwnProfile && profile && (
-                    <AddExperienceDialog 
-                        isOpen={isAddExpOpen} 
-                        onClose={() => setIsAddExpOpen(false)}
-                        professionalId={profile.id}
-                        onExperienceAdded={fetchProfileData}
-                    />
-                )}
 
             </main>
         </div>
