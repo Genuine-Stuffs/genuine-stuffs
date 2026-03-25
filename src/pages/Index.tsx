@@ -21,7 +21,9 @@ import {
   Users,
   LayoutDashboard,
   Rocket,
-  ShieldCheck
+  ShieldCheck,
+  MapPin,
+  Heart
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -249,26 +251,60 @@ const Index = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             {[
-              { title: "Standard Cement", price: "₦5,200", img: "/images/materials/cement.png", vendor: "Dangote Dist." },
-              { title: "Mild Steel Rebars", price: "₦850,000/ton", img: "/images/materials/steel.png", vendor: "TMT Global" },
-              { title: "Granite (Hard Rock)", price: "₦180,000", img: "/images/materials/granite.png", vendor: "Quarry Direct" },
-              { title: "Sharp Sand", price: "₦45,000", img: "/images/materials/sand.png", vendor: "Dredge Masters" }
+              { title: "Standard Cement", price: "5200", unit: "bag", img: "/images/materials/cement.png", vendor: "Dangote Dist." },
+              { title: "Mild Steel Rebars", price: "850000", unit: "ton", img: "/images/materials/steel.png", vendor: "TMT Global" },
+              { title: "Granite (Hard Rock)", price: "180000", unit: "trip", img: "/images/materials/granite.png", vendor: "Quarry Direct" },
+              { title: "Sharp Sand", price: "45000", unit: "trip", img: "/images/materials/sand.png", vendor: "Dredge Masters" }
             ].map((prod, i) => (
-              <Card key={i} className="group overflow-hidden border-none shadow-none md:shadow-sm md:hover:shadow-lg transition-all bg-white dark:bg-card rounded-2xl">
-                <div className="aspect-square relative overflow-hidden bg-slate-100 dark:bg-slate-700">
-                  <img src={prod.img} alt={prod.title} className="w-full h-full object-cover md:group-hover:scale-[1.05] transition-transform duration-500" />
-                  <div className="absolute top-2 right-2 px-2 py-1 rounded-lg bg-orange-500 text-white text-[10px] font-black uppercase tracking-widest">PROMOTED</div>
-                </div>
-                <CardContent className="p-4">
-                  <div className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">{prod.vendor}</div>
-                  <h3 className="font-black text-slate-900 dark:text-white leading-tight mb-2 md:group-hover:text-primary transition-colors">{prod.title}</h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-black text-slate-900 dark:text-white uppercase">{prod.price}</span>
-                    <Button size="sm" variant="outline" className="h-8 rounded-lg text-[10px] font-black dark:border-border dark:hover:bg-muted">DETAILS</Button>
+              <Card key={i} className="group overflow-hidden border border-slate-100 dark:border-border hover:border-primary/40 hover:shadow-lg transition-all duration-300 rounded-2xl bg-white dark:bg-card shadow-sm flex flex-col h-full">
+                {/* Image Section */}
+                <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-50 dark:bg-slate-800">
+                  <img
+                    src={prod.img}
+                    alt={prod.title}
+                    className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
+                  />
+                  <div className="absolute top-2 right-2 px-2 py-1 rounded-lg bg-orange-500 text-white text-[8px] md:text-[10px] font-black uppercase tracking-widest shadow-md z-10">
+                    PROMOTED
                   </div>
-                </CardContent>
+                </div>
+
+                {/* Content Section */}
+                <div className="flex flex-col p-3 md:p-4 flex-1 min-w-0 gap-1">
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-sm md:text-lg font-black text-primary">₦{Number(prod.price).toLocaleString()}</span>
+                      <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight">/{prod.unit}</span>
+                    </div>
+                    <h3 className="font-bold text-[11px] md:text-sm text-slate-800 dark:text-slate-200 leading-tight line-clamp-2">{prod.title}</h3>
+                  </div>
+
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <div className="flex flex-col space-y-1.5 min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 text-[9px] md:text-xs text-slate-500 font-medium">
+                        <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                        <span className="truncate">{prod.vendor}</span>
+                      </div>
+                    </div>
+
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-8 h-8 rounded-full text-slate-300 hover:text-primary hover:bg-primary/5 transition-all duration-300"
+                    >
+                      <Heart className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  <Button
+                    className="mt-3 w-full bg-slate-50 dark:bg-muted/30 hover:bg-primary hover:text-white text-slate-600 dark:text-slate-400 font-black h-8 md:h-9 rounded-xl transition-all text-[9px] uppercase tracking-[0.1em]"
+                    asChild
+                  >
+                    <Link to="/marketplace">Details</Link>
+                  </Button>
+                </div>
               </Card>
             ))}
           </div>
