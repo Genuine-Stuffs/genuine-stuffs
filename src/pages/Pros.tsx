@@ -150,9 +150,9 @@ const Pros = () => {
                         </div>
                     ) : filteredPros.length > 0 ? (
                         filteredPros.map((pro) => (
-                                <Card key={pro.id} className="group relative bg-white dark:bg-card border border-slate-200 dark:border-border shadow-sm hover:shadow-xl transition-all duration-300 rounded-3xl overflow-hidden flex flex-col h-full hover:-translate-y-1">
+                                <Card key={pro.id} className="group relative bg-white dark:bg-card border border-slate-200 dark:border-border shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl md:rounded-3xl overflow-hidden flex flex-col h-full hover:-translate-y-1">
                                     {/* Card Header / Cover Image */}
-                                    <div className="relative h-20 md:h-24 overflow-hidden">
+                                    <div className="relative h-14 md:h-24 overflow-hidden">
                                         <div className="absolute inset-0 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900 opacity-50" />
                                         <img 
                                             src={pro.cover_url || `https://images.unsplash.com/photo-${(pro.professional_type || 'professional') === 'professional' ? '1486406146926-c627a92ad1ab' : '1504307651254-35680f356dfd'}?q=80&w=400&auto=format&fit=crop`}
@@ -161,10 +161,10 @@ const Pros = () => {
                                         />
                                     </div>
 
-                                    {/* Profile Image - Overlapping */}
-                                    <div className="px-3 -mt-12 md:-mt-14 mb-2 relative z-10 flex justify-center">
+                                    {/* Profile Image - Overlapping & Larger */}
+                                    <div className="px-3 -mt-10 md:-mt-14 mb-1 relative z-10 flex justify-center">
                                         <div className="relative">
-                                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-card overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-xl flex items-center justify-center">
+                                            <div className="w-20 h-20 md:w-26 md:h-26 rounded-full border-4 border-white dark:border-card overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-xl flex items-center justify-center">
                                                 {pro.avatar_url ? (
                                                     <img 
                                                         src={pro.avatar_url} 
@@ -184,35 +184,35 @@ const Pros = () => {
                                         </div>
                                     </div>
 
-                                    <CardContent className="px-4 pb-6 pt-1 flex-1 flex flex-col text-center">
+                                    <CardContent className="px-2 md:px-4 pb-4 md:pb-6 pt-0 flex-1 flex flex-col text-center">
                                         <div className="flex-1">
-                                            <div className="flex items-center justify-center gap-1 mb-1">
-                                                <h3 className="font-black text-sm md:text-base text-slate-900 dark:text-white leading-tight line-clamp-1">
+                                            <div className="flex items-center justify-center gap-1 mb-0.5">
+                                                <h3 className="font-black text-xs md:text-base text-slate-900 dark:text-white leading-tight line-clamp-1">
                                                     {pro.full_name}
                                                 </h3>
-                                                {pro.is_verified && <ShieldCheck className="w-4 h-4 text-primary shrink-0" />}
+                                                {pro.is_verified && <ShieldCheck className="w-3.5 h-3.5 text-primary shrink-0" />}
                                             </div>
-                                            <p className="text-[10px] md:text-xs font-semibold text-slate-500 dark:text-slate-400 leading-snug mb-2 line-clamp-2 min-h-[2.5rem] px-2">
+                                            <p className="text-[9px] md:text-xs font-semibold text-slate-500 dark:text-slate-400 leading-snug mb-1 line-clamp-2 px-1">
                                                 {pro.headline || pro.specialty}
                                             </p>
                                             
-                                            {/* Collaborative Connection Indicator (Restored & Dynamic) */}
-                                            <div className="flex items-center justify-center gap-2 mb-6 min-h-[1.5rem]">
+                                            {/* Collaborative Connection Indicator - Tighter */}
+                                            <div className="flex items-center justify-center gap-1.5 mb-3">
                                                 {pro.connections_count > 0 ? (
                                                     <>
-                                                        <div className="relative w-5 h-5">
+                                                        <div className="relative w-4 h-4">
                                                             <img 
                                                                 src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${pro.full_name}mutual`} 
                                                                 className="w-full h-full rounded-full border border-white dark:border-card bg-slate-100" 
                                                                 alt="mutual"
                                                             />
                                                         </div>
-                                                        <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight leading-none text-left">
-                                                            Collaborative<br/>connection
+                                                        <span className="text-[8px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight leading-none text-left">
+                                                            Collaborative connection
                                                         </span>
                                                     </>
                                                 ) : (
-                                                    <span className="text-[9px] md:text-[10px] text-slate-300 font-medium uppercase tracking-widest">
+                                                    <span className="text-[8px] md:text-[10px] text-slate-300 font-medium uppercase tracking-widest">
                                                         Expert Community
                                                     </span>
                                                 )}
@@ -221,10 +221,10 @@ const Pros = () => {
 
                                         <Button 
                                             asChild
-                                            className="w-full rounded-full h-9 md:h-10 bg-white hover:bg-primary/5 text-primary border-2 border-primary font-black uppercase tracking-widest text-[10px] transition-all shadow-sm hover:shadow-md"
+                                            className="w-full rounded-full h-8 md:h-10 bg-white hover:bg-primary/5 text-primary border-2 border-primary font-black uppercase tracking-widest text-[9px] transition-all shadow-sm hover:shadow-md"
                                         >
-                                            <Link to={`/pro/profile/${pro.id}`} className="flex items-center justify-center gap-2">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-3.5 h-3.5">
+                                            <Link to={`/pro/profile/${pro.id}`} className="flex items-center justify-center gap-1.5">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-3 h-3">
                                                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
                                                     <circle cx="9" cy="7" r="4" />
                                                     <line x1="19" y1="8" x2="19" y2="14" />
