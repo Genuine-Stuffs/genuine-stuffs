@@ -41,9 +41,18 @@ import Logo from "@/components/Logo";
 - **Logout Bug Resolved**: Added an explicit redirection to the home page inside the `logout` function. You will no longer see the dashboard after signing out.
 - **Field Splitting**: Pro Registration now demands **First Name** and **Surname** as separate fields.
 - **Button Rename**: The final button is now clearly labeled **"Complete Registration"**.
+#### [_headers](file:///Users/EduPc/material-insight-pros/public/_headers)
+- **Security Whitelisting**: Updated the `connect-src` directive in the Content Security Policy (CSP) to explicitly allow `https://countriesnow.space`. This resolves the browser's security block and allows the registration form to fetch the full database of countries, states, and cities.
 
 ## Verification Results
 
+### Security & Connectivity
+- Confirmed via browser console logs (provided by user) that the CSP violation was the root cause.
+- Verified that the whitelisting allows the `Fetch API` to reach the geographic data provider.
+
+### GitHub Sync
+- ✅ **CSP Whitelist**: Pushed in `cfbcb7b`.
+- ✅ **Resiliency Fallbacks**: Pushed in `cb3d014`.
 ### Build & Push
 - ✅ **`npm run build`**: Completed successfully.
 - ✅ **Git Sync**: All fixes (including the logout redirection) are pushed to the main repository.

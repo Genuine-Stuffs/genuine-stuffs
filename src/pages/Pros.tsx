@@ -159,20 +159,27 @@ const Pros = () => {
                                             className="w-full h-full object-cover opacity-60 mix-blend-overlay"
                                             alt="cover"
                                         />
-                                        <button className="absolute top-2 right-2 w-7 h-7 rounded-full bg-black/40 hover:bg-black/60 backdrop-blur-md flex items-center justify-center text-white transition-all z-20">
-                                            <X className="w-4 h-4" />
-                                        </button>
                                     </div>
 
                                     {/* Profile Image - Overlapping */}
                                     <div className="px-3 -mt-12 md:-mt-14 mb-2 relative z-10 flex justify-center">
                                         <div className="relative">
-                                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-card overflow-hidden bg-slate-100 shadow-xl">
-                                                <img 
-                                                    src={pro.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${pro.full_name}`} 
-                                                    alt={pro.full_name} 
-                                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                                />
+                                            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full border-4 border-white dark:border-card overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-xl flex items-center justify-center">
+                                                {pro.avatar_url ? (
+                                                    <img 
+                                                        src={pro.avatar_url} 
+                                                        alt={pro.full_name} 
+                                                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).onerror = null;
+                                                            (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(pro.full_name)}`;
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <div className="w-full h-full bg-primary/10 flex items-center justify-center text-primary font-black text-xl md:text-2xl uppercase tracking-tighter">
+                                                        {pro.full_name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -185,22 +192,30 @@ const Pros = () => {
                                                 </h3>
                                                 {pro.is_verified && <ShieldCheck className="w-4 h-4 text-primary shrink-0" />}
                                             </div>
-                                            <p className="text-[10px] md:text-xs font-semibold text-slate-500 dark:text-slate-400 leading-snug mb-4 line-clamp-2 min-h-[2.5rem] px-2">
+                                            <p className="text-[10px] md:text-xs font-semibold text-slate-500 dark:text-slate-400 leading-snug mb-2 line-clamp-2 min-h-[2.5rem] px-2">
                                                 {pro.headline || pro.specialty}
                                             </p>
                                             
-                                            {/* Mutual Connection (LinkedIn style) */}
-                                            <div className="flex items-center justify-center gap-2 mb-6">
-                                                <div className="relative w-5 h-5">
-                                                    <img 
-                                                        src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${pro.full_name}mutual`} 
-                                                        className="w-full h-full rounded-full border border-white dark:border-card bg-slate-100" 
-                                                        alt="mutual"
-                                                    />
-                                                </div>
-                                                <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight leading-none text-left">
-                                                    Collaborative<br/>connection
-                                                </span>
+                                            {/* Collaborative Connection Indicator (Restored & Dynamic) */}
+                                            <div className="flex items-center justify-center gap-2 mb-6 min-h-[1.5rem]">
+                                                {pro.connections_count > 0 ? (
+                                                    <>
+                                                        <div className="relative w-5 h-5">
+                                                            <img 
+                                                                src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${pro.full_name}mutual`} 
+                                                                className="w-full h-full rounded-full border border-white dark:border-card bg-slate-100" 
+                                                                alt="mutual"
+                                                            />
+                                                        </div>
+                                                        <span className="text-[9px] md:text-[10px] text-slate-400 font-bold uppercase tracking-tight leading-none text-left">
+                                                            Collaborative<br/>connection
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-[9px] md:text-[10px] text-slate-300 font-medium uppercase tracking-widest">
+                                                        Expert Community
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
 

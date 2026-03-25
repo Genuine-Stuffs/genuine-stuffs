@@ -27,6 +27,8 @@ const ProfessionalProfile = () => {
     const [experiences, setExperiences] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isAddExpOpen, setIsAddExpOpen] = useState(false);
+    const [connectionStatus, setConnectionStatus] = useState<'none' | 'pending' | 'accepted'>('none');
+    const [isFollowing, setIsFollowing] = useState(false);
     const isOwnProfile = user?.id === id;
 
     const fetchProfileData = async () => {
@@ -42,9 +44,31 @@ const ProfessionalProfile = () => {
             if (profError) throw profError;
             setProfile(profData);
 
+            // Fetch connection status if logged in
+            if (user?.id) {
+                const { data: connData } = await supabase
+                    .from('professional_connections' as any)
+                    .select('status, requester_id')
+                    .or(`and(requester_id.eq.${user.id},receiver_id.eq.${id}),and(requester_id.eq.${id},receiver_id.eq.${user.id})`)
+                    .maybeSingle();
+                
+                if (connData) {
+                    setConnectionStatus(connData.status as any);
+                }
+
+                const { data: followData } = await supabase
+                    .from('professional_followers' as any)
+                    .select('*')
+                    .eq('follower_id', user.id)
+                    .eq('following_id', id)
+                    .maybeSingle();
+                
+                setIsFollowing(!!followData);
+            }
+
             // Fetch experiences
             const { data: expData, error: expError } = await supabase
-                .from('professional_experiences')
+                .from('professional_experiences' as any)
                 .select('*')
                 .eq('professional_id', id)
                 .order('start_date', { ascending: false });
@@ -59,10 +83,40 @@ const ProfessionalProfile = () => {
         }
     };
 
+    const handleConnect = async () => {
+        if (!user?.id || !id) return;
+        try {
+            if (connectionStatus === 'none') {
+                const { error } = await supabase
+                    .from('professional_connections')
+                    .insert({ requester_id: user.id, receiver_id: id, status: 'pending' });
+                if (error) throw error;
+                setConnectionStatus('pending');
+            }
+        } catch (err) {
+            console.error("Error connecting:", err);
+        }
+    };
+
+    const handleFollow = async () => {
+        if (!user?.id || !id) return;
+        try {
+            if (!isFollowing) {
+                await supabase.from('professional_followers').insert({ follower_id: user.id, following_id: id });
+                setIsFollowing(true);
+            } else {
+                await supabase.from('professional_followers').delete().eq('follower_id', user.id).eq('following_id', id);
+                setIsFollowing(false);
+            }
+        } catch (err) {
+            console.error("Error following:", err);
+        }
+    };
+
     useEffect(() => {
         setIsLoading(true);
         fetchProfileData();
-    }, [id]);
+    }, [id, user?.id]);
 
     if (isLoading) {
         return (
@@ -172,11 +226,30 @@ const ProfessionalProfile = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <Button className="flex-1 md:flex-none h-11 rounded-full px-8 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20">
-                                            <UserPlus className="w-4 h-4 mr-2" />
-                                            Connect
+                                        <Button 
+                                            onClick={handleConnect}
+                                            disabled={connectionStatus !== 'none'}
+                                            className="flex-1 md:flex-none h-11 rounded-full px-8 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+                                        >
+                                            {connectionStatus === 'accepted' ? (
+                                                <>Connected</>
+                                            ) : connectionStatus === 'pending' ? (
+                                                <>Pending</>
+                                            ) : (
+                                                <>
+                                                    <UserPlus className="w-4 h-4 mr-2" />
+                                                    Connect
+                                                </>
+                                            )}
                                         </Button>
-                                        <Button variant="outline" className="flex-1 md:flex-none h-11 rounded-full px-8 border-2 border-primary text-primary hover:bg-primary/5 font-black uppercase tracking-widest text-xs">
+                                        <Button 
+                                            onClick={handleFollow}
+                                            variant="outline" 
+                                            className={`flex-1 md:flex-none h-11 rounded-full px-8 border-2 border-primary font-black uppercase tracking-widest text-xs ${isFollowing ? 'bg-primary text-white' : 'text-primary hover:bg-primary/5'}`}
+                                        >
+                                            {isFollowing ? 'Following' : 'Follow'}
+                                        </Button>
+                                        <Button variant="outline" className="flex-1 md:flex-none h-11 rounded-full px-8 border-2 border-slate-200 text-slate-600 hover:bg-slate-50 font-black uppercase tracking-widest text-xs">
                                             <MessageCircle className="w-4 h-4 mr-2" />
                                             Message
                                         </Button>
