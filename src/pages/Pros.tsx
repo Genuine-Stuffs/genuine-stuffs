@@ -45,8 +45,9 @@ const Pros = () => {
     const filteredPros = prosData
         .filter(pro => (pro.professional_type || 'professional') === activeType)
         .filter(pro => 
-            pro.full_name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-            pro.specialty.toLowerCase().includes(searchQuery.toLowerCase())
+            (pro.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) || 
+            (pro.specialty || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (pro.headline || '').toLowerCase().includes(searchQuery.toLowerCase())
         )
         .filter(pro => location === "All Nigeria" || pro.state === location);
 
