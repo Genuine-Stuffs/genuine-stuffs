@@ -107,19 +107,30 @@ const Register = () => {
         govId: null as File | null
     });
 
+    const FALLBACK_COUNTRIES = [
+        "Nigeria", "Ghana", "Kenya", "South Africa", "United Kingdom", 
+        "United States", "Canada", "Germany", "United Arab Emirates", 
+        "China", "India", "Australia"
+    ];
+
     // Fetch Countries on Mount
     useEffect(() => {
         const fetchCountries = async () => {
             setIsLoadingGeo(prev => ({ ...prev, countries: true }));
             try {
                 const res = await fetch('https://countriesnow.space/api/v0.1/countries/positions');
+                if (!res.ok) throw new Error("Network response was not ok");
                 const data = await res.json();
                 if (!data.error) {
                     const countryNames = data.data.map((c: any) => c.name).sort();
                     setCountries(countryNames);
+                } else {
+                    throw new Error(data.msg || "API Error");
                 }
             } catch (err) {
-                console.error("Failed to fetch countries", err);
+                console.error("Failed to fetch countries, using fallbacks:", err);
+                setCountries(FALLBACK_COUNTRIES);
+                toast.error("Network issue: Some geographic data might be limited. Using major country list.");
             } finally {
                 setIsLoadingGeo(prev => ({ ...prev, countries: false }));
             }
@@ -141,13 +152,17 @@ const Register = () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ country: formData.country })
                 });
+                if (!res.ok) throw new Error("API Connection Failed");
                 const data = await res.json();
                 if (!data.error) {
                     const stateNames = data.data.states.map((s: any) => s.name).sort();
                     setStates(stateNames);
+                } else {
+                    throw new Error(data.msg || "No states found");
                 }
             } catch (err) {
                 console.error("Failed to fetch states", err);
+                toast.error("Could not load states for " + formData.country);
             } finally {
                 setIsLoadingGeo(prev => ({ ...prev, states: false }));
             }
@@ -169,12 +184,16 @@ const Register = () => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ country: formData.country, state: formData.state })
                 });
+                if (!res.ok) throw new Error("API Connection Failed");
                 const data = await res.json();
                 if (!data.error) {
                     setCities(data.data.sort());
+                } else {
+                    throw new Error(data.msg || "No cities found");
                 }
             } catch (err) {
                 console.error("Failed to fetch cities", err);
+                toast.error("Could not load cities for " + formData.state);
             } finally {
                 setIsLoadingGeo(prev => ({ ...prev, cities: false }));
             }
