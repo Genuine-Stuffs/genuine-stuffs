@@ -3,7 +3,16 @@ import { useAuth } from "@/context/AuthContext";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
     PencilRuler,
     Sparkles,
@@ -138,18 +147,39 @@ const ProDashboard = () => {
                             </div>
                         </div>
                         <div className="flex gap-4 mt-6 md:mt-0">
-                            <CreditInfo
-                                credits={credits ?? 0}
-                                variant="compact"
-                                isPro={true}
-                                onRefill={() => { }}
-                            />
-                            <Button size="icon" variant="ghost" className="rounded-xl border border-slate-200 dark:border-white/10 hover:bg-primary/5">
-                                <Bell className="w-5 h-5" />
-                            </Button>
-                            <Button size="icon" variant="ghost" className="rounded-xl border border-slate-200 dark:border-white/10 hover:bg-primary/5">
-                                <Settings className="w-5 h-5" />
-                            </Button>
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button size="icon" variant="ghost" className="rounded-xl border border-slate-200 dark:border-white/10 hover:bg-primary/5 relative">
+                                        <Bell className="w-5 h-5" />
+                                        <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full animate-pulse" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-80 rounded-2xl p-4 border-slate-100 shadow-2xl">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Professional Alerts</h4>
+                                        <Badge variant="outline" className="text-[9px] font-black uppercase">3 New</Badge>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {[
+                                            { title: "New Material Match", desc: "Premium Granite Slabs identified for your site plan.", time: "2m ago" },
+                                            { title: "Dashboard Update", desc: "Studio v4.0 live with neural BoQ toolkit.", time: "1h ago" },
+                                            { title: "Quote Received", desc: "Project Alpha: Logistics quote from Dangote Group.", time: "3h ago" },
+                                        ].map((n, i) => (
+                                            <div key={i} className="p-3 bg-slate-50 dark:bg-card rounded-xl border border-slate-100 dark:border-border hover:bg-white dark:hover:bg-muted transition-colors cursor-pointer group">
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{n.title}</p>
+                                                    <span className="text-[9px] text-slate-400 font-bold">{n.time}</span>
+                                                </div>
+                                                <p className="text-[10px] text-slate-500 italic line-clamp-2">{n.desc}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <Button variant="ghost" className="w-full mt-4 h-9 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/5 hover:text-primary">
+                                        View System History
+                                    </Button>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+
                             <Button asChild className="rounded-xl bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-[10px] px-6">
                                 <Link to={`/pro/profile/${user?.id}`}>View Profile</Link>
                             </Button>
