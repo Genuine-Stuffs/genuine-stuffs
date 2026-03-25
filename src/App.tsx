@@ -26,6 +26,7 @@ import Settings from "./pages/Settings";
 import HelpSupport from "./pages/HelpSupport";
 import Cart from "./pages/Cart";
 import ClientProfile from "./pages/ClientProfile";
+import ProfessionalProfile from "./pages/ProfessionalProfile";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { ThemeProvider } from "./components/ThemeProvider";
@@ -72,6 +73,7 @@ const App = () => (
                     <Route path="/settings" element={<Settings />} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/profile" element={<ClientProfile />} />
+                    <Route path="/pro/profile/:id" element={<ProfessionalProfile />} />
 
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
