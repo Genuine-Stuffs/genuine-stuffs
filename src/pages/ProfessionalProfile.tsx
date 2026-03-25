@@ -49,7 +49,36 @@ const ProfessionalProfile = () => {
                 .eq('id', id)
                 .single();
 
-            if (profError) throw profError;
+            if (profError) {
+                // If the profile is missing and it's THE USER'S OWN profile, auto-create it (Self-healing)
+                if ((profError.code === 'PGRST116' || profError.status === 406) && isOwnProfile && user) {
+                    console.log("Profile missing for logged-in user. Auto-initializing...");
+                    const { error: insertError } = await supabase
+                        .from('professionals')
+                        .insert({
+                            id: user.id,
+                            full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || "Professional",
+                            specialty: "Expert Professional",
+                            credits: 10,
+                            subscription_status: 'trial'
+                        });
+                    
+                    if (!insertError) {
+                        // Retry fetching once
+                        const { data: retryData } = await supabase
+                            .from('professionals')
+                            .select('*')
+                            .eq('id', id)
+                            .single();
+                        if (retryData) {
+                            setProfile(retryData);
+                            setIsLoading(false);
+                            return;
+                        }
+                    }
+                }
+                throw profError;
+            }
             setProfile(profData);
 
             // Fetch connection status if logged in
