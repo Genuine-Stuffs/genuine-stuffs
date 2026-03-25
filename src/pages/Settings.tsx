@@ -26,10 +26,22 @@ const Settings = () => {
                     .from(table)
                     .select('*')
                     .eq('id', user.id)
-                    .single();
+                    .maybeSingle();
 
                 if (error) throw error;
-                setProfile(data);
+                
+                if (!data) {
+                    // Auto-heal missing profile data in settings
+                    const newProfile = {
+                        id: user.id,
+                        [role === 'vendor' ? 'company_name' : 'full_name']: user.user_metadata?.full_name || user.email?.split('@')[0] || "User",
+                        ...(role === 'professional' ? { specialty: "Expert Professional", credits: 10, subscription_status: 'trial' } : {})
+                    };
+                    await supabase.from(table).insert(newProfile);
+                    setProfile(newProfile);
+                } else {
+                    setProfile(data);
+                }
             } catch (error: any) {
                 console.error("Error fetching profile:", error);
                 toast.error("Failed to load profile data");

@@ -32,15 +32,29 @@ const ProfessionalProfile = () => {
     const fetchProfileData = async () => {
         if (!id) return;
         try {
-            // Fetch basic profile info
+            // Fetch basic profile info (using maybeSingle to prevent 406/PGRST116 errors on empty results)
             const { data: profData, error: profError } = await supabase
                 .from('professionals')
                 .select('*')
                 .eq('id', id)
-                .single();
+                .maybeSingle();
 
             if (profError) throw profError;
-            setProfile(profData);
+            
+            if (!profData && isOwnProfile && user) {
+                // Self-healing: Auto-create the user's profile row if it somehow got deleted or missed during signup
+                const newProfile = {
+                    id: user.id,
+                    full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || "Professional",
+                    specialty: "Expert Professional",
+                    credits: 10,
+                    subscription_status: 'trial'
+                };
+                await supabase.from('professionals').insert(newProfile);
+                setProfile(newProfile);
+            } else {
+                setProfile(profData);
+            }
 
             // Fetch experiences
             const { data: expData, error: expError } = await supabase
