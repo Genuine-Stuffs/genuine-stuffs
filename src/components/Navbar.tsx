@@ -22,13 +22,18 @@ const Navbar = () => {
   const navLinks = [
     { path: "/", label: "Home" },
     { path: "/marketplace", label: "Marketplace" },
-    { path: role === "professional" ? "/resources" : "/pros", label: role === "professional" ? "Resources" : "Hire Professionals/Artisans" },
+    { path: "/pros", label: "Hire Professionals/Artisans", hideForRole: "professional" },
+    { path: `/pro/profile/${user?.id}`, label: "View Profile", role: "professional" },
     { path: "/pro/ai-studio", label: "AI Studio", role: "professional" },
     { path: "/pro-portal", label: "Dashboard", role: "professional" },
     { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
   ];
 
-  const filteredLinks = navLinks.filter(link => !link.role || link.role === role);
+  const filteredLinks = navLinks.filter(link => {
+    if (link.role && link.role !== role) return false;
+    if (link.hideForRole && link.hideForRole === role) return false;
+    return true;
+  });
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -95,6 +100,13 @@ const Navbar = () => {
                       <LayoutDashboard className="w-4 h-4 text-slate-400" /> <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
+                  {role === 'professional' && (
+                    <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
+                      <Link to={`/pro/profile/${user?.id}`}>
+                        <User className="w-4 h-4 text-slate-400" /> <span>View Profile</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
                     <Link to="/settings">
                       <Settings className="w-4 h-4 text-slate-400" /> <span>Settings</span>
