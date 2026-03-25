@@ -89,7 +89,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         navigate("/");
-        toast.success("Successfully logged out.");
     };
 
     return (

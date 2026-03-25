@@ -306,7 +306,6 @@ const Register = () => {
                 if (profileError) throw profileError;
             }
 
-            toast.success("Professional account created!");
             setSubmitted(true);
         } catch (err: any) {
             console.error("Pro Registration Error:", err);
@@ -357,7 +356,6 @@ const Register = () => {
                 if (profileError) throw profileError;
             }
 
-            toast.success("Vendor registration complete!");
             setSubmitted(true);
         } catch (err: any) {
             console.error("Vendor Registration Error:", err);

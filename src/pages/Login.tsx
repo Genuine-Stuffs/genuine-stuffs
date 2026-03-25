@@ -38,7 +38,6 @@ const Login = () => {
 
         try {
             await signInWithEmail(formData.email, formData.password);
-            toast.success("Successfully authenticated. Welcome back!");
             navigate("/");
         } catch (err: any) {
             toast.error(err.message || "Invalid credentials. Please try again.");
