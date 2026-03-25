@@ -95,11 +95,6 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 border-slate-100 shadow-2xl">
                   <DropdownMenuLabel className="px-4 py-2 text-xs font-black uppercase text-slate-400">Account</DropdownMenuLabel>
-                  <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
-                    <Link to={role === 'vendor' ? '/vendor-dashboard' : '/pro-portal'}>
-                      <LayoutDashboard className="w-4 h-4 text-slate-400" /> <span>Dashboard</span>
-                    </Link>
-                  </DropdownMenuItem>
                   {role === 'professional' && (
                     <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
                       <Link to={`/pro/profile/${user?.id}`}>
