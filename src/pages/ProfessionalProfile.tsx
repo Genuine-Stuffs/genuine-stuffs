@@ -118,7 +118,6 @@ const ProfessionalProfile = () => {
                     full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || "Professional",
                     specialty: "Expert Professional",
                     credits: 10,
-                    subscription_status: 'trial' as 'trial' | 'active' | 'expired'
                 };
                 const { error: insertError } = await supabase.from('professionals').upsert(newProfile);
                 if (insertError) {
