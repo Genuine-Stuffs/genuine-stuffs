@@ -21,6 +21,7 @@ import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useRef } from "react";
+import EditIntroDialog from "@/components/pro/EditIntroDialog";
 
 const ProfessionalProfile = () => {
     const { id } = useParams();
@@ -29,6 +30,7 @@ const ProfessionalProfile = () => {
     const [experiences, setExperiences] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isAddExpOpen, setIsAddExpOpen] = useState(false);
+    const [isEditIntroOpen, setIsEditIntroOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
     const isOwnProfile = user?.id === id;
@@ -262,24 +264,38 @@ const ProfessionalProfile = () => {
                                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded">
                                         Professional
                                     </span>
+                                    {isOwnProfile && (
+                                        <Button 
+                                            size="icon" 
+                                            variant="ghost" 
+                                            onClick={() => setIsEditIntroOpen(true)}
+                                            className="rounded-full h-8 w-8 text-slate-400 hover:text-primary hover:bg-primary/5 transition-all duration-300"
+                                        >
+                                            <Pencil className="w-3.5 h-3.5" />
+                                        </Button>
+                                    )}
                                 </div>
                                 <p className="text-sm md:text-lg font-bold text-slate-700 dark:text-slate-300 italic">
-                                    {profile.headline || profile.specialty}
+                                    {profile.headline || profile.specialty || "Expert Professional"}
                                 </p>
                                 <div className="flex flex-wrap items-center gap-4 text-[10px] md:text-xs font-black uppercase tracking-widest text-slate-400">
-                                    <span className="flex items-center gap-1.5">
-                                        <MapPin className="w-3.5 h-3.5 text-primary" />
-                                        {profile.city}, {profile.country}
-                                    </span>
-                                    <span className="flex items-center gap-1.5">
-                                        <LinkIcon className="w-3.5 h-3.5 text-primary" />
-                                        <button 
-                                            onClick={() => toast.info("Contact info: " + (profile.phone || profile.email || "No details provided"))}
-                                            className="text-primary hover:underline"
-                                        >
-                                            Contact info
-                                        </button>
-                                    </span>
+                                    {(profile.profile_settings?.showLocation !== false && (profile.city || profile.country)) && (
+                                        <span className="flex items-center gap-1.5">
+                                            <MapPin className="w-3.5 h-3.5 text-primary" />
+                                            {[profile.city, profile.country].filter(Boolean).join(', ')}
+                                        </span>
+                                    )}
+                                    {(profile.profile_settings?.showPhone !== false && (profile.phone || profile.email)) && (
+                                        <span className="flex items-center gap-1.5">
+                                            <LinkIcon className="w-3.5 h-3.5 text-primary" />
+                                            <button 
+                                                onClick={() => toast.info("Contact info: " + (profile.phone || profile.email || "No details provided"))}
+                                                className="text-primary hover:underline"
+                                            >
+                                                Contact info
+                                            </button>
+                                        </span>
+                                    )}
                                     <span className="flex items-center gap-1.5">
                                         <Users className="w-3.5 h-3.5 text-primary" />
                                         {profile.connections_count || 0} connections
@@ -288,23 +304,7 @@ const ProfessionalProfile = () => {
                             </div>
 
                             <div className="flex flex-wrap gap-3 w-full md:w-auto">
-                                {isOwnProfile ? (
-                                    <>
-                                        <Button 
-                                            onClick={() => toast.info("Setting your 'Open to' status...")}
-                                            className="flex-1 md:flex-none h-11 rounded-full px-8 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
-                                        >
-                                            Open to
-                                        </Button>
-                                        <Button 
-                                            onClick={() => toast.info("Select a section to add (Bio, Skills, Projects)...")}
-                                            variant="outline" 
-                                            className="flex-1 md:flex-none h-11 rounded-full px-8 border-2 border-primary text-primary hover:bg-primary/5 font-black uppercase tracking-widest text-xs"
-                                        >
-                                            Add section
-                                        </Button>
-                                    </>
-                                ) : (
+                                {!isOwnProfile && (
                                     <>
                                         <Button className="flex-1 md:flex-none h-11 rounded-full px-8 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20">
                                             <UserPlus className="w-4 h-4 mr-2" />
@@ -379,6 +379,13 @@ const ProfessionalProfile = () => {
                 onClose={() => setIsAddExpOpen(false)}
                 professionalId={id!}
                 onExperienceAdded={fetchProfileData}
+            />
+
+            <EditIntroDialog
+                isOpen={isEditIntroOpen}
+                onClose={() => setIsEditIntroOpen(false)}
+                profile={profile}
+                onProfileUpdated={fetchProfileData}
             />
         </div>
     );
