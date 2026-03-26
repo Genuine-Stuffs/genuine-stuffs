@@ -150,27 +150,55 @@ const EditIntroDialog = ({ isOpen, onClose, profile, onProfileUpdated }: EditInt
     setIsSubmitting(true);
 
     try {
+      // First, try updating all fields (assuming DB is upgraded)
+      const updatePayload: any = {
+        full_name: `${formData.firstName} ${formData.lastName}`.trim(),
+        specialty: formData.headline,
+        city: formData.city,
+        state: formData.state,
+        country: formData.country,
+        phone: formData.phone,
+        bio: formData.bio,
+        headline: formData.headline,
+        profile_settings: {
+          showLocation: formData.showLocation,
+          showPhone: formData.showPhone
+        }
+      };
+
       const { error } = await supabase
         .from('professionals')
-        .update({
-          full_name: `${formData.firstName} ${formData.lastName}`.trim(),
-          specialty: formData.headline,
-          headline: formData.headline,
-          city: formData.city,
-          state: formData.state,
-          country: formData.country,
-          phone: formData.phone,
-          bio: formData.bio,
-          profile_settings: {
-            showLocation: formData.showLocation,
-            showPhone: formData.showPhone
-          }
-        })
+        .update(updatePayload)
         .eq('id', profile.id);
 
-      if (error) throw error;
+      if (error) {
+        // If it fails with PGRST204 (missing column), try a basic update without the new columns
+        if (error.code === 'PGRST204') {
+          console.warn("DB Schema mismatch detected. Attempting basic update...");
+          const basicPayload = {
+            full_name: updatePayload.full_name,
+            specialty: updatePayload.specialty,
+            city: updatePayload.city,
+            state: updatePayload.state,
+            country: updatePayload.country,
+            phone: updatePayload.phone,
+            bio: updatePayload.bio
+          };
+          
+          const { error: basicError } = await supabase
+            .from('professionals')
+            .update(basicPayload)
+            .eq('id', profile.id);
+            
+          if (basicError) throw basicError;
+          toast.warning("Profile saved with basic info. Please run the SQL script I provided to enable Privacy and Headline features.");
+        } else {
+          throw error;
+        }
+      } else {
+        toast.success("Profile intro updated successfully!");
+      }
 
-      toast.success("Profile intro updated successfully!");
       onProfileUpdated();
       onClose();
     } catch (err: any) {
