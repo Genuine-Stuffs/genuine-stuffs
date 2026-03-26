@@ -50,15 +50,27 @@ const ProfessionalProfile = () => {
             const fileName = `${user.id}/${Date.now()}-${field}.${fileExt}`;
             const filePath = `profiles/${fileName}`;
             
-            // We use the 'materials' bucket as it is known to exist/be configured in this project
-            const { error: uploadError } = await supabase.storage
-                .from('materials')
-                .upload(filePath, file, { upsert: true });
+            // Try Standard buckets: avatars, then profiles, then fallback to materials
+            const buckets = ['avatars', 'profiles', 'materials'];
+            let uploadError: any = null;
+            let successBucket = '';
 
-            if (uploadError) throw uploadError;
+            for (const bucket of buckets) {
+                const { error } = await supabase.storage
+                    .from(bucket)
+                    .upload(filePath, file, { upsert: true });
+                
+                if (!error) {
+                    successBucket = bucket;
+                    break;
+                }
+                uploadError = error;
+            }
+
+            if (!successBucket) throw new Error("Storage bucket not found. Please create a bucket named 'avatars' in Supabase.");
 
             const { data: { publicUrl } } = supabase.storage
-                .from('materials')
+                .from(successBucket)
                 .getPublicUrl(filePath);
 
             const { error: updateError } = await supabase
@@ -92,7 +104,9 @@ const ProfessionalProfile = () => {
                 .maybeSingle();
 
             if (profError) {
-                console.error("Supabase Error (fetchProfileData):", profError);
+                console.error("DEBUG - Professionals Fetch Error:", profError);
+                // Log full details for 400 errors
+                if (profError.code === '22P02') console.error("ID format mismatch - expected UUID.");
                 throw profError;
             }
             
