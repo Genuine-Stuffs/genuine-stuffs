@@ -19,6 +19,8 @@ import ExperienceCard from "@/components/pro/ExperienceCard";
 import AddExperienceDialog from "@/components/pro/AddExperienceDialog";
 import { useAuth } from "@/context/AuthContext";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+import { useRef } from "react";
 
 const ProfessionalProfile = () => {
     const { id } = useParams();
@@ -27,7 +29,26 @@ const ProfessionalProfile = () => {
     const [experiences, setExperiences] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isAddExpOpen, setIsAddExpOpen] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const coverInputRef = useRef<HTMLInputElement>(null);
     const isOwnProfile = user?.id === id;
+
+    const handlePhotoClick = (type: 'avatar' | 'cover') => {
+        if (type === 'avatar') fileInputRef.current?.click();
+        else coverInputRef.current?.click();
+    };
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>, field: 'avatar_url' | 'cover_url') => {
+        const file = event.target.files?.[0];
+        if (!file || !user) return;
+        
+        toast.info("Uploading your photo...");
+        // This is a mock implementation as storage setup varies
+        // In reality, you'd use supabase.storage.from('avatars').upload(...)
+        setTimeout(() => {
+            toast.success("Photo updated successfully! (Demo mode)");
+        }, 1500);
+    };
 
     const fetchProfileData = async () => {
         if (!id) return;
@@ -116,9 +137,21 @@ const ProfessionalProfile = () => {
                             <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900" />
                         )}
                         {isOwnProfile && (
-                            <button className="absolute bottom-4 right-4 p-3 bg-slate-950 text-white rounded-full shadow-2xl transition-all duration-300 hover:bg-primary border-2 border-white/20 group/cam">
-                                <Camera className="w-5 h-5 group-hover/cam:scale-110 transition-transform" />
-                            </button>
+                            <>
+                                <input 
+                                    type="file" 
+                                    ref={coverInputRef} 
+                                    className="hidden" 
+                                    accept="image/*"
+                                    onChange={(e) => handleFileChange(e, 'cover_url')}
+                                />
+                                <button 
+                                    onClick={() => handlePhotoClick('cover')}
+                                    className="absolute bottom-4 right-4 p-3 bg-slate-950 text-white rounded-full shadow-2xl transition-all duration-300 hover:bg-primary border-2 border-white/20 group/cam"
+                                >
+                                    <Camera className="w-5 h-5 group-hover/cam:scale-110 transition-transform" />
+                                </button>
+                            </>
                         )}
                     </div>
 
@@ -132,9 +165,21 @@ const ProfessionalProfile = () => {
                                     className="w-full h-full object-cover"
                                 />
                                 {isOwnProfile && (
-                                    <button className="absolute bottom-1 right-1 p-2.5 bg-slate-950 text-white rounded-full shadow-2xl transition-all duration-300 hover:bg-primary border-2 border-white/20 z-30 group/avatar-cam">
-                                        <Camera className="w-4 h-4 group-hover/avatar-cam:scale-110 transition-transform" />
-                                    </button>
+                                    <>
+                                        <input 
+                                            type="file" 
+                                            ref={fileInputRef} 
+                                            className="hidden" 
+                                            accept="image/*"
+                                            onChange={(e) => handleFileChange(e, 'avatar_url')}
+                                        />
+                                        <button 
+                                            onClick={() => handlePhotoClick('avatar')}
+                                            className="absolute bottom-1 right-1 p-2.5 bg-slate-950 text-white rounded-full shadow-2xl transition-all duration-300 hover:bg-primary border-2 border-white/20 z-30 group/avatar-cam"
+                                        >
+                                            <Camera className="w-4 h-4 group-hover/avatar-cam:scale-110 transition-transform" />
+                                        </button>
+                                    </>
                                 )}
                             </div>
                             {profile.is_verified && (
@@ -165,7 +210,12 @@ const ProfessionalProfile = () => {
                                     </span>
                                     <span className="flex items-center gap-1.5">
                                         <LinkIcon className="w-3.5 h-3.5 text-primary" />
-                                        <button className="text-primary hover:underline">Contact info</button>
+                                        <button 
+                                            onClick={() => toast.info("Contact info: " + (profile.phone || profile.email || "No details provided"))}
+                                            className="text-primary hover:underline"
+                                        >
+                                            Contact info
+                                        </button>
                                     </span>
                                     <span className="flex items-center gap-1.5">
                                         <Users className="w-3.5 h-3.5 text-primary" />
@@ -177,10 +227,17 @@ const ProfessionalProfile = () => {
                             <div className="flex flex-wrap gap-3 w-full md:w-auto">
                                 {isOwnProfile ? (
                                     <>
-                                        <Button className="flex-1 md:flex-none h-11 rounded-full px-8 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20">
+                                        <Button 
+                                            onClick={() => toast.info("Setting your 'Open to' status...")}
+                                            className="flex-1 md:flex-none h-11 rounded-full px-8 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20"
+                                        >
                                             Open to
                                         </Button>
-                                        <Button variant="outline" className="flex-1 md:flex-none h-11 rounded-full px-8 border-2 border-primary text-primary hover:bg-primary/5 font-black uppercase tracking-widest text-xs">
+                                        <Button 
+                                            onClick={() => toast.info("Select a section to add (Bio, Skills, Projects)...")}
+                                            variant="outline" 
+                                            className="flex-1 md:flex-none h-11 rounded-full px-8 border-2 border-primary text-primary hover:bg-primary/5 font-black uppercase tracking-widest text-xs"
+                                        >
                                             Add section
                                         </Button>
                                     </>
@@ -219,7 +276,12 @@ const ProfessionalProfile = () => {
                             </h2>
                             {isOwnProfile && (
                                 <div className="flex gap-2">
-                                    <Button size="icon" variant="ghost" className="rounded-full h-10 w-10 text-slate-950 dark:text-white hover:text-primary hover:bg-primary/5 transition-all duration-300 group/edit">
+                                    <Button 
+                                        size="icon" 
+                                        variant="ghost" 
+                                        onClick={() => setIsAddExpOpen(true)}
+                                        className="rounded-full h-10 w-10 text-slate-950 dark:text-white hover:text-primary hover:bg-primary/5 transition-all duration-300 group/edit"
+                                    >
                                         <Plus className="w-5 h-5 group-hover/edit:scale-110 transition-transform" />
                                     </Button>
                                     <Button size="icon" variant="ghost" className="rounded-full h-10 w-10 text-slate-950 dark:text-white hover:text-primary hover:bg-primary/5 transition-all duration-300 group/edit">
@@ -248,6 +310,13 @@ const ProfessionalProfile = () => {
                 </Card>
 
             </main>
+
+            <AddExperienceDialog 
+                isOpen={isAddExpOpen}
+                onClose={() => setIsAddExpOpen(false)}
+                professionalId={id!}
+                onExperienceAdded={fetchProfileData}
+            />
         </div>
     );
 };
