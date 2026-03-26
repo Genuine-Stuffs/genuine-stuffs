@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { FileText, Video, Download, BookOpen, AlertTriangle, TrendingUp, Lock, Cpu, Layers, HardHat, ShieldCheck, Sparkles } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 
@@ -200,7 +199,6 @@ const Resources = () => {
         </div>
       </section>
 
-      <Footer />
     </div>
   );
 };
