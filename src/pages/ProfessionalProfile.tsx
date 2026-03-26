@@ -57,8 +57,8 @@ const ProfessionalProfile = () => {
             }
 
             // Fetch experiences
-            const { data: expData, error: expError } = await (supabase
-                .from('professional_experiences' as any))
+            const { data: expData, error: expError } = await supabase
+                .from('professional_experiences' as any)
                 .select('*')
                 .eq('professional_id', id)
                 .order('start_date', { ascending: false });
@@ -76,7 +76,7 @@ const ProfessionalProfile = () => {
     useEffect(() => {
         setIsLoading(true);
         fetchProfileData();
-    }, [id]);
+    }, [id, user]);
 
     if (isLoading) {
         return (
