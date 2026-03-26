@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { supabase } from "backend/supabaseClient";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
@@ -13,7 +13,14 @@ import {
     MessageCircle,
     Plus,
     Pencil,
-    Camera
+    Camera,
+    ArrowLeft,
+    Search,
+    Settings as SettingsIcon,
+    MoreHorizontal,
+    CheckCircle2,
+    LogOut,
+    Clock
 } from "lucide-react";
 import ExperienceCard from "@/components/pro/ExperienceCard";
 import AddExperienceDialog from "@/components/pro/AddExperienceDialog";
@@ -22,10 +29,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { useRef } from "react";
 import EditIntroDialog from "@/components/pro/EditIntroDialog";
+import { Badge } from "@/components/ui/badge";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const ProfessionalProfile = () => {
     const { id } = useParams();
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
+    const navigate = useNavigate();
     const [profile, setProfile] = useState<any>(null);
     const [experiences, setExperiences] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -176,14 +192,40 @@ const ProfessionalProfile = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 selection:bg-primary/30 pb-20">
-            <Navbar />
+            <div className="hidden md:block">
+                <Navbar />
+            </div>
+
+            {/* Mobile-only Sticky Header */}
+            <header className="md:hidden sticky top-0 z-50 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-slate-100 dark:border-white/5 px-4 h-16 flex items-center justify-between gap-4">
+                <button 
+                    onClick={() => navigate(-1)}
+                    className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors"
+                >
+                    <ArrowLeft className="w-6 h-6" />
+                </button>
+                <div className="flex-1 relative flex items-center">
+                    <Search className="absolute left-3 w-4 h-4 text-slate-400" />
+                    <input 
+                        type="text" 
+                        placeholder="Search" 
+                        className="w-full h-10 pl-10 pr-4 bg-slate-100/50 dark:bg-white/5 border-none rounded-xl text-sm focus:ring-2 ring-primary/20 transition-all outline-none"
+                    />
+                </div>
+                <button 
+                    onClick={() => navigate('/settings')}
+                    className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors"
+                >
+                    <SettingsIcon className="w-6 h-6" />
+                </button>
+            </header>
             
-            <main className="container mx-auto px-4 pt-6 md:pt-10 max-w-5xl space-y-6">
+            <main className="container mx-auto px-4 pt-4 md:pt-10 max-w-5xl space-y-6">
                 
-                {/* Header Card (LinkedIn Style) */}
-                <Card className="overflow-hidden border-none shadow-xl rounded-[2.5rem] bg-white dark:bg-card relative">
+                {/* Header Card (LinkedIn Style Optimization) */}
+                <Card className="overflow-hidden border-none shadow-xl rounded-3xl md:rounded-[2.5rem] bg-white dark:bg-card relative">
                     {/* Cover Photo */}
-                    <div className="h-32 md:h-48 bg-slate-200 dark:bg-white/5 relative overflow-hidden group">
+                    <div className="h-32 md:h-56 bg-slate-200 dark:bg-white/5 relative overflow-hidden group">
                         {profile.cover_url ? (
                             <img 
                                 src={profile.cover_url} 
@@ -195,7 +237,7 @@ const ProfessionalProfile = () => {
                                 }}
                             />
                         ) : (
-                            <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900" />
+                            <div className="w-full h-full bg-gradient-to-br from-slate-200 via-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900" />
                         )}
                         {isOwnProfile && (
                             <>
@@ -208,18 +250,18 @@ const ProfessionalProfile = () => {
                                 />
                                 <button 
                                     onClick={() => handlePhotoClick('cover')}
-                                    className="absolute bottom-4 right-4 p-3 bg-slate-950 text-white rounded-full shadow-2xl transition-all duration-300 hover:bg-primary border-2 border-white/20 group/cam"
+                                    className="absolute bottom-4 right-4 p-2.5 bg-slate-950/80 text-white rounded-full shadow-2xl transition-all duration-300 hover:bg-primary border border-white/20 group/cam backdrop-blur-sm"
                                 >
-                                    <Camera className="w-5 h-5 group-hover/cam:scale-110 transition-transform" />
+                                    <Camera className="w-5 h-5 md:w-6 md:h-6 group-hover/cam:scale-110 transition-transform" />
                                 </button>
                             </>
                         )}
                     </div>
 
-                    <CardContent className="px-6 md:px-10 pb-10">
+                    <CardContent className="px-5 md:px-10 pb-8 relative">
                         {/* Avatar Overlay */}
-                        <div className="relative -mt-12 md:-mt-20 mb-4 inline-block group">
-                            <div className="w-24 h-24 md:w-36 md:h-36 rounded-full border-4 md:border-8 border-white dark:border-card overflow-hidden bg-slate-100 shadow-2xl relative">
+                        <div className="relative -mt-12 md:-mt-24 mb-4 inline-block group">
+                            <div className="w-24 h-24 md:w-40 md:h-40 rounded-full border-4 md:border-[6px] border-white dark:border-card overflow-hidden bg-white shadow-2xl relative">
                                 <img 
                                     src={profile.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${profile.full_name}`} 
                                     alt={profile.full_name} 
@@ -240,99 +282,123 @@ const ProfessionalProfile = () => {
                                         />
                                         <button 
                                             onClick={() => handlePhotoClick('avatar')}
-                                            className="absolute bottom-1 right-1 p-2.5 bg-slate-950 text-white rounded-full shadow-2xl transition-all duration-300 hover:bg-primary border-2 border-white/20 z-30 group/avatar-cam"
+                                            className="absolute bottom-1 right-1 p-2 bg-slate-950/80 text-white rounded-full shadow-2xl transition-all duration-300 hover:bg-primary border border-white/10 z-30 backdrop-blur-sm"
                                         >
-                                            <Camera className="w-4 h-4 group-hover/avatar-cam:scale-110 transition-transform" />
+                                            <Camera className="w-4 h-4 md:w-6 md:h-6" />
                                         </button>
                                     </>
                                 )}
                             </div>
                             {profile.is_verified && (
-                                <div className="absolute top-2 right-2 bg-primary text-white p-1.5 rounded-full border-4 border-white dark:border-card shadow-lg z-20">
-                                    <ShieldCheck className="w-4 h-4 md:w-5 md:h-5" />
+                                <div className="absolute top-2 right-2 bg-primary text-white p-1 rounded-full border-2 border-white dark:border-card shadow-lg z-20">
+                                    <ShieldCheck className="w-4 h-4" />
                                 </div>
                             )}
                         </div>
 
+                        {isOwnProfile && (
+                            <button 
+                                onClick={() => setIsEditIntroOpen(true)}
+                                className="absolute top-4 right-5 md:top-8 md:right-10 p-2 text-slate-400 hover:text-primary transition-colors"
+                            >
+                                <Pencil className="w-5 h-5 md:w-6 md:h-6" />
+                            </button>
+                        )}
+
                         {/* Profile Info */}
-                        <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-                            <div className="flex-1 space-y-2">
-                                <div className="flex items-center gap-2">
-                                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white capitalize">
-                                        {profile.full_name?.toLowerCase()}
+                        <div className="space-y-4">
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-white capitalize tracking-tight">
+                                        {profile.full_name}
                                     </h1>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded">
-                                        Professional
-                                    </span>
-                                    {isOwnProfile && (
-                                        <Button 
-                                            size="icon" 
-                                            variant="ghost" 
-                                            onClick={() => setIsEditIntroOpen(true)}
-                                            className="rounded-full h-8 w-8 text-slate-400 hover:text-primary hover:bg-primary/5 transition-all duration-300"
-                                        >
-                                            <Pencil className="w-3.5 h-3.5" />
-                                        </Button>
+                                    {profile.profile_settings?.showVerificationBadge !== false && (
+                                        <Badge variant="outline" className="h-5 px-2 text-[10px] font-bold border-primary/20 text-primary gap-1">
+                                            <ShieldCheck className="w-3 h-3" /> VERIFIED
+                                        </Badge>
                                     )}
                                 </div>
-                                <p className="text-base md:text-xl font-medium text-slate-800 dark:text-slate-200 mt-1">
+                                <p className="text-base md:text-lg font-medium text-slate-800 dark:text-slate-200">
                                     {profile.headline || profile.specialty || "Expert Professional"}
                                 </p>
-                                <div className="flex flex-wrap items-center gap-2 text-sm md:text-base text-slate-500 mt-1">
-                                    {(profile.profile_settings?.showLocation !== false && (profile.city || profile.country)) && (
-                                        <span className="flex items-center gap-1">
-                                            {[profile.city, profile.state, profile.country].filter(Boolean).join(', ')}
-                                        </span>
-                                    )}
-                                    {((profile.profile_settings?.showLocation !== false && (profile.city || profile.country)) && (profile.profile_settings?.showPhone !== false && (profile.phone || profile.email))) && (
-                                        <span className="text-slate-300">•</span>
-                                    )}
-                                    {(profile.profile_settings?.showPhone !== false && (profile.phone || profile.email)) && (
-                                        <button 
-                                            onClick={() => toast.info("Contact info: " + (profile.phone || profile.email || "No details provided"))}
-                                            className="text-primary hover:underline font-semibold"
-                                        >
-                                            Contact info
-                                        </button>
-                                    )}
+                                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                    <span className="flex items-center gap-1">
+                                        {[profile.city, profile.state, profile.country].filter(Boolean).join(', ')}
+                                    </span>
+                                    <span className="hidden sm:inline text-slate-300">•</span>
+                                    <button className="text-primary hover:underline font-bold text-sm">Contact info</button>
                                 </div>
-                                <div className="flex items-center gap-4 text-sm font-semibold text-primary mt-2">
-                                    <span>{profile.followers_count || 0} followers</span>
+                                <div className="flex items-center gap-2 text-sm font-semibold text-primary mt-2">
+                                    <span className="hover:underline cursor-pointer">{profile.followers_count || 0} followers</span>
                                     <span className="text-slate-300">•</span>
-                                    <span>{profile.connections_count || 0} connections</span>
+                                    <span className="hover:underline cursor-pointer">{profile.connections_count || 0} connections</span>
                                 </div>
                             </div>
 
-                            <div className="flex flex-wrap gap-3 w-full md:w-auto">
-                                {!isOwnProfile && (
+                            {/* Action Pills (LinkedIn Style) */}
+                            <div className="flex flex-wrap gap-2 pt-2 pb-1">
+                                {isOwnProfile ? (
                                     <>
-                                        <Button className="flex-1 md:flex-none h-11 rounded-full px-8 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-xs shadow-lg shadow-primary/20">
-                                            <UserPlus className="w-4 h-4 mr-2" />
-                                            Connect
+                                        <Button className="h-10 rounded-full px-6 bg-primary text-white font-bold text-sm shadow-md hover:scale-[1.02] transition-transform">
+                                            Open to
                                         </Button>
-                                        <Button variant="outline" className="flex-1 md:flex-none h-11 rounded-full px-8 border-2 border-primary text-primary hover:bg-primary/5 font-black uppercase tracking-widest text-xs">
-                                            <MessageCircle className="w-4 h-4 mr-2" />
+                                        <Button variant="outline" className="h-10 rounded-full px-6 border-primary text-primary font-bold text-sm hover:bg-primary/5">
+                                            Add section
+                                        </Button>
+                                        
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger asChild>
+                                                <Button variant="outline" className="h-10 w-10 md:w-auto md:px-6 rounded-full border-slate-300 dark:border-white/10 text-slate-600 dark:text-slate-400 font-bold p-0">
+                                                    <MoreHorizontal className="w-5 h-5 mx-auto md:mr-2" />
+                                                    <span className="hidden md:inline">More</span>
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 border-slate-100 shadow-2xl">
+                                                <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-xl gap-3 py-3 cursor-pointer capitalize">
+                                                    <SettingsIcon className="w-4 h-4 text-slate-400" /> Account Settings
+                                                </DropdownMenuItem>
+                                                <DropdownMenuSeparator />
+                                                <DropdownMenuItem onClick={logout} className="rounded-xl gap-3 py-3 text-red-500 focus:text-red-500 cursor-pointer">
+                                                    <LogOut className="w-4 h-4" /> Logout
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </>
+                                ) : (
+                                    <>
+                                        <Button className="flex-1 sm:flex-none h-10 rounded-full px-8 bg-primary text-white font-bold text-sm">
+                                            <UserPlus className="w-4 h-4 mr-2" /> Connect
+                                        </Button>
+                                        <Button variant="outline" className="flex-1 sm:flex-none h-10 rounded-full px-8 border-primary text-primary font-bold text-sm hover:bg-primary/5">
                                             Message
                                         </Button>
                                     </>
                                 )}
                             </div>
-                        </div>
 
-                        {/* Bio Section */}
-                        {profile.bio && (
-                            <div className="mt-10 p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-100 dark:border-white/5 italic">
-                                <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 leading-relaxed max-w-4xl">
-                                    {profile.bio}
-                                </p>
-                            </div>
-                        )}
+                            {/* Premium Enhancement Card (LinkedIn-like) */}
+                            {isOwnProfile && (
+                                <div className="mt-4 p-4 rounded-2xl bg-slate-900/5 dark:bg-white/5 border border-slate-100 dark:border-white/5 group cursor-pointer hover:bg-slate-950/5 transition-colors">
+                                    <div className="flex gap-4">
+                                        <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                            <CheckCircle2 className="w-6 h-6" />
+                                        </div>
+                                        <div className="space-y-0.5">
+                                            <h4 className="text-sm font-bold text-slate-900 dark:text-white">Enhance your profile with the help of AI</h4>
+                                            <p className="text-xs text-slate-500 line-clamp-2">Stand out for almost 2x more opportunities by optimizing your summary and skills.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
 
+
+
                 {/* Experience Section */}
-                <Card className="border-none shadow-xl rounded-[2.5rem] bg-white dark:bg-card">
-                    <CardContent className="p-8 md:p-10 space-y-8">
+                <Card className="border-none shadow-xl rounded-3xl md:rounded-[2.5rem] bg-white dark:bg-card">
+                    <CardContent className="p-6 md:p-10 space-y-8">
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter text-slate-900 dark:text-white flex items-center gap-3">
                                 Experience
@@ -365,12 +431,45 @@ const ProfessionalProfile = () => {
                                 ))
                             ) : (
                                 <div className="text-center py-10 text-slate-400 italic">
+                                    <Clock className="w-8 h-8 mx-auto mb-3 opacity-20" />
                                     <p className="text-xs font-bold uppercase tracking-widest">No experiences listed yet.</p>
                                 </div>
                             )}
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* Marketplace Activity (Only for own profile) */}
+                {isOwnProfile && (
+                    <div className="space-y-4">
+                        <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 px-4">
+                            Marketplace Activity
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            {[
+                                { icon: ShoppingBag, label: "Order History", path: "#" },
+                                { icon: Users, label: "Saved Materials", path: "/marketplace" },
+                                { icon: Clock, label: "Browse History", path: "/marketplace" },
+                            ].map((item) => (
+                                <Card 
+                                    key={item.label}
+                                    onClick={() => navigate(item.path)}
+                                    className="p-5 rounded-2xl border-none shadow-lg hover:shadow-xl transition-all cursor-pointer group bg-white dark:bg-card flex items-center gap-4"
+                                >
+                                    <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-white transition-colors">
+                                        <item.icon className="w-5 h-5" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className="text-sm font-bold text-slate-900 dark:text-white leading-none">
+                                            {item.label}
+                                        </h4>
+                                    </div>
+                                    <Plus className="w-4 h-4 text-slate-200 group-hover:text-primary transition-colors" />
+                                </Card>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
             </main>
 

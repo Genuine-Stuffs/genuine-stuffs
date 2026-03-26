@@ -66,7 +66,7 @@ const ClientProfile = () => {
                                         {user?.email?.split('@')[0] || "Guest User"}
                                     </h1>
                                     <Badge className="w-fit mx-auto md:mx-0 bg-slate-100 dark:bg-muted text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest text-[10px] px-3 py-1 border-none">
-                                        {isGuest ? "Guest" : "Standard Client"}
+                                        {isGuest ? "Guest" : role === 'professional' ? "Professional" : role === 'vendor' ? "Vendor" : "Standard Client"}
                                     </Badge>
                                 </div>
                                 <p className="text-slate-500 font-medium italic mb-6">

@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 
 const BottomNav = () => {
     const location = useLocation();
-    const { role } = useAuth();
+    const { role, user } = useAuth();
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
 
@@ -45,7 +45,7 @@ const BottomNav = () => {
         { label: "Home", icon: Home, path: "/" },
         { label: "Shop", icon: ShoppingBag, path: "/marketplace" },
         { label: "Cart", icon: ShoppingCart, path: "/cart" },
-        { label: "Profile", icon: User, path: "/profile" },
+        { label: "Profile", icon: User, path: role === 'professional' ? `/pro/profile/${user?.id}` : "/profile" },
     ];
 
     return (
