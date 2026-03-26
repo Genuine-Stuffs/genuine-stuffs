@@ -120,7 +120,10 @@ const ProfessionalProfile = () => {
                     credits: 10,
                     subscription_status: 'trial' as 'trial' | 'active' | 'expired'
                 };
-                await supabase.from('professionals').insert(newProfile);
+                const { error: insertError } = await supabase.from('professionals').upsert(newProfile);
+                if (insertError) {
+                    console.error("DEBUG - Profile Creation Error:", insertError);
+                }
                 setProfile(newProfile);
             } else {
                 setProfile(profData);
