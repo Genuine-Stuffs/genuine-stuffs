@@ -48,7 +48,7 @@ const ProfessionalProfile = () => {
                     full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || "Professional",
                     specialty: "Expert Professional",
                     credits: 10,
-                    subscription_status: 'trial'
+                    subscription_status: 'trial' as 'trial' | 'active' | 'expired'
                 };
                 await supabase.from('professionals').insert(newProfile);
                 setProfile(newProfile);
@@ -57,8 +57,8 @@ const ProfessionalProfile = () => {
             }
 
             // Fetch experiences
-            const { data: expData, error: expError } = await supabase
-                .from('professional_experiences')
+            const { data: expData, error: expError } = await (supabase
+                .from('professional_experiences' as any))
                 .select('*')
                 .eq('professional_id', id)
                 .order('start_date', { ascending: false });
@@ -116,8 +116,8 @@ const ProfessionalProfile = () => {
                             <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900" />
                         )}
                         {isOwnProfile && (
-                            <button className="absolute bottom-4 right-4 p-2 bg-white/80 dark:bg-black/50 backdrop-blur-md rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Camera className="w-4 h-4" />
+                            <button className="absolute bottom-4 right-4 p-3 bg-slate-950 text-white rounded-full shadow-2xl transition-all duration-300 hover:bg-primary border-2 border-white/20 group/cam">
+                                <Camera className="w-5 h-5 group-hover/cam:scale-110 transition-transform" />
                             </button>
                         )}
                     </div>
@@ -132,13 +132,13 @@ const ProfessionalProfile = () => {
                                     className="w-full h-full object-cover"
                                 />
                                 {isOwnProfile && (
-                                    <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                        <Camera className="w-6 h-6 text-white" />
-                                    </div>
+                                    <button className="absolute bottom-1 right-1 p-2.5 bg-slate-950 text-white rounded-full shadow-2xl transition-all duration-300 hover:bg-primary border-2 border-white/20 z-30 group/avatar-cam">
+                                        <Camera className="w-4 h-4 group-hover/avatar-cam:scale-110 transition-transform" />
+                                    </button>
                                 )}
                             </div>
                             {profile.is_verified && (
-                                <div className="absolute bottom-2 right-2 bg-primary text-white p-1.5 rounded-full border-4 border-white dark:border-card shadow-lg z-20">
+                                <div className="absolute top-2 right-2 bg-primary text-white p-1.5 rounded-full border-4 border-white dark:border-card shadow-lg z-20">
                                     <ShieldCheck className="w-4 h-4 md:w-5 md:h-5" />
                                 </div>
                             )}
@@ -219,11 +219,11 @@ const ProfessionalProfile = () => {
                             </h2>
                             {isOwnProfile && (
                                 <div className="flex gap-2">
-                                    <Button size="icon" variant="ghost" className="rounded-full h-10 w-10 text-slate-400 hover:text-primary hover:bg-primary/10">
-                                        <Plus className="w-5 h-5" />
+                                    <Button size="icon" variant="ghost" className="rounded-full h-10 w-10 text-slate-950 dark:text-white hover:text-primary hover:bg-primary/5 transition-all duration-300 group/edit">
+                                        <Plus className="w-5 h-5 group-hover/edit:scale-110 transition-transform" />
                                     </Button>
-                                    <Button size="icon" variant="ghost" className="rounded-full h-10 w-10 text-slate-400 hover:text-primary hover:bg-primary/10">
-                                        <Pencil className="w-4 h-4" />
+                                    <Button size="icon" variant="ghost" className="rounded-full h-10 w-10 text-slate-950 dark:text-white hover:text-primary hover:bg-primary/5 transition-all duration-300 group/edit">
+                                        <Pencil className="w-4 h-4 group-hover/edit:scale-110 transition-transform" />
                                     </Button>
                                 </div>
                             )}

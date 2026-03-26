@@ -1,4 +1,4 @@
-import { Building2, Calendar, MapPin } from "lucide-react";
+import { Building2, Calendar, MapPin, Pencil } from "lucide-react";
 
 interface Experience {
     id: string;
@@ -54,10 +54,9 @@ const ExperienceCard = ({ experience, isEditable, onEdit }: ExperienceCardProps)
                     {isEditable && (
                         <button 
                             onClick={() => onEdit?.(experience)}
-                            className="p-1.5 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-slate-200 dark:hover:bg-white/10 rounded-full"
+                            className="p-2 transition-all duration-300 hover:bg-primary/5 rounded-full text-slate-950 dark:text-white hover:text-primary group/card-edit"
                         >
-                            <span className="sr-only">Edit</span>
-                            {/* Pencil icon could go here if Lucide is imported */}
+                            <Pencil className="w-4 h-4 group-hover/card-edit:scale-110 transition-transform" />
                         </button>
                     )}
                 </div>
