@@ -42,25 +42,59 @@ const ProfessionalProfile = () => {
         const file = event.target.files?.[0];
         if (!file || !user) return;
         
-        toast.info("Uploading your photo...");
-        // This is a mock implementation as storage setup varies
-        // In reality, you'd use supabase.storage.from('avatars').upload(...)
-        setTimeout(() => {
-            toast.success("Photo updated successfully! (Demo mode)");
-        }, 1500);
+        const toastId = "photo-upload";
+        try {
+            toast.loading(`Uploading ${field === 'avatar_url' ? 'profile' : 'cover'} photo...`, { id: toastId });
+            
+            const fileExt = file.name.split('.').pop();
+            const fileName = `${user.id}/${Date.now()}-${field}.${fileExt}`;
+            const filePath = `profiles/${fileName}`;
+            
+            // We use the 'materials' bucket as it is known to exist/be configured in this project
+            const { error: uploadError } = await supabase.storage
+                .from('materials')
+                .upload(filePath, file, { upsert: true });
+
+            if (uploadError) throw uploadError;
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('materials')
+                .getPublicUrl(filePath);
+
+            const { error: updateError } = await supabase
+                .from('professionals')
+                .update({ [field]: publicUrl })
+                .eq('id', user.id);
+
+            if (updateError) throw updateError;
+
+            toast.success("Photo updated successfully!", { id: toastId });
+            fetchProfileData();
+        } catch (err: any) {
+            console.error("Error uploading photo:", err);
+            toast.error(err.message || "Failed to upload photo.", { id: toastId });
+        }
     };
 
     const fetchProfileData = async () => {
-        if (!id) return;
+        const profileId = id?.trim();
+        if (!profileId || profileId === 'undefined') {
+            console.error("Malformed or missing ID:", profileId);
+            setIsLoading(false);
+            return;
+        }
         try {
             // Fetch basic profile info (using maybeSingle to prevent 406/PGRST116 errors on empty results)
             const { data: profData, error: profError } = await supabase
                 .from('professionals')
                 .select('*')
-                .eq('id', id)
+                .eq('id', profileId)
                 .maybeSingle();
 
-            if (profError) throw profError;
+            if (profError) {
+                console.error("Supabase Error (fetchProfileData):", profError);
+                throw profError;
+            }
             
             if (!profData && isOwnProfile && user) {
                 // Self-healing: Auto-create the user's profile row if it somehow got deleted or missed during signup
@@ -78,10 +112,10 @@ const ProfessionalProfile = () => {
             }
 
             // Fetch experiences
-            const { data: expData, error: expError } = await supabase
-                .from('professional_experiences' as any)
+            const { data: expData, error: expError } = await (supabase
+                .from('professional_experiences' as any))
                 .select('*')
-                .eq('professional_id', id)
+                .eq('professional_id', profileId)
                 .order('start_date', { ascending: false });
 
             if (expError) throw expError;
