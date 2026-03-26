@@ -258,8 +258,8 @@ const ProfessionalProfile = () => {
                         <div className="flex flex-col md:flex-row justify-between items-start gap-6">
                             <div className="flex-1 space-y-2">
                                 <div className="flex items-center gap-2">
-                                    <h1 className="text-xl md:text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">
-                                        {profile.full_name}
+                                    <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white capitalize">
+                                        {profile.full_name?.toLowerCase()}
                                     </h1>
                                     <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded">
                                         Professional
@@ -275,31 +275,31 @@ const ProfessionalProfile = () => {
                                         </Button>
                                     )}
                                 </div>
-                                <p className="text-sm md:text-lg font-bold text-slate-700 dark:text-slate-300 italic">
+                                <p className="text-base md:text-xl font-medium text-slate-800 dark:text-slate-200 mt-1">
                                     {profile.headline || profile.specialty || "Expert Professional"}
                                 </p>
-                                <div className="flex flex-wrap items-center gap-4 text-[10px] md:text-xs font-black uppercase tracking-widest text-slate-400">
+                                <div className="flex flex-wrap items-center gap-2 text-sm md:text-base text-slate-500 mt-1">
                                     {(profile.profile_settings?.showLocation !== false && (profile.city || profile.country)) && (
-                                        <span className="flex items-center gap-1.5">
-                                            <MapPin className="w-3.5 h-3.5 text-primary" />
+                                        <span className="flex items-center gap-1">
                                             {[profile.city, profile.state, profile.country].filter(Boolean).join(', ')}
                                         </span>
                                     )}
-                                    {(profile.profile_settings?.showPhone !== false && (profile.phone || profile.email)) && (
-                                        <span className="flex items-center gap-1.5">
-                                            <LinkIcon className="w-3.5 h-3.5 text-primary" />
-                                            <button 
-                                                onClick={() => toast.info("Contact info: " + (profile.phone || profile.email || "No details provided"))}
-                                                className="text-primary hover:underline"
-                                            >
-                                                Contact info
-                                            </button>
-                                        </span>
+                                    {((profile.profile_settings?.showLocation !== false && (profile.city || profile.country)) && (profile.profile_settings?.showPhone !== false && (profile.phone || profile.email))) && (
+                                        <span className="text-slate-300">•</span>
                                     )}
-                                    <span className="flex items-center gap-1.5">
-                                        <Users className="w-3.5 h-3.5 text-primary" />
-                                        {profile.connections_count || 0} connections
-                                    </span>
+                                    {(profile.profile_settings?.showPhone !== false && (profile.phone || profile.email)) && (
+                                        <button 
+                                            onClick={() => toast.info("Contact info: " + (profile.phone || profile.email || "No details provided"))}
+                                            className="text-primary hover:underline font-semibold"
+                                        >
+                                            Contact info
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-4 text-sm font-semibold text-primary mt-2">
+                                    <span>{profile.followers_count || 0} followers</span>
+                                    <span className="text-slate-300">•</span>
+                                    <span>{profile.connections_count || 0} connections</span>
                                 </div>
                             </div>
 
