@@ -69,9 +69,10 @@ const ProfessionalProfile = () => {
 
             if (!successBucket) throw new Error("Storage bucket not found. Please create a bucket named 'avatars' in Supabase.");
 
-            const { data: { publicUrl } } = supabase.storage
-                .from(successBucket)
-                .getPublicUrl(filePath);
+            // Manually construct public URL to ensure /public/ segment is included correctly
+            const projectUrl = import.meta.env.VITE_SUPABASE_URL;
+            const publicUrl = `${projectUrl}/storage/v1/object/public/${successBucket}/${filePath}`;
+
 
             const { error: updateError } = await supabase
                 .from('professionals')
@@ -180,7 +181,15 @@ const ProfessionalProfile = () => {
                     {/* Cover Photo */}
                     <div className="h-32 md:h-48 bg-slate-200 dark:bg-white/5 relative overflow-hidden group">
                         {profile.cover_url ? (
-                            <img src={profile.cover_url} className="w-full h-full object-cover" alt="cover" />
+                            <img 
+                                src={profile.cover_url} 
+                                className="w-full h-full object-cover" 
+                                alt="cover" 
+                                onError={(e) => {
+                                    console.error("Cover image failed to load:", profile.cover_url);
+                                    (e.target as HTMLImageElement).src = ""; // Fallback to gradient
+                                }}
+                            />
                         ) : (
                             <div className="w-full h-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-900" />
                         )}
@@ -211,6 +220,10 @@ const ProfessionalProfile = () => {
                                     src={profile.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${profile.full_name}`} 
                                     alt={profile.full_name} 
                                     className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        console.error("Avatar failed to load:", profile.avatar_url);
+                                        (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${profile.full_name}`;
+                                    }}
                                 />
                                 {isOwnProfile && (
                                     <>
