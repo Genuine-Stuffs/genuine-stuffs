@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, ShoppingBag, ShoppingCart, User } from "lucide-react";
+import { Home, ShoppingBag, ShoppingCart, User, Sparkles, BookOpen } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const BottomNav = () => {
@@ -9,6 +9,7 @@ const BottomNav = () => {
     const [isVisible, setIsVisible] = useState(true);
     const [lastScrollY, setLastScrollY] = useState(0);
 
+    const isProfilePage = location.pathname === "/profile" || location.pathname.startsWith("/pro/profile/");
     const isProsPage = location.pathname === "/pros";
 
     useEffect(() => {
@@ -44,8 +45,10 @@ const BottomNav = () => {
     const navItems = [
         { label: "Home", icon: Home, path: "/" },
         { label: "Shop", icon: ShoppingBag, path: "/marketplace" },
-        { label: "Cart", icon: ShoppingCart, path: "/cart" },
-        { label: "Profile", icon: User, path: role === 'professional' ? `/pro/profile/${user?.id}` : "/profile" },
+        { label: "AI Studio", icon: Sparkles, path: "/pro/ai-studio" },
+        isProfilePage 
+            ? { label: "Resources", icon: BookOpen, path: "/resources" }
+            : { label: "Profile", icon: User, path: role === 'professional' ? `/pro/profile/${user?.id}` : "/profile" },
     ];
 
     return (
