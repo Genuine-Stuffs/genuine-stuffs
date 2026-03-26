@@ -20,7 +20,8 @@ import {
     MoreHorizontal,
     CheckCircle2,
     LogOut,
-    Clock
+    Clock,
+    ShoppingBag
 } from "lucide-react";
 import ExperienceCard from "@/components/pro/ExperienceCard";
 import AddExperienceDialog from "@/components/pro/AddExperienceDialog";
