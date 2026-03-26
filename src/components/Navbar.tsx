@@ -36,7 +36,7 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className={`${isActive("/pros") ? "relative" : "sticky top-0"} z-50 bg-white/80 dark:bg-slate-500/80 backdrop-blur-xl border-b border-slate-100 dark:border-border transition-colors duration-300`}>
+    <nav className={`${isActive("/pros") ? "relative" : "sticky top-0"} z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-white/5 transition-colors duration-300`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center group">
@@ -85,42 +85,42 @@ const Navbar = () => {
                       <User className="w-4 h-4" />
                     </div>
                     <div className="text-left hidden lg:block">
-                      <p className="text-[10px] uppercase text-slate-400 font-black leading-none mb-0.5">Logged in as</p>
-                      <p className="text-xs font-bold leading-none capitalize">{user?.email?.split('@')[0] || role}</p>
+                      <p className="text-[10px] uppercase text-slate-500 dark:text-slate-400 font-black leading-none mb-0.5">Logged in as</p>
+                      <p className="text-xs font-bold leading-none capitalize text-slate-900 dark:text-white">{user?.email?.split('@')[0] || role}</p>
                     </div>
                     <ChevronDown className="w-4 h-4 text-slate-400" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 border-slate-100 shadow-2xl">
-                  <DropdownMenuLabel className="px-4 py-2 text-xs font-black uppercase text-slate-400">Account</DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 border-slate-100 dark:border-white/5 shadow-2xl bg-white dark:bg-slate-900">
+                  <DropdownMenuLabel className="px-4 py-3 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">Account</DropdownMenuLabel>
                   {role === 'professional' && (
-                    <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
-                      <Link to="/pro/ai-studio">
-                        <Sparkles className="w-4 h-4 text-slate-400" /> <span>AI Studio</span>
+                    <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors">
+                      <Link to="/pro/ai-studio" className="flex items-center gap-3 w-full">
+                        <Sparkles className="w-4 h-4 text-primary" /> <span className="font-bold text-slate-700 dark:text-slate-200">AI Studio</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
                   {role === 'professional' && (
-                    <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
-                      <Link to={`/pro/profile/${user?.id}`}>
-                        <User className="w-4 h-4 text-slate-400" /> <span>View Profile</span>
+                    <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors">
+                      <Link to={`/pro/profile/${user?.id}`} className="flex items-center gap-3 w-full">
+                        <User className="w-4 h-4 text-slate-500 dark:text-slate-400" /> <span className="font-bold text-slate-700 dark:text-slate-200">View Profile</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
                   {role === 'professional' && (
-                    <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
-                      <Link to="/resources">
-                        <BookOpen className="w-4 h-4 text-slate-400" /> <span>Resources</span>
+                    <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors">
+                      <Link to="/resources" className="flex items-center gap-3 w-full">
+                        <BookOpen className="w-4 h-4 text-slate-500 dark:text-slate-400" /> <span className="font-bold text-slate-700 dark:text-slate-200">Resources</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
-                  <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 cursor-pointer">
-                    <Link to="/settings">
-                      <Settings className="w-4 h-4 text-slate-400" /> <span>Settings</span>
+                  <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors">
+                    <Link to="/settings" className="flex items-center gap-3 w-full">
+                      <Settings className="w-4 h-4 text-slate-500 dark:text-slate-400" /> <span className="font-bold text-slate-700 dark:text-slate-200">Settings</span>
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout} className="rounded-xl gap-3 py-3 text-red-500 focus:text-red-500 cursor-pointer">
+                  <DropdownMenuSeparator className="my-2 bg-slate-100 dark:bg-white/5" />
+                  <DropdownMenuItem onClick={logout} className="rounded-xl gap-3 py-3 px-4 text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-500/10 cursor-pointer font-bold">
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -149,26 +149,28 @@ const Navbar = () => {
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-2xl font-bold transition-all ${isActive(link.path) ? "bg-primary/10 text-primary" : "text-slate-600 hover:bg-slate-50"
-                  }`}
+                className={`flex items-center gap-3 px-4 py-4 rounded-2xl font-black transition-all ${isActive(link.path)
+                  ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]"
+                  : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
+                }`}
               >
                 {link.label}
               </Link>
             ))}
             <div className="pt-4 border-t">
-              <p className="px-4 pb-2 text-[10px] font-black uppercase text-slate-400 tracking-widest">Authentication</p>
+              <p className="px-4 pb-4 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">Authentication</p>
               <div className="px-4">
                 {role === 'guest' ? (
-                  <div className="space-y-3">
-                    <Button asChild variant="outline" className="w-full rounded-2xl font-black border-2" onClick={() => setIsOpen(false)}>
+                  <div className="space-y-4">
+                    <Button asChild variant="outline" className="w-full h-14 rounded-2xl font-black border-2 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white" onClick={() => setIsOpen(false)}>
                       <Link to="/login">Log In</Link>
                     </Button>
-                    <Button asChild className="w-full rounded-2xl font-black" onClick={() => setIsOpen(false)}>
+                    <Button asChild className="w-full h-14 rounded-2xl font-black bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" onClick={() => setIsOpen(false)}>
                       <Link to="/register">Join Platform</Link>
                     </Button>
                   </div>
                 ) : (
-                  <Button variant="outline" className="w-full rounded-2xl font-black text-red-500" onClick={() => { logout(); setIsOpen(false); }}>Logout</Button>
+                  <Button variant="outline" className="w-full h-14 rounded-2xl font-black text-red-500 border-red-500/20 bg-red-500/5 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10" onClick={() => { logout(); setIsOpen(false); }}>Logout</Button>
                 )}
               </div>
             </div>

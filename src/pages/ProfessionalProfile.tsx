@@ -354,12 +354,13 @@ const ProfessionalProfile = () => {
                                                     <span className="hidden md:inline">More</span>
                                                 </Button>
                                             </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end" className="w-48 rounded-2xl p-2 border-slate-100 shadow-2xl">
-                                                <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-xl gap-3 py-3 cursor-pointer capitalize">
-                                                    <SettingsIcon className="w-4 h-4 text-slate-400" /> Account Settings
+                                            <DropdownMenuContent align="end" className="w-56 rounded-2xl p-2 border-slate-100 dark:border-white/5 shadow-2xl bg-white dark:bg-slate-900 overflow-hidden">
+                                                <DropdownMenuItem onClick={() => navigate('/settings')} className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors">
+                                                    <SettingsIcon className="w-4 h-4 text-slate-500 dark:text-slate-400" /> 
+                                                    <span className="font-bold text-slate-700 dark:text-slate-200 text-sm">Account Settings</span>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuSeparator />
-                                                <DropdownMenuItem onClick={logout} className="rounded-xl gap-3 py-3 text-red-500 focus:text-red-500 cursor-pointer">
+                                                <DropdownMenuSeparator className="my-1 bg-slate-100 dark:bg-white/5" />
+                                                <DropdownMenuItem onClick={logout} className="rounded-xl gap-3 py-3 px-4 text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-500/10 cursor-pointer font-bold text-sm">
                                                     <LogOut className="w-4 h-4" /> Logout
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>

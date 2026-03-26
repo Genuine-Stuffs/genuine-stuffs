@@ -67,12 +67,12 @@ const BottomNav = () => {
                         <item.icon
                             className={`w-6 h-6 transition-all duration-300 ${isActive(item.path)
                                     ? "text-primary scale-110"
-                                    : "text-slate-600 dark:text-slate-300"
+                                    : "text-slate-600 dark:text-slate-400"
                                 }`}
                         />
                         <span className={`text-[10px] font-black uppercase tracking-tighter transition-colors duration-300 ${isActive(item.path)
                                 ? "text-primary"
-                                : "text-slate-600 dark:text-slate-300"
+                                : "text-slate-600 dark:text-slate-400"
                             }`}>
                             {item.label}
                         </span>
