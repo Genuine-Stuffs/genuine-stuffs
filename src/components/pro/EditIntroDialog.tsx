@@ -7,6 +7,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "backend/supabaseClient";
 import { toast } from "sonner";
 import { Checkbox } from "@/components/ui/checkbox";
+import { 
+    Select, 
+    SelectContent, 
+    SelectItem, 
+    SelectTrigger, 
+    SelectValue 
+} from "@/components/ui/select";
+import { Loader2 } from "lucide-react";
 
 interface EditIntroDialogProps {
   isOpen: boolean;
@@ -21,12 +29,28 @@ const EditIntroDialog = ({ isOpen, onClose, profile, onProfileUpdated }: EditInt
     lastName: "",
     headline: "",
     city: "",
+    state: "",
     country: "",
     phone: "",
     bio: "",
     showLocation: true,
     showPhone: true
   });
+  
+  const [countries, setCountries] = useState<string[]>([]);
+  const [states, setStates] = useState<string[]>([]);
+  const [cities, setCities] = useState<string[]>([]);
+  const [isLoadingGeo, setIsLoadingGeo] = useState({
+      countries: false,
+      states: false,
+      cities: false
+  });
+
+  const FALLBACK_COUNTRIES = [
+    "Nigeria", "Ghana", "Kenya", "South Africa", "United Kingdom", 
+    "United States", "Canada", "Germany", "United Arab Emirates", 
+    "China", "India", "Australia"
+  ];
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -37,6 +61,7 @@ const EditIntroDialog = ({ isOpen, onClose, profile, onProfileUpdated }: EditInt
         lastName: names.slice(1).join(" ") || "",
         headline: profile.headline || profile.specialty || "",
         city: profile.city || "",
+        state: profile.state || "",
         country: profile.country || "",
         phone: profile.phone || "",
         bio: profile.bio || "",
@@ -45,6 +70,80 @@ const EditIntroDialog = ({ isOpen, onClose, profile, onProfileUpdated }: EditInt
       });
     }
   }, [profile, isOpen]);
+
+  // Fetch Countries on Mount
+  useEffect(() => {
+    const fetchCountries = async () => {
+        setIsLoadingGeo(prev => ({ ...prev, countries: true }));
+        try {
+            const res = await fetch('https://countriesnow.space/api/v0.1/countries/positions');
+            const data = await res.json();
+            if (!data.error) {
+                const countryNames = data.data.map((c: any) => c.name).sort();
+                setCountries(countryNames);
+            }
+        } catch (err) {
+            setCountries(FALLBACK_COUNTRIES);
+        } finally {
+            setIsLoadingGeo(prev => ({ ...prev, countries: false }));
+        }
+    };
+    fetchCountries();
+  }, []);
+
+  // Fetch States when Country changes
+  useEffect(() => {
+    if (!formData.country) {
+        setStates([]);
+        return;
+    }
+    const fetchStates = async () => {
+        setIsLoadingGeo(prev => ({ ...prev, states: true }));
+        try {
+            const res = await fetch('https://countriesnow.space/api/v0.1/countries/states', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ country: formData.country })
+            });
+            const data = await res.json();
+            if (!data.error) {
+                setStates(data.data.states.map((s: any) => s.name).sort());
+            }
+        } catch (err) {
+            console.error("Failed to fetch states", err);
+        } finally {
+            setIsLoadingGeo(prev => ({ ...prev, states: false }));
+        }
+    };
+    fetchStates();
+  }, [formData.country]);
+
+  // Fetch Cities when State changes
+  useEffect(() => {
+    if (!formData.country || !formData.state) {
+        setCities([]);
+        return;
+    }
+    const fetchCities = async () => {
+        setIsLoadingGeo(prev => ({ ...prev, cities: true }));
+        try {
+            const res = await fetch('https://countriesnow.space/api/v0.1/countries/state/cities', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ country: formData.country, state: formData.state })
+            });
+            const data = await res.json();
+            if (!data.error) {
+                setCities(data.data.sort());
+            }
+        } catch (err) {
+            console.error("Failed to fetch cities", err);
+        } finally {
+            setIsLoadingGeo(prev => ({ ...prev, cities: false }));
+        }
+    };
+    fetchCities();
+  }, [formData.country, formData.state]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,6 +157,7 @@ const EditIntroDialog = ({ isOpen, onClose, profile, onProfileUpdated }: EditInt
           specialty: formData.headline,
           headline: formData.headline,
           city: formData.city,
+          state: formData.state,
           country: formData.country,
           phone: formData.phone,
           bio: formData.bio,
@@ -127,24 +227,54 @@ const EditIntroDialog = ({ isOpen, onClose, profile, onProfileUpdated }: EditInt
 
           <div className="space-y-4">
             <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">Location</h3>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label className="text-xs font-bold uppercase tracking-widest">Country/Region*</Label>
-                <Input 
-                  required
-                  value={formData.country}
-                  onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                  className="h-11 rounded-xl bg-slate-50 dark:bg-white/5 border-none font-bold"
-                />
+                <Select 
+                  value={formData.country} 
+                  onValueChange={(val) => setFormData({ ...formData, country: val, state: "", city: "" })}
+                >
+                    <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-white/5 border-none font-bold text-xs">
+                        <SelectValue placeholder={isLoadingGeo.countries ? "Loading..." : "Select Country"} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                        {countries.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                    </SelectContent>
+                </Select>
               </div>
+
+              <div className="space-y-2">
+                <Label className="text-xs font-bold uppercase tracking-widest">State*</Label>
+                <Select 
+                  value={formData.state} 
+                  onValueChange={(val) => setFormData({ ...formData, state: val, city: "" })}
+                  disabled={!formData.country || isLoadingGeo.states}
+                >
+                    <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-white/5 border-none font-bold text-xs">
+                        {isLoadingGeo.states && <Loader2 className="w-3 h-3 animate-spin mr-2" />}
+                        <SelectValue placeholder={isLoadingGeo.states ? "Loading..." : "Select State"} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                        {states.map(s => <SelectItem key={s} value={s} className="text-xs">{s}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+              </div>
+
               <div className="space-y-2">
                 <Label className="text-xs font-bold uppercase tracking-widest">City*</Label>
-                <Input 
-                  required
-                  value={formData.city}
-                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                  className="h-11 rounded-xl bg-slate-50 dark:bg-white/5 border-none font-bold"
-                />
+                <Select 
+                  value={formData.city} 
+                  onValueChange={(val) => setFormData({ ...formData, city: val })}
+                  disabled={!formData.state || isLoadingGeo.cities}
+                >
+                    <SelectTrigger className="h-12 rounded-xl bg-slate-50 dark:bg-white/5 border-none font-bold text-xs">
+                        {isLoadingGeo.cities && <Loader2 className="w-3 h-3 animate-spin mr-2" />}
+                        <SelectValue placeholder={isLoadingGeo.cities ? "Loading..." : "Select City"} />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[300px]">
+                        {cities.map(c => <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>)}
+                    </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="flex items-center space-x-2 bg-slate-50 dark:bg-white/5 p-3 rounded-xl">

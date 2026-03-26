@@ -282,7 +282,7 @@ const ProfessionalProfile = () => {
                                     {(profile.profile_settings?.showLocation !== false && (profile.city || profile.country)) && (
                                         <span className="flex items-center gap-1.5">
                                             <MapPin className="w-3.5 h-3.5 text-primary" />
-                                            {[profile.city, profile.country].filter(Boolean).join(', ')}
+                                            {[profile.city, profile.state, profile.country].filter(Boolean).join(', ')}
                                         </span>
                                     )}
                                     {(profile.profile_settings?.showPhone !== false && (profile.phone || profile.email)) && (
