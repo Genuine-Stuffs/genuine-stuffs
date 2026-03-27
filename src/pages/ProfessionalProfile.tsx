@@ -193,38 +193,13 @@ const ProfessionalProfile = () => {
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950 selection:bg-primary/30 pb-20">
-            <div className="hidden md:block">
-                <Navbar />
-            </div>
+            <Navbar />
 
-            {/* Mobile-only Sticky Header */}
-            <header className="md:hidden sticky top-0 z-50 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-b border-slate-100 dark:border-white/5 px-4 h-16 flex items-center justify-between gap-4">
-                <button 
-                    onClick={() => navigate(-1)}
-                    className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors"
-                >
-                    <ArrowLeft className="w-6 h-6" />
-                </button>
-                <div className="flex-1 relative flex items-center">
-                    <Search className="absolute left-3 w-4 h-4 text-slate-400" />
-                    <input 
-                        type="text" 
-                        placeholder="Search" 
-                        className="w-full h-10 pl-10 pr-4 bg-slate-100/50 dark:bg-white/5 border-none rounded-xl text-sm focus:ring-2 ring-primary/20 transition-all outline-none"
-                    />
-                </div>
-                <button 
-                    onClick={() => navigate('/settings')}
-                    className="p-2 text-slate-600 dark:text-slate-400 hover:text-slate-950 dark:hover:text-white transition-colors"
-                >
-                    <SettingsIcon className="w-6 h-6" />
-                </button>
-            </header>
             
-            <main className="container mx-auto px-4 pt-4 md:pt-10 max-w-5xl space-y-6">
+            <main className="container mx-auto px-0 md:px-4 pt-0 md:pt-10 max-w-5xl space-y-6">
                 
                 {/* Header Card (LinkedIn Style Optimization) */}
-                <Card className="overflow-hidden border-none shadow-xl rounded-3xl md:rounded-[2.5rem] bg-white dark:bg-card relative">
+                <Card className="overflow-hidden border-none shadow-xl rounded-none md:rounded-[2.5rem] bg-white dark:bg-card relative">
                     {/* Cover Photo */}
                     <div className="h-32 md:h-56 bg-slate-200 dark:bg-white/5 relative overflow-hidden group">
                         {profile.cover_url ? (
@@ -399,7 +374,7 @@ const ProfessionalProfile = () => {
 
 
                 {/* Experience Section */}
-                <Card className="border-none shadow-xl rounded-3xl md:rounded-[2.5rem] bg-white dark:bg-card">
+                <Card className="border-none shadow-xl rounded-none md:rounded-[2.5rem] bg-white dark:bg-card">
                     <CardContent className="p-6 md:p-10 space-y-8">
                         <div className="flex items-center justify-between">
                             <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter text-slate-900 dark:text-white flex items-center gap-3">

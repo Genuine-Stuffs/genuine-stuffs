@@ -157,6 +157,15 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
+            {role !== 'guest' && (
+              <Link
+                to="/settings"
+                onClick={() => setIsOpen(false)}
+                className="flex items-center gap-3 px-4 py-4 rounded-2xl font-black transition-all text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
+              >
+                <Settings className="w-5 h-5" /> Settings
+              </Link>
+            )}
             <div className="pt-4 border-t">
               <p className="px-4 pb-4 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">Authentication</p>
               <div className="px-4">
