@@ -398,7 +398,7 @@ const Register = () => {
     };
 
     const vendorSteps = [
-        { id: 1, title: "Owner Info *", icon: User },
+        { id: 1, title: "Owner's Info *", icon: User },
         { id: 2, title: "Company *", icon: Building2 },
         { id: 3, title: "Inventory *", icon: FileText },
         { id: 4, title: "Trust *", icon: CheckCircle2 },
