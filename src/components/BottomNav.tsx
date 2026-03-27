@@ -35,7 +35,8 @@ const BottomNav = () => {
         location.pathname === "/login" || 
         location.pathname === "/register" || 
         location.pathname.startsWith("/vendor-") ||
-        location.pathname === "/pro-portal"
+        location.pathname === "/pro-portal" ||
+        location.pathname === "/pro/ai-studio"
     ) {
         return null;
     }
