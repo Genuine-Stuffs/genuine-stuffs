@@ -247,7 +247,7 @@ const EditIntroDialog = ({ isOpen, onClose, profile, onProfileUpdated }: EditInt
                 required
                 value={formData.headline}
                 onChange={(e) => setFormData({ ...formData, headline: e.target.value })}
-                placeholder="e.g. Senior Architect | Sustainable Design Expert"
+                placeholder="e.g. Architecture | Sustainable Design Expert"
                 className="min-h-[80px] rounded-2xl bg-slate-50 dark:bg-white/5 border-none font-medium p-4"
               />
             </div>

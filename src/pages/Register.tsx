@@ -564,7 +564,7 @@ const Register = () => {
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-type" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Discipline *</Label>
-                                                <Input id="pro-type" placeholder="e.g. Architect" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} className={`h-12 rounded-xl ${errors.proType ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Input id="pro-type" placeholder="e.g. Architecture" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} className={`h-12 rounded-xl ${errors.proType ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-nationality" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nationality *</Label>
