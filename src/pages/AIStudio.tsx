@@ -468,9 +468,9 @@ const AIStudio = () => {
                                     <Menu className="w-5 h-5 text-slate-500" />
                                 </Button>
                             )}
-                            <div>
-                                <h2 className="text-[10px] font-black uppercase tracking-widest text-primary mb-0.5">Studio Environment</h2>
-                                <p className="text-sm font-black uppercase tracking-tighter text-slate-900 dark:text-white">Active AI Node</p>
+                             <div>
+                                <h2 className="text-sm font-black uppercase tracking-tight text-slate-900 dark:text-white">Studio Environment</h2>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-primary mt-0.5">Active AI Node</p>
                             </div>
                         </div>
 
