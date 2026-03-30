@@ -290,16 +290,47 @@ const AIStudio = () => {
                     `}
                 >
                     <div className="px-6 py-6 flex flex-col h-full overflow-hidden">
-                        <div className="flex items-center justify-between mb-8">
-                            <div className="flex items-center gap-2">
-                                <Link to="/" className="group transition-transform active:scale-95">
-                                    <Sparkles className="w-5 h-5 text-primary" />
-                                </Link>
-                                <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-900 dark:text-white">AI Studio</span>
+                        <div className="mb-8">
+                            <div className="flex items-center justify-between px-2 mb-4">
+                                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Main Menu</span>
+                                <Button variant="ghost" size="icon" onClick={() => { setSidebarOpen(false); setMobileSidebarOpen(false); }} className="rounded-xl h-8 w-8">
+                                    <X className="w-5 h-5 text-slate-400" />
+                                </Button>
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => { setSidebarOpen(false); setMobileSidebarOpen(false); }} className="rounded-xl h-8 w-8">
-                                <X className="w-5 h-5 text-slate-400" />
-                            </Button>
+                            <div className="space-y-1">
+                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                    <Link to="/">
+                                        <Home className="w-4 h-4 text-slate-400" /> Home
+                                    </Link>
+                                </Button>
+                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                    <Link to="/marketplace">
+                                        <ShoppingBag className="w-4 h-4 text-slate-400" /> Marketplace
+                                    </Link>
+                                </Button>
+                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                    <Link to="/pros">
+                                        <ShieldCheck className="w-4 h-4 text-slate-400" /> Hire Professionals
+                                    </Link>
+                                </Button>
+                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                    <Link to="/pro-portal">
+                                        <LayoutDashboard className="w-4 h-4 text-slate-400" /> Dashboard
+                                    </Link>
+                                </Button>
+                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                    <Link to="/pro/documentation">
+                                        <BookOpen className="w-4 h-4 text-slate-400" /> Resources
+                                    </Link>
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 mb-8 px-2">
+                            <Link to="/" className="group transition-transform active:scale-95">
+                                <Sparkles className="w-5 h-5 text-primary" />
+                            </Link>
+                            <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-900 dark:text-white">AI Studio</span>
                         </div>
 
                         <button
@@ -314,7 +345,7 @@ const AIStudio = () => {
                             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
                                 <Plus className="w-5 h-5" />
                             </div>
-                            <span className="font-bold text-slate-900 dark:text-white text-xs">New Project</span>
+                            <span className="font-black text-slate-900 dark:text-white text-xs text-left">New Project</span>
                         </button>
 
                         <div className="flex-1 space-y-8 overflow-y-auto custom-scrollbar">
@@ -323,34 +354,6 @@ const AIStudio = () => {
                                     <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                                     V4.0 Live Rendering
                                 </div>
-                            </div>
-
-                            <div className="space-y-1">
-                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-bold text-xs" onClick={() => setMobileSidebarOpen(false)}>
-                                    <Link to="/">
-                                        <Home className="w-4 h-4 text-slate-400" /> Home
-                                    </Link>
-                                </Button>
-                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-bold text-xs" onClick={() => setMobileSidebarOpen(false)}>
-                                    <Link to="/marketplace">
-                                        <ShoppingBag className="w-4 h-4 text-slate-400" /> Marketplace
-                                    </Link>
-                                </Button>
-                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-bold text-xs" onClick={() => setMobileSidebarOpen(false)}>
-                                    <Link to="/pros">
-                                        <ShieldCheck className="w-4 h-4 text-slate-400" /> Hire Professionals
-                                    </Link>
-                                </Button>
-                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-bold text-xs" onClick={() => setMobileSidebarOpen(false)}>
-                                    <Link to="/pro-portal">
-                                        <LayoutDashboard className="w-4 h-4 text-slate-400" /> Dashboard
-                                    </Link>
-                                </Button>
-                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-bold text-xs" onClick={() => setMobileSidebarOpen(false)}>
-                                    <Link to="/pro/documentation">
-                                        <BookOpen className="w-4 h-4 text-slate-400" /> Resources
-                                    </Link>
-                                </Button>
                             </div>
 
                             <div>
