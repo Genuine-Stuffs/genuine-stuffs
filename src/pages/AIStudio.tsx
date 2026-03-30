@@ -358,13 +358,22 @@ const AIStudio = () => {
                         ) : (
                             <>
                                 {/* Desktop Sidebar Layout - Condensed */}
-                                <div className="mb-2 flex items-center gap-2">
+                                <div className="mb-2 flex items-center gap-1">
                                     <Button variant="ghost" asChild className="flex-1 justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-[11px] uppercase tracking-widest hover:text-slate-900 dark:hover:text-white">
                                         <Link to="/">
                                             <Home className="w-4 h-4 text-slate-400" /> Home
                                         </Link>
                                     </Button>
-                                    <div className="flex items-center gap-1">
+                                    <div className="flex items-center gap-0.5">
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            onClick={() => { setPromptText(""); setGeneratedImage(null); toast.info("New project session initiated."); }} 
+                                            className="rounded-xl h-8 w-8 shrink-0 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors"
+                                            title="New Project"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </Button>
                                         <ModeToggle />
                                         <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl h-8 w-8 shrink-0 hover:bg-white dark:hover:bg-white/5">
                                             <X className="w-5 h-5 text-slate-400" />
@@ -395,20 +404,6 @@ const AIStudio = () => {
                                     <Sparkles className="w-4 h-4 text-primary" />
                                     <span className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">AI Studio</span>
                                 </div>
-
-                                <button
-                                    onClick={() => {
-                                        setPromptText("");
-                                        setGeneratedImage(null);
-                                        toast.info("New project session initiated.");
-                                    }}
-                                    className="flex items-center gap-3 w-full p-3 mb-6 bg-white dark:bg-card border border-slate-200 dark:border-border rounded-xl shadow-sm hover:shadow-md transition-all group"
-                                >
-                                    <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-600/20 group-hover:scale-110 transition-transform">
-                                        <Plus className="w-4 h-4 border-2 border-white rounded-lg" />
-                                    </div>
-                                    <span className="font-black text-slate-900 dark:text-white text-[10px] uppercase tracking-widest">New Project</span>
-                                </button>
                             </>
                         )}
 
