@@ -53,6 +53,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const AIStudio = () => {
     const { user, role } = useAuth();
@@ -67,11 +68,11 @@ const AIStudio = () => {
     const [promptText, setPromptText] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
-    const isDesktop = useMediaQuery("(min-width: 768px)");
+    const isMobile = useIsMobile();
 
     // Static/Frozen Screen logic for DeepSeek effect
     useEffect(() => {
-        if (!isDesktop) {
+        if (isMobile) {
             const elements = [document.documentElement, document.body, document.getElementById('root')];
             elements.forEach(el => el?.classList.add('is-frozen'));
             
@@ -79,7 +80,7 @@ const AIStudio = () => {
                 elements.forEach(el => el?.classList.remove('is-frozen'));
             };
         }
-    }, [isDesktop]);
+    }, [isMobile]);
 
     // Mock chat history
     const chatHistory = [
