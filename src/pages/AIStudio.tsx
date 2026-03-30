@@ -427,13 +427,14 @@ const AIStudio = () => {
                             </div>
                         </div>
 
-                        {!isPro && (
-                            <div className="mt-auto pt-4 border-t dark:border-border">
-                                <Button className="w-full rounded-xl bg-red-600 text-white hover:bg-red-700 h-10 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-red-600/20">
-                                    Upgrade to Pro
-                                </Button>
-                            </div>
-                        )}
+                        <div className="mt-auto pt-4 border-t dark:border-border">
+                            <Button 
+                                onClick={() => setShowRefillModal(true)}
+                                className="w-full rounded-xl bg-red-600 text-white hover:bg-red-700 h-10 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-red-600/20"
+                            >
+                                Upgrade to Premium
+                            </Button>
+                        </div>
                     </div>
                 </aside>
 
