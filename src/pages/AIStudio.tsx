@@ -432,14 +432,14 @@ const AIStudio = () => {
                     </nav>
 
                     {/* Centered Area - uses absolute inset to stay centered in main regardless of sidebar state */}
-                    <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-6 relative z-10 overflow-y-auto custom-scrollbar">
-                        <div className="w-full max-w-2xl py-8">
+                    <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-6 relative z-10 overflow-y-auto overflow-x-hidden custom-scrollbar">
+                        <div className="w-full max-w-2xl py-2 md:py-8 flex flex-col">
                         {!generatedImage && !isGenerating ? (
-                            <div className="text-center mb-6 md:mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                <h1 className="text-xl md:text-3xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight mb-2">
+                            <div className="text-center mb-4 md:mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                <h1 className="text-xl md:text-3xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight mb-1 md:mb-2">
                                     What can I <span className="text-primary">design?</span>
                                 </h1>
-                                <p className="text-[10px] text-slate-400 font-medium tracking-widest uppercase">Studio AI · {selectedRole} Mode</p>
+                                <p className="text-[10px] text-slate-400 font-medium tracking-widest uppercase mb-4 md:mb-0">Studio AI · {selectedRole} Mode</p>
                             </div>
                         ) : null}
 
@@ -480,7 +480,7 @@ const AIStudio = () => {
                                         value={promptText}
                                         onChange={(e) => setPromptText(e.target.value)}
                                         placeholder={`Ask ${selectedRole} anything...`}
-                                        className="w-full min-h-[80px] md:min-h-[120px] bg-transparent resize-none p-4 md:p-5 text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 placeholder:text-sm"
+                                        className="w-full min-h-[60px] md:min-h-[120px] bg-transparent resize-none p-4 md:p-5 text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 placeholder:text-sm"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && !e.shiftKey) {
                                                 e.preventDefault();
@@ -508,22 +508,22 @@ const AIStudio = () => {
                                 </div>
                             </div>
 
-                            {/* Recipe Pills - BELOW Input (Claude style) */}
-                            {!isGenerating && (
-                                <div className="flex flex-wrap justify-center gap-2 mt-5">
-                                    {professionalRoles.find(r => r.name === selectedRole)?.recipes.map((r, i) => (
-                                        <button
-                                            key={i}
-                                            onClick={() => setPromptText(r)}
-                                            className="px-4 py-2 bg-slate-50 dark:bg-muted/40 hover:bg-primary/10 hover:border-primary/40 text-[10px] font-semibold uppercase tracking-widest text-slate-500 hover:text-primary rounded-xl border border-slate-200 dark:border-border transition-all whitespace-nowrap"
-                                        >
-                                            Creative Recipe #{i + 1}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+                             {/* Recipe Pills - BELOW Input (Claude style) */}
+                             {!isGenerating && (
+                                 <div className="flex flex-wrap justify-center gap-2 mt-3 md:mt-5">
+                                     {professionalRoles.find(r => r.name === selectedRole)?.recipes.map((r, i) => (
+                                         <button
+                                             key={i}
+                                             onClick={() => setPromptText(r)}
+                                             className="px-3 md:px-4 py-1.5 md:py-2 bg-slate-50 dark:bg-muted/40 hover:bg-primary/10 hover:border-primary/40 text-[9px] md:text-[10px] font-semibold uppercase tracking-widest text-slate-500 hover:text-primary rounded-xl border border-slate-200 dark:border-border transition-all whitespace-nowrap"
+                                         >
+                                             Creative Recipe #{i + 1}
+                                         </button>
+                                     ))}
+                                 </div>
+                             )}
 
-                            <p className="text-center text-[9px] text-slate-400 mt-6 tracking-widest opacity-40">Studio AI v4.0 · Verify critical outputs.</p>
+                             <p className="text-center text-[9px] text-slate-400 mt-4 md:mt-6 tracking-widest opacity-40">Studio AI v4.0 · Verify critical outputs.</p>
                         </div>
                         </div>{/* end max-w-2xl wrapper */}
                     </div>
