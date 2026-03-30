@@ -258,9 +258,9 @@ const AIStudio = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden bg-white dark:bg-background">
+        <div className="flex flex-col h-[100dvh] overflow-hidden bg-white dark:bg-background">
             {/* Mobile Header */}
-            <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-border bg-white dark:bg-card z-40">
+            <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-border bg-white dark:bg-card sticky top-0 z-[100]">
                 <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(true)} className="rounded-xl">
                     <Menu className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                 </Button>
@@ -432,14 +432,14 @@ const AIStudio = () => {
                     </nav>
 
                     {/* Centered Area - uses absolute inset to stay centered in main regardless of sidebar state */}
-                    <div className="flex-1 flex flex-col items-center justify-center p-6 relative z-10">
-                        <div className="w-full max-w-2xl">
+                    <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-6 relative z-10 overflow-y-auto custom-scrollbar">
+                        <div className="w-full max-w-2xl py-8">
                         {!generatedImage && !isGenerating ? (
-                            <div className="text-center mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                <h1 className="text-2xl md:text-3xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight mb-2">
+                            <div className="text-center mb-6 md:mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                <h1 className="text-xl md:text-3xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight mb-2">
                                     What can I <span className="text-primary">design?</span>
                                 </h1>
-                                <p className="text-xs text-slate-400 font-medium tracking-widest uppercase">Studio AI · {selectedRole} Mode</p>
+                                <p className="text-[10px] text-slate-400 font-medium tracking-widest uppercase">Studio AI · {selectedRole} Mode</p>
                             </div>
                         ) : null}
 
@@ -480,7 +480,7 @@ const AIStudio = () => {
                                         value={promptText}
                                         onChange={(e) => setPromptText(e.target.value)}
                                         placeholder={`Ask ${selectedRole} anything...`}
-                                        className="w-full min-h-[120px] bg-transparent resize-none p-5 text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 placeholder:text-sm"
+                                        className="w-full min-h-[80px] md:min-h-[120px] bg-transparent resize-none p-4 md:p-5 text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 placeholder:text-sm"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && !e.shiftKey) {
                                                 e.preventDefault();
