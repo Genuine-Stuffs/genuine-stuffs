@@ -82,9 +82,8 @@ serve(async (req: Request) => {
 
         console.log('Calling OpenRouter text model...');
 
-        // Use a reliable text model from OpenRouter to create a detailed architectural analysis
-        // OpenRouter chat/completions works well with many text models
-        const textModel = "google/gemma-3-12b-it:free";
+        // Confirmed working free model on OpenRouter (meta-llama)
+        const textModel = "meta-llama/llama-3.2-3b-instruct:free";
 
         const systemPrompt = `You are an expert architectural design AI for Genuine Stuffs AI Studio. 
 When given a design brief or concept, provide a structured, detailed design analysis with:
