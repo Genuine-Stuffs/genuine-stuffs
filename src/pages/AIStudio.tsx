@@ -276,23 +276,9 @@ const AIStudio = () => {
         <div className="flex flex-col h-screen md:h-[100dvh] md:relative fixed inset-0 overflow-hidden bg-white dark:bg-background z-10">
             {/* Mobile Header (Fixed) */}
             <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-border bg-white dark:bg-[#0f1115] fixed top-0 left-0 right-0 z-40">
-                <div className="flex items-center gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(true)} className="rounded-xl">
-                        <Menu className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-                    </Button>
-                    <div className="flex items-center gap-1 border-l border-slate-200 dark:border-white/10 pl-2">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => { setPromptText(""); setGeneratedImage(null); toast.info("New project session initiated."); }}
-                            className="rounded-xl h-9 w-9 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors"
-                            title="New Project"
-                        >
-                            <Plus className="w-4 h-4" />
-                        </Button>
-                        <ModeToggle />
-                    </div>
-                </div>
+                <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(true)} className="rounded-xl -ml-2">
+                    <Menu className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                </Button>
 
                 <div className="flex items-center gap-2">
                      <Select value={selectedRole} onValueChange={setSelectedRole}>
@@ -344,15 +330,29 @@ const AIStudio = () => {
                         {isMobile ? (
                             <>
                                 {/* Mobile Sidebar — mirrors Desktop layout exactly */}
-                                <div className="mb-6 flex items-center">
+                                <div className="mb-6 flex items-center justify-between gap-1">
                                     <Button variant="ghost" asChild className="flex-1 justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-[11px] uppercase tracking-widest hover:text-slate-900 dark:hover:text-white" onClick={() => setMobileSidebarOpen(false)}>
                                         <Link to="/">
                                             <Home className="w-4 h-4 text-slate-400" /> Home
                                         </Link>
                                     </Button>
-                                    <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(false)} className="rounded-xl h-8 w-8 text-slate-400">
-                                        <X className="w-4 h-4" />
-                                    </Button>
+                                    <div className="flex items-center gap-1">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => { setPromptText(""); setGeneratedImage(null); toast.info("New project session initiated."); setMobileSidebarOpen(false); }}
+                                            className="rounded-xl h-9 w-9 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors shrink-0"
+                                            title="New Project"
+                                        >
+                                            <Plus className="w-4 h-4 shrink-0" />
+                                        </Button>
+                                        <div className="shrink-0 flex items-center">
+                                            <ModeToggle />
+                                        </div>
+                                        <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(false)} className="rounded-xl h-9 w-9 text-slate-400 shrink-0 ml-0.5">
+                                            <X className="w-4 h-4 shrink-0" />
+                                        </Button>
+                                    </div>
                                 </div>
 
                                 <div className="mb-6">
