@@ -17,22 +17,44 @@ serve(async (req: Request) => {
     }
 
     try {
+        // Use standard Supabase Edge Function environment variables
+        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+        const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+        
+        console.log('Function started. Supabase URL check:', !!supabaseUrl);
+
         const supabaseClient = createClient(
-            Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+            supabaseUrl,
+            supabaseAnonKey,
             { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
         )
 
         // Get the user from the JWT
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+        
         if (authError || !user) {
-            throw new Error('Unauthorized')
+            console.error('Auth User Fetch Error:', authError);
+            return new Response(JSON.stringify({ 
+                error: 'Unauthorized: Session missing',
+                auth_error: authError?.message 
+            }), {
+                status: 401,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
         }
+
+        console.log('User authenticated as:', user.id);
 
         // Get the request body
         const { prompt, type = 'image', model } = await req.json()
+        if (!prompt) {
+            return new Response(JSON.stringify({ error: 'Prompt is required' }), {
+                status: 400,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
+        }
 
-        // Check credits
+        // Fetch user profile for credits
         console.log('Fetching profile for user:', user.id)
         const { data: profile, error: profileError } = await supabaseClient
             .from('professionals')
@@ -41,8 +63,11 @@ serve(async (req: Request) => {
             .single()
 
         if (profileError || !profile) {
-            console.error('Profile error:', profileError)
-            throw new Error(`Profile not found: ${profileError?.message || 'Unknown error'}`)
+            console.error('Profile Fetch Error:', profileError)
+            return new Response(JSON.stringify({ error: `Professional Profile not found` }), {
+                status: 404,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
         }
 
         const cost = type === 'image' ? 2 : 1
@@ -55,74 +80,55 @@ serve(async (req: Request) => {
             })
         }
 
-        // Call OpenRouter
+        // OpenRouter Key validation
         const openRouterKey = Deno.env.get('OPENROUTER_API_KEY')
         if (!openRouterKey) {
             console.error('OPENROUTER_API_KEY is missing')
-            throw new Error('Internal Configuration Error: API key missing')
+            throw new Error('Server Config Error: API key missing')
         }
 
-        console.log(`Calling OpenRouter for ${type} with prompt: ${prompt.substring(0, 50)}...`)
+        console.log(`Calling OpenRouter for ${type}...`)
         
-        let result;
-        if (type === 'image') {
-            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${openRouterKey}`,
-                    "HTTP-Referer": "https://material-insight-pros.netlify.app/",
-                    "X-Title": "Genuine Stuffs AI Studio",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    "model": model || "openai/dall-e-3",
-                    "messages": [
-                        { "role": "user", "content": prompt }
-                    ]
-                })
-            });
+        // Define model based on type
+        const apiModel = type === 'image' 
+                        ? (model || "openai/dall-e-3") 
+                        : (model || "anthropic/claude-3.5-sonnet")
 
-            if (!response.ok) {
-                const errorData = await response.text();
-                console.error('OpenRouter Image Error:', errorData);
-                throw new Error(`AI Generation failed: ${response.statusText}`);
-            }
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${openRouterKey}`,
+                "HTTP-Referer": "https://material-insight-pros.netlify.app/",
+                "X-Title": "Genuine Stuffs AI Studio",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                "model": apiModel,
+                "messages": [
+                    { 
+                        "role": "system", 
+                        "content": type === 'image' 
+                                    ? "Produce a detailed prompt for DALL-E." 
+                                    : "You are an expert architectural assistant."
+                    },
+                    { "role": "user", "content": prompt }
+                ]
+            })
+        });
 
-            const data = await response.json();
-            console.log('OpenRouter Response Data:', JSON.stringify(data).substring(0, 200))
-            result = data.choices[0]?.message?.content || data.error?.message;
-            
-            if (!result) {
-                console.error('No result in OpenRouter response:', data);
-                throw new Error('AI returned an empty response');
-            }
-        } else {
-            // Text generation
-            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${openRouterKey}`,
-                    "HTTP-Referer": "https://material-insight-pros.netlify.app/",
-                    "X-Title": "Genuine Stuffs AI Studio",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    "model": model || "anthropic/claude-3.5-sonnet",
-                    "messages": [
-                        { "role": "system", "content": "You are an expert architectural and construction AI assistant for Genuine Stuffs." },
-                        { "role": "user", "content": prompt }
-                    ]
-                })
-            });
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('OpenRouter Error:', errorText);
+            throw new Error(`AI Provider reported error: ${response.statusText}`);
+        }
 
-            if (!response.ok) {
-                const errorData = await response.text();
-                console.error('OpenRouter Text Error:', errorData);
-                throw new Error(`AI Text generation failed: ${response.statusText}`);
-            }
+        const openRouterData = await response.json();
+        console.log('OpenRouter Response:', JSON.stringify(openRouterData).substring(0, 100));
 
-            const data = await response.json();
-            result = data.choices[0]?.message?.content;
+        const result = openRouterData.choices?.[0]?.message?.content;
+        if (!result) {
+            console.error('Empty response from OpenRouter:', openRouterData);
+            throw new Error('AI returned an empty response');
         }
 
         // Deduct credits on success
@@ -141,7 +147,7 @@ serve(async (req: Request) => {
         })
 
     } catch (error: any) {
-        console.error('Function catch error:', error)
+        console.error('Function caught error:', error)
         return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
