@@ -415,7 +415,7 @@ const AIStudio = () => {
                                         <Button
                                             key={chat.id}
                                             variant="ghost"
-                                            className="w-full justify-start px-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-8 transition-all text-[10px] font-medium text-slate-600 dark:text-slate-400 group overflow-hidden"
+                                            className="w-full justify-start px-3 rounded-xl h-8 transition-none text-[10px] font-black text-slate-900 dark:text-slate-200 group overflow-hidden hover:bg-transparent active:scale-95"
                                             onClick={() => {
                                                 setPromptText(chat.title);
                                                 setMobileSidebarOpen(false);
