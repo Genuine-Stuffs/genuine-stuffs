@@ -255,7 +255,12 @@ const AIStudio = () => {
                 body: { prompt: promptText, type: 'image', model: 'openai/dall-e-3' }
             });
 
-            if (error) throw error;
+            if (error) {
+                // FunctionsHttpError contains the response details in .context
+                const errorBody = await error.context?.json().catch(() => ({}));
+                throw new Error(errorBody?.error || error.message);
+            }
+
             if (data?.error) throw new Error(data.error);
 
             setGeneratedImage(data.result);
