@@ -26,7 +26,10 @@ import {
     DraftingCompass,
     Trees,
     Compass,
-    Building2
+    Building2,
+    Home,
+    ShoppingBag,
+    ShieldCheck
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { Link, useSearchParams } from "react-router-dom";
@@ -63,6 +66,16 @@ const AIStudio = () => {
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
     const [promptText, setPromptText] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(true);
+    const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+
+    // Mock chat history
+    const chatHistory = [
+        { id: '1', title: 'Two Bedroom Duplex Building', date: 'Yesterday' },
+        { id: '2', title: 'Maximizing AI Material Selection', date: 'Yesterday' },
+        { id: '3', title: 'Sustainable Facade Iterations', date: '2025-12' },
+        { id: '4', title: 'Urban Museum Massing Concept', date: '2025-10' },
+        { id: '5', title: 'Industrial MEP Coordination', date: '2025-10' },
+    ];
 
     useEffect(() => {
         const roleParam = searchParams.get('role');
@@ -245,28 +258,55 @@ const AIStudio = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden">
-            <Navbar />
-            <div className="flex flex-1 bg-white dark:bg-background transition-colors overflow-hidden selection:bg-primary/30">
-                {/* Sidebar (Minimalist ChatGPT style) */}
+        <div className="flex flex-col h-screen overflow-hidden bg-white dark:bg-background">
+            {/* Mobile Header */}
+            <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-border bg-white dark:bg-card z-40">
+                <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(true)} className="rounded-xl">
+                    <Menu className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                </Button>
+                
+                {/* Center empty as per standard (skipping 'Get App' button) */}
+                <div />
+
+                <Button variant="ghost" size="icon" onClick={() => { setPromptText(""); setGeneratedImage(null); toast.info("New project initiated."); }} className="rounded-xl">
+                    <Plus className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                </Button>
+            </header>
+
+            <div className="flex flex-1 overflow-hidden relative selection:bg-primary/30">
+                {/* Mobile Backdrop */}
+                {mobileSidebarOpen && (
+                    <div 
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[55] md:hidden animate-in fade-in duration-300"
+                        onClick={() => setMobileSidebarOpen(false)}
+                    />
+                )}
+
+                {/* Sidebar (Responsive ChatGPT/DeepSeek style) */}
                 <aside
-                    className={`hidden md:flex flex-col bg-slate-50 dark:bg-card border-r border-slate-200 dark:border-border transition-all duration-300 z-50 overflow-hidden flex-shrink-0 ${sidebarOpen ? 'w-64' : 'w-0 min-w-0 border-r-0'
-                        }`}
+                    className={`fixed inset-y-0 left-0 md:relative flex flex-col bg-slate-50 dark:bg-card border-r border-slate-200 dark:border-border transition-all duration-300 z-[60] overflow-hidden flex-shrink-0 
+                        ${sidebarOpen ? 'md:w-64' : 'md:w-0 md:min-w-0 md:border-r-0'}
+                        ${mobileSidebarOpen ? 'translate-x-0 w-[280px]' : '-translate-x-full md:translate-x-0'}
+                    `}
                 >
                     <div className="px-6 py-6 flex flex-col h-full overflow-hidden">
-                        {/* Sidebar Header with Close Button */}
                         <div className="flex items-center justify-between mb-8">
-                            <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-900 dark:text-white">AI Studio</span>
-                            <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl h-8 w-8">
+                            <div className="flex items-center gap-2">
+                                <Link to="/" className="group transition-transform active:scale-95">
+                                    <Sparkles className="w-5 h-5 text-primary" />
+                                </Link>
+                                <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-900 dark:text-white">AI Studio</span>
+                            </div>
+                            <Button variant="ghost" size="icon" onClick={() => { setSidebarOpen(false); setMobileSidebarOpen(false); }} className="rounded-xl h-8 w-8">
                                 <X className="w-5 h-5 text-slate-400" />
                             </Button>
                         </div>
 
-                        {/* New Project Button (Claude Style) */}
                         <button
                             onClick={() => {
                                 setPromptText("");
                                 setGeneratedImage(null);
+                                setMobileSidebarOpen(false);
                                 toast.info("New project session initiated.");
                             }}
                             className="flex items-center gap-3 w-full p-4 mb-8 bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl shadow-sm hover:shadow-md transition-all group"
@@ -274,43 +314,76 @@ const AIStudio = () => {
                             <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform">
                                 <Plus className="w-5 h-5" />
                             </div>
-                            <span className="font-black uppercase tracking-tighter text-slate-900 dark:text-white text-xs">New Project</span>
+                            <span className="font-bold text-slate-900 dark:text-white text-xs">New Project</span>
                         </button>
 
                         <div className="flex-1 space-y-8 overflow-y-auto custom-scrollbar">
-                            <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-4">Studio Node</p>
-                                <div className="space-y-1">
-                                    <div className="flex items-center gap-3 px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-400 italic">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                                        V4.0 Live
-                                    </div>
+                            <div className="space-y-1">
+                                <div className="flex items-center gap-3 px-4 py-2 text-xs font-black uppercase tracking-widest text-slate-400 italic mb-4">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                    V4.0 Live Rendering
                                 </div>
                             </div>
 
+                            <div className="space-y-1">
+                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-bold text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                    <Link to="/">
+                                        <Home className="w-4 h-4 text-slate-400" /> Home
+                                    </Link>
+                                </Button>
+                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-bold text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                    <Link to="/marketplace">
+                                        <ShoppingBag className="w-4 h-4 text-slate-400" /> Marketplace
+                                    </Link>
+                                </Button>
+                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-bold text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                    <Link to="/pros">
+                                        <ShieldCheck className="w-4 h-4 text-slate-400" /> Hire Professionals
+                                    </Link>
+                                </Button>
+                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-bold text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                    <Link to="/pro-portal">
+                                        <LayoutDashboard className="w-4 h-4 text-slate-400" /> Dashboard
+                                    </Link>
+                                </Button>
+                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-bold text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                    <Link to="/pro/documentation">
+                                        <BookOpen className="w-4 h-4 text-slate-400" /> Resources
+                                    </Link>
+                                </Button>
+                            </div>
+
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Studio Hub</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-2">Recent Projects</p>
                                 <div className="space-y-1">
-                                    <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all">
-                                        <Link to="/pro/documentation">
-                                            <BookOpen className="w-4 h-4 text-slate-400" /> <span className="text-xs font-black uppercase tracking-widest">Documentation</span>
-                                        </Link>
-                                    </Button>
-                                    <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all">
-                                        <Link to="/marketplace">
-                                            <Building2 className="w-4 h-4 text-slate-400" /> <span className="text-xs font-black tracking-widest">Materials Hub</span>
-                                        </Link>
-                                    </Button>
-                                    <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all">
-                                        <Link to="/pro-portal">
-                                            <LayoutDashboard className="w-4 h-4 text-primary" /> <span className="text-xs font-black uppercase tracking-widest">Dashboard Feed</span>
-                                        </Link>
-                                    </Button>
+                                    {chatHistory.map((chat) => (
+                                        <Button
+                                            key={chat.id}
+                                            variant="ghost"
+                                            className="w-full justify-start px-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-9 transition-all text-[11px] font-medium text-slate-600 dark:text-slate-400 group overflow-hidden"
+                                            onClick={() => {
+                                                setPromptText(chat.title);
+                                                setMobileSidebarOpen(false);
+                                            }}
+                                        >
+                                            <span className="truncate flex-1">{chat.title}</span>
+                                        </Button>
+                                    ))}
                                 </div>
                             </div>
                         </div>
 
                         <div className="mt-auto pt-6 border-t dark:border-border">
+                            <div className="flex items-center gap-3 px-3 py-3 rounded-2xl bg-slate-200/50 dark:bg-white/5 mb-4 group cursor-pointer transition-colors hover:bg-slate-200 dark:hover:bg-white/10">
+                                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-black">
+                                    {user?.email?.charAt(0).toUpperCase() || 'U'}
+                                </div>
+                                <div className="flex-1 overflow-hidden">
+                                    <p className="text-xs font-bold text-slate-900 dark:text-white truncate">{user?.email?.split('@')[0] || 'User'}</p>
+                                    <p className="text-[9px] font-medium text-slate-400 uppercase tracking-widest leading-none">Professional</p>
+                                </div>
+                                <Settings className="w-3.5 h-3.5 text-slate-400 group-hover:text-primary transition-colors" />
+                            </div>
                             <CreditInfo
                                 credits={credits ?? 0}
                                 variant="compact"
