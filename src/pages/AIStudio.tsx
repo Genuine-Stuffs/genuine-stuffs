@@ -67,6 +67,19 @@ const AIStudio = () => {
     const [promptText, setPromptText] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(true);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const isDesktop = useMediaQuery("(min-width: 768px)");
+
+    // Static/Frozen Screen logic for DeepSeek effect
+    useEffect(() => {
+        if (!isDesktop) {
+            const elements = [document.documentElement, document.body, document.getElementById('root')];
+            elements.forEach(el => el?.classList.add('is-frozen'));
+            
+            return () => {
+                elements.forEach(el => el?.classList.remove('is-frozen'));
+            };
+        }
+    }, [isDesktop]);
 
     // Mock chat history
     const chatHistory = [

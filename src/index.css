@@ -265,3 +265,23 @@ All colors MUST be HSL.
     transition: none !important;
   }
 }
+
+/* ─── Static/Frozen Screen Utility (DeepSeek Standard) ─── */
+.is-frozen,
+html.is-frozen,
+body.is-frozen {
+  overflow: hidden !important;
+  height: 100% !important;
+  width: 100% !important;
+  position: fixed !important;
+  overscroll-behavior: none !important;
+  -webkit-overflow-scrolling: touch;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  touch-action: none !important;
+}
+
+#root.is-frozen {
+  height: 100% !important;
+  overflow: hidden !important;
+}
