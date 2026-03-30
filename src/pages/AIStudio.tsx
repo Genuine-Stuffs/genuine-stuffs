@@ -275,17 +275,53 @@ const AIStudio = () => {
     return (
         <div className="flex flex-col h-screen md:h-[100dvh] md:relative fixed inset-0 overflow-hidden bg-white dark:bg-background z-10">
             {/* Mobile Header (Fixed) */}
-            <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-border bg-white dark:bg-card fixed top-0 left-0 right-0 z-[100]">
-                <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(true)} className="rounded-xl">
-                    <Menu className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-                </Button>
-                
-                {/* Center empty as per standard (skipping 'Get App' button) */}
-                <div />
+            <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-border bg-white dark:bg-[#0f1115] fixed top-0 left-0 right-0 z-[100]">
+                <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(true)} className="rounded-xl">
+                        <Menu className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                    </Button>
+                    <div className="flex items-center gap-1 border-l border-slate-200 dark:border-white/10 pl-2">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => { setPromptText(""); setGeneratedImage(null); toast.info("New project session initiated."); }}
+                            className="rounded-xl h-9 w-9 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors"
+                            title="New Project"
+                        >
+                            <Plus className="w-4 h-4" />
+                        </Button>
+                        <ModeToggle />
+                    </div>
+                </div>
 
-                <Button variant="ghost" size="icon" onClick={() => { setPromptText(""); setGeneratedImage(null); toast.info("New project initiated."); }} className="rounded-xl">
-                    <Plus className="w-5 h-5 text-slate-600 dark:text-slate-300" />
-                </Button>
+                <div className="flex items-center gap-2">
+                     <Select value={selectedRole} onValueChange={setSelectedRole}>
+                        <SelectTrigger className="w-32 h-9 rounded-xl bg-slate-100 dark:bg-white/5 border-none font-bold text-[9px] uppercase tracking-widest shadow-sm focus:ring-primary/20 transition-all">
+                            <SelectValue placeholder="Role" />
+                        </SelectTrigger>
+                        <SelectContent 
+                            className="bg-white dark:bg-card border-slate-200 dark:border-border rounded-xl shadow-2xl z-[200]"
+                            position="popper"
+                            side="bottom"
+                            align="end"
+                            style={{ width: '200px', maxHeight: '300px' }}
+                        >
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 p-2 border-b dark:border-white/5 mb-1">Pick a Profession</p>
+                            {professionalRoles.map(r => (
+                                <SelectItem
+                                    key={r.name}
+                                    value={r.name}
+                                    className="font-bold text-[10px] uppercase tracking-widest py-3 focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer"
+                                >
+                                    <div className="flex items-center gap-3">
+                                        {r.icon}
+                                        {r.name}
+                                    </div>
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
             </header>
 
             <div className="flex flex-1 overflow-hidden relative selection:bg-primary/30 pt-14 md:pt-0">
@@ -308,30 +344,18 @@ const AIStudio = () => {
                         {isMobile ? (
                             <>
                                 {/* Mobile Sidebar — mirrors Desktop layout exactly */}
-                                <div className="mb-2 flex items-center gap-1">
+                                <div className="mb-6 flex items-center">
                                     <Button variant="ghost" asChild className="flex-1 justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-[11px] uppercase tracking-widest hover:text-slate-900 dark:hover:text-white" onClick={() => setMobileSidebarOpen(false)}>
                                         <Link to="/">
                                             <Home className="w-4 h-4 text-slate-400" /> Home
                                         </Link>
                                     </Button>
-                                    <div className="flex items-center gap-0.5">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            onClick={() => { setPromptText(""); setGeneratedImage(null); setMobileSidebarOpen(false); toast.info("New project session initiated."); }}
-                                            className="rounded-xl h-8 w-8 shrink-0 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors"
-                                            title="New Project"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                        </Button>
-                                        <ModeToggle />
-                                        <Button variant="ghost" size="icon" onClick={() => { setSidebarOpen(false); setMobileSidebarOpen(false); }} className="rounded-xl h-8 w-8 shrink-0 hover:bg-white dark:hover:bg-white/5">
-                                            <X className="w-5 h-5 text-slate-400" />
-                                        </Button>
-                                    </div>
+                                    <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(false)} className="rounded-xl h-8 w-8 text-slate-400">
+                                        <X className="w-4 h-4" />
+                                    </Button>
                                 </div>
 
-                                <div className="mb-4">
+                                <div className="mb-6">
                                     <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 px-2">Studio Hub</p>
                                     <div className="space-y-0.5">
                                         <Button asChild variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest" onClick={() => setMobileSidebarOpen(false)}>
@@ -350,40 +374,9 @@ const AIStudio = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 px-2 mb-2">
+                                <div className="flex items-center gap-2 px-2 mb-4">
                                     <Sparkles className="w-4 h-4 text-primary" />
                                     <span className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">AI Studio</span>
-                                </div>
-
-                                {/* Pick a Profession — constrained inside sidebar, no full-screen float */}
-                                <div className="mb-4 px-1">
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 px-2">Pick a Profession</p>
-                                    <Select value={selectedRole} onValueChange={(val) => { setSelectedRole(val); }}>
-                                        <SelectTrigger className="w-full h-10 rounded-xl bg-white dark:bg-background border-slate-200 dark:border-border font-bold text-[10px] uppercase tracking-widest shadow-sm focus:ring-primary/20 transition-all">
-                                            <SelectValue placeholder="Select Profession" />
-                                        </SelectTrigger>
-                                        <SelectContent
-                                            className="bg-white dark:bg-card border-slate-200 dark:border-border rounded-xl shadow-2xl z-[200]"
-                                            position="popper"
-                                            side="bottom"
-                                            align="start"
-                                            sideOffset={4}
-                                            style={{ width: '220px', maxHeight: '260px', overflowY: 'auto' }}
-                                        >
-                                            {professionalRoles.map(r => (
-                                                <SelectItem
-                                                    key={r.name}
-                                                    value={r.name}
-                                                    className="font-bold text-[10px] uppercase tracking-widest py-3 focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer"
-                                                >
-                                                    <div className="flex items-center gap-3">
-                                                        {r.icon}
-                                                        {r.name}
-                                                    </div>
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
                                 </div>
                             </>
                         ) : (
