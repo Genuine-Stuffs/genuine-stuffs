@@ -303,36 +303,36 @@ const AIStudio = () => {
                         ${mobileSidebarOpen ? 'translate-x-0 w-[280px]' : '-translate-x-full md:translate-x-0'}
                     `}
                 >
-                    <div className="px-6 py-6 flex flex-col h-full overflow-hidden">
+                    <div className="px-5 py-4 flex flex-col h-full overflow-y-auto overflow-x-hidden custom-scrollbar">
                         {isMobile ? (
                             <>
-                                <div className="mb-8">
-                                    <div className="flex items-center justify-between px-2 mb-4">
+                                <div className="mb-4">
+                                    <div className="flex items-center justify-between px-2 mb-2">
                                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Main Menu</span>
                                         <Button variant="ghost" size="icon" onClick={() => { setSidebarOpen(false); setMobileSidebarOpen(false); }} className="rounded-xl h-8 w-8">
                                             <X className="w-5 h-5 text-slate-400" />
                                         </Button>
                                     </div>
                                     <div className="space-y-1">
-                                        <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                        <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-9 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
                                             <Link to="/">
                                                 <Home className="w-4 h-4 text-slate-400" /> Home
                                             </Link>
                                         </Button>
-                                        <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                        <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-9 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
                                             <Link to="/pro-portal">
                                                 <LayoutDashboard className="w-4 h-4 text-slate-400" /> Dashboard
                                             </Link>
                                         </Button>
-                                        <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
+                                        <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-9 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
                                             <Link to="/pro/documentation">
-                                                <BookOpen className="w-4 h-4 text-slate-400" /> Resources
+                                                < BookOpen className="w-4 h-4 text-slate-400" /> Resources
                                             </Link>
                                         </Button>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 mb-6 px-2">
+                                <div className="flex items-center gap-2 mb-4 px-2">
                                     <Link to="/" className="group transition-transform active:scale-95">
                                         <Sparkles className="w-5 h-5 text-primary" />
                                     </Link>
@@ -346,7 +346,7 @@ const AIStudio = () => {
                                         setMobileSidebarOpen(false);
                                         toast.info("New project session initiated.");
                                     }}
-                                    className="flex items-center gap-3 w-full p-4 mb-8 bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl shadow-sm hover:shadow-md transition-all group"
+                                    className="flex items-center gap-3 w-full p-4 mb-6 bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl shadow-sm hover:shadow-md transition-all group"
                                 >
                                     <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-600/20 group-hover:scale-110 transition-transform">
                                         <Plus className="w-5 h-5 border-2 border-white rounded-lg" />
@@ -356,30 +356,30 @@ const AIStudio = () => {
                             </>
                         ) : (
                             <>
-                                {/* Desktop Sidebar Layout */}
-                                <div className="mb-10 flex items-center gap-2">
-                                    <Button variant="ghost" asChild className="flex-1 justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 h-12 transition-all font-black text-xs uppercase tracking-widest hover:text-slate-900 dark:hover:text-white">
+                                {/* Desktop Sidebar Layout - Condensed */}
+                                <div className="mb-2 flex items-center gap-2">
+                                    <Button variant="ghost" asChild className="flex-1 justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-[11px] uppercase tracking-widest hover:text-slate-900 dark:hover:text-white">
                                         <Link to="/">
                                             <Home className="w-4 h-4 text-slate-400" /> Home
                                         </Link>
                                     </Button>
-                                    <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl h-10 w-10 shrink-0 hover:bg-white dark:hover:bg-white/5">
+                                    <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl h-8 w-8 shrink-0 hover:bg-white dark:hover:bg-white/5">
                                         <X className="w-5 h-5 text-slate-400" />
                                     </Button>
                                 </div>
 
-                                <div className="mb-10">
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6 px-2">Studio Hub</p>
-                                    <div className="space-y-1">
-                                        <Button asChild variant="ghost" className="w-full justify-start gap-4 h-12 rounded-xl text-slate-600 dark:text-slate-300 font-black text-xs uppercase tracking-widest">
+                                <div className="mb-4">
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 px-2">Studio Hub</p>
+                                    <div className="space-y-0.5">
+                                        <Button asChild variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest">
                                             <Link to="/pro/documentation">
                                                 <BookOpen className="w-4 h-4 text-slate-400" /> Documentation
                                             </Link>
                                         </Button>
-                                        <Button variant="ghost" className="w-full justify-start gap-4 h-12 rounded-xl text-slate-600 dark:text-slate-300 font-black text-xs uppercase tracking-widest">
+                                        <Button variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest">
                                             <Building2 className="w-4 h-4 text-slate-400" /> Materials Hub
                                         </Button>
-                                        <Button asChild variant="ghost" className="w-full justify-start gap-4 h-12 rounded-xl text-slate-600 dark:text-slate-300 font-black text-xs uppercase tracking-widest">
+                                        <Button asChild variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest">
                                             <Link to="/pro-portal">
                                                 <LayoutDashboard className="w-4 h-4 text-slate-400" /> Dashboard Feed
                                             </Link>
@@ -387,9 +387,9 @@ const AIStudio = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 px-2 mb-6">
-                                    <Sparkles className="w-5 h-5 text-primary" />
-                                    <span className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">AI Studio</span>
+                                <div className="flex items-center gap-2 px-2 mb-2">
+                                    <Sparkles className="w-4 h-4 text-primary" />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">AI Studio</span>
                                 </div>
 
                                 <button
@@ -398,25 +398,25 @@ const AIStudio = () => {
                                         setGeneratedImage(null);
                                         toast.info("New project session initiated.");
                                     }}
-                                    className="flex items-center gap-4 w-full p-4 mb-10 bg-white dark:bg-card border border-slate-200 dark:border-border rounded-2xl shadow-sm hover:shadow-md transition-all group"
+                                    className="flex items-center gap-3 w-full p-3 mb-6 bg-white dark:bg-card border border-slate-200 dark:border-border rounded-xl shadow-sm hover:shadow-md transition-all group"
                                 >
-                                    <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-600/20 group-hover:scale-110 transition-transform">
-                                        <Plus className="w-5 h-5 border-2 border-white rounded-lg" />
+                                    <div className="w-8 h-8 rounded-lg bg-red-600 flex items-center justify-center text-white shadow-lg shadow-red-600/20 group-hover:scale-110 transition-transform">
+                                        <Plus className="w-4 h-4 border-2 border-white rounded-lg" />
                                     </div>
-                                    <span className="font-black text-slate-900 dark:text-white text-[11px] uppercase tracking-widest">New Project</span>
+                                    <span className="font-black text-slate-900 dark:text-white text-[10px] uppercase tracking-widest">New Project</span>
                                 </button>
                             </>
                         )}
 
-                        <div className="flex-1 space-y-8 overflow-y-auto custom-scrollbar pt-2">
+                        <div className="space-y-6 pt-2">
                             <div>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4 px-2">Recent Projects</p>
-                                <div className="space-y-1">
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 px-2">Recent Projects</p>
+                                <div className="space-y-0.5">
                                     {chatHistory.map((chat) => (
                                         <Button
                                             key={chat.id}
                                             variant="ghost"
-                                            className="w-full justify-start px-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-9 transition-all text-[11px] font-medium text-slate-600 dark:text-slate-400 group overflow-hidden"
+                                            className="w-full justify-start px-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-8 transition-all text-[10px] font-medium text-slate-600 dark:text-slate-400 group overflow-hidden"
                                             onClick={() => {
                                                 setPromptText(chat.title);
                                                 setMobileSidebarOpen(false);
