@@ -258,7 +258,7 @@ const AIStudio = () => {
     };
 
     return (
-        <div className="flex flex-col h-[100dvh] overflow-hidden bg-white dark:bg-background">
+        <div className="flex flex-col h-screen md:h-[100dvh] md:relative fixed inset-0 overflow-hidden bg-white dark:bg-background z-0">
             {/* Mobile Header (Fixed) */}
             <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-border bg-white dark:bg-card fixed top-0 left-0 right-0 z-[100]">
                 <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(true)} className="rounded-xl">
@@ -488,23 +488,23 @@ const AIStudio = () => {
                                             }
                                         }}
                                     />
-                                    <div className="flex items-center justify-between px-4 pb-3">
-                                        <div className="flex items-center gap-1">
-                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-9 w-9"><Paperclip className="w-4 h-4" /></Button>
-                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-9 w-9"><ImageIcon className="w-4 h-4" /></Button>
-                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-9 w-9"><Mic className="w-4 h-4" /></Button>
+                                        <div className="flex items-center justify-between px-3 pb-3">
+                                            <div className="flex items-center gap-0.5">
+                                                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-8 w-8"><Paperclip className="w-4 h-4" /></Button>
+                                                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-8 w-8"><ImageIcon className="w-4 h-4" /></Button>
+                                                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-8 w-8"><Mic className="w-4 h-4" /></Button>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-[8px] font-semibold tracking-widest text-slate-400 uppercase hidden sm:block">2 Credits / Sync</span>
+                                                <Button
+                                                    onClick={handleGenerate}
+                                                    disabled={isGenerating || !promptText}
+                                                    className="h-9 w-9 p-0 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                                                >
+                                                    {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                                </Button>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-4">
-                                            <span className="text-[9px] font-semibold tracking-widest text-slate-400 uppercase hidden sm:block">2 Credits / Sync</span>
-                                            <Button
-                                                onClick={handleGenerate}
-                                                disabled={isGenerating || !promptText}
-                                                className="h-10 w-10 p-0 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
-                                            >
-                                                {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                                            </Button>
-                                        </div>
-                                    </div>
                                 </div>
                             </div>
 
