@@ -39,19 +39,8 @@ const Navbar = () => {
   return (
     <nav className={`${isActive("/pros") ? "relative" : "sticky top-0"} z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-white/5 transition-colors duration-300`}>
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20 relative">
-          {/* Mobile Burger Menu (Top Left) */}
-          <div className="flex md:hidden items-center">
-            <button
-              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white transition-transform active:scale-90"
-              onClick={() => setIsOpen(!isOpen)}
-              aria-label="Toggle menu"
-            >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
-          </div>
-
-          <Link to="/" className="flex items-center group absolute left-1/2 -translate-x-1/2 md:relative md:left-0 md:translate-x-0">
+        <div className="flex items-center justify-between h-20">
+          <Link to="/" className="flex items-center group">
             <Logo />
           </Link>
 
@@ -140,16 +129,16 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* Mobile Right Actions (Top Right) */}
+          {/* Mobile Menu Actions */}
           <div className="flex md:hidden items-center gap-2">
             <ModeToggle />
-            {role !== 'guest' && (
-              <Button asChild size="icon" variant="ghost" className="rounded-xl h-10 w-10 bg-primary/10 text-primary hover:bg-primary/20">
-                <Link to="/pro/ai-studio">
-                  <Plus className="h-5 w-5" />
-                </Link>
-              </Button>
-            )}
+            <button
+              className="p-2 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white"
+              onClick={() => setIsOpen(!isOpen)}
+              aria-label="Toggle menu"
+            >
+              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
           </div>
         </div>
 
