@@ -32,13 +32,21 @@ serve(async (req: Request) => {
             { global: { headers: { Authorization: authHeader || '' } } }
         )
 
-        // Get the user from the JWT
-        const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
+        // Parse token and get explicitly
+        const token = authHeader ? authHeader.replace('Bearer ', '') : null;
+        if (!token) {
+            return new Response(JSON.stringify({ error: `Auth Check Failed. No Bearer token provided in header.` }), {
+                status: 401,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
+        }
+
+        const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
         
         if (authError || !user) {
             console.error('Auth User Fetch Error:', authError);
             return new Response(JSON.stringify({ 
-                error: `Auth Check Failed. Header Sent: ${!!authHeader}, Detail: ${authError?.message || 'User obj missing'}`,
+                error: `Auth Check Failed. Detail: ${authError?.message || 'User obj missing'}, Token sent: ${token.substring(0, 10)}...`,
                 auth_error: authError?.message 
             }), {
                 status: 401,
