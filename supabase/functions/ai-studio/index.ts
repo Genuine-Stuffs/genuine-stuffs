@@ -23,10 +23,13 @@ serve(async (req: Request) => {
         
         console.log('Function started. Supabase URL check:', !!supabaseUrl);
 
+        const authHeader = req.headers.get('Authorization');
+        console.log('Authorization header present:', !!authHeader);
+
         const supabaseClient = createClient(
             supabaseUrl,
             supabaseAnonKey,
-            { global: { headers: { Authorization: req.headers.get('Authorization')! } } }
+            { global: { headers: { Authorization: authHeader || '' } } }
         )
 
         // Get the user from the JWT
@@ -35,7 +38,7 @@ serve(async (req: Request) => {
         if (authError || !user) {
             console.error('Auth User Fetch Error:', authError);
             return new Response(JSON.stringify({ 
-                error: 'Unauthorized: Session missing',
+                error: `Auth Check Failed. Header Sent: ${!!authHeader}, Detail: ${authError?.message || 'User obj missing'}`,
                 auth_error: authError?.message 
             }), {
                 status: 401,
