@@ -412,17 +412,16 @@ const AIStudio = () => {
                                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 px-2">Recent Projects</p>
                                 <div className="space-y-0.5">
                                     {chatHistory.map((chat) => (
-                                        <Button
+                                        <button
                                             key={chat.id}
-                                            variant="ghost"
-                                            className="w-full justify-start px-3 rounded-xl h-8 transition-none text-[10px] font-black text-slate-900 dark:text-slate-200 group overflow-hidden hover:bg-transparent active:scale-95"
                                             onClick={() => {
                                                 setPromptText(chat.title);
                                                 setMobileSidebarOpen(false);
                                             }}
+                                            className="w-full text-left px-3 h-8 flex items-center rounded-lg transition-none text-[11px] font-semibold text-slate-800 dark:text-slate-200 hover:bg-transparent hover:text-current cursor-pointer active:scale-[0.98] group overflow-hidden"
                                         >
                                             <span className="truncate flex-1">{chat.title}</span>
-                                        </Button>
+                                        </button>
                                     ))}
                                 </div>
                             </div>
