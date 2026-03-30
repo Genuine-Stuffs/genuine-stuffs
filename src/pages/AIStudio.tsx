@@ -446,7 +446,7 @@ const AIStudio = () => {
                     </nav>
 
                     {/* Centered Area - uses absolute inset to stay centered in main regardless of sidebar state */}
-                    <div className={`flex-1 flex flex-col items-center justify-center p-4 md:p-6 relative z-10 transition-all ${(!generatedImage && !isGenerating) ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden custom-scrollbar'}`}>
+                    <div className={`flex-1 flex flex-col items-center justify-start md:justify-center p-4 md:p-6 pt-[12dvh] md:pt-6 relative z-10 transition-all ${(!generatedImage && !isGenerating) ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden custom-scrollbar'}`}>
                         <div className="w-full max-w-2xl py-2 md:py-8 flex flex-col">
                         {!generatedImage && !isGenerating ? (
                             <div className="text-center mb-4 md:mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
