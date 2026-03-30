@@ -259,8 +259,8 @@ const AIStudio = () => {
 
     return (
         <div className="flex flex-col h-[100dvh] overflow-hidden bg-white dark:bg-background">
-            {/* Mobile Header */}
-            <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-border bg-white dark:bg-card sticky top-0 z-[100]">
+            {/* Mobile Header (Fixed) */}
+            <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-border bg-white dark:bg-card fixed top-0 left-0 right-0 z-[100]">
                 <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(true)} className="rounded-xl">
                     <Menu className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                 </Button>
@@ -273,7 +273,7 @@ const AIStudio = () => {
                 </Button>
             </header>
 
-            <div className="flex flex-1 overflow-hidden relative selection:bg-primary/30">
+            <div className="flex flex-1 overflow-hidden relative selection:bg-primary/30 pt-14 md:pt-0">
                 {/* Mobile Backdrop */}
                 {mobileSidebarOpen && (
                     <div 
@@ -432,7 +432,7 @@ const AIStudio = () => {
                     </nav>
 
                     {/* Centered Area - uses absolute inset to stay centered in main regardless of sidebar state */}
-                    <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-6 relative z-10 overflow-y-auto overflow-x-hidden custom-scrollbar">
+                    <div className={`flex-1 flex flex-col items-center justify-center p-4 md:p-6 relative z-10 transition-all ${(!generatedImage && !isGenerating) ? 'overflow-hidden' : 'overflow-y-auto overflow-x-hidden custom-scrollbar'}`}>
                         <div className="w-full max-w-2xl py-2 md:py-8 flex flex-col">
                         {!generatedImage && !isGenerating ? (
                             <div className="text-center mb-4 md:mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
