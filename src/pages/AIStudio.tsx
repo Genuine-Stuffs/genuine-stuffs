@@ -304,16 +304,6 @@ const AIStudio = () => {
                                     </Link>
                                 </Button>
                                 <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
-                                    <Link to="/marketplace">
-                                        <ShoppingBag className="w-4 h-4 text-slate-400" /> Marketplace
-                                    </Link>
-                                </Button>
-                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
-                                    <Link to="/pros">
-                                        <ShieldCheck className="w-4 h-4 text-slate-400" /> Hire Professionals
-                                    </Link>
-                                </Button>
-                                <Button variant="ghost" asChild className="w-full justify-start gap-3 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-xs" onClick={() => setMobileSidebarOpen(false)}>
                                     <Link to="/pro-portal">
                                         <LayoutDashboard className="w-4 h-4 text-slate-400" /> Dashboard
                                     </Link>
