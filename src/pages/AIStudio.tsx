@@ -275,7 +275,7 @@ const AIStudio = () => {
     return (
         <div className="flex flex-col h-screen md:h-[100dvh] md:relative fixed inset-0 overflow-hidden bg-white dark:bg-background z-10">
             {/* Mobile Header (Fixed) */}
-            <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-border bg-white dark:bg-[#0f1115] fixed top-0 left-0 right-0 z-[100]">
+            <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-border bg-white dark:bg-[#0f1115] fixed top-0 left-0 right-0 z-40">
                 <div className="flex items-center gap-2">
                     <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(true)} className="rounded-xl">
                         <Menu className="w-5 h-5 text-slate-600 dark:text-slate-300" />
@@ -328,7 +328,7 @@ const AIStudio = () => {
                 {/* Mobile Backdrop */}
                 {mobileSidebarOpen && (
                     <div 
-                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[55] md:hidden animate-in fade-in duration-300"
+                        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 md:hidden animate-in fade-in duration-300"
                         onClick={() => setMobileSidebarOpen(false)}
                     />
                 )}
