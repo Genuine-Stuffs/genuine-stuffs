@@ -305,78 +305,138 @@ const AIStudio = () => {
                     `}
                 >
                     <div className="px-5 py-4 flex flex-col h-full overflow-y-auto overflow-x-hidden custom-scrollbar">
-                        {/* Unified Sidebar Header Layout */}
-                        <div className="mb-2 flex items-center gap-1">
-                            <Button variant="ghost" asChild className="flex-1 justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-[11px] uppercase tracking-widest hover:text-slate-900 dark:hover:text-white">
-                                <Link to="/" onClick={() => setMobileSidebarOpen(false)}>
-                                    <Home className="w-4 h-4 text-slate-400" /> Home
-                                </Link>
-                            </Button>
-                            
-                            <div className="flex items-center gap-0.5">
-                                {/* Profession Picker Dropdown - Replaces New Project Button */}
-                                <Select value={selectedRole} onValueChange={(val) => { setSelectedRole(val); setMobileSidebarOpen(false); }}>
-                                    <SelectTrigger className="h-8 w-8 p-0 border-none bg-transparent hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors rounded-xl flex items-center justify-center focus:ring-0 focus:ring-offset-0 shadow-none outline-none group data-[state=open]:bg-red-50 dark:data-[state=open]:bg-red-500/10">
-                                        <div className="hidden">Pick a Profession</div>
-                                        <div className="flex items-center justify-center transition-transform group-active:scale-90">
-                                            {professionalRoles.find(r => r.name === selectedRole)?.icon}
-                                        </div>
-                                    </SelectTrigger>
-                                    <SelectContent position="popper" sideOffset={8} className="w-56 bg-white dark:bg-slate-900 border-slate-200 dark:border-border rounded-xl shadow-2xl z-[70] p-1">
-                                        <div className="px-3 py-2 mb-1 border-b dark:border-border/50">
-                                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Pick a Profession</p>
-                                        </div>
-                                        {professionalRoles.map((role) => (
-                                            <SelectItem 
-                                                key={role.name} 
-                                                value={role.name}
-                                                className="rounded-lg mb-0.5 last:mb-0 focus:bg-slate-100 dark:focus:bg-white/5 cursor-pointer py-2.5 transition-colors"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="opacity-80 scale-90">{role.icon}</div>
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-200">{role.name}</span>
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
+                        {isMobile ? (
+                            <>
+                                {/* Mobile Sidebar — mirrors Desktop layout exactly */}
+                                <div className="mb-2 flex items-center gap-1">
+                                    <Button variant="ghost" asChild className="flex-1 justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-[11px] uppercase tracking-widest hover:text-slate-900 dark:hover:text-white" onClick={() => setMobileSidebarOpen(false)}>
+                                        <Link to="/">
+                                            <Home className="w-4 h-4 text-slate-400" /> Home
+                                        </Link>
+                                    </Button>
+                                    <div className="flex items-center gap-0.5">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            onClick={() => { setPromptText(""); setGeneratedImage(null); setMobileSidebarOpen(false); toast.info("New project session initiated."); }}
+                                            className="rounded-xl h-8 w-8 shrink-0 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors"
+                                            title="New Project"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </Button>
+                                        <ModeToggle />
+                                        <Button variant="ghost" size="icon" onClick={() => { setSidebarOpen(false); setMobileSidebarOpen(false); }} className="rounded-xl h-8 w-8 shrink-0 hover:bg-white dark:hover:bg-white/5">
+                                            <X className="w-5 h-5 text-slate-400" />
+                                        </Button>
+                                    </div>
+                                </div>
 
-                                <ModeToggle />
-                                
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={() => { setSidebarOpen(false); setMobileSidebarOpen(false); }} 
-                                    className="rounded-xl h-8 w-8 shrink-0 hover:bg-white dark:hover:bg-white/5"
-                                >
-                                    <X className="w-5 h-5 text-slate-400" />
-                                </Button>
-                            </div>
-                        </div>
+                                <div className="mb-4">
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 px-2">Studio Hub</p>
+                                    <div className="space-y-0.5">
+                                        <Button asChild variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest" onClick={() => setMobileSidebarOpen(false)}>
+                                            <Link to="/pro/documentation">
+                                                <BookOpen className="w-4 h-4 text-slate-400" /> Documentation
+                                            </Link>
+                                        </Button>
+                                        <Button variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest">
+                                            <Building2 className="w-4 h-4 text-slate-400" /> Materials Hub
+                                        </Button>
+                                        <Button asChild variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest" onClick={() => setMobileSidebarOpen(false)}>
+                                            <Link to="/pro-portal">
+                                                <LayoutDashboard className="w-4 h-4 text-slate-400" /> Dashboard Feed
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                </div>
 
-                        <div className="mb-4">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 px-2 mt-2">Studio Hub</p>
-                            <div className="space-y-0.5">
-                                <Button asChild variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest" onClick={() => setMobileSidebarOpen(false)}>
-                                    <Link to="/pro/documentation">
-                                        <BookOpen className="w-4 h-4 text-slate-400" /> Documentation
-                                    </Link>
-                                </Button>
-                                <Button variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest" onClick={() => setMobileSidebarOpen(false)}>
-                                    <Building2 className="w-4 h-4 text-slate-400" /> Materials Hub
-                                </Button>
-                                <Button asChild variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest" onClick={() => setMobileSidebarOpen(false)}>
-                                    <Link to="/pro-portal">
-                                        <LayoutDashboard className="w-4 h-4 text-slate-400" /> Dashboard Feed
-                                    </Link>
-                                </Button>
-                            </div>
-                        </div>
+                                <div className="flex items-center gap-2 px-2 mb-2">
+                                    <Sparkles className="w-4 h-4 text-primary" />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">AI Studio</span>
+                                </div>
 
-                        <div className="flex items-center gap-2 px-2 mb-2">
-                            <Sparkles className="w-4 h-4 text-primary" />
-                            <span className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">AI Studio</span>
-                        </div>
+                                {/* Pick a Profession — constrained inside sidebar, no full-screen float */}
+                                <div className="mb-4 px-1">
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 px-2">Pick a Profession</p>
+                                    <Select value={selectedRole} onValueChange={(val) => { setSelectedRole(val); }}>
+                                        <SelectTrigger className="w-full h-10 rounded-xl bg-white dark:bg-background border-slate-200 dark:border-border font-bold text-[10px] uppercase tracking-widest shadow-sm focus:ring-primary/20 transition-all">
+                                            <SelectValue placeholder="Select Profession" />
+                                        </SelectTrigger>
+                                        <SelectContent
+                                            className="bg-white dark:bg-card border-slate-200 dark:border-border rounded-xl shadow-2xl z-[200]"
+                                            position="popper"
+                                            side="bottom"
+                                            align="start"
+                                            sideOffset={4}
+                                            style={{ width: '220px', maxHeight: '260px', overflowY: 'auto' }}
+                                        >
+                                            {professionalRoles.map(r => (
+                                                <SelectItem
+                                                    key={r.name}
+                                                    value={r.name}
+                                                    className="font-bold text-[10px] uppercase tracking-widest py-3 focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer"
+                                                >
+                                                    <div className="flex items-center gap-3">
+                                                        {r.icon}
+                                                        {r.name}
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                {/* Desktop Sidebar Layout - Condensed */}
+                                <div className="mb-2 flex items-center gap-1">
+                                    <Button variant="ghost" asChild className="flex-1 justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-[11px] uppercase tracking-widest hover:text-slate-900 dark:hover:text-white">
+                                        <Link to="/">
+                                            <Home className="w-4 h-4 text-slate-400" /> Home
+                                        </Link>
+                                    </Button>
+                                    <div className="flex items-center gap-0.5">
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            onClick={() => { setPromptText(""); setGeneratedImage(null); toast.info("New project session initiated."); }} 
+                                            className="rounded-xl h-8 w-8 shrink-0 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors"
+                                            title="New Project"
+                                        >
+                                            <Plus className="w-4 h-4" />
+                                        </Button>
+                                        <ModeToggle />
+                                        <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl h-8 w-8 shrink-0 hover:bg-white dark:hover:bg-white/5">
+                                            <X className="w-5 h-5 text-slate-400" />
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="mb-4">
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 px-2">Studio Hub</p>
+                                    <div className="space-y-0.5">
+                                        <Button asChild variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest">
+                                            <Link to="/pro/documentation">
+                                                <BookOpen className="w-4 h-4 text-slate-400" /> Documentation
+                                            </Link>
+                                        </Button>
+                                        <Button variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest">
+                                            <Building2 className="w-4 h-4 text-slate-400" /> Materials Hub
+                                        </Button>
+                                        <Button asChild variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest">
+                                            <Link to="/pro-portal">
+                                                <LayoutDashboard className="w-4 h-4 text-slate-400" /> Dashboard Feed
+                                            </Link>
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 px-2 mb-2">
+                                    <Sparkles className="w-4 h-4 text-primary" />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">AI Studio</span>
+                                </div>
+                            </>
+                        )}
 
                         <div className="space-y-6 pt-2">
                             <div>
