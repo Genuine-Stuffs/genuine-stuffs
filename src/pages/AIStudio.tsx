@@ -357,11 +357,14 @@ const AIStudio = () => {
                         ) : (
                             <>
                                 {/* Desktop Sidebar Layout */}
-                                <div className="mb-10">
-                                    <Button variant="ghost" asChild className="w-full justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 h-12 transition-all font-black text-xs uppercase tracking-widest">
+                                <div className="mb-10 flex items-center gap-2">
+                                    <Button variant="ghost" asChild className="flex-1 justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 h-12 transition-all font-black text-xs uppercase tracking-widest hover:text-slate-900 dark:hover:text-white">
                                         <Link to="/">
                                             <Home className="w-4 h-4 text-slate-400" /> Home
                                         </Link>
+                                    </Button>
+                                    <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl h-10 w-10 shrink-0 hover:bg-white dark:hover:bg-white/5">
+                                        <X className="w-5 h-5 text-slate-400" />
                                     </Button>
                                 </div>
 
@@ -384,14 +387,9 @@ const AIStudio = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex items-center justify-between px-2 mb-6">
-                                    <div className="flex items-center gap-2">
-                                        <Sparkles className="w-5 h-5 text-primary" />
-                                        <span className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">AI Studio</span>
-                                    </div>
-                                    <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl h-8 w-8">
-                                        <X className="w-5 h-5 text-slate-400" />
-                                    </Button>
+                                <div className="flex items-center gap-2 px-2 mb-6">
+                                    <Sparkles className="w-5 h-5 text-primary" />
+                                    <span className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">AI Studio</span>
                                 </div>
 
                                 <button
