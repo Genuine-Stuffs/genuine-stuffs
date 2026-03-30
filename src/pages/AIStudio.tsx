@@ -252,24 +252,23 @@ const AIStudio = () => {
         setGeneratedImage(null);
         try {
             const { data, error } = await supabase.functions.invoke('ai-studio', {
-                body: { prompt: promptText, type: 'image', model: 'openai/dall-e-3' }
+                body: { prompt: promptText, type: 'text' }
             });
 
             if (error) {
-                // FunctionsHttpError contains the response details in .context
                 const errorBody = await error.context?.json().catch(() => ({}));
                 throw new Error(errorBody?.error || error.message);
             }
 
             if (data?.error) throw new Error(data.error);
 
+            // Backend handles credit deduction; reflect it locally
+            setCredits(prev => (prev !== null ? prev - 2 : prev));
+
+            // Store text result for display
             setGeneratedImage(data.result);
-            const nextCredits = credits - 2;
-            setCredits(nextCredits);
 
-            await supabase.from('professionals').update({ credits: nextCredits }).eq('id', user.id);
-
-            toast.success("Design Vision Rendered!");
+            toast.success("Design Analysis Ready!");
         } catch (err: any) {
             toast.error(err.message || "Generation failed.");
         } finally {

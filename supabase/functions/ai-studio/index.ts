@@ -11,53 +11,40 @@ const corsHeaders = {
 }
 
 serve(async (req: Request) => {
-    // Handle CORS preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
     }
 
     try {
-        // Use standard Supabase Edge Function environment variables
         const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
         const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
-        
-        console.log('Function started. Supabase URL check:', !!supabaseUrl);
 
         const authHeader = req.headers.get('Authorization');
-        console.log('Authorization header present:', !!authHeader);
-
-        const supabaseClient = createClient(
-            supabaseUrl,
-            supabaseAnonKey,
-            { global: { headers: { Authorization: authHeader || '' } } }
-        )
-
-        // Parse token and get explicitly
         const token = authHeader ? authHeader.replace('Bearer ', '') : null;
+
         if (!token) {
-            return new Response(JSON.stringify({ error: `Auth Check Failed. No Bearer token provided in header.` }), {
+            return new Response(JSON.stringify({ error: 'Unauthorized: No Bearer token provided.' }), {
                 status: 401,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             })
         }
+
+        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+            global: { headers: { Authorization: authHeader || '' } }
+        })
 
         const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-        
         if (authError || !user) {
-            console.error('Auth User Fetch Error:', authError);
-            return new Response(JSON.stringify({ 
-                error: `Auth Check Failed. Detail: ${authError?.message || 'User obj missing'}, Token sent: ${token.substring(0, 10)}...`,
-                auth_error: authError?.message 
-            }), {
+            console.error('Auth error:', authError)
+            return new Response(JSON.stringify({ error: `Unauthorized: ${authError?.message || 'Invalid session'}` }), {
                 status: 401,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             })
         }
 
-        console.log('User authenticated as:', user.id);
+        console.log('Authenticated user:', user.id);
 
-        // Get the request body
-        const { prompt, type = 'image', model } = await req.json()
+        const { prompt, type = 'text' } = await req.json()
         if (!prompt) {
             return new Response(JSON.stringify({ error: 'Prompt is required' }), {
                 status: 400,
@@ -65,8 +52,7 @@ serve(async (req: Request) => {
             })
         }
 
-        // Fetch user profile for credits
-        console.log('Fetching profile for user:', user.id)
+        // Fetch user credits
         const { data: profile, error: profileError } = await supabaseClient
             .from('professionals')
             .select('credits')
@@ -74,16 +60,14 @@ serve(async (req: Request) => {
             .single()
 
         if (profileError || !profile) {
-            console.error('Profile Fetch Error:', profileError)
-            return new Response(JSON.stringify({ error: `Professional Profile not found` }), {
+            console.error('Profile error:', profileError)
+            return new Response(JSON.stringify({ error: 'Professional profile not found' }), {
                 status: 404,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             })
         }
 
-        const cost = type === 'image' ? 2 : 1
-        console.log(`Available credits: ${profile.credits}, Required: ${cost}`)
-        
+        const cost = 2;
         if (profile.credits < cost) {
             return new Response(JSON.stringify({ error: 'Insufficient credits' }), {
                 status: 402,
@@ -91,74 +75,72 @@ serve(async (req: Request) => {
             })
         }
 
-        // OpenRouter Key validation
         const openRouterKey = Deno.env.get('OPENROUTER_API_KEY')
         if (!openRouterKey) {
-            console.error('OPENROUTER_API_KEY is missing')
-            throw new Error('Server Config Error: API key missing')
+            throw new Error('Server configuration error: OpenRouter API key missing')
         }
 
-        console.log(`Calling OpenRouter for ${type}...`)
-        
-        // Define model based on type
-        const apiModel = type === 'image' 
-                        ? (model || "openai/dall-e-3") 
-                        : (model || "anthropic/claude-3.5-sonnet")
+        console.log('Calling OpenRouter text model...');
 
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        // Use a reliable text model from OpenRouter to create a detailed architectural analysis
+        // OpenRouter chat/completions works well with many text models
+        const textModel = "google/gemma-3-12b-it:free";
+
+        const systemPrompt = `You are an expert architectural design AI for Genuine Stuffs AI Studio. 
+When given a design brief or concept, provide a structured, detailed design analysis with:
+1. Design concept overview
+2. Key architectural features
+3. Material recommendations  
+4. Spatial layout suggestions
+5. Sustainability considerations
+Keep it professional, concise and actionable for a ${user.email || 'professional'}.`;
+
+        const openRouterResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${openRouterKey}`,
-                "HTTP-Referer": "https://material-insight-pros.netlify.app/",
+                "HTTP-Referer": "https://genuinestuffs.com/",
                 "X-Title": "Genuine Stuffs AI Studio",
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                "model": apiModel,
+                "model": textModel,
                 "messages": [
-                    { 
-                        "role": "system", 
-                        "content": type === 'image' 
-                                    ? "Produce a detailed prompt for DALL-E." 
-                                    : "You are an expert architectural assistant."
-                    },
+                    { "role": "system", "content": systemPrompt },
                     { "role": "user", "content": prompt }
-                ]
+                ],
+                "max_tokens": 800
             })
         });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('OpenRouter Error:', errorText);
-            throw new Error(`AI Provider reported error: ${response.statusText}`);
+        if (!openRouterResponse.ok) {
+            const errorBody = await openRouterResponse.text();
+            console.error('OpenRouter error body:', errorBody);
+            throw new Error(`AI Provider error: ${openRouterResponse.status} ${openRouterResponse.statusText}`);
         }
 
-        const openRouterData = await response.json();
-        console.log('OpenRouter Response:', JSON.stringify(openRouterData).substring(0, 100));
-
+        const openRouterData = await openRouterResponse.json();
         const result = openRouterData.choices?.[0]?.message?.content;
+
         if (!result) {
-            console.error('Empty response from OpenRouter:', openRouterData);
-            throw new Error('AI returned an empty response');
+            console.error('Empty OpenRouter response:', JSON.stringify(openRouterData));
+            throw new Error('AI returned empty response. Please try again.');
         }
 
-        // Deduct credits on success
-        console.log('Deducting credits...')
-        const { error: updateError } = await supabaseClient
+        // Deduct credits
+        await supabaseClient
             .from('professionals')
             .update({ credits: profile.credits - cost })
             .eq('id', user.id)
 
-        if (updateError) {
-            console.error('Failed to deduct credits:', updateError)
-        }
+        console.log('Successfully generated response, credits deducted.');
 
-        return new Response(JSON.stringify({ result }), {
+        return new Response(JSON.stringify({ result, type: 'text' }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
 
     } catch (error: any) {
-        console.error('Function caught error:', error)
+        console.error('Function error:', error)
         return new Response(JSON.stringify({ error: error.message }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
