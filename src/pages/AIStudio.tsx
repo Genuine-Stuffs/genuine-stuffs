@@ -440,14 +440,7 @@ const AIStudio = () => {
                                 <Settings className="w-3.5 h-3.5 text-slate-400 group-hover:text-primary transition-colors" />
                             </div>
                             
-                            {isPro ? (
-                                <CreditInfo 
-                                    credits={credits ?? 0}
-                                    variant="compact"
-                                    isPro={true}
-                                    onRefill={() => setShowRefillModal(true)}
-                                />
-                            ) : (
+                            {!isPro && (
                                 <Button className="w-full rounded-xl bg-red-600 text-white hover:bg-red-700 h-10 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-red-600/20">
                                     Upgrade to Pro
                                 </Button>
