@@ -427,24 +427,13 @@ const AIStudio = () => {
                             </div>
                         </div>
 
-                        <div className="mt-auto pt-4 border-t dark:border-border">
-                            <div className="flex items-center gap-3 px-3 py-2 rounded-xl bg-slate-200/50 dark:bg-white/5 mb-3 group cursor-pointer transition-colors hover:bg-slate-200 dark:hover:bg-white/10">
-                                <div className="w-7 h-7 rounded-full bg-primary flex items-center justify-center text-white text-[10px] font-black">
-                                    {user?.email?.charAt(0).toUpperCase() || 'U'}
-                                </div>
-                                <div className="flex-1 overflow-hidden">
-                                    <p className="text-[11px] font-bold text-slate-900 dark:text-white truncate">{user?.email?.split('@')[0] || 'User'}</p>
-                                    <p className="text-[8px] font-medium text-slate-400 uppercase tracking-widest leading-none">{role || 'Pro'}</p>
-                                </div>
-                                <Settings className="w-3.5 h-3.5 text-slate-400 group-hover:text-primary transition-colors" />
-                            </div>
-                            
-                            {!isPro && (
+                        {!isPro && (
+                            <div className="mt-auto pt-4 border-t dark:border-border">
                                 <Button className="w-full rounded-xl bg-red-600 text-white hover:bg-red-700 h-10 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-red-600/20">
                                     Upgrade to Pro
                                 </Button>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </aside>
 
