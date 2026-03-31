@@ -142,46 +142,48 @@ const Navbar = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation - Translucent Overlay */}
         {isOpen && (
-          <div className="md:hidden py-6 space-y-4 animate-in slide-in-from-top-4 duration-300">
-            {filteredLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-4 rounded-2xl font-black transition-all ${isActive(link.path)
-                  ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]"
-                  : "text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
-                }`}
-              >
-                {link.label}
-              </Link>
-            ))}
-            {role !== 'guest' && (
-              <Link
-                to="/settings"
-                onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-4 rounded-2xl font-black transition-all text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
-              >
-                <Settings className="w-5 h-5" /> Settings
-              </Link>
-            )}
-            <div className="pt-4 border-t">
-              <p className="px-4 pb-4 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">Authentication</p>
-              <div className="px-4">
-                {role === 'guest' ? (
-                  <div className="space-y-4">
-                    <Button asChild variant="outline" className="w-full h-14 rounded-2xl font-black border-2 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white" onClick={() => setIsOpen(false)}>
-                      <Link to="/login">Log In</Link>
-                    </Button>
-                    <Button asChild className="w-full h-14 rounded-2xl font-black bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" onClick={() => setIsOpen(false)}>
-                      <Link to="/register">Join Platform</Link>
-                    </Button>
-                  </div>
-                ) : (
-                  <Button variant="outline" className="w-full h-14 rounded-2xl font-black text-red-500 border-red-500/20 bg-red-500/5 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10" onClick={() => { logout(); setIsOpen(false); }}>Logout</Button>
-                )}
+          <div className="md:hidden fixed inset-0 top-20 z-40 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl animate-in fade-in slide-in-from-top-4 duration-500 overflow-y-auto p-4">
+            <div className="py-6 space-y-4">
+              {filteredLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  onClick={() => setIsOpen(false)}
+                  className={`flex items-center gap-3 px-4 py-4 rounded-2xl font-black transition-all ${isActive(link.path)
+                    ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]"
+                    : "text-slate-500 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5 active:scale-95"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
+              {role !== 'guest' && (
+                <Link
+                  to="/settings"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-3 px-4 py-4 rounded-2xl font-black transition-all text-slate-500 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5 active:scale-95"
+                >
+                  <Settings className="w-5 h-5" /> Settings
+                </Link>
+              )}
+              <div className="pt-4 border-t border-slate-200/20 dark:border-white/5">
+                <p className="px-4 pb-4 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">Authentication</p>
+                <div className="px-4 pb-12">
+                  {role === 'guest' ? (
+                    <div className="space-y-4">
+                      <Button asChild variant="outline" className="w-full h-14 rounded-2xl font-black border-2 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white" onClick={() => setIsOpen(false)}>
+                        <Link to="/login">Log In</Link>
+                      </Button>
+                      <Button asChild className="w-full h-14 rounded-2xl font-black bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20" onClick={() => setIsOpen(false)}>
+                        <Link to="/register">Join Platform</Link>
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button variant="outline" className="w-full h-14 rounded-2xl font-black text-red-500 border-red-500/20 bg-red-500/5 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/10" onClick={() => { logout(); setIsOpen(false); }}>Logout</Button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
