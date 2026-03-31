@@ -121,198 +121,318 @@ const ProDashboard = () => {
         fetchInteractions();
     }, [user]);
 
-    return (
-        <div className="relative min-h-screen bg-transparent overflow-hidden selection:bg-primary/30">
-            <div className="mesh-background" />
-            <div className="noise-overlay" />
+    const activeProjectMock = [
+        { name: "Steven Terry", project: "Luxury Villa Concept", price: "₦1.2M", delivery: "4 Days", progress: 90, status: "Finalizing" },
+        { name: "Audrey Jones", project: "Sustainable Facade", price: "₦450k", delivery: "12 Days", progress: 50, status: "Materials" },
+        { name: "Brian Fisher", project: "MEP Precision Kit", price: "₦800k", delivery: "2 Days", progress: 20, status: "Drafting" },
+    ];
 
+    return (
+        <div className="relative min-h-screen bg-[#F8F9FC] dark:bg-[#0B0E14] overflow-hidden selection:bg-primary/30">
+            <div className="mesh-background opacity-20" />
+            
             <Navbar />
             <VerificationBanner />
 
-            <main className="container relative mx-auto px-4 py-12 z-10">
-                {/* Bento Grid Main Layout */}
-                <div className="bento-grid lg:grid-rows-[auto_auto_auto] gap-px bg-slate-200/20 dark:bg-border p-px rounded-[3rem] overflow-hidden border border-slate-200/50 dark:border-border backdrop-blur-3xl shadow-3xl">
-
-                    {/* Header Block (Col 1-12) */}
-                    <div className="col-span-12 p-10 bg-white/70 dark:bg-card/40 backdrop-blur-md flex flex-col md:flex-row justify-between items-center border-b border-slate-200 dark:border-border">
-                        <div className="flex items-center gap-6">
-                            <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20">
-                                <Building2 className="w-8 h-8 text-primary" />
-                            </div>
-                            <div>
-                                <h1 className="text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">
-                                    Studio <span className="text-primary italic">Workspace</span>
-                                </h1>
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mt-2">Professional Environment v4.0</p>
-                            </div>
-                        </div>
-                        <div className="flex gap-4 mt-6 md:mt-0">
+            <div className="container mx-auto px-4 py-8 relative z-10">
+                {/* Welcome & Header */}
+                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                    <div>
+                        <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                            Welcome back, <span className="text-primary italic whitespace-nowrap">{user?.email?.split('@')[0] || 'Pro'}!</span> 👋
+                        </h1>
+                        <p className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-widest">Workspace Protocol v4.0 · Active Node</p>
+                    </div>
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                         <div className="relative flex-grow md:flex-grow-0">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button size="icon" variant="ghost" className="rounded-xl border border-slate-200 dark:border-white/10 hover:bg-primary/5 relative">
-                                        <Bell className="w-5 h-5" />
-                                        <span className="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full animate-pulse" />
+                                    <Button variant="outline" className="w-full md:w-auto rounded-xl gap-2 font-bold bg-white dark:bg-card border-slate-200 dark:border-white/5 h-12 shadow-sm px-5">
+                                        <Bell className="w-4 h-4 text-primary" /> Notifications
+                                        <Badge className="bg-primary/10 text-primary border-none text-[10px] ml-1">3</Badge>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-80 rounded-2xl p-4 border-slate-100 shadow-2xl">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Professional Alerts</h4>
-                                        <Badge variant="outline" className="text-[9px] font-black uppercase">3 New</Badge>
-                                    </div>
-                                    <div className="space-y-3">
-                                        {[
-                                            { title: "New Material Match", desc: "Premium Granite Slabs identified for your site plan.", time: "2m ago" },
-                                            { title: "Dashboard Update", desc: "Studio v4.0 live with neural BoQ toolkit.", time: "1h ago" },
-                                            { title: "Quote Received", desc: "Project Alpha: Logistics quote from Dangote Group.", time: "3h ago" },
-                                        ].map((n, i) => (
-                                            <div key={i} className="p-3 bg-slate-50 dark:bg-card rounded-xl border border-slate-100 dark:border-border hover:bg-white dark:hover:bg-muted transition-colors cursor-pointer group">
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{n.title}</p>
-                                                    <span className="text-[9px] text-slate-400 font-bold">{n.time}</span>
-                                                </div>
-                                                <p className="text-[10px] text-slate-500 italic line-clamp-2">{n.desc}</p>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <Button variant="ghost" className="w-full mt-4 h-9 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary/5 hover:text-primary">
-                                        View System History
-                                    </Button>
+                                <DropdownMenuContent align="end" className="w-80 rounded-2xl p-4 border-slate-200 shadow-2xl glass-card">
+                                     <div className="flex items-center justify-between mb-4">
+                                         <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Professional Alerts</h4>
+                                     </div>
+                                     <div className="space-y-3">
+                                         {[
+                                             { title: "Market Spike", desc: "Reinforcement Steel (12mm) up by 12.4% this morning.", time: "2m ago" },
+                                             { title: "Studio Update", desc: "New Neural QS component activated for your account.", time: "1h ago" },
+                                             { title: "Verification Link", desc: "Your vendor partnership request with Dangote is pending.", time: "5h ago" },
+                                         ].map((n, i) => (
+                                             <div key={i} className="p-3 bg-white/50 dark:bg-card rounded-xl border border-slate-100 dark:border-border hover:bg-white dark:hover:bg-muted transition-colors cursor-pointer group">
+                                                 <div className="flex justify-between items-start mb-1">
+                                                     <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{n.title}</p>
+                                                     <span className="text-[9px] text-slate-400 font-bold">{n.time}</span>
+                                                 </div>
+                                                 <p className="text-[10px] text-slate-500 italic line-clamp-2 leading-relaxed">{n.desc}</p>
+                                             </div>
+                                         ))}
+                                     </div>
                                 </DropdownMenuContent>
                             </DropdownMenu>
-
-                            <Button asChild className="rounded-xl bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-[10px] px-6">
-                                <Link to={`/pro/profile/${user?.id}`}>View Profile</Link>
-                            </Button>
-                        </div>
+                         </div>
+                         <Button asChild className="rounded-xl px-6 h-12 bg-primary hover:bg-primary/90 font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20">
+                            <Link to="/pro/ai-studio"><Plus className="w-4 h-4 mr-2" /> New Project</Link>
+                         </Button>
                     </div>
+                </header>
 
-                    {/* Left Column: Material Index (Col 1-4) */}
-                    <div className="col-span-12 lg:col-span-4 p-8 bg-white/60 dark:bg-background/20 backdrop-blur-sm border-r border-slate-200 dark:border-border space-y-8 animate-cascade-in">
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <TrendingUp className="w-5 h-5 text-emerald-500" />
-                                <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">Material Volatility</h3>
-                            </div>
-                            <span className="text-[10px] font-black text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">+12.4% Est.</span>
-                        </div>
-                        <div className="h-48 w-full">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={mockMarketData}>
-                                    <Line type="monotone" dataKey="price" stroke="hsl(var(--primary))" strokeWidth={3} dot={false} strokeDasharray="5 5" />
-                                    <Tooltip contentStyle={{ background: 'rgba(0,0,0,0.8)', border: 'none', borderRadius: '12px', color: '#fff' }} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center p-4 bg-white/40 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cement (Local)</span>
-                                <span className="text-xs font-black text-slate-900 dark:text-white">₦10,450/bag</span>
-                            </div>
-                            <div className="flex justify-between items-center p-4 bg-white/40 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Reinforcement (12mm)</span>
-                                <span className="text-xs font-black text-slate-900 dark:text-white">₦1.2M/Ton</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Middle Column: ROI & Rapid Actions (Col 5-8) */}
-                    <div className="col-span-12 lg:col-span-4 p-8 bg-white/50 dark:bg-card/40 backdrop-blur-sm border-r border-slate-200 dark:border-border space-y-10 animate-cascade-in" style={{ animationDelay: '100ms' }}>
-                        <div className="p-8 rounded-[2.5rem] bg-slate-900 dark:bg-slate-950/40 text-white relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-3xl -mr-16 -mt-16" />
-                            <Zap className="w-8 h-8 text-primary mb-6" />
-                            <h4 className="text-2xl font-black uppercase tracking-tighter italic">AI Cost Savings</h4>
-                            <div className="mt-4 flex items-baseline gap-2">
-                                <span className="text-4xl font-black text-primary tabular-nums">₦425k</span>
-                                <span className="text-[10px] font-bold text-white/40 uppercase">This Month</span>
-                            </div>
-                            <p className="text-[10px] text-white/60 mt-4 leading-relaxed font-medium italic">Estimated revenue preserved through neural procurement optimization.</p>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <Button asChild className="h-28 flex-col gap-3 rounded-[2rem] bg-white dark:bg-card border border-slate-200 dark:border-border text-slate-900 dark:text-white hover:bg-primary hover:text-white transition-all group">
-                                <Link to="/pro/ai-studio">
-                                    <Sparkles className="w-6 h-6 group-hover:rotate-12 transition-transform" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">New Concept</span>
-                                </Link>
-                            </Button>
-                            <Button asChild variant="outline" className="h-28 flex-col gap-3 rounded-[2rem] border-dashed border-2 bg-transparent text-slate-400 hover:border-primary hover:text-primary hover:bg-primary/5 transition-all">
-                                <Link to="/pro/ai-studio">
-                                    <Plus className="w-6 h-6" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Workspace</span>
-                                </Link>
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Right Column: History & Delivery (Col 9-12) */}
-                    <div className="col-span-12 lg:col-span-4 p-8 bg-white/40 dark:bg-card/20 backdrop-blur-sm space-y-8 animate-cascade-in" style={{ animationDelay: '200ms' }}>
-                        <div className="flex items-center gap-3">
-                            <History className="w-5 h-5 text-primary" />
-                            <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">Active Pipeline</h3>
-                        </div>
-
-                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                            {interactions.length > 0 ? (
-                                interactions.map((event, i) => (
-                                    <div key={i} className="p-5 bg-white/60 dark:bg-muted/20 rounded-3xl border border-slate-100 dark:border-white/5 hover:border-primary/30 transition-all group">
-                                        <div className="flex justify-between items-start mb-3">
-                                            <span className="text-[9px] font-black text-primary px-2 py-0.5 bg-primary/10 rounded uppercase tracking-tighter">
-                                                {event.interaction_type === 'phone_reveal' ? 'Voice Link' : 'Digital Sync'}
-                                            </span>
-                                            <span className="text-[9px] text-slate-400 font-bold">{new Date(event.created_at).toLocaleDateString()}</span>
+                <div className="grid grid-cols-12 gap-8">
+                    
+                    {/* LEFT COLUMN: NAVIGATION & PROJECTS */}
+                    <div className="col-span-12 lg:col-span-8 space-y-8">
+                        
+                        {/* Analytics Overview Cards */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                            <Card className="rounded-[2rem] border border-slate-200/50 dark:border-white/5 bg-white/70 dark:bg-card/40 backdrop-blur-xl shadow-xl overflow-hidden group">
+                                <CardContent className="p-8">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
+                                            <Sparkles className="w-6 h-6 text-primary" />
                                         </div>
-                                        <h4 className="text-xs font-black dark:text-white uppercase tracking-tight truncate">{event.materials?.name || "Material Request"}</h4>
-                                        <div className="flex items-center gap-2 mt-2 opacity-60">
-                                            <Building2 className="w-3 h-3" />
-                                            <p className="text-[9px] font-bold uppercase">{event.vendors?.company_name}</p>
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 leading-none">AI Credits</p>
+                                            <p className="text-2xl font-black text-slate-900 dark:text-white italic tabular-nums">{credits ?? '--'}</p>
                                         </div>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-12 text-slate-400 italic">
-                                    <Clock className="w-8 h-8 mx-auto mb-3 opacity-20" />
-                                    <p className="text-[10px] font-bold uppercase tracking-widest">No Active Intent Logs</p>
+                                    <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                                        <div className="bg-primary h-full transition-all duration-1000" style={{ width: credits && credits > 50 ? '80%' : '30%' }} />
+                                    </div>
+                                    <p className="text-[10px] font-bold text-slate-400 mt-4 italic uppercase tracking-wider">Estimated for 12 more syncs</p>
+                                </CardContent>
+                            </Card>
+
+                             <Card className="rounded-[2rem] border border-slate-200/50 dark:border-white/5 bg-white/70 dark:bg-card/40 backdrop-blur-xl shadow-xl overflow-hidden group">
+                                <CardContent className="p-8">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
+                                            <TrendingUp className="w-6 h-6 text-emerald-500" />
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 leading-none">Net Savings</p>
+                                            <p className="text-2xl font-black text-slate-900 dark:text-white italic tabular-nums">₦425k</p>
+                                        </div>
+                                    </div>
+                                    <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                                        <div className="bg-emerald-500 h-full w-[65%]" />
+                                    </div>
+                                    <p className="text-[10px] font-bold text-emerald-500 mt-4 italic uppercase tracking-wider">+12.4% From Last Month</p>
+                                </CardContent>
+                            </Card>
+
+                             <Card className="rounded-[2rem] border border-slate-200/50 dark:border-white/5 bg-slate-900 dark:bg-slate-950/40 backdrop-blur-xl shadow-2xl overflow-hidden group">
+                                <CardContent className="p-8">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div className="p-3 bg-primary rounded-2xl">
+                                            <Zap className="w-6 h-6 text-white" />
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-[10px] font-black uppercase text-white/40 tracking-widest mb-1 leading-none">Sync Accuracy</p>
+                                            <p className="text-2xl font-black text-white italic tabular-nums">98.2%</p>
+                                        </div>
+                                    </div>
+                                    <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                        <div className="bg-primary h-full w-[98%]" />
+                                    </div>
+                                    <p className="text-[10px] font-bold text-white/60 mt-4 italic uppercase tracking-wider">Neural BoQ Protocol Active</p>
+                                </CardContent>
+                            </Card>
+                        </div>
+
+                        {/* Active Pipeline Table */}
+                        <Card className="rounded-[3rem] border border-slate-200/50 dark:border-white/5 bg-white/70 dark:bg-card/40 backdrop-blur-3xl shadow-2xl overflow-hidden">
+                            <CardHeader className="p-10 border-b border-slate-200 dark:border-white/5">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-primary/10 rounded-2xl">
+                                            <Layers className="w-6 h-6 text-primary" />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Active <span className="text-primary italic">Project Pipeline</span></CardTitle>
+                                            <CardDescription className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">3 Production Nodes Operational</CardDescription>
+                                        </div>
+                                    </div>
+                                    <Button variant="ghost" className="rounded-xl px-6 h-10 hover:bg-primary/5 hover:text-primary font-black uppercase text-[10px] tracking-widest border border-slate-100 dark:border-white/10">
+                                        View System History <ArrowRight className="w-4 h-4 ml-2" />
+                                    </Button>
                                 </div>
-                            )}
-                        </div>
-
-                        <div className="p-6 bg-primary/5 rounded-[2rem] border border-primary/20 space-y-4">
-                            <div className="flex items-center gap-3">
-                                <ShieldCheck className="w-4 h-4 text-primary" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-primary">Security Node</span>
-                            </div>
-                            <p className="text-[9px] text-slate-500 font-medium italic">All marketplace interactions are encrypted and verified under Studio Protocol v4.0.</p>
-                        </div>
+                            </CardHeader>
+                            <CardContent className="p-8">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-left">
+                                        <thead>
+                                            <tr className="border-b border-slate-100 dark:border-white/5">
+                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] px-4">Entity</th>
+                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] px-4">Production Vision</th>
+                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] px-4">Est. Value</th>
+                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] px-4">System Status</th>
+                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] px-4 text-right">Protocol</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-slate-100 dark:divide-white/5">
+                                            {activeProjectMock.map((project, i) => (
+                                                <tr key={i} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
+                                                    <td className="py-6 px-4">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-card border border-slate-200 dark:border-white/10 flex items-center justify-center font-black text-xs text-primary shadow-sm">
+                                                                {project.name.split(' ').map(n => n[0]).join('')}
+                                                            </div>
+                                                            <div>
+                                                                <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">{project.name}</p>
+                                                                <p className="text-[10px] text-slate-400 font-bold mt-0.5 italic">{project.delivery} Delivery</p>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-6 px-4">
+                                                        <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 leading-tight">{project.project}</p>
+                                                    </td>
+                                                    <td className="py-6 px-4">
+                                                         <p className="text-[11px] font-black text-slate-900 dark:text-white tabular-nums">{project.price}</p>
+                                                    </td>
+                                                    <td className="py-6 px-4">
+                                                        <div className="w-32">
+                                                            <div className="flex justify-between items-center mb-2">
+                                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{project.status}</span>
+                                                                <span className="text-[9px] font-black text-primary uppercase">{project.progress}%</span>
+                                                            </div>
+                                                            <div className="w-full bg-slate-100 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                                                <div className="bg-primary h-full transition-all duration-700" style={{ width: `${project.progress}%` }} />
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="py-6 px-4 text-right">
+                                                        <Button variant="ghost" size="sm" className="rounded-xl h-8 w-8 hover:bg-primary hover:text-white transition-all">
+                                                            <ArrowRight className="w-4 h-4" />
+                                                        </Button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </CardContent>
+                        </Card>
                     </div>
 
-                    {/* Bottom Row: Technical Toolkits (Col 1-12) */}
-                    <div className="col-span-12 p-8 bg-white/80 dark:bg-card/60 backdrop-blur-md border-t border-slate-200 dark:border-border animate-cascade-in" style={{ animationDelay: '300ms' }}>
-                        <div className="flex items-center justify-between mb-8">
-                            <div className="flex items-center gap-4">
-                                <Scale className="w-6 h-6 text-primary" />
-                                <h2 className="text-xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Neural Toolkit Dispatch</h2>
-                            </div>
-                            <div className="h-[1px] flex-grow mx-10 bg-gradient-to-r from-primary/30 to-transparent rounded-full hidden md:block" />
-                        </div>
-                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-                            {[
-                                { name: "Structural Integrity", icon: Layers, path: "/pro/ai-studio?role=Structural Engineer" },
-                                { name: "MEP Precision", icon: Calculator, path: "/pro/ai-studio?role=MEP Engineer" },
-                                { name: "Urban Site Flow", icon: Map, path: "/pro/ai-studio?role=Civil Engineer" },
-                                { name: "Dynamic BoQ", icon: FileText, path: "/calculators" },
-                            ].map((tool, i) => (
-                                <Link key={i} to={tool.path} className="group p-6 bg-white/50 dark:bg-muted/10 rounded-[2rem] border border-slate-100 dark:border-white/5 hover:border-primary/50 hover:-translate-y-2 transition-all duration-500 text-center">
-                                    <div className="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center bg-slate-50 dark:bg-background/50 border border-slate-100 dark:border-white/10 group-hover:bg-primary group-hover:text-white group-hover:rotate-3 transition-all">
-                                        <tool.icon className="w-8 h-8" />
+                    {/* RIGHT COLUMN: ANALYTICS & QUICK ACTIONS */}
+                    <div className="col-span-12 lg:col-span-4 space-y-8">
+                        
+                        {/* Profile Overview (Inspired by Sample) */}
+                        <Card className="rounded-[3rem] border-none bg-primary text-white p-1 shadow-2xl relative overflow-hidden group">
+                           <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
+                           <CardContent className="bg-slate-900 dark:bg-[#0F1115] rounded-[2.8rem] p-10 h-full relative z-10">
+                                <div className="flex flex-col items-center text-center">
+                                    <div className="relative group cursor-pointer">
+                                        <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-tr from-primary to-rose-500 flex items-center justify-center p-1 shadow-2xl transform group-hover:rotate-6 transition-all duration-500">
+                                            <div className="w-full h-full rounded-[2.3rem] bg-slate-900 flex items-center justify-center overflow-hidden">
+                                                <User className="w-10 h-10 text-white opacity-80" />
+                                            </div>
+                                        </div>
+                                        <div className="absolute -bottom-2 -right-2 bg-emerald-500 border-4 border-slate-900 w-8 h-8 rounded-2xl flex items-center justify-center shadow-lg">
+                                            <ShieldCheck className="w-4 h-4 text-white" />
+                                        </div>
                                     </div>
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 dark:text-slate-400 group-hover:text-primary transition-colors">{tool.name}</span>
+                                    <div className="mt-8">
+                                        <h3 className="text-xl font-black uppercase tracking-tighter text-white leading-none capitalize">{user?.email?.split('@')[0] || 'Professional'}</h3>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary mt-2 italic">{role || 'Registered Expert'}</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 w-full gap-4 mt-10 border-t border-white/5 pt-10">
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase text-white/30 tracking-widest mb-1">Impact Score</p>
+                                            <p className="text-lg font-black text-white italic">A+</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase text-white/30 tracking-widest mb-1">Rank</p>
+                                            <p className="text-lg font-black text-white italic">Elite</p>
+                                        </div>
+                                    </div>
+                                    <Button asChild className="w-full mt-10 h-12 rounded-2xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all font-black uppercase tracking-widest text-[10px]">
+                                        <Link to={`/pro/profile/${user?.id}`}>Edit Identity Node</Link>
+                                    </Button>
+                                </div>
+                           </CardContent>
+                        </Card>
+
+                        {/* Market Volatility (Market Trend Chart) */}
+                        <Card className="rounded-[3rem] border border-slate-200/50 dark:border-white/5 bg-white/70 dark:bg-card/40 backdrop-blur-xl shadow-xl overflow-hidden p-8">
+                            <div className="flex items-center justify-between mb-8">
+                                <div className="flex items-center gap-3">
+                                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">Trend <span className="text-emerald-500">Node</span></h3>
+                                </div>
+                                <span className="text-[9px] font-black text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded uppercase tracking-tighter">Real-Time</span>
+                            </div>
+                            <div className="h-40 w-full mb-8">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <LineChart data={mockMarketData}>
+                                        <Line 
+                                            type="monotone" 
+                                            dataKey="price" 
+                                            stroke="hsl(var(--primary))" 
+                                            strokeWidth={4} 
+                                            dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, r: 4, stroke: '#fff' }} 
+                                            activeDot={{ r: 6, strokeWidth: 0 }}
+                                        />
+                                        <Tooltip 
+                                            contentStyle={{ 
+                                                background: 'rgba(0,0,0,0.85)', 
+                                                border: 'none', 
+                                                borderRadius: '16px', 
+                                                color: '#fff',
+                                                backdropFilter: 'blur(10px)',
+                                                fontSize: '10px',
+                                                fontWeight: '900',
+                                                textTransform: 'uppercase'
+                                            }} 
+                                            labelStyle={{ display: 'none' }}
+                                        />
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="space-y-3">
+                                {[
+                                    { name: "Portland Cement", price: "₦10,450", trend: "+2.4%" },
+                                    { name: "Structural Steel", price: "₦1.2M", trend: "-1.1%" },
+                                ].map((item, i) => (
+                                    <div key={i} className="flex justify-between items-center p-4 bg-slate-50 dark:bg-black/20 rounded-2xl border border-slate-100 dark:border-white/5 transition-all hover:border-primary/20 cursor-pointer">
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{item.name}</span>
+                                        <div className="text-right">
+                                            <p className="text-[11px] font-black text-slate-900 dark:text-white">{item.price}</p>
+                                            <p className={`text-[8px] font-black ${item.trend.startsWith('+') ? 'text-emerald-500' : 'text-primary'}`}>{item.trend}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </Card>
+
+                        {/* Technical Toolkits Quick Grid */}
+                        <div className="grid grid-cols-2 gap-4">
+                            {[
+                                { name: "AI Workspace", icon: Sparkles, path: "/pro/ai-studio", color: "text-primary" },
+                                { name: "Materials", icon: Building2, path: "/marketplace", color: "text-blue-500" },
+                                { name: "Neural BoQ", icon: FileText, path: "/pro/ai-studio", color: "text-amber-500" },
+                                { name: "System Support", icon: Calculator, path: "/pro/ai-studio", color: "text-slate-400" },
+                            ].map((tool, i) => (
+                                <Link 
+                                    key={i} 
+                                    to={tool.path}
+                                    className="p-6 bg-white dark:bg-card rounded-[2rem] border border-slate-200/50 dark:border-white/5 shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col items-center text-center group"
+                                >
+                                    <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-background/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                        <tool.icon className={`w-6 h-6 ${tool.color}`} />
+                                    </div>
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-200 group-hover:text-primary transition-colors">{tool.name}</span>
                                 </Link>
                             ))}
                         </div>
-                    </div>
 
+                    </div>
                 </div>
-            </main>
+            </div>
+            <div className="h-20" /> {/* Bottom spacer for mobile nav padding */}
         </div>
     );
 };
