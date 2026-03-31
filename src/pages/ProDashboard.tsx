@@ -137,164 +137,165 @@ const ProDashboard = () => {
 
             <div className="container mx-auto px-4 py-8 relative z-10">
                 {/* Welcome & Header */}
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
-                    <div>
-                        <h1 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                            Welcome back, <span className="text-primary italic whitespace-nowrap">{user?.email?.split('@')[0] || 'Pro'}!</span> 👋
+                <header className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 md:mb-12 gap-6">
+                    <div className="w-full lg:w-auto">
+                        <h1 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
+                            Welcome back, <br className="sm:hidden" /><span className="text-primary italic">{user?.email?.split('@')[0] || 'Pro'}</span> 👋
                         </h1>
-                        <p className="text-xs font-medium text-slate-400 mt-1 uppercase tracking-widest">Workspace Protocol v4.0 · Active Node</p>
+                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-[0.2em] opacity-70">Workspace Protocol v4.0 · Node Active</p>
                     </div>
-                    <div className="flex items-center gap-3 w-full md:w-auto">
-                         <div className="relative flex-grow md:flex-grow-0">
+                    <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+                         <div className="w-full sm:w-auto">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="w-full md:w-auto rounded-xl gap-2 font-bold bg-white dark:bg-card border-slate-200 dark:border-white/5 h-12 shadow-sm px-5">
-                                        <Bell className="w-4 h-4 text-primary" /> Notifications
-                                        <Badge className="bg-primary/10 text-primary border-none text-[10px] ml-1">3</Badge>
+                                    <Button variant="outline" className="w-full rounded-2xl gap-3 font-bold bg-white/50 dark:bg-card/50 border-slate-200 dark:border-white/5 h-14 shadow-sm px-6 backdrop-blur-md">
+                                        <Bell className="w-5 h-5 text-primary" /> 
+                                        <span className="flex-grow text-left">Notifications</span>
+                                        <Badge className="bg-primary text-white border-none text-[10px] h-5 min-w-5 flex items-center justify-center rounded-full">3</Badge>
                                     </Button>
                                 </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="w-80 rounded-2xl p-4 border-slate-200 shadow-2xl glass-card">
-                                     <div className="flex items-center justify-between mb-4">
-                                         <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Professional Alerts</h4>
+                                <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-80 rounded-3xl p-4 border-slate-200 shadow-2xl glass-card z-[1000]">
+                                     <div className="flex items-center justify-between mb-4 px-2">
+                                         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Professional Alerts</h4>
                                      </div>
-                                     <div className="space-y-3">
+                                     <div className="space-y-2">
                                          {[
                                              { title: "Market Spike", desc: "Reinforcement Steel (12mm) up by 12.4% this morning.", time: "2m ago" },
                                              { title: "Studio Update", desc: "New Neural QS component activated for your account.", time: "1h ago" },
                                              { title: "Verification Link", desc: "Your vendor partnership request with Dangote is pending.", time: "5h ago" },
                                          ].map((n, i) => (
-                                             <div key={i} className="p-3 bg-white/50 dark:bg-card rounded-xl border border-slate-100 dark:border-border hover:bg-white dark:hover:bg-muted transition-colors cursor-pointer group">
+                                             <div key={i} className="p-4 bg-slate-50 dark:bg-muted/30 rounded-2xl border border-transparent hover:border-primary/20 transition-all cursor-pointer">
                                                  <div className="flex justify-between items-start mb-1">
-                                                     <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{n.title}</p>
+                                                     <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">{n.title}</p>
                                                      <span className="text-[9px] text-slate-400 font-bold">{n.time}</span>
                                                  </div>
-                                                 <p className="text-[10px] text-slate-500 italic line-clamp-2 leading-relaxed">{n.desc}</p>
+                                                 <p className="text-[10px] text-slate-500 italic leading-relaxed">{n.desc}</p>
                                              </div>
                                          ))}
                                      </div>
                                 </DropdownMenuContent>
                             </DropdownMenu>
                          </div>
-                         <Button asChild className="rounded-xl px-6 h-12 bg-primary hover:bg-primary/90 font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-primary/20">
-                            <Link to="/pro/ai-studio"><Plus className="w-4 h-4 mr-2" /> New Project</Link>
+                         <Button asChild className="w-full sm:w-auto rounded-2xl px-8 h-14 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20 flex items-center justify-center gap-2">
+                            <Link to="/pro/ai-studio"><Plus className="w-5 h-5" /> New Project</Link>
                          </Button>
                     </div>
                 </header>
 
-                <div className="grid grid-cols-12 gap-8">
+                <div className="grid grid-cols-12 gap-6 md:gap-8">
                     
                     {/* LEFT COLUMN: NAVIGATION & PROJECTS */}
-                    <div className="col-span-12 lg:col-span-8 space-y-8">
+                    <div className="col-span-12 lg:col-span-8 space-y-6 md:space-y-8">
                         
                         {/* Analytics Overview Cards */}
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                            <Card className="rounded-[2rem] border border-slate-200/50 dark:border-white/5 bg-white/70 dark:bg-card/40 backdrop-blur-xl shadow-xl overflow-hidden group">
-                                <CardContent className="p-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
+                            <Card className="rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 bg-white/70 dark:bg-card/40 backdrop-blur-xl shadow-xl overflow-hidden group">
+                                <CardContent className="p-6 md:p-8">
                                     <div className="flex justify-between items-start mb-6">
-                                        <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
+                                        <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20">
                                             <Sparkles className="w-6 h-6 text-primary" />
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 leading-none">AI Credits</p>
-                                            <p className="text-2xl font-black text-slate-900 dark:text-white italic tabular-nums">{credits ?? '--'}</p>
+                                            <p className="text-3xl font-black text-slate-900 dark:text-white italic tabular-nums">{credits ?? '--'}</p>
                                         </div>
                                     </div>
-                                    <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                                    <div className="w-full bg-slate-100 dark:bg-white/5 h-2 rounded-full overflow-hidden">
                                         <div className="bg-primary h-full transition-all duration-1000" style={{ width: credits && credits > 50 ? '80%' : '30%' }} />
                                     </div>
-                                    <p className="text-[10px] font-bold text-slate-400 mt-4 italic uppercase tracking-wider">Estimated for 12 more syncs</p>
+                                    <p className="text-[10px] font-bold text-slate-400 mt-4 italic uppercase tracking-wider">Projected for 12 more syncs</p>
                                 </CardContent>
                             </Card>
 
-                             <Card className="rounded-[2rem] border border-slate-200/50 dark:border-white/5 bg-white/70 dark:bg-card/40 backdrop-blur-xl shadow-xl overflow-hidden group">
-                                <CardContent className="p-8">
+                             <Card className="rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 bg-white/70 dark:bg-card/40 backdrop-blur-xl shadow-xl overflow-hidden group">
+                                <CardContent className="p-6 md:p-8">
                                     <div className="flex justify-between items-start mb-6">
-                                        <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
+                                        <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
                                             <TrendingUp className="w-6 h-6 text-emerald-500" />
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1 leading-none">Net Savings</p>
-                                            <p className="text-2xl font-black text-slate-900 dark:text-white italic tabular-nums">₦425k</p>
+                                            <p className="text-3xl font-black text-slate-900 dark:text-white italic tabular-nums">₦425k</p>
                                         </div>
                                     </div>
-                                    <div className="w-full bg-slate-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden">
+                                    <div className="w-full bg-slate-100 dark:bg-white/5 h-2 rounded-full overflow-hidden">
                                         <div className="bg-emerald-500 h-full w-[65%]" />
                                     </div>
                                     <p className="text-[10px] font-bold text-emerald-500 mt-4 italic uppercase tracking-wider">+12.4% From Last Month</p>
                                 </CardContent>
                             </Card>
 
-                             <Card className="rounded-[2rem] border border-slate-200/50 dark:border-white/5 bg-slate-900 dark:bg-slate-950/40 backdrop-blur-xl shadow-2xl overflow-hidden group">
-                                <CardContent className="p-8">
+                             <Card className="rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 bg-slate-900 dark:bg-slate-950/40 backdrop-blur-xl shadow-2xl overflow-hidden group">
+                                <CardContent className="p-6 md:p-8">
                                     <div className="flex justify-between items-start mb-6">
-                                        <div className="p-3 bg-primary rounded-2xl">
+                                        <div className="p-4 bg-primary rounded-2xl">
                                             <Zap className="w-6 h-6 text-white" />
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[10px] font-black uppercase text-white/40 tracking-widest mb-1 leading-none">Sync Accuracy</p>
-                                            <p className="text-2xl font-black text-white italic tabular-nums">98.2%</p>
+                                            <p className="text-3xl font-black text-white italic tabular-nums">98.2%</p>
                                         </div>
                                     </div>
-                                    <div className="w-full bg-white/10 h-1.5 rounded-full overflow-hidden">
+                                    <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
                                         <div className="bg-primary h-full w-[98%]" />
                                     </div>
-                                    <p className="text-[10px] font-bold text-white/60 mt-4 italic uppercase tracking-wider">Neural BoQ Protocol Active</p>
+                                    <p className="text-[10px] font-bold text-white/60 mt-4 italic uppercase tracking-wider">Neural BoQ Active</p>
                                 </CardContent>
                             </Card>
                         </div>
 
-                        {/* Active Pipeline Table */}
-                        <Card className="rounded-[3rem] border border-slate-200/50 dark:border-white/5 bg-white/70 dark:bg-card/40 backdrop-blur-3xl shadow-2xl overflow-hidden">
-                            <CardHeader className="p-10 border-b border-slate-200 dark:border-white/5">
-                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        {/* Active Pipeline Table / Card List */}
+                        <Card className="rounded-[2.5rem] border border-slate-200/50 dark:border-white/5 bg-white/70 dark:bg-card/40 backdrop-blur-3xl shadow-2xl overflow-hidden">
+                            <CardHeader className="p-6 md:p-10 border-b border-slate-100 dark:border-white/5">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-primary/10 rounded-2xl">
+                                        <div className="p-4 bg-primary/10 rounded-2xl">
                                             <Layers className="w-6 h-6 text-primary" />
                                         </div>
                                         <div>
-                                            <CardTitle className="text-xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Active <span className="text-primary italic">Project Pipeline</span></CardTitle>
-                                            <CardDescription className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">3 Production Nodes Operational</CardDescription>
+                                            <CardTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">Active <span className="text-primary italic">Pipeline</span></CardTitle>
+                                            <CardDescription className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">3 Production Nodes</CardDescription>
                                         </div>
                                     </div>
-                                    <Button variant="ghost" className="rounded-xl px-6 h-10 hover:bg-primary/5 hover:text-primary font-black uppercase text-[10px] tracking-widest border border-slate-100 dark:border-white/10">
-                                        View System History <ArrowRight className="w-4 h-4 ml-2" />
+                                    <Button variant="ghost" className="w-full sm:w-auto rounded-2xl px-6 h-12 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase text-[10px] tracking-widest border border-slate-100 dark:border-white/10">
+                                        System History <ArrowRight className="w-4 h-4 ml-2" />
                                     </Button>
                                 </div>
                             </CardHeader>
-                            <CardContent className="p-8">
-                                <div className="overflow-x-auto">
+                            <CardContent className="p-6 md:p-8">
+                                {/* Desktop Table View */}
+                                <div className="hidden sm:block overflow-x-auto">
                                     <table className="w-full text-left">
                                         <thead>
                                             <tr className="border-b border-slate-100 dark:border-white/5">
-                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] px-4">Entity</th>
-                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] px-4">Production Vision</th>
-                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] px-4">Est. Value</th>
-                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] px-4">System Status</th>
-                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] px-4 text-right">Protocol</th>
+                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-widest px-4">Entity</th>
+                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-widest px-4">Production Vision</th>
+                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-widest px-4">Est. Value</th>
+                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-widest px-4 text-right">Status</th>
                                             </tr>
                                         </thead>
                                         <tbody className="divide-y divide-slate-100 dark:divide-white/5">
                                             {activeProjectMock.map((project, i) => (
-                                                <tr key={i} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer">
+                                                <tr key={i} className="group hover:bg-slate-50/50 dark:hover:bg-white/5 transition-colors cursor-pointer">
                                                     <td className="py-6 px-4">
                                                         <div className="flex items-center gap-4">
-                                                            <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-card border border-slate-200 dark:border-white/10 flex items-center justify-center font-black text-xs text-primary shadow-sm">
+                                                            <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-card border border-slate-200 dark:border-white/10 flex items-center justify-center font-black text-xs text-primary shadow-sm">
                                                                 {project.name.split(' ').map(n => n[0]).join('')}
                                                             </div>
                                                             <div>
                                                                 <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">{project.name}</p>
-                                                                <p className="text-[10px] text-slate-400 font-bold mt-0.5 italic">{project.delivery} Delivery</p>
+                                                                <p className="text-[10px] text-slate-400 font-bold mt-1 italic">{project.delivery} Delivery</p>
                                                             </div>
                                                         </div>
                                                     </td>
                                                     <td className="py-6 px-4">
-                                                        <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 leading-tight">{project.project}</p>
+                                                        <p className="text-[11px] font-bold text-slate-600 dark:text-slate-300 max-w-[200px] leading-tight">{project.project}</p>
                                                     </td>
                                                     <td className="py-6 px-4">
-                                                         <p className="text-[11px] font-black text-slate-900 dark:text-white tabular-nums">{project.price}</p>
+                                                         <p className="text-sm font-black text-slate-900 dark:text-white tabular-nums">{project.price}</p>
                                                     </td>
                                                     <td className="py-6 px-4">
-                                                        <div className="w-32">
+                                                        <div className="w-32 ml-auto">
                                                             <div className="flex justify-between items-center mb-2">
                                                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{project.status}</span>
                                                                 <span className="text-[9px] font-black text-primary uppercase">{project.progress}%</span>
@@ -304,15 +305,50 @@ const ProDashboard = () => {
                                                             </div>
                                                         </div>
                                                     </td>
-                                                    <td className="py-6 px-4 text-right">
-                                                        <Button variant="ghost" size="sm" className="rounded-xl h-8 w-8 hover:bg-primary hover:text-white transition-all">
-                                                            <ArrowRight className="w-4 h-4" />
-                                                        </Button>
-                                                    </td>
                                                 </tr>
                                             ))}
                                         </tbody>
                                     </table>
+                                </div>
+
+                                {/* Mobile List View */}
+                                <div className="sm:hidden space-y-4">
+                                    {activeProjectMock.map((project, i) => (
+                                        <div key={i} className="p-6 bg-slate-50 dark:bg-muted/20 rounded-3xl border border-slate-100 dark:border-white/5 space-y-6">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 rounded-2xl bg-white dark:bg-card border border-slate-200 dark:border-white/10 flex items-center justify-center font-black text-xs text-primary shadow-sm">
+                                                        {project.name.split(' ').map(n => n[0]).join('')}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">{project.name}</p>
+                                                        <p className="text-[10px] text-slate-400 font-bold mt-1 italic">{project.delivery} Delivery</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-sm font-black text-slate-900 dark:text-white tabular-nums">{project.price}</p>
+                                                    <p className="text-[9px] font-black text-primary uppercase mt-1">{project.status}</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="space-y-3">
+                                                <p className="text-xs font-bold text-slate-600 dark:text-slate-300 italic">"{project.project}"</p>
+                                                <div className="w-full">
+                                                    <div className="flex justify-between items-center mb-2">
+                                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Protocol Progress</span>
+                                                        <span className="text-[9px] font-black text-primary uppercase">{project.progress}%</span>
+                                                    </div>
+                                                    <div className="w-full bg-white dark:bg-white/10 h-2 rounded-full overflow-hidden border border-slate-100 dark:border-white/5">
+                                                        <div className="bg-primary h-full" style={{ width: `${project.progress}%` }} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <Button variant="outline" className="w-full h-12 rounded-2xl text-[10px] font-black uppercase tracking-widest border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300">
+                                                View Production Node
+                                            </Button>
+                                        </div>
+                                    ))}
                                 </div>
                             </CardContent>
                         </Card>
