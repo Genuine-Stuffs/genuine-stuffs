@@ -115,7 +115,13 @@ Keep it professional, concise and actionable for a ${user.email || 'professional
         if (!openRouterResponse.ok) {
             const errorBody = await openRouterResponse.text();
             console.error('OpenRouter error body:', errorBody);
-            throw new Error(`AI Provider error: ${openRouterResponse.status} ${openRouterResponse.statusText}`);
+            return new Response(JSON.stringify({ 
+                error: `AI Provider error: ${openRouterResponse.status} ${openRouterResponse.statusText}`,
+                details: errorBody 
+            }), {
+                status: openRouterResponse.status,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
         }
 
         const openRouterData = await openRouterResponse.json();
@@ -123,7 +129,10 @@ Keep it professional, concise and actionable for a ${user.email || 'professional
 
         if (!result) {
             console.error('Empty OpenRouter response:', JSON.stringify(openRouterData));
-            throw new Error('AI returned empty response. Please try again.');
+            return new Response(JSON.stringify({ error: 'AI returned empty response. Please try again.' }), {
+                status: 502,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
         }
 
         // Deduct credits
@@ -141,7 +150,7 @@ Keep it professional, concise and actionable for a ${user.email || 'professional
     } catch (error: any) {
         console.error('Function error:', error)
         return new Response(JSON.stringify({ error: error.message }), {
-            status: 500,
+            status: error.status || 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
     }
