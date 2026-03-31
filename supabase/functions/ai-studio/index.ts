@@ -80,10 +80,13 @@ serve(async (req: Request) => {
             throw new Error('Server configuration error: OpenRouter API key missing')
         }
 
-        console.log('Calling OpenRouter text model...');
-
-        // Confirmed working free model on OpenRouter (meta-llama)
-        const textModel = "meta-llama/llama-3.2-3b-instruct:free";
+        // Fallback model strategy to reduce interruptions/429 errors
+        const textModels = [
+            "meta-llama/llama-3.2-3b-instruct:free",
+            "google/gemma-2-9b-it:free",
+            "mistralai/mistral-7b-instruct:free",
+            "qwen/qwen-2.5-7b-instruct:free"
+        ];
 
         const systemPrompt = `You are an expert architectural design AI for Genuine Stuffs AI Studio. 
 When given a design brief or concept, provide a structured, detailed design analysis with:
@@ -94,48 +97,66 @@ When given a design brief or concept, provide a structured, detailed design anal
 5. Sustainability considerations
 Keep it professional, concise and actionable for a ${user.email || 'professional'}.`;
 
-        const openRouterResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            headers: {
-                "Authorization": `Bearer ${openRouterKey}`,
-                "HTTP-Referer": "https://genuinestuffs.com/",
-                "X-Title": "Genuine Stuffs AI Studio",
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                "model": textModel,
-                "messages": [
-                    { "role": "system", "content": systemPrompt },
-                    { "role": "user", "content": prompt }
-                ],
-                "max_tokens": 800
-            })
-        });
+        let openRouterResponse: Response | null = null;
+        let openRouterData: any = null;
+        let result: string | null = null;
+        let lastStatus = 500;
+        let lastErrorText = "All AI models failed to respond.";
 
-        if (!openRouterResponse.ok) {
-            const errorBody = await openRouterResponse.text();
-            console.error('OpenRouter error body:', errorBody);
-            return new Response(JSON.stringify({ 
-                error: `AI Provider error: ${openRouterResponse.status} ${openRouterResponse.statusText}`,
-                details: errorBody 
-            }), {
-                status: openRouterResponse.status,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            })
+        for (const textModel of textModels) {
+            try {
+                console.log(`Calling OpenRouter model: ${textModel}...`);
+                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${openRouterKey}`,
+                        "HTTP-Referer": "https://genuinestuffs.com/",
+                        "X-Title": "Genuine Stuffs AI Studio",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "model": textModel,
+                        "messages": [
+                            { "role": "system", "content": systemPrompt },
+                            { "role": "user", "content": prompt }
+                        ],
+                        "max_tokens": 1000
+                    })
+                });
+
+                if (response.ok) {
+                    openRouterData = await response.json();
+                    result = openRouterData.choices?.[0]?.message?.content;
+                    if (result) {
+                        console.log(`Successfully generated response using ${textModel}`);
+                        break;
+                    }
+                } else {
+                    lastStatus = response.status;
+                    const errorBody = await response.text();
+                    lastErrorText = `AI Provider error (${textModel}): ${response.status} ${response.statusText}. Details: ${errorBody}`;
+                    console.error(lastErrorText);
+                    
+                    // If it's a 401 or 400, it's a config issue, don't waste time on fallbacks
+                    if (response.status === 401 || response.status === 400) break;
+                }
+            } catch (err: any) {
+                console.error(`Error attempting model ${textModel}:`, err);
+                lastErrorText = `Internal error attempting model ${textModel}: ${err?.message || String(err)}`;
+            }
         }
-
-        const openRouterData = await openRouterResponse.json();
-        const result = openRouterData.choices?.[0]?.message?.content;
 
         if (!result) {
-            console.error('Empty OpenRouter response:', JSON.stringify(openRouterData));
-            return new Response(JSON.stringify({ error: 'AI returned empty response. Please try again.' }), {
-                status: 502,
+            return new Response(JSON.stringify({ 
+                error: lastErrorText,
+                status: lastStatus
+            }), {
+                status: lastStatus,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             })
         }
 
-        // Deduct credits
+        // Deduct credits only on success
         await supabaseClient
             .from('professionals')
             .update({ credits: profile.credits - cost })
