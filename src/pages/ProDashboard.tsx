@@ -34,7 +34,8 @@ import {
     TrendingUp,
     Zap,
     Scale,
-    ShieldCheck
+    ShieldCheck,
+    User
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "backend/supabaseClient";
