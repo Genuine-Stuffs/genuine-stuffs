@@ -144,7 +144,7 @@ const Navbar = () => {
 
         {/* Mobile Navigation - Translucent Overlay */}
         {isOpen && (
-          <div className="md:hidden fixed inset-0 top-20 z-40 bg-white/40 dark:bg-slate-900/40 backdrop-blur-3xl animate-in fade-in slide-in-from-top-4 duration-500 overflow-y-auto p-4">
+          <div className="md:hidden absolute top-20 left-0 right-0 h-[calc(100vh-80px)] z-[999] bg-white/90 dark:bg-slate-900/90 backdrop-blur-3xl animate-in fade-in slide-in-from-top-4 duration-500 overflow-y-auto p-4 border-t border-slate-100 dark:border-white/5">
             <div className="py-6 space-y-4">
               {filteredLinks.map((link) => (
                 <Link
@@ -152,8 +152,8 @@ const Navbar = () => {
                   to={link.path}
                   onClick={() => setIsOpen(false)}
                   className={`flex items-center gap-3 px-4 py-4 rounded-2xl font-black transition-all ${isActive(link.path)
-                    ? "bg-primary text-white shadow-lg shadow-primary/20 scale-[1.02]"
-                    : "text-slate-500 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5 active:scale-95"
+                    ? "bg-primary text-white shadow-xl shadow-primary/20 scale-[1.02]"
+                    : "text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
                   }`}
                 >
                   {link.label}
@@ -163,13 +163,13 @@ const Navbar = () => {
                 <Link
                   to="/settings"
                   onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-3 px-4 py-4 rounded-2xl font-black transition-all text-slate-500 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-white/5 active:scale-95"
+                  className="flex items-center gap-3 px-4 py-4 rounded-2xl font-black transition-all text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
                 >
-                  <Settings className="w-5 h-5" /> Settings
+                  <Settings className="w-5 h-5 opacity-70" /> Settings
                 </Link>
               )}
-              <div className="pt-4 border-t border-slate-200/20 dark:border-white/5">
-                <p className="px-4 pb-4 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">Authentication</p>
+              <div className="pt-6 border-t border-slate-200/20 dark:border-white/5">
+                <p className="px-4 pb-4 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-[0.3em]">Authentication</p>
                 <div className="px-4 pb-12">
                   {role === 'guest' ? (
                     <div className="space-y-4">
