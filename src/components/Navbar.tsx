@@ -144,18 +144,18 @@ const Navbar = () => {
 
       </div>
 
-      {/* Mobile Navigation - Translucent Overlay - Moved out of container to avoid clipping */}
+      {/* Mobile Navigation - Solid Overlay to ensure visibility */}
       {isOpen && (
-        <div className="md:hidden fixed inset-x-0 top-20 bottom-0 z-[9999] bg-white dark:bg-slate-900 backdrop-blur-3xl animate-in fade-in slide-in-from-top-2 duration-300 overflow-y-auto border-t border-slate-100 dark:border-white/5">
-          <div className="px-6 py-10 space-y-6">
+        <div className="md:hidden fixed left-0 right-0 top-[80px] bottom-0 z-[9999] bg-white dark:bg-slate-950 overflow-y-auto border-t border-slate-200 dark:border-white/10 flex flex-col">
+          <div className="flex-grow px-6 py-10 space-y-8">
             {filteredLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-4 px-5 py-5 rounded-[2rem] font-black text-xl transition-all ${isActive(link.path)
-                  ? "bg-primary text-white shadow-2xl shadow-primary/30 scale-[1.02]"
-                  : "text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
+                className={`flex items-center gap-4 px-6 py-5 rounded-[2.5rem] font-black text-2xl transition-all ${isActive(link.path)
+                  ? "bg-primary text-white shadow-2xl shadow-primary/40 scale-[1.02]"
+                  : "text-slate-950 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
                 }`}
               >
                 {link.label}
@@ -165,25 +165,25 @@ const Navbar = () => {
               <Link
                 to="/settings"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-4 px-5 py-5 rounded-[2rem] font-black text-xl text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
+                className="flex items-center gap-4 px-6 py-5 rounded-[2.5rem] font-black text-2xl text-slate-950 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
               >
-                <Settings className="w-6 h-6 opacity-70" /> Settings
+                <Settings className="w-7 h-7 opacity-70" /> Settings
               </Link>
             )}
-            <div className="pt-8 border-t border-slate-200/20 dark:border-white/5">
-              <p className="px-5 pb-6 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-[0.4em]">Protocol Sync</p>
-              <div className="px-2 pb-20">
+            <div className="pt-10 border-t border-slate-200 dark:border-white/10">
+              <p className="px-6 pb-6 text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-[0.5em]">System Sync</p>
+              <div className="px-2 pb-24">
                 {role === 'guest' ? (
                   <div className="space-y-4">
-                    <Button asChild variant="outline" className="w-full h-16 rounded-[2rem] font-black text-lg border-2 border-slate-200 dark:border-white/10 text-slate-900 dark:text-white" onClick={() => setIsOpen(false)}>
+                    <Button asChild variant="outline" className="w-full h-16 rounded-[2.5rem] font-black text-xl border-[3px] border-slate-200 dark:border-white/10 text-slate-950 dark:text-white" onClick={() => setIsOpen(false)}>
                       <Link to="/login">LOG IN</Link>
                     </Button>
-                    <Button asChild className="w-full h-16 rounded-[2rem] font-black text-lg bg-primary hover:bg-primary/90 text-white shadow-2xl shadow-primary/20" onClick={() => setIsOpen(false)}>
+                    <Button asChild className="w-full h-16 rounded-[2.5rem] font-black text-xl bg-primary hover:bg-primary/90 text-white shadow-2xl shadow-primary/30" onClick={() => setIsOpen(false)}>
                       <Link to="/register">JOIN PLATFORM</Link>
                     </Button>
                   </div>
                 ) : (
-                  <Button variant="outline" className="w-full h-16 rounded-[2rem] font-black text-lg text-red-500 border-red-500/20 bg-red-500/5 hover:bg-red-500 hover:text-white transition-all shadow-xl shadow-red-500/10" onClick={() => { logout(); setIsOpen(false); }}>LOGOUT SYSTEM</Button>
+                  <Button variant="outline" className="w-full h-16 rounded-[2.5rem] font-black text-xl text-red-500 border-red-500/20 bg-red-500/5 hover:bg-red-500 hover:text-white transition-all shadow-2xl shadow-red-500/20" onClick={() => { logout(); setIsOpen(false); }}>LOGOUT</Button>
                 )}
               </div>
             </div>
