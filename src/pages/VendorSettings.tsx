@@ -28,6 +28,7 @@ import { supabase } from "backend/supabaseClient";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
+import BottomNav from "@/components/BottomNav";
 
 const VendorSettings = () => {
     const { user } = useAuth();
