@@ -27,8 +27,9 @@ const BottomNav = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    // Only hide on login/register pages
-    if (location.pathname === "/login" || location.pathname === "/register") {
+    // Hide on login, register, vendor portal and pro portal routes to avoid redundancy
+    const isPortalRoute = location.pathname.startsWith('/vendor-') || location.pathname.startsWith('/pro-') || location.pathname === '/pro-portal';
+    if (location.pathname === "/login" || location.pathname === "/register" || isPortalRoute) {
         return null;
     }
 
