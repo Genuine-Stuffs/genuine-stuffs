@@ -156,7 +156,7 @@ const Navbar = () => {
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-2xl font-black text-base transition-all ${isActive(link.path)
                   ? "bg-primary text-white shadow-lg shadow-primary/40 scale-[1.01]"
-                  : "text-white/90 hover:bg-sky-400/20 active:scale-95"
+                  : "text-red-500 hover:bg-sky-400/20 active:scale-95 transition-colors"
                 }`}
               >
                 {link.label}
@@ -166,7 +166,7 @@ const Navbar = () => {
               <Link
                 to={role === 'vendor' ? "/vendor-settings" : "/settings"}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl font-black text-base text-white/90 hover:bg-sky-400/20 active:scale-95"
+                className="flex items-center gap-3 px-4 py-3 rounded-2xl font-black text-base text-red-500 hover:bg-sky-400/20 active:scale-95 transition-colors"
               >
                 <Settings className="w-5 h-5 opacity-70" /> Settings
               </Link>
