@@ -51,6 +51,8 @@ const ProfessionalProfile = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const coverInputRef = useRef<HTMLInputElement>(null);
     const isOwnProfile = user?.id === id;
+    const [showContactInfo, setShowContactInfo] = useState(false);
+    const { role } = useAuth();
 
     const handlePhotoClick = (type: 'avatar' | 'cover') => {
         if (type === 'avatar') fileInputRef.current?.click();
@@ -302,16 +304,62 @@ const ProfessionalProfile = () => {
                                         {[profile.city, profile.state, profile.country].filter(Boolean).join(', ')}
                                     </span>
                                     <span className="hidden sm:inline text-slate-300">•</span>
-                                    <button className="text-primary hover:underline font-bold text-sm">Contact info</button>
+                                    <button 
+                                        onClick={() => setShowContactInfo(!showContactInfo)}
+                                        className="text-primary hover:underline font-bold text-sm"
+                                    >
+                                        Contact info
+                                    </button>
                                 </div>
-                                <div className="flex items-center gap-2 text-sm font-semibold text-primary mt-2">
-                                    <span className="hover:underline cursor-pointer">{profile.followers_count || 0} followers</span>
-                                    <span className="text-slate-300">•</span>
-                                    <span className="hover:underline cursor-pointer">{profile.connections_count || 0} connections</span>
-                                </div>
+                                
+                                {role === 'professional' && (
+                                    <div className="flex items-center gap-2 text-sm font-semibold text-primary mt-2">
+                                        <span className="hover:underline cursor-pointer">{profile.followers_count || 0} followers</span>
+                                        <span className="text-slate-300">•</span>
+                                        <span className="hover:underline cursor-pointer">{profile.connections_count || 0} connections</span>
+                                    </div>
+                                )}
                             </div>
 
-                            {/* Action Pills (LinkedIn Style) */}
+                            {/* Contact Info Reveal */}
+                            {showContactInfo && (
+                                <div className="p-4 md:p-6 rounded-2xl bg-primary/5 border border-primary/10 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-primary flex items-center gap-2">
+                                        <ShieldCheck className="w-4 h-4" /> Verified Contact Details
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm">
+                                                <Mail className="w-5 h-5" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Email Address</p>
+                                                <a href={`mailto:${profile.email || 'contact@expert.com'}`} className="text-sm font-bold text-slate-900 dark:text-white hover:underline">
+                                                    {profile.email || "Verification Pending"}
+                                                </a>
+                                            </div>
+                                        </div>
+                                        {profile.profile_settings?.showPhone !== false && profile.phone && (
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-white dark:bg-slate-900 flex items-center justify-center text-primary shadow-sm">
+                                                    <Phone className="w-5 h-5" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Phone Number</p>
+                                                    <a href={`tel:${profile.phone}`} className="text-sm font-bold text-slate-900 dark:text-white hover:underline">
+                                                        {profile.phone}
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <p className="text-[10px] text-slate-500 font-medium italic">
+                                        * Please mention "Material Insight" when contacting this professional.
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Action Pills */}
                             <div className="flex flex-wrap gap-2 pt-2 pb-1">
                                 {isOwnProfile ? (
                                     <>
@@ -341,7 +389,7 @@ const ProfessionalProfile = () => {
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     </>
-                                ) : (
+                                ) : role === 'professional' ? (
                                     <>
                                         <Button className="flex-1 sm:flex-none h-10 rounded-full px-8 bg-primary text-white font-bold text-sm">
                                             <UserPlus className="w-4 h-4 mr-2" /> Connect
@@ -350,6 +398,14 @@ const ProfessionalProfile = () => {
                                             Message
                                         </Button>
                                     </>
+                                ) : (
+                                    <Button 
+                                        onClick={() => setShowContactInfo(!showContactInfo)}
+                                        className="w-full md:w-auto h-12 rounded-full px-12 bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-primary/20 hover:scale-[1.02] transition-all"
+                                    >
+                                        <Mail className="w-4 h-4 mr-2" />
+                                        {showContactInfo ? "Hide Contact" : "Contact Expert"}
+                                    </Button>
                                 )}
                             </div>
 
@@ -367,6 +423,32 @@ const ProfessionalProfile = () => {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* About / Summary Section (Tailored for Evaluation) */}
+                <Card className="border-none shadow-xl rounded-none md:rounded-[2.5rem] bg-white dark:bg-card">
+                    <CardContent className="p-6 md:p-10 space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter text-slate-900 dark:text-white flex items-center gap-3">
+                                Professional Summary
+                            </h2>
+                            {isOwnProfile && (
+                                <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    onClick={() => setIsEditIntroOpen(true)}
+                                    className="rounded-full h-10 w-10 text-slate-950 dark:text-white hover:text-primary hover:bg-primary/5 transition-all duration-300 group/edit"
+                                >
+                                    <Pencil className="w-4 h-4 group-hover/edit:scale-110 transition-transform" />
+                                </Button>
+                            )}
+                        </div>
+                        <div className="prose prose-slate dark:prose-invert max-w-none">
+                            <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 leading-relaxed font-medium whitespace-pre-wrap">
+                                {profile.bio || `${profile.full_name} is a highly skilled ${profile.specialty || 'expert'} dedicated to delivering premium professional services in the AEC industry.`}
+                            </p>
                         </div>
                     </CardContent>
                 </Card>
