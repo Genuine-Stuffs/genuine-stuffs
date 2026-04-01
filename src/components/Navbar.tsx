@@ -155,8 +155,8 @@ const Navbar = () => {
                 to={link.path}
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-2xl font-black text-base transition-all ${isActive(link.path)
-                  ? "bg-primary text-white shadow-lg shadow-primary/40 scale-[1.01]"
-                  : "text-white border border-red-500/30 hover:bg-red-500/10 hover:border-red-500/60 active:scale-95 transition-all"
+                  ? "bg-primary text-[#ffffff] shadow-lg shadow-primary/40 scale-[1.01]"
+                  : "text-[#ffffff] border-2 border-red-500 hover:bg-red-500/10 active:scale-95 transition-all"
                 }`}
               >
                 {link.label}
@@ -166,7 +166,7 @@ const Navbar = () => {
               <Link
                 to={role === 'vendor' ? "/vendor-settings" : "/settings"}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl font-black text-base text-white border border-red-500/30 hover:bg-red-500/10 hover:border-red-500/60 active:scale-95 transition-all"
+                className="flex items-center gap-3 px-4 py-3 rounded-2xl font-black text-base text-[#ffffff] border-2 border-red-500 hover:bg-red-500/10 active:scale-95 transition-all"
               >
                 <Settings className="w-5 h-5 opacity-70" /> Settings
               </Link>
