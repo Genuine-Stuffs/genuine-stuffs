@@ -151,8 +151,8 @@ const HireExperts = () => {
                     </p>
                 </div>
 
-                {/* Grid - NOW 2 COL COLUMNS ON MOBILE */}
-                <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 min-h-[400px]">
+                {/* Grid - Matching ProHub's conservative spacing */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 min-h-[400px]">
                     {isLoading ? (
                         <div className="col-span-full flex flex-col items-center justify-center py-20 animate-pulse">
                             <Loader2 className="w-12 h-12 text-primary animate-spin mb-4" />
