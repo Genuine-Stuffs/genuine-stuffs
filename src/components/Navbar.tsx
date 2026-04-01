@@ -144,9 +144,9 @@ const Navbar = () => {
 
       </div>
 
-      {/* Mobile Navigation - Solid Overlay to ensure visibility */}
+      {/* Mobile Navigation - Transparent Glassmorphism Overlay */}
       {isOpen && (
-        <div className="md:hidden fixed left-0 right-0 top-[80px] bottom-0 z-[9999] bg-white dark:bg-slate-950 overflow-y-auto border-t border-slate-200 dark:border-white/10 flex flex-col">
+        <div className="md:hidden fixed left-0 right-0 top-[80px] z-[9999] max-h-[85vh] overflow-y-auto border-t border-sky-400/20 dark:border-sky-400/10 flex flex-col shadow-2xl" style={{ background: 'rgba(8, 47, 73, 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
           <div className="flex-grow px-6 py-10 space-y-8">
             {filteredLinks.map((link) => (
               <Link
@@ -155,7 +155,7 @@ const Navbar = () => {
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-4 px-6 py-5 rounded-[2.5rem] font-black text-2xl transition-all ${isActive(link.path)
                   ? "bg-primary text-white shadow-2xl shadow-primary/40 scale-[1.02]"
-                  : "text-slate-950 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
+                  : "text-white/90 hover:bg-sky-400/20 active:scale-95"
                 }`}
               >
                 {link.label}
@@ -165,17 +165,17 @@ const Navbar = () => {
               <Link
                 to="/settings"
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-4 px-6 py-5 rounded-[2.5rem] font-black text-2xl text-slate-950 dark:text-white hover:bg-slate-50 dark:hover:bg-white/5 active:scale-95"
+                className="flex items-center gap-4 px-6 py-5 rounded-[2.5rem] font-black text-2xl text-white/90 hover:bg-sky-400/20 active:scale-95"
               >
                 <Settings className="w-7 h-7 opacity-70" /> Settings
               </Link>
             )}
-            <div className="pt-10 border-t border-slate-200 dark:border-white/10">
-              <p className="px-6 pb-6 text-[11px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-[0.5em]">System Sync</p>
-              <div className="px-2 pb-24">
+            <div className="pt-10 border-t border-sky-400/20">
+              <p className="px-6 pb-6 text-[11px] font-black uppercase text-sky-300/70 tracking-[0.5em]">Authentication</p>
+              <div className="px-2 pb-10">
                 {role === 'guest' ? (
                   <div className="space-y-4">
-                    <Button asChild variant="outline" className="w-full h-16 rounded-[2.5rem] font-black text-xl border-[3px] border-slate-200 dark:border-white/10 text-slate-950 dark:text-white" onClick={() => setIsOpen(false)}>
+                    <Button asChild variant="outline" className="w-full h-16 rounded-[2.5rem] font-black text-xl border-[3px] border-sky-400/30 text-white/90 bg-sky-400/10 hover:bg-sky-400/20" onClick={() => setIsOpen(false)}>
                       <Link to="/login">LOG IN</Link>
                     </Button>
                     <Button asChild className="w-full h-16 rounded-[2.5rem] font-black text-xl bg-primary hover:bg-primary/90 text-white shadow-2xl shadow-primary/30" onClick={() => setIsOpen(false)}>
@@ -183,7 +183,7 @@ const Navbar = () => {
                     </Button>
                   </div>
                 ) : (
-                  <Button variant="outline" className="w-full h-16 rounded-[2.5rem] font-black text-xl text-red-500 border-red-500/20 bg-red-500/5 hover:bg-red-500 hover:text-white transition-all shadow-2xl shadow-red-500/20" onClick={() => { logout(); setIsOpen(false); }}>LOGOUT</Button>
+                  <Button variant="outline" className="w-full h-16 rounded-[2.5rem] font-black text-xl text-red-400 border-red-400/20 bg-red-500/10 hover:bg-red-500 hover:text-white transition-all shadow-2xl shadow-red-500/20" onClick={() => { logout(); setIsOpen(false); }}>LOGOUT</Button>
                 )}
               </div>
             </div>
