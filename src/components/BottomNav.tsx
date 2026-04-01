@@ -49,7 +49,7 @@ const BottomNav = () => {
                 { label: "Home", icon: Home, path: "/" },
                 { label: "Shop", icon: ShoppingBag, path: "/marketplace" },
                 { label: "Dashboard", icon: LayoutDashboard, path: "/vendor-dashboard" },
-                { label: "Settings", icon: Settings, path: "/settings" },
+                { label: "Settings", icon: Settings, path: "/vendor-settings" },
             ];
         } else {
             // Guest / Regular User

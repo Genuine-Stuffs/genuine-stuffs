@@ -164,7 +164,7 @@ const Navbar = () => {
             ))}
             {role !== 'guest' && (
               <Link
-                to="/settings"
+                to={role === 'vendor' ? "/vendor-settings" : "/settings"}
                 onClick={() => setIsOpen(false)}
                 className="flex items-center gap-3 px-4 py-3 rounded-2xl font-black text-base text-white/90 hover:bg-sky-400/20 active:scale-95"
               >
