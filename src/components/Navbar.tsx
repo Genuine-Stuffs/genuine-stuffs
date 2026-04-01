@@ -23,8 +23,9 @@ const Navbar = () => {
   const navLinks = [
     { path: "/", label: "Home" },
     { path: "/marketplace", label: "Marketplace" },
-    { path: "/pros", label: "Hire Professionals/Artisans", hideForRole: "professional" },
-    { path: "/pro-portal", label: role === 'professional' ? "ProHuB" : "Dashboard", role: "professional" },
+    { path: "/hire-experts", label: "Hire Certified AEC Experts", hideForRole: "professional" },
+    { path: "/pros", label: "ProHuB", role: "professional" },
+    { path: "/pro-portal", label: "Dashboard", role: "professional" },
     { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
   ];
 

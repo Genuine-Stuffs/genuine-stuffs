@@ -27,6 +27,7 @@ import HelpSupport from "./pages/HelpSupport";
 import Cart from "./pages/Cart";
 import ClientProfile from "./pages/ClientProfile";
 import ProfessionalProfile from "./pages/ProfessionalProfile";
+import HireExperts from "./pages/HireExperts";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { ThemeProvider } from "./components/ThemeProvider";
@@ -58,6 +59,7 @@ const App = () => (
                     {/* New Industry Transformation Routes */}
                     <Route path="/marketplace" element={<Marketplace />} />
                     <Route path="/pros" element={<Pros />} />
+                    <Route path="/hire-experts" element={<HireExperts />} />
                     <Route path="/calculators" element={<Calculators />} />
                     <Route path="/vendor-dashboard" element={<VendorDashboard />} />
                     <Route path="/vendor-inventory" element={<VendorInventory />} />
