@@ -21,7 +21,9 @@ import {
     CheckCircle2,
     LogOut,
     Clock,
-    ShoppingBag
+    ShoppingBag,
+    Mail,
+    Phone
 } from "lucide-react";
 import ExperienceCard from "@/components/pro/ExperienceCard";
 import AddExperienceDialog from "@/components/pro/AddExperienceDialog";
