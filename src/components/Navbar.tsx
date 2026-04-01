@@ -24,7 +24,7 @@ const Navbar = () => {
     { path: "/", label: "Home" },
     { path: "/marketplace", label: "Marketplace" },
     { path: "/pros", label: "Hire Professionals/Artisans", hideForRole: "professional" },
-    { path: "/pro-portal", label: "Dashboard", role: "professional" },
+    { path: "/pro-portal", label: role === 'professional' ? "ProHuB" : "Dashboard", role: "professional" },
     { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
   ];
 

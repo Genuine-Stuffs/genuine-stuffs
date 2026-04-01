@@ -198,7 +198,9 @@ const Index = () => {
                   <Link to="/marketplace">EXPLORE MARKET</Link>
                 </Button>
                 <Button asChild size="lg" variant="outline" className="h-14 md:h-16 px-10 md:px-14 text-lg font-black rounded-2xl bg-white/10 backdrop-blur-md border-white text-white md:hover:bg-white md:hover:text-primary transition-all">
-                  <Link to="/pros">HIRE EXPERTS</Link>
+                  <Link to={role === 'professional' ? "/pro-portal" : "/pros"}>
+                    {role === 'professional' ? "ProHuB" : "HIRE EXPERTS"}
+                  </Link>
                 </Button>
               </div>
             </div>
