@@ -202,7 +202,7 @@ const Pros = () => {
                                                 </h3>
                                                 {pro.is_verified && <ShieldCheck className="w-3.5 h-3.5 text-primary shrink-0" />}
                                             </div>
-                                            <p className="text-[9px] md:text-xs font-black text-sky-600 uppercase tracking-tighter leading-snug mb-1 line-clamp-2 px-1">
+                                            <p className="text-[9px] md:text-xs font-black text-blue-700 uppercase tracking-tighter leading-snug mb-1 line-clamp-2 px-1">
                                                 {pro.headline || pro.specialty}
                                             </p>
                                             
