@@ -206,7 +206,7 @@ const HireExperts = () => {
                                             </div>
                                             
                                             <div className="flex flex-col gap-1">
-                                                <p className="text-[10px] md:text-xs font-black text-blue-700 uppercase tracking-tighter">
+                                                <p className="text-[10px] md:text-xs font-black text-blue-900 uppercase tracking-tighter">
                                                     {pro.specialty || pro.headline || "Expert Professional"}
                                                 </p>
                                                 <div className="flex items-center justify-center gap-1.5 text-[9px] md:text-[10px] text-slate-500 font-bold uppercase">
