@@ -227,7 +227,7 @@ const HireExperts = () => {
 
                                         <Button 
                                             asChild
-                                            className="w-full mt-4 rounded-full h-8 md:h-10 bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest text-[9px] transition-all shadow-sm hover:shadow-lg"
+                                            className="w-full mt-4 rounded-full h-8 md:h-10 bg-slate-100 dark:bg-slate-800 hover:bg-sky-500/10 text-sky-500 border-2 border-sky-500 font-black uppercase tracking-widest text-[9px] transition-all shadow-sm hover:shadow-md"
                                         >
                                             <Link to={`/pro/profile/${pro.id}`} className="flex items-center justify-center gap-1.5">
                                                 <User className="w-3.5 h-3.5" />
