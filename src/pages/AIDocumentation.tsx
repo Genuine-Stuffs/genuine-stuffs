@@ -276,7 +276,7 @@ const AIDocumentation = () => {
     const active = professions.find(p => p.role === activeRole)!;
 
     return (
-        <div className="min-h-screen bg-white dark:bg-background transition-colors">
+        <div className="min-h-screen bg-background dark:bg-background transition-colors">
             <Navbar />
 
             {/* ── Hero ── */}
@@ -477,7 +477,7 @@ const AIDocumentation = () => {
                                                 <Link to={`/pro/ai-studio?role=${active.role}`}>Try it →</Link>
                                             </Button>
                                         </div>
-                                        <div className="p-4 bg-white dark:bg-background">
+                                        <div className="p-4 bg-background dark:bg-background">
                                             <p className="text-xs font-mono text-slate-600 dark:text-slate-400 leading-relaxed italic">"{p.prompt}"</p>
                                         </div>
                                     </div>

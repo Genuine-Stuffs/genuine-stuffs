@@ -45,7 +45,7 @@ const About = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-slate-950 transition-colors duration-300">
+    <div className="min-h-screen bg-background dark:bg-slate-950 transition-colors duration-300">
       <Navbar />
 
       {/* Hero Section */}

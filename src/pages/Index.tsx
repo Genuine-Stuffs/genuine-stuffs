@@ -151,7 +151,7 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-sky-50 dark:bg-background transition-colors duration-300 pb-24 md:pb-0">
+    <div className="min-h-screen bg-background transition-colors duration-300 pb-24 md:pb-0">
       <Navbar />
 
       {/* Panoramic Hero Carousel */}
@@ -226,7 +226,7 @@ const Index = () => {
       </section>
 
       {/* Browse By Category - Prominent & Card Style */}
-      <section className="py-12 bg-sky-50 dark:bg-background border-b border-sky-100 dark:border-border">
+      <section className="py-12 bg-background border-b border-sky-100 dark:border-border">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
@@ -401,7 +401,7 @@ const Index = () => {
       </section>
 
       {/* How We Work Section */}
-      <section className="py-20 bg-sky-50 dark:bg-background z-0 relative">
+      <section className="py-20 bg-background z-0 relative">
         <div className="container mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">How We Work</h2>

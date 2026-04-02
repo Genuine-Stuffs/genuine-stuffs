@@ -129,7 +129,7 @@ const ProDashboard = () => {
     ];
 
     return (
-        <div className="relative min-h-screen bg-[#F8F9FC] dark:bg-[#0B0E14] overflow-hidden selection:bg-primary/30">
+        <div className="relative min-h-screen bg-background dark:bg-[#0B0E14] overflow-hidden selection:bg-primary/30">
             <div className="mesh-background opacity-20" />
             
             <Navbar />

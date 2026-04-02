@@ -521,7 +521,7 @@ const Register = () => {
                         </button>
                     </div>
 
-                    <Card className="border-none shadow-none md:shadow-2xl bg-sky-50/50 dark:bg-white/5 backdrop-blur-xl md:rounded-[2.5rem] overflow-hidden transition-all duration-500">
+                    <Card className="border-none shadow-none md:shadow-2xl bg-card dark:bg-white/5 backdrop-blur-xl md:rounded-[2.5rem] overflow-hidden transition-all duration-500">
                         {/* Progress Header for Vendors */}
                         {role === 'vendor' && (
                             <div className="bg-sky-100/50 dark:bg-sky-900/10 flex justify-between items-center p-4 md:p-6 border-b dark:border-white/10">
