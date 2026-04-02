@@ -5,7 +5,7 @@ import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
-    BadgeCheck, 
+    ShieldCheck, 
     MapPin, 
     Link as LinkIcon, 
     Users, 
@@ -271,7 +271,7 @@ const ProfessionalProfile = () => {
                             </div>
                             {profile.is_verified && (
                                 <div className="absolute top-2 right-2 bg-white dark:bg-card p-0.5 rounded-full z-20 shadow-lg">
-                                    <BadgeCheck className="w-5 h-5 text-white fill-sky-500" />
+                                    <ShieldCheck className="w-5 h-5 text-white fill-sky-500" />
                                 </div>
                             )}
                         </div>
@@ -294,7 +294,7 @@ const ProfessionalProfile = () => {
                                     </h1>
                                     {profile.profile_settings?.showVerificationBadge !== false && (
                                         <Badge variant="outline" className="h-5 px-2 text-[10px] font-bold border-sky-500/20 text-sky-600 gap-1">
-                                            <BadgeCheck className="w-3 h-3 text-white fill-sky-500" /> VERIFIED
+                                            <ShieldCheck className="w-3 h-3 text-white fill-sky-500" /> VERIFIED
                                         </Badge>
                                     )}
                                 </div>
@@ -327,7 +327,7 @@ const ProfessionalProfile = () => {
                             {showContactInfo && (
                                 <div className="p-4 md:p-6 rounded-2xl bg-primary/5 border border-primary/10 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
                                     <h3 className="text-xs font-black uppercase tracking-widest text-sky-600 flex items-center gap-2">
-                                        <BadgeCheck className="w-4 h-4 text-white fill-sky-500" /> Verified Contact Details
+                                        <ShieldCheck className="w-4 h-4 text-white fill-sky-500" /> Verified Contact Details
                                     </h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                         <div className="flex items-center gap-3">

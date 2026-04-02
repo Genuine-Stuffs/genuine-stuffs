@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Search, MapPin, Star, BadgeCheck, Mail, Phone, ExternalLink, ShoppingBag, ChevronDown, X, Loader2, Sparkles, User, Briefcase, GraduationCap } from "lucide-react";
+import { Search, MapPin, Star, ShieldCheck, Mail, Phone, ExternalLink, ShoppingBag, ChevronDown, X, Loader2, Sparkles, User, Briefcase, GraduationCap } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -202,7 +202,7 @@ const HireExperts = () => {
                                                 <h3 className="font-black text-xs md:text-base text-slate-900 dark:text-white leading-tight line-clamp-1">
                                                     {pro.full_name}
                                                 </h3>
-                                                {pro.is_verified && <BadgeCheck className="w-3.5 h-3.5 text-white fill-sky-500 shrink-0" />}
+                                                {pro.is_verified && <ShieldCheck className="w-3.5 h-3.5 text-white fill-sky-500 shrink-0" />}
                                             </div>
                                             
                                             <div className="flex flex-col gap-1">
