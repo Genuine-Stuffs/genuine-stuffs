@@ -99,22 +99,22 @@ All colors MUST be HSL.
 
     /* Midnight Aura specifics */
     --primary-glow: 354 75% 48% / 0.2;
-    --glass-bg: 222 47% 15% / 0.6;
+    --glass-bg: 222 47% 6% / 0.8; /* Deepened glass for mobile neatness */
     --glass-border: 222 47% 30% / 0.3;
-    --aura-indigo: 240 80% 60% / 0.08;
-    --aura-violet: 280 80% 60% / 0.08;
-    --mesh-color-1: var(--aura-indigo);
-    --mesh-color-2: var(--aura-violet);
   }
 }
 
 @layer components {
   .glass-card {
-    @apply backdrop-blur-xl bg-white/70 dark:bg-slate-900/60 border border-white/20 dark:border-white/10 shadow-2xl;
+    @apply backdrop-blur-xl bg-white/70 dark:bg-black/60 border border-white/20 dark:border-white/5 shadow-2xl;
+  }
+
+  .app-card {
+    @apply relative overflow-hidden transition-all duration-500 rounded-[2.5rem] bg-white dark:bg-slate-900/40 backdrop-blur-xl border border-slate-100 dark:border-white/5;
   }
 
   .premium-gradient {
-    background: linear-gradient(135deg, hsl(var(--primary)) 0%, #1a1a1a 100%);
+    background: linear-gradient(135deg, hsl(var(--primary)) 0%, #000000 100%);
   }
 
   .animate-cascade-in {
@@ -212,6 +212,11 @@ All colors MUST be HSL.
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     line-height: 1.6;
+  }
+
+  /* Global Icon Neatness: 1.5 stroke for professional minimalist look */
+  svg.lucide {
+    stroke-width: 1.5px;
   }
 
   /* Headings: Inter at higher weight for hierarchy without changing family */

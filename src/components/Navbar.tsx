@@ -38,7 +38,7 @@ const Navbar = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className={`${isActive("/pros") ? "relative" : "sticky top-0"} z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-white/5 transition-colors duration-300`}>
+    <nav className={`hidden md:block ${isActive("/pros") ? "relative" : "sticky top-0"} z-50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl border-b border-slate-100 dark:border-white/5 transition-colors duration-300`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-20">
           <Link to="/" className="flex items-center group">

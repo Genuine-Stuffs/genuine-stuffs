@@ -138,7 +138,7 @@ const Calculators = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background transition-colors duration-300 pb-20 lg:pb-0 overflow-x-hidden">
+        <div className="min-h-screen bg-background dark:bg-black transition-colors duration-300 pb-20 lg:pb-0 overflow-x-hidden">
             {/* Desktop-only Global Nav: effectively hidden on Mobile */}
             <div className="hidden lg:block">
                 <Navbar />
@@ -202,36 +202,39 @@ const Calculators = () => {
                                                 accept=".pdf,.dwg,.rvt,.ifc,.jpg,.png"
                                             />
                                             <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 via-sky-500/10 to-primary/10 rounded-[1.5rem] blur opacity-25 group-hover:opacity-75 transition duration-1000"></div>
-                                            <div className={`relative border-2 border-dashed rounded-[1.5rem] p-6 text-center transition-all ${
+                                            <div className={`relative border border-slate-100 dark:border-white/5 rounded-[2rem] p-8 text-center transition-all ${
                                                 selectedFile 
-                                                    ? "border-primary bg-primary/5 dark:bg-primary/10" 
-                                                    : "border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                                            }`}>
-                                                {selectedFile ? (
-                                                    <div className="animate-in zoom-in-95 duration-300 flex items-center justify-center gap-3">
-                                                        <div className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg relative shrink-0">
-                                                            <File className="w-5 h-5" />
-                                                            <button 
-                                                                onClick={clearFile}
-                                                                className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-colors"
-                                                            >
-                                                                <X className="w-2.5 h-2.5" />
-                                                            </button>
-                                                        </div>
-                                                        <p className="font-black text-slate-900 dark:text-white uppercase tracking-tighter text-[10px] line-clamp-1">{selectedFile.name}</p>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex items-center justify-center gap-4">
-                                                        <div className="w-10 h-10 bg-primary/10 dark:bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
-                                                            <UploadCloud className="w-5 h-5 text-primary" />
-                                                        </div>
-                                                        <div className="text-left">
-                                                            <p className="font-black text-slate-700 dark:text-slate-200 uppercase tracking-tighter text-[10px]">Upload Plan</p>
-                                                            <p className="text-[7px] text-slate-400 uppercase tracking-widest font-black italic">PDF • DWG • RVT</p>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
+                                                    ? "bg-primary/5 dark:bg-primary/10 border-primary/20" 
+                                                    : "bg-slate-50/50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10"
+                                             }`}>
+                                                 {selectedFile ? (
+                                                     <div className="animate-in zoom-in-95 duration-300 flex items-center justify-center gap-4">
+                                                         <div className="w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg relative shrink-0">
+                                                             <File className="w-6 h-6" />
+                                                             <button 
+                                                                 onClick={clearFile}
+                                                                 className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-colors"
+                                                             >
+                                                                 <X className="w-3 h-3" />
+                                                             </button>
+                                                         </div>
+                                                         <div className="text-left">
+                                                            <p className="font-black text-slate-900 dark:text-white uppercase tracking-tighter text-xs line-clamp-1">{selectedFile.name}</p>
+                                                            <p className="text-[8px] text-slate-400 uppercase tracking-widest font-black mt-1">Ready for Analysis</p>
+                                                         </div>
+                                                     </div>
+                                                 ) : (
+                                                     <div className="flex flex-col items-center justify-center gap-4">
+                                                         <div className="w-14 h-14 bg-red-50 dark:bg-red-500/10 rounded-[1.5rem] flex items-center justify-center shrink-0">
+                                                             <UploadCloud className="w-6 h-6 text-red-500 opacity-80" />
+                                                         </div>
+                                                         <div className="text-center">
+                                                             <p className="font-black text-slate-900 dark:text-white uppercase tracking-[0.1em] text-[11px]">Upload Plan</p>
+                                                             <p className="text-[8px] text-slate-400 uppercase tracking-[0.2em] font-black italic mt-1">PDF · DWG · RVT</p>
+                                                         </div>
+                                                     </div>
+                                                 )}
+                                             </div>
                                         </div>
 
                                         <Button

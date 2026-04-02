@@ -78,8 +78,10 @@ const Resources = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50/50 dark:bg-background transition-colors duration-300">
-      <Navbar />
+    <div className="min-h-screen bg-slate-50/50 dark:bg-black transition-colors duration-300">
+      <div className="hidden lg:block">
+        <Navbar />
+      </div>
 
       {/* Hero Section */}
       <section className="py-20 relative overflow-hidden bg-slate-900 dark:bg-card text-white transition-colors duration-300">
@@ -97,7 +99,7 @@ const Resources = () => {
       </section>
 
       {/* Filter Bar */}
-      <div className="sticky top-20 z-40 bg-white dark:bg-background border-b dark:border-border py-3 shadow-sm transition-colors">
+      <div className="sticky top-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-b dark:border-white/5 py-4 shadow-sm transition-colors md:top-20">
         <div className="container mx-auto px-4 flex gap-3 overflow-x-auto no-scrollbar items-center">
           <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 mr-2 shrink-0">Filter By:</span>
           {resourceFilters.map((filter) => (
@@ -118,7 +120,7 @@ const Resources = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {articles.map((article, index) => (
-              <Card key={index} className={`group border-none shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all relative overflow-hidden bg-white dark:bg-card rounded-3xl ${article.isPro ? 'ring-1 ring-primary/20 dark:ring-primary/10' : ''}`}>
+              <Card key={index} className={`group border-none shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all relative overflow-hidden bg-white dark:bg-slate-900/40 backdrop-blur-xl rounded-[2.5rem] ${article.isPro ? 'ring-1 ring-primary/20 dark:ring-primary/10' : ''}`}>
                 {article.isPro && (
                   <div className="absolute top-4 right-4 z-10">
                     <div className="bg-primary text-white p-2.5 rounded-full shadow-lg">
@@ -165,7 +167,7 @@ const Resources = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {downloads.map((download, index) => (
-              <Card key={index} className="border-none bg-white/5 dark:bg-white/[0.05] backdrop-blur hover:bg-white/10 dark:hover:bg-white/[0.1] transition-all group rounded-3xl overflow-hidden shadow-2xl">
+              <Card key={index} className="border-none bg-white/5 dark:bg-white/[0.05] backdrop-blur hover:bg-white/10 dark:hover:bg-white/[0.1] transition-all group rounded-[2.5rem] overflow-hidden shadow-2xl">
                 <CardContent className="pt-10">
                   <div className="flex justify-between items-start mb-8">
                     <div className="p-4 rounded-2xl bg-white/10 group-hover:bg-primary transition-all group-hover:scale-110">

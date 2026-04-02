@@ -277,16 +277,16 @@ const AIStudio = () => {
     };
 
     return (
-        <div className="flex flex-col h-screen md:h-[100dvh] md:relative fixed inset-0 overflow-hidden bg-white dark:bg-background z-10">
+        <div className="flex flex-col h-screen md:h-[100dvh] md:relative fixed inset-0 overflow-hidden bg-white dark:bg-black z-10">
             {/* Mobile Header (Fixed) */}
-            <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-200 dark:border-border bg-white dark:bg-[#0f1115] fixed top-0 left-0 right-0 z-40">
+            <header className="flex md:hidden items-center justify-between px-4 h-14 border-b border-slate-100 dark:border-white/5 bg-white dark:bg-black fixed top-0 left-0 right-0 z-40">
                 <Button variant="ghost" size="icon" onClick={() => setMobileSidebarOpen(true)} className="rounded-xl -ml-2">
-                    <Menu className="w-5 h-5 text-slate-600 dark:text-slate-300" />
+                    <Menu className="w-5 h-5 text-slate-400 dark:text-slate-500" />
                 </Button>
 
                 <div className="flex items-center gap-2">
                      <Select value={selectedRole} onValueChange={setSelectedRole}>
-                        <SelectTrigger className="w-32 h-9 rounded-xl bg-slate-100 dark:bg-white/5 border-none font-bold text-[9px] uppercase tracking-widest shadow-sm focus:ring-primary/20 transition-all">
+                        <SelectTrigger className="w-32 h-9 rounded-xl bg-slate-50 dark:bg-white/5 border-none font-black text-[9px] uppercase tracking-[0.2em] shadow-sm focus:ring-primary/20 transition-all">
                             <SelectValue placeholder="Role" />
                         </SelectTrigger>
                         <SelectContent 
@@ -458,7 +458,7 @@ const AIStudio = () => {
                         <div className="mt-auto pt-4 border-t dark:border-border">
                             <Button 
                                 onClick={() => setShowRefillModal(true)}
-                                className="w-full rounded-xl bg-red-600 text-white hover:bg-red-700 h-10 font-black uppercase text-[10px] tracking-widest shadow-lg shadow-red-600/20"
+                                className="w-full rounded-[1.5rem] bg-red-600/90 text-white hover:bg-red-700 h-11 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-red-600/20"
                             >
                                 Upgrade to Premium
                             </Button>

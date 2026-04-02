@@ -129,10 +129,12 @@ const ProDashboard = () => {
     ];
 
     return (
-        <div className="relative min-h-screen bg-background dark:bg-[#0B0E14] overflow-hidden selection:bg-primary/30">
+        <div className="relative min-h-screen bg-background dark:bg-black overflow-hidden selection:bg-primary/30">
             <div className="mesh-background opacity-20" />
             
-            <Navbar />
+            <div className="hidden lg:block">
+                <Navbar />
+            </div>
             <VerificationBanner />
 
             <div className="container mx-auto px-4 py-8 relative z-10">
@@ -142,13 +144,13 @@ const ProDashboard = () => {
                         <h1 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
                             Welcome back, <br className="sm:hidden" /><span className="text-primary italic">{user?.email?.split('@')[0] || 'Pro'}</span> 👋
                         </h1>
-                        <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-[0.2em] opacity-70">Workspace Protocol v4.0 · Node Active</p>
+                        <p className="text-[10px] font-black text-slate-400 dark:text-slate-600 mt-2 uppercase tracking-[0.2em]">Workspace Protocol v4.0 · Node Active</p>
                     </div>
                     <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
                          <div className="w-full sm:w-auto">
                             <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" className="w-full rounded-2xl gap-3 font-bold bg-white/50 dark:bg-card/50 border-slate-200 dark:border-white/5 h-14 shadow-sm px-6 backdrop-blur-md">
+                                 <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" className="w-full rounded-[2rem] gap-3 font-black uppercase tracking-widest text-[10px] bg-white/50 dark:bg-card/50 border-slate-200 dark:border-white/5 h-14 shadow-sm px-6 backdrop-blur-md">
                                         <Bell className="w-5 h-5 text-primary" /> 
                                         <span className="flex-grow text-left">Notifications</span>
                                         <Badge className="bg-primary text-white border-none text-[10px] h-5 min-w-5 flex items-center justify-center rounded-full">3</Badge>
@@ -176,7 +178,7 @@ const ProDashboard = () => {
                                 </DropdownMenuContent>
                             </DropdownMenu>
                          </div>
-                         <Button asChild className="w-full sm:w-auto rounded-2xl px-8 h-14 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20 flex items-center justify-center gap-2">
+                         <Button asChild className="w-full sm:w-auto rounded-[2rem] px-8 h-14 bg-primary hover:bg-primary/90 font-black uppercase tracking-widest text-[11px] shadow-xl shadow-primary/20 flex items-center justify-center gap-2">
                             <Link to="/pro/ai-studio"><Plus className="w-5 h-5" /> New Project</Link>
                          </Button>
                     </div>
