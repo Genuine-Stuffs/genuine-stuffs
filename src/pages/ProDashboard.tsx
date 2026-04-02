@@ -132,9 +132,7 @@ const ProDashboard = () => {
         <div className="relative min-h-screen bg-background dark:bg-black overflow-hidden selection:bg-primary/30">
             <div className="mesh-background opacity-20" />
             
-            <div className="hidden lg:block">
-                <Navbar />
-            </div>
+            <Navbar />
             <VerificationBanner />
 
             <div className="container mx-auto px-4 py-8 relative z-10">
