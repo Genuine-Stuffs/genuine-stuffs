@@ -1,15 +1,104 @@
 import { useState, useEffect, useRef } from "react";
 import Navbar from "@/components/Navbar";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
 import {
-    Calculator, UploadCloud, FileText, CheckCircle2, ChevronDown,
+    Calculator, UploadCloud, FileText, CheckCircle2, ChevronDown, ChevronUp,
     BarChart, Activity, RefreshCw, Zap, Layers, Wrench, Sparkles,
     BrainCircuit, Search, Info, History, Database, Cpu, ShoppingCart,
-    X, File
+    X, File, ArrowUpRight
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+
+const LegacyModule = ({ title, icon: Icon }: { title: string; icon: any }) => {
+    const [isOpen, setIsOpen] = useState(false);
+    
+    // Simple calculator state (placeholders)
+    const renderContent = () => {
+        switch (title) {
+            case "Concrete Volume":
+                return (
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-3 gap-2">
+                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">L (m)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
+                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">W (m)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
+                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">D (m)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
+                        </div>
+                        <Button className="w-full h-8 text-[9px] font-black uppercase bg-slate-900">Calculate Volume</Button>
+                    </div>
+                );
+            case "Roofing Shingles":
+                return (
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">Area (m²)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
+                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">Pitch (deg)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
+                        </div>
+                        <Button className="w-full h-8 text-[9px] font-black uppercase bg-slate-900">Bundles Estimate</Button>
+                    </div>
+                );
+            case "Block & Mortar":
+                return (
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">Length (m)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
+                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">Height (m)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
+                        </div>
+                        <Button className="w-full h-8 text-[9px] font-black uppercase bg-slate-900">Units Required</Button>
+                    </div>
+                );
+            case "Tile Spacer":
+                return (
+                    <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">Tile Size (cm)</p><Input className="h-8 rounded-lg text-xs" placeholder="60x60" /></div>
+                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">Gap (mm)</p><Input className="h-8 rounded-lg text-xs" placeholder="3" /></div>
+                        </div>
+                        <Button className="w-full h-8 text-[9px] font-black uppercase bg-slate-900">Pack Count</Button>
+                    </div>
+                );
+            default: return null;
+        }
+    };
+
+    return (
+        <Popover onOpenChange={setIsOpen}>
+            <div className="relative group">
+                {/* Fancy Red/Blue Glow Border */}
+                <div className="absolute -inset-[1px] bg-gradient-to-tr from-primary via-slate-200 to-sky-500 rounded-[2rem] opacity-30 group-hover:opacity-100 transition-opacity blur-[1px]"></div>
+                
+                <PopoverTrigger asChild>
+                    <button className="relative w-full flex items-center justify-between px-6 py-5 bg-white dark:bg-card rounded-[2rem] border-none group-hover:bg-slate-50 transition-all shadow-sm z-10">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-slate-50 dark:bg-slate-800 flex items-center justify-center rounded-lg group-hover:bg-primary/10 transition-colors">
+                                <Icon className="w-3.5 h-3.5 text-slate-400 group-hover:text-primary transition-colors" />
+                            </div>
+                            <span className="text-[10px] font-black text-slate-800 dark:text-slate-300 uppercase tracking-tight">{title}</span>
+                        </div>
+                        {isOpen ? <ChevronDown className="w-3 h-3 text-primary animate-in zoom-in-50" /> : <ChevronUp className="w-3 h-3 text-slate-300 group-hover:text-primary transition-colors" />}
+                    </button>
+                </PopoverTrigger>
+            </div>
+            
+            <PopoverContent 
+                side="top" 
+                className="w-64 p-5 rounded-3xl shadow-2xl border-none bg-white dark:bg-card animate-in slide-in-from-bottom-2 duration-300 z-50 mb-4"
+                align="center"
+            >
+                <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                        <h4 className="text-[9px] font-black uppercase tracking-widest text-primary">{title} Module</h4>
+                        <ArrowUpRight className="w-3 h-3 text-slate-300" />
+                    </div>
+                    {renderContent()}
+                </div>
+            </PopoverContent>
+        </Popover>
+    );
+};
 
 const Calculators = () => {
     const [isSurveying, setIsSurveying] = useState(false);
@@ -241,20 +330,17 @@ const Calculators = () => {
 
                     </div>
 
-                    {/* DESKTOP ONLY: LEGACY MODULES IN A STRAIGHT LINE */}
+                    {/* DESKTOP ONLY: LEGACY MODULES WITH FANCY BORDERS & UPWARD DROPDOWNS */}
                     <div className="mt-4 lg:mt-6">
                         <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 px-4 mb-4">Legacy Estimation Protocol Modules</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                            {["Concrete Volume", "Roofing Shingles", "Block & Mortar", "Tile Spacer"].map((tool) => (
-                                <button key={tool} className="flex items-center justify-between px-6 py-5 bg-white dark:bg-card rounded-2xl border border-slate-100 dark:border-white/5 hover:border-primary/20 transition-all group shadow-sm">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 bg-slate-50 dark:bg-slate-800 flex items-center justify-center rounded-lg group-hover:bg-primary/10 transition-colors">
-                                            <Calculator className="w-3.5 h-3.5 text-slate-400 group-hover:text-primary transition-colors" />
-                                        </div>
-                                        <span className="text-[10px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-tight">{tool}</span>
-                                    </div>
-                                    <ChevronDown className="w-3 h-3 text-slate-300 group-hover:text-primary transition-colors" />
-                                </button>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-2">
+                            {[
+                                { title: "Concrete Volume", icon: Calculator },
+                                { title: "Roofing Shingles", icon: Calculator },
+                                { title: "Block & Mortar", icon: Calculator },
+                                { title: "Tile Spacer", icon: Calculator }
+                            ].map((mod) => (
+                                <LegacyModule key={mod.title} {...mod} />
                             ))}
                         </div>
                     </div>
