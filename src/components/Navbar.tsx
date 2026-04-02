@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, ChevronDown, Rocket, ShieldCheck, ShoppingBag, LayoutDashboard, Search, Settings, BookOpen, Sparkles } from "lucide-react";
+import { Menu, X, User, ChevronDown, Rocket, ShieldCheck, ShoppingBag, LayoutDashboard, Search, Settings, BookOpen, Sparkles, Calculator } from "lucide-react";
 import { ModeToggle } from "./ModeToggle";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
@@ -99,6 +99,13 @@ const Navbar = () => {
                     <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors">
                       <Link to="/pro/ai-studio" className="flex items-center gap-3 w-full">
                         <Sparkles className="w-4 h-4 text-primary" /> <span className="font-bold text-slate-700 dark:text-slate-200">AI Studio</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {role === 'professional' && (
+                    <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors text-amber-600 dark:text-amber-400">
+                      <Link to="/calculators" className="flex items-center gap-3 w-full">
+                        <Calculator className="w-4 h-4" /> <span className="font-bold">BoQ Calculator</span>
                       </Link>
                     </DropdownMenuItem>
                   )}

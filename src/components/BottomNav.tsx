@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, ShoppingBag, ShoppingCart, User, Sparkles, BookOpen, LayoutDashboard, Settings } from "lucide-react";
+import { Home, ShoppingBag, ShoppingCart, User, Sparkles, BookOpen, LayoutDashboard, Settings, Calculator } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const BottomNav = () => {
@@ -41,6 +41,7 @@ const BottomNav = () => {
             return [
                 { label: "Dashboard", icon: LayoutDashboard, path: "/pro-portal" },
                 { label: "AI Studio", icon: Sparkles, path: "/pro/ai-studio" },
+                { label: "BoQ Calc", icon: Calculator, path: "/calculators" },
                 { label: "Resources", icon: BookOpen, path: "/resources" },
                 { label: "Profile", icon: User, path: `/pro/profile/${user?.id}` },
             ];

@@ -450,8 +450,8 @@ const ProDashboard = () => {
                             {[
                                 { name: "AI Workspace", icon: Sparkles, path: "/pro/ai-studio", color: "text-primary" },
                                 { name: "Materials", icon: Building2, path: "/marketplace", color: "text-blue-500" },
-                                { name: "Neural BoQ", icon: FileText, path: "/pro/ai-studio", color: "text-amber-500" },
-                                { name: "System Support", icon: Calculator, path: "/pro/ai-studio", color: "text-slate-400" },
+                                { name: "Neural BoQ", icon: Cpu, path: "/calculators", color: "text-amber-500" },
+                                { name: "QS Calculator", icon: Calculator, path: "/calculators", color: "text-sky-500" },
                             ].map((tool, i) => (
                                 <Link 
                                     key={i} 
