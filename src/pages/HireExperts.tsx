@@ -202,7 +202,7 @@ const HireExperts = () => {
                                                 <h3 className="font-black text-xs md:text-base text-slate-900 dark:text-white leading-tight line-clamp-1">
                                                     {pro.full_name}
                                                 </h3>
-                                                {pro.is_verified && <ShieldCheck className="w-3.5 h-3.5 text-white fill-sky-500 shrink-0" />}
+                                                {pro.is_verified && <ShieldCheck className="w-4 h-4 text-white fill-sky-500 shrink-0" />}
                                             </div>
                                             
                                             <div className="flex flex-col gap-1">
