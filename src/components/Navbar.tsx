@@ -147,7 +147,7 @@ const Navbar = () => {
 
       {/* Mobile Navigation - Transparent Glassmorphism Overlay */}
       {isOpen && (
-        <div className="md:hidden fixed left-0 right-0 top-[80px] z-[9999] max-h-[42vh] overflow-y-auto border-t border-sky-400/20 dark:border-sky-400/10 flex flex-col shadow-2xl" style={{ background: 'rgba(8, 47, 73, 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
+        <div className="md:hidden fixed right-0 top-[80px] z-[9999] w-[50%] max-h-[42vh] overflow-y-auto border-l border-b border-sky-400/20 dark:border-sky-400/10 flex flex-col shadow-2xl rounded-bl-3xl" style={{ background: 'rgba(8, 47, 73, 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
           <div className="flex-grow px-4 py-3 space-y-1">
             {filteredLinks.map((link) => (
               <Link
@@ -156,7 +156,7 @@ const Navbar = () => {
                 onClick={() => setIsOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-2xl font-black text-base transition-all ${isActive(link.path)
                   ? "bg-primary text-[#ffffff] shadow-lg shadow-primary/40 scale-[1.01]"
-                  : "text-[#ffffff] border-2 border-red-500 hover:bg-red-500/10 active:scale-95 transition-all"
+                  : "text-[#ffffff] hover:bg-white/10 active:scale-95 transition-all"
                 }`}
               >
                 {link.label}
@@ -166,7 +166,7 @@ const Navbar = () => {
               <Link
                 to={role === 'vendor' ? "/vendor-settings" : "/settings"}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl font-black text-base text-[#ffffff] border-2 border-red-500 hover:bg-red-500/10 active:scale-95 transition-all"
+                className="flex items-center gap-3 px-4 py-3 rounded-2xl font-black text-base text-[#ffffff] hover:bg-white/10 active:scale-95 transition-all"
               >
                 <Settings className="w-5 h-5 opacity-70" /> Settings
               </Link>
