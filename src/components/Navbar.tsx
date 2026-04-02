@@ -148,13 +148,13 @@ const Navbar = () => {
       {/* Mobile Navigation - Transparent Glassmorphism Overlay */}
       {isOpen && (
         <div className="md:hidden fixed right-0 top-[80px] z-[9999] w-[50%] max-h-[42vh] overflow-y-auto border-l border-b border-sky-400/20 dark:border-sky-400/10 flex flex-col shadow-2xl rounded-bl-3xl" style={{ background: 'rgba(8, 47, 73, 0.88)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)' }}>
-          <div className="flex-grow px-4 py-3 space-y-1">
+          <div className="flex-grow px-3 py-2 space-y-0.5">
             {filteredLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setIsOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-2xl font-black text-base transition-all ${isActive(link.path)
+                className={`flex items-center gap-2 px-4 py-1.5 rounded-xl font-bold text-xs transition-all ${isActive(link.path)
                   ? "bg-primary text-[#ffffff] shadow-lg shadow-primary/40 scale-[1.01]"
                   : "text-[#ffffff] hover:bg-white/10 active:scale-95 transition-all"
                 }`}
@@ -166,13 +166,13 @@ const Navbar = () => {
               <Link
                 to={role === 'vendor' ? "/vendor-settings" : "/settings"}
                 onClick={() => setIsOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-2xl font-black text-base text-[#ffffff] hover:bg-white/10 active:scale-95 transition-all"
+                className="flex items-center gap-2 px-4 py-1.5 rounded-xl font-bold text-xs text-[#ffffff] hover:bg-white/10 active:scale-95 transition-all"
               >
-                <Settings className="w-5 h-5 opacity-70" /> Settings
+                <Settings className="w-4 h-4 opacity-70" /> Settings
               </Link>
             )}
             <div className="pt-3 border-t border-sky-400/20">
-              <p className="px-4 pb-2 text-[10px] font-black uppercase text-sky-300/70 tracking-[0.4em]">Authentication</p>
+              <p className="px-4 pb-1 text-[9px] font-bold uppercase text-sky-300/70 tracking-[0.4em]">Authentication</p>
               <div className="px-2 pb-3">
                 {role === 'guest' ? (
                   <div className="space-y-2">
@@ -184,7 +184,7 @@ const Navbar = () => {
                     </Button>
                   </div>
                 ) : (
-                  <Button variant="outline" className="w-full h-11 rounded-2xl font-black text-sm text-red-400 border-red-400/20 bg-red-500/10 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/20" onClick={() => { logout(); setIsOpen(false); }}>LOGOUT</Button>
+                  <Button variant="outline" className="w-full h-9 rounded-xl font-bold text-[11px] text-red-400 border-red-400/20 bg-red-500/10 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/20" onClick={() => { logout(); setIsOpen(false); }}>LOGOUT</Button>
                 )}
               </div>
             </div>
