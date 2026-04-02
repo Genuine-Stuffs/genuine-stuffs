@@ -67,18 +67,20 @@ const LegacyModule = ({ title, icon: Icon }: { title: string; icon: any }) => {
     return (
         <Popover onOpenChange={setIsOpen}>
             <div className="relative group">
-                {/* Fancy Red/Blue Glow Border */}
-                <div className="absolute -inset-[1px] bg-gradient-to-tr from-primary via-slate-200 to-sky-500 rounded-[2rem] opacity-30 group-hover:opacity-100 transition-opacity blur-[1px]"></div>
+                {/* Fancy Red/Blue Glow Border (Applied globally now) */}
+                <div className="absolute -inset-[1px] bg-gradient-to-tr from-primary via-slate-200 to-sky-500 rounded-[1.5rem] lg:rounded-[2rem] opacity-40 group-hover:opacity-100 transition-opacity blur-[1px]"></div>
                 
                 <PopoverTrigger asChild>
-                    <button className="relative w-full flex items-center justify-between px-6 py-5 bg-white dark:bg-card rounded-[2rem] border-none group-hover:bg-slate-50 transition-all shadow-sm z-10">
-                        <div className="flex items-center gap-3">
+                    <button className="relative w-full flex flex-col lg:flex-row items-center lg:justify-between px-4 lg:px-6 py-4 lg:py-5 bg-white dark:bg-card rounded-[1.5rem] lg:rounded-[2rem] border-none group-hover:bg-slate-50 transition-all shadow-sm z-10">
+                        <div className="flex items-center gap-3 w-full lg:w-auto">
                             <div className="w-8 h-8 bg-slate-50 dark:bg-slate-800 flex items-center justify-center rounded-lg group-hover:bg-primary/10 transition-colors">
                                 <Icon className="w-3.5 h-3.5 text-slate-400 group-hover:text-primary transition-colors" />
                             </div>
-                            <span className="text-[10px] font-black text-slate-800 dark:text-slate-300 uppercase tracking-tight">{title}</span>
+                            <span className="text-[9px] lg:text-[10px] font-black text-slate-800 dark:text-slate-300 uppercase tracking-tight text-left leading-tight lg:leading-normal">{title}</span>
                         </div>
-                        {isOpen ? <ChevronDown className="w-3 h-3 text-primary animate-in zoom-in-50" /> : <ChevronUp className="w-3 h-3 text-slate-300 group-hover:text-primary transition-colors" />}
+                        <div className="absolute right-4 lg:relative lg:right-0">
+                            {isOpen ? <ChevronDown className="w-3 h-3 text-primary animate-in zoom-in-50" /> : <ChevronUp className="w-3 h-3 text-slate-300 group-hover:text-primary transition-colors" />}
+                        </div>
                     </button>
                 </PopoverTrigger>
             </div>
@@ -116,7 +118,7 @@ const Calculators = () => {
         setTimeout(() => {
             setIsSurveying(false);
             setSurveyComplete(true);
-        }, 3000); // Simulate 3 seconds of AI processing
+        }, 3000);
     };
 
     const handleUploadClick = () => {
@@ -141,199 +143,210 @@ const Calculators = () => {
         <div className="min-h-screen bg-background transition-colors duration-300 pb-20 lg:pb-0 overflow-x-hidden">
             <Navbar />
 
-            <main className="container mx-auto px-4 py-6 md:py-10 max-w-[1600px]">
+            <main className="container mx-auto px-4 py-4 md:py-10 max-w-[1600px]">
                 
-                <div className="max-w-7xl mx-auto flex flex-col gap-8">
+                <div className="max-w-7xl mx-auto flex flex-col gap-6 lg:gap-8">
                     
-                    {/* Main Workspace: 2 Columns */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
-                        
-                        {/* LEFT COLUMN: CONTROL PANEL */}
-                        <div className="lg:col-span-4 space-y-6 animate-in fade-in slide-in-from-left-10 duration-700">
+                    {/* Integrated Workspace for Mobile / Separated for Desktop */}
+                    {!surveyComplete ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
                             
-                            {/* Project Configuration Card */}
-                            <Card className="border-none shadow-2xl rounded-[2.5rem] bg-white dark:bg-card overflow-hidden">
-                                <CardHeader className="bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 px-8 py-5">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 bg-primary/10 rounded-xl">
-                                             <Database className="w-5 h-5 text-primary" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Project Input</h3>
-                                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mt-1">Node Configuration</p>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent className="p-6 space-y-6">
-                                    {/* Functional Upload Zone */}
-                                    <div 
-                                        className="relative group cursor-pointer"
-                                        onClick={handleUploadClick}
-                                    >
-                                        <input 
-                                            type="file" 
-                                            ref={fileInputRef}
-                                            onChange={handleFileChange}
-                                            className="hidden"
-                                            accept=".pdf,.dwg,.rvt,.ifc,.jpg,.png"
-                                        />
-                                        <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 via-sky-500/20 to-primary/20 rounded-[2rem] blur opacity-25 group-hover:opacity-75 transition duration-1000"></div>
-                                        <div className={`relative border-2 border-dashed rounded-[2rem] p-8 md:p-10 text-center transition-all ${
-                                            selectedFile 
-                                                ? "border-primary bg-primary/5 dark:bg-primary/10" 
-                                                : "border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                                        }`}>
-                                            {selectedFile ? (
-                                                <div className="animate-in zoom-in-95 duration-300">
-                                                    <div className="w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-xl shadow-primary/30 relative">
-                                                        <File className="w-7 h-7" />
-                                                        <button 
-                                                            onClick={clearFile}
-                                                            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-colors"
-                                                        >
-                                                            <X className="w-3.5 h-3.5" />
-                                                        </button>
-                                                    </div>
-                                                    <p className="font-black text-slate-900 dark:text-white uppercase tracking-tighter text-xs line-clamp-1 px-4">{selectedFile.name}</p>
-                                                </div>
-                                            ) : (
-                                                <>
-                                                    <div className="w-12 h-12 bg-primary/10 dark:bg-primary/20 rounded-full flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform shadow-inner">
-                                                        <UploadCloud className="w-6 h-6 text-primary" />
-                                                    </div>
-                                                    <p className="font-black text-slate-700 dark:text-slate-200 uppercase tracking-tighter text-xs">Upload Blueprints</p>
-                                                    <p className="text-[8px] text-slate-400 dark:text-slate-500 mt-1 uppercase tracking-widest font-black italic">PDF • DWG • RVT • IFC</p>
-                                                </>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    {/* Neural Prompt */}
-                                    <div className="space-y-2">
-                                        <textarea
-                                            className="w-full min-h-[120px] p-5 rounded-2xl border bg-slate-50 dark:bg-slate-800/50 focus:ring-1 ring-primary/20 transition-all placeholder:text-slate-400 text-slate-700 dark:text-slate-200 font-medium text-xs leading-relaxed border-slate-100 dark:border-white/5 shadow-inner"
-                                            placeholder="E.g., A 3-story boutique hotel with industrial aesthetics..."
-                                        />
-                                    </div>
-
-                                    <Button
-                                        className="w-full h-14 text-[10px] font-black gap-3 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all rounded-xl bg-primary hover:bg-primary/90 text-white uppercase tracking-[0.2em]"
-                                        onClick={startAiAnalysis}
-                                        disabled={isSurveying}
-                                    >
-                                        {isSurveying ? (
-                                            <><RefreshCw className="w-4 h-4 animate-spin" /> SYNTHESIZING...</>
-                                        ) : (
-                                            <><Sparkles className="w-4 h-4 text-yellow-300" /> GENERATE BoQ</>
-                                        )}
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        </div>
-
-                        {/* RIGHT COLUMN: DYNAMIC RESULTS WORKSPACE */}
-                        <div className="lg:col-span-8 relative">
-                            {/* Fancy Red/Blue Border Container */}
-                            <div className="absolute -inset-[2px] bg-gradient-to-tr from-primary via-slate-200 to-sky-500 rounded-[2.5rem] opacity-30 lg:opacity-100 blur-[1px] hidden lg:block"></div>
-                            
-                            <div className="relative bg-white dark:bg-card h-full rounded-[2.5rem] overflow-hidden flex flex-col">
-                                {surveyComplete ? (
-                                    <div className="flex-grow flex flex-col p-6 lg:p-10 animate-in slide-in-from-bottom-10 fade-in duration-700">
-                                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                            {/* UNIFIED WORKSPACE CARD - PRIMARY FOR MOBILE, CONTROL PANEL FOR DESKTOP */}
+                            <div className="lg:col-span-4 relative group">
+                                {/* Fancy Red/Blue Border Container (Visible on all breakpoints now) */}
+                                <div className="absolute -inset-[2px] bg-gradient-to-tr from-primary via-slate-200 to-sky-500 rounded-[2.5rem] opacity-30 lg:opacity-40 blur-[1px]"></div>
+                                
+                                <Card className="relative border-none shadow-2xl rounded-[2.5rem] bg-white dark:bg-card overflow-hidden h-full z-10">
+                                    <CardHeader className="bg-slate-50/50 dark:bg-white/5 border-b border-slate-100 dark:border-white/5 px-6 py-4 lg:px-8 lg:py-5">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-primary/10 rounded-xl">
+                                                 <Database className="w-5 h-5 text-primary" />
+                                            </div>
                                             <div>
-                                                <h2 className="text-2xl lg:text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">Analysis <span className="text-primary italic">#QS-9421</span></h2>
-                                                <p className="text-[10px] font-bold text-slate-400 flex items-center gap-2 mt-1 uppercase tracking-widest"><Activity className="w-3.5 h-3.5 text-emerald-500" /> 98.2% Accuracy Rating</p>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <Button variant="outline" className="h-10 rounded-xl px-6 border-slate-200 font-bold text-[10px] uppercase tracking-widest gap-2"><BarChart className="w-4 h-4" /> CSV</Button>
-                                                <Button variant="outline" className="h-10 w-10 p-0 rounded-xl border-slate-200"><History className="w-4 h-4" /></Button>
+                                                <h3 className="text-base lg:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Project Input</h3>
+                                                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 mt-1">Node Configuration</p>
                                             </div>
                                         </div>
-
-                                        <Tabs defaultValue="phase1" className="w-full flex-grow flex flex-col">
-                                            <div className="bg-slate-50 dark:bg-white/5 p-1 px-4 border rounded-2xl mb-6">
-                                                <TabsList className="bg-transparent border-none w-full justify-start gap-2 overflow-x-auto h-auto p-0 scrollbar-hide">
-                                                    <TabsTrigger value="phase1" className="rounded-xl px-5 py-2.5 font-black text-[9px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all italic">Phase 1</TabsTrigger>
-                                                    <TabsTrigger value="phase2" className="rounded-xl px-5 py-2.5 font-black text-[9px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all italic">Phase 2</TabsTrigger>
-                                                    <TabsTrigger value="phase3" className="rounded-xl px-5 py-2.5 font-black text-[9px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all italic">Phase 3</TabsTrigger>
-                                                </TabsList>
+                                    </CardHeader>
+                                    
+                                    <CardContent className="p-6 space-y-6">
+                                        {/* Mobile-Only Integrated Hero Header (Inside the border) */}
+                                        <div className="lg:hidden text-center space-y-4 mb-2">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary text-[8px] font-black uppercase tracking-[0.2em]">
+                                                <BrainCircuit className="w-3 h-3" /> Neural QS v4.0
                                             </div>
+                                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tighter leading-none">
+                                                AI-Powered <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-500 italic">BoQ</span>
+                                            </h1>
+                                            <p className="text-[10px] text-slate-500 font-medium leading-tight max-w-[240px] mx-auto italic">
+                                                Transform architectural prompts or blueprints into detailed material estimations.
+                                            </p>
+                                        </div>
 
-                                            <div className="flex-grow overflow-y-auto max-h-[400px] lg:max-h-[350px] custom-scrollbar px-2">
-                                                <TabsContent value="phase1" className="space-y-3 m-0 pb-4">
-                                                    {[
-                                                        { item: "Portland Cement (50kg)", qty: "1,200 bags", price: "₦14.4M", provider: "Dangote" },
-                                                        { item: "Granite (3/4 inch)", qty: "450 Tons", price: "₦6.75M", provider: "Vetted" },
-                                                        { item: "Sharp Sand", qty: "320 Tons", price: "₦3.2M", provider: "Vetted" },
-                                                        { item: "Reinforcement Steel (16mm)", qty: "85 Tons", price: "₦51M", provider: "Universal" }
-                                                    ].map((row, i) => (
-                                                        <div key={i} className="flex items-center justify-between p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-transparent hover:border-primary/20 transition-all group">
-                                                            <div className="flex-grow">
-                                                                <div className="flex items-center gap-2">
-                                                                    <h4 className="font-black text-slate-800 dark:text-white text-sm uppercase tracking-tighter">{row.item}</h4>
-                                                                    <Badge className="text-[8px] h-3.5 px-1 font-black uppercase bg-primary/10 text-primary border-none">{row.provider}</Badge>
-                                                                </div>
-                                                                <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">{row.qty} required</p>
-                                                            </div>
-                                                            <div className="text-right">
-                                                                <p className="font-black text-lg text-slate-900 dark:text-white leading-none italic">{row.price}</p>
-                                                            </div>
+                                        {/* Integrated Textbox */}
+                                        <div className="space-y-2">
+                                            <textarea
+                                                className="w-full min-h-[140px] p-5 rounded-2xl border bg-slate-50 dark:bg-slate-800/50 focus:ring-1 ring-primary/20 transition-all placeholder:text-slate-400 text-slate-700 dark:text-slate-200 font-medium text-xs leading-relaxed border-slate-100 dark:border-white/5 shadow-inner"
+                                                placeholder="E.g., A 3-story boutique hotel with industrial aesthetics..."
+                                            />
+                                        </div>
+
+                                        {/* Functional Upload Zone */}
+                                        <div 
+                                            className="relative group cursor-pointer"
+                                            onClick={handleUploadClick}
+                                        >
+                                            <input 
+                                                type="file" 
+                                                ref={fileInputRef}
+                                                onChange={handleFileChange}
+                                                className="hidden"
+                                                accept=".pdf,.dwg,.rvt,.ifc,.jpg,.png"
+                                            />
+                                            <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 via-sky-500/10 to-primary/10 rounded-[1.5rem] blur opacity-25 group-hover:opacity-75 transition duration-1000"></div>
+                                            <div className={`relative border-2 border-dashed rounded-[1.5rem] p-6 text-center transition-all ${
+                                                selectedFile 
+                                                    ? "border-primary bg-primary/5 dark:bg-primary/10" 
+                                                    : "border-slate-100 dark:border-white/5 bg-white dark:bg-slate-900/50 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                            }`}>
+                                                {selectedFile ? (
+                                                    <div className="animate-in zoom-in-95 duration-300 flex items-center justify-center gap-3">
+                                                        <div className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-lg relative shrink-0">
+                                                            <File className="w-5 h-5" />
+                                                            <button 
+                                                                onClick={clearFile}
+                                                                className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full p-1 shadow-lg hover:bg-red-600 transition-colors"
+                                                            >
+                                                                <X className="w-2.5 h-2.5" />
+                                                            </button>
                                                         </div>
-                                                    ))}
-                                                </TabsContent>
-                                            </div>
-
-                                            <div className="mt-4 p-6 bg-emerald-50 dark:bg-emerald-950/20 rounded-3xl border border-emerald-100 flex justify-between items-center">
-                                                <div>
-                                                    <p className="text-emerald-800 dark:text-green-400 font-black uppercase tracking-[0.2em] text-[8px] mb-1">Phase 1 Total Index</p>
-                                                    <p className="text-3xl font-black text-emerald-900 dark:text-green-200 italic">₦75.3M</p>
-                                                </div>
-                                                <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 h-12 rounded-xl text-xs uppercase tracking-widest gap-3 shadow-lg shadow-emerald-500/20">
-                                                    Procurement <ShoppingCart className="w-4 h-4" />
-                                                </Button>
-                                            </div>
-                                        </Tabs>
-                                    </div>
-                                ) : (
-                                    <div className="flex-grow flex flex-col justify-center items-center lg:items-start p-8 lg:p-12 animate-in fade-in duration-1000">
-                                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-8 w-fit shrink-0">
-                                            <BrainCircuit className="w-3.5 h-3.5" /> Neural QS v4.0
-                                        </div>
-                                        
-                                        <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-[0.8] mb-8">
-                                            AI-Powered <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-red-500 to-orange-500 italic">Bill of Quantities</span>
-                                        </h1>
-                                        
-                                        <p className="text-sm md:text-lg lg:text-2xl text-slate-400 dark:text-slate-500 font-medium leading-tight max-w-xl italic lg:max-w-2xl">
-                                            Transform architectural prompts or blueprints into detailed, phased material estimations in seconds.
-                                        </p>
-                                        
-                                        {/* Process Overview */}
-                                        <div className="flex gap-10 mt-16 opacity-30 lg:mt-20">
-                                            {[
-                                                { icon: UploadCloud, label: "Vault" },
-                                                { icon: Sparkles, label: "Neural Engine" },
-                                                { icon: BarChart, label: "BoQ Deliver" }
-                                            ].map((step, i) => (
-                                                <div key={i} className="flex flex-col items-center lg:items-start gap-2">
-                                                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
-                                                        <step.icon className="w-5 h-5 shadow-inner" />
+                                                        <p className="font-black text-slate-900 dark:text-white uppercase tracking-tighter text-[10px] line-clamp-1">{selectedFile.name}</p>
                                                     </div>
-                                                    <span className="text-[8px] font-black uppercase tracking-widest">{step.label}</span>
-                                                </div>
-                                            ))}
+                                                ) : (
+                                                    <div className="flex items-center justify-center gap-4">
+                                                        <div className="w-10 h-10 bg-primary/10 dark:bg-primary/20 rounded-xl flex items-center justify-center shrink-0">
+                                                            <UploadCloud className="w-5 h-5 text-primary" />
+                                                        </div>
+                                                        <div className="text-left">
+                                                            <p className="font-black text-slate-700 dark:text-slate-200 uppercase tracking-tighter text-[10px]">Upload Plan</p>
+                                                            <p className="text-[7px] text-slate-400 uppercase tracking-widest font-black italic">PDF • DWG • RVT</p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
+
+                                        <Button
+                                            className="w-full h-14 text-[10px] font-black gap-3 shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all rounded-xl bg-primary hover:bg-primary/90 text-white uppercase tracking-[0.2em]"
+                                            onClick={startAiAnalysis}
+                                            disabled={isSurveying}
+                                        >
+                                            {isSurveying ? (
+                                                <><RefreshCw className="w-4 h-4 animate-spin" /> SYNTHESIZING...</>
+                                            ) : (
+                                                <><Sparkles className="w-4 h-4 text-yellow-300" /> GENERATE BoQ</>
+                                            )}
+                                        </Button>
+                                    </CardContent>
+                                </Card>
+                            </div>
+
+                            {/* RIGHT COLUMN: DESKTOP-ONLY HERO DISPLAY */}
+                            <div className="hidden lg:flex lg:col-span-8 relative">
+                                <div className="flex-grow flex flex-col justify-center items-start lg:p-12 animate-in fade-in duration-1000">
+                                    <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-8 w-fit shrink-0">
+                                        <BrainCircuit className="w-3.5 h-3.5" /> Neural QS v4.0
                                     </div>
-                                )}
+                                    <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-[0.8] mb-8">
+                                        AI-Powered <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-red-500 to-orange-500 italic">Bill of Quantities</span>
+                                    </h1>
+                                    <p className="text-sm md:text-lg lg:text-2xl text-slate-400 dark:text-slate-500 font-medium leading-tight max-w-xl italic lg:max-w-2xl">
+                                        Transform architectural prompts or blueprints into detailed, phased material estimations in seconds.
+                                    </p>
+                                    <div className="flex gap-10 mt-16 opacity-30 lg:mt-20">
+                                        {[
+                                            { icon: UploadCloud, label: "Vault" },
+                                            { icon: Sparkles, label: "Neural Engine" },
+                                            { icon: BarChart, label: "BoQ Deliver" }
+                                        ].map((step, i) => (
+                                            <div key={i} className="flex flex-col items-center lg:items-start gap-2">
+                                                <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                                                    <step.icon className="w-5 h-5 shadow-inner" />
+                                                </div>
+                                                <span className="text-[8px] font-black uppercase tracking-widest">{step.label}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    ) : (
+                        /* RESULTS DISPLAY AREA (MODERNIZED REPORT) */
+                        <div className="lg:col-span-12 relative animate-in zoom-in-95 fade-in duration-700">
+                             <div className="absolute -inset-[2px] bg-gradient-to-tr from-primary via-slate-200 to-sky-500 rounded-[2.5rem] opacity-30 lg:opacity-100 blur-[1px]"></div>
+                             <div className="relative bg-white dark:bg-card min-h-[500px] rounded-[2.5rem] overflow-hidden flex flex-col p-6 lg:p-10">
+                                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+                                    <div>
+                                        <h2 className="text-2xl lg:text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tighter italic text-center lg:text-left w-full lg:w-auto">Analysis <span className="text-primary italic">#QS-9421</span></h2>
+                                        <p className="text-[10px] font-bold text-slate-400 flex items-center justify-center lg:justify-start gap-2 mt-1 uppercase tracking-widest"><Activity className="w-3.5 h-3.5 text-emerald-500" /> 98.2% Accuracy Rating</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 w-full lg:w-auto">
+                                        <Button variant="outline" className="flex-1 lg:flex-none h-10 rounded-xl px-6 border-slate-200 font-bold text-[10px] uppercase tracking-widest gap-2"><BarChart className="w-4 h-4" /> CSV</Button>
+                                        <Button variant="outline" className="h-10 w-10 p-0 rounded-xl border-slate-200"><History className="w-4 h-4" /></Button>
+                                    </div>
+                                </div>
 
-                    </div>
+                                <Tabs defaultValue="phase1" className="w-full flex-grow flex flex-col">
+                                    <div className="bg-slate-50 dark:bg-white/5 p-1 px-4 border rounded-2xl mb-6">
+                                        <TabsList className="bg-transparent border-none w-full justify-start gap-2 overflow-x-auto h-auto p-0 scrollbar-hide">
+                                            <TabsTrigger value="phase1" className="rounded-xl px-5 py-2.5 font-black text-[9px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all italic">Phase 1</TabsTrigger>
+                                            <TabsTrigger value="phase2" className="rounded-xl px-5 py-2.5 font-black text-[9px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all italic">Phase 2</TabsTrigger>
+                                            <TabsTrigger value="phase3" className="rounded-xl px-5 py-2.5 font-black text-[9px] uppercase tracking-widest data-[state=active]:bg-white dark:data-[state=active]:bg-slate-800 data-[state=active]:text-primary data-[state=active]:shadow-sm transition-all italic">Phase 3</TabsTrigger>
+                                        </TabsList>
+                                    </div>
 
-                    {/* DESKTOP ONLY: LEGACY MODULES WITH FANCY BORDERS & UPWARD DROPDOWNS */}
-                    <div className="mt-4 lg:mt-6">
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 px-4 mb-4">Legacy Estimation Protocol Modules</p>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pb-2">
+                                    <div className="flex-grow overflow-y-auto max-h-[400px] lg:max-h-[350px] custom-scrollbar px-2">
+                                        <TabsContent value="phase1" className="space-y-3 m-0 pb-4">
+                                            {[
+                                                { item: "Portland Cement (50kg)", qty: "1,200 bags", price: "₦14.4M", provider: "Dangote" },
+                                                { item: "Granite (3/4 inch)", qty: "450 Tons", price: "₦6.75M", provider: "Vetted" },
+                                                { item: "Sharp Sand", qty: "320 Tons", price: "₦3.2M", provider: "Vetted" },
+                                                { item: "Reinforcement Steel (16mm)", qty: "85 Tons", price: "₦51M", provider: "Universal" }
+                                            ].map((row, i) => (
+                                                <div key={i} className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-5 bg-slate-50 dark:bg-white/5 rounded-3xl border border-transparent hover:border-primary/20 transition-all group gap-3 lg:gap-0">
+                                                    <div className="flex-grow">
+                                                        <div className="flex items-center gap-2">
+                                                            <h4 className="font-black text-slate-800 dark:text-white text-[11px] lg:text-sm uppercase tracking-tighter">{row.item}</h4>
+                                                            <Badge className="text-[7px] lg:text-[8px] h-3.5 px-1 font-black uppercase bg-primary/10 text-primary border-none">{row.provider}</Badge>
+                                                        </div>
+                                                        <p className="text-[8px] lg:text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">{row.qty} required</p>
+                                                    </div>
+                                                    <div className="text-right w-full lg:w-auto border-t lg:border-none pt-2 lg:pt-0">
+                                                        <p className="font-black text-base lg:text-lg text-slate-900 dark:text-white leading-none italic">{row.price}</p>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </TabsContent>
+                                    </div>
+
+                                    <div className="mt-4 p-6 bg-emerald-50 dark:bg-emerald-950/20 rounded-3xl border border-emerald-100 flex flex-col lg:flex-row justify-between items-center gap-4">
+                                        <div className="text-center lg:text-left">
+                                            <p className="text-emerald-800 dark:text-green-400 font-black uppercase tracking-[0.2em] text-[8px] mb-1">Phase 1 Total Index</p>
+                                            <p className="text-3xl lg:text-4xl font-black text-emerald-900 dark:text-green-200 italic">₦75.3M</p>
+                                        </div>
+                                        <Button className="w-full lg:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-black px-8 h-14 lg:h-12 rounded-xl text-xs uppercase tracking-widest gap-3 shadow-lg shadow-emerald-500/20">
+                                            Procurement <ShoppingCart className="w-4 h-4" />
+                                        </Button>
+                                    </div>
+                                </Tabs>
+                             </div>
+                        </div>
+                    )}
+
+                    {/* LEGACY SECTION: 2x2 GRID FOR MOBILE / 1x4 FOR DESKTOP */}
+                    <div className="mt-4 lg:mt-6 animate-in slide-in-from-bottom-5 duration-700">
+                        <p className="text-[8px] lg:text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 px-4 mb-4 text-center lg:text-left">Legacy Estimation Protocol Modules</p>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 pb-2">
                             {[
                                 { title: "Concrete Volume", icon: Calculator },
                                 { title: "Roofing Shingles", icon: Calculator },
