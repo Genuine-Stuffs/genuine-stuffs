@@ -67,7 +67,6 @@ const LegacyModule = ({ title, icon: Icon }: { title: string; icon: any }) => {
     return (
         <Popover onOpenChange={setIsOpen}>
             <div className="relative group">
-                {/* Fancy Red/Blue Glow Border (Applied globally now) */}
                 <div className="absolute -inset-[1px] bg-gradient-to-tr from-primary via-slate-200 to-sky-500 rounded-[1.5rem] lg:rounded-[2rem] opacity-40 group-hover:opacity-100 transition-opacity blur-[1px]"></div>
                 
                 <PopoverTrigger asChild>
@@ -108,7 +107,6 @@ const Calculators = () => {
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Scroll to top on mount
     useEffect(() => {
         window.scrollTo({ top: 0, behavior: 'instant' });
     }, []);
@@ -141,19 +139,19 @@ const Calculators = () => {
 
     return (
         <div className="min-h-screen bg-background transition-colors duration-300 pb-20 lg:pb-0 overflow-x-hidden">
-            <Navbar />
+            {/* Desktop-only Global Nav: effectively hidden on Mobile */}
+            <div className="hidden lg:block">
+                <Navbar />
+            </div>
 
             <main className="container mx-auto px-4 py-4 md:py-10 max-w-[1600px]">
                 
                 <div className="max-w-7xl mx-auto flex flex-col gap-6 lg:gap-8">
                     
-                    {/* Integrated Workspace for Mobile / Separated for Desktop */}
                     {!surveyComplete ? (
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
                             
-                            {/* UNIFIED WORKSPACE CARD - PRIMARY FOR MOBILE, CONTROL PANEL FOR DESKTOP */}
                             <div className="lg:col-span-4 relative group">
-                                {/* Fancy Red/Blue Border Container (Visible on all breakpoints now) */}
                                 <div className="absolute -inset-[2px] bg-gradient-to-tr from-primary via-slate-200 to-sky-500 rounded-[2.5rem] opacity-30 lg:opacity-40 blur-[1px]"></div>
                                 
                                 <Card className="relative border-none shadow-2xl rounded-[2.5rem] bg-white dark:bg-card overflow-hidden h-full z-10">
@@ -170,20 +168,21 @@ const Calculators = () => {
                                     </CardHeader>
                                     
                                     <CardContent className="p-6 space-y-6">
-                                        {/* Mobile-Only Integrated Hero Header (Inside the border) */}
                                         <div className="lg:hidden text-center space-y-4 mb-2">
                                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary text-[8px] font-black uppercase tracking-[0.2em]">
                                                 <BrainCircuit className="w-3 h-3" /> Neural QS v4.0
                                             </div>
-                                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tighter leading-none">
-                                                AI-Powered <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-500 italic">BoQ</span>
-                                            </h1>
-                                            <p className="text-[10px] text-slate-500 font-medium leading-tight max-w-[240px] mx-auto italic">
+                                            {/* Optimized Layout to prevent text cut-off: using better font size and padding */}
+                                            <div className="px-2">
+                                                <h1 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight leading-tight">
+                                                    AI-Powered <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-500 italic block sm:inline">BoQ</span>
+                                                </h1>
+                                            </div>
+                                            <p className="text-[10px] text-slate-500 font-medium leading-tight max-w-[260px] mx-auto italic">
                                                 Transform architectural prompts or blueprints into detailed material estimations.
                                             </p>
                                         </div>
 
-                                        {/* Integrated Textbox */}
                                         <div className="space-y-2">
                                             <textarea
                                                 className="w-full min-h-[140px] p-5 rounded-2xl border bg-slate-50 dark:bg-slate-800/50 focus:ring-1 ring-primary/20 transition-all placeholder:text-slate-400 text-slate-700 dark:text-slate-200 font-medium text-xs leading-relaxed border-slate-100 dark:border-white/5 shadow-inner"
@@ -191,7 +190,6 @@ const Calculators = () => {
                                             />
                                         </div>
 
-                                        {/* Functional Upload Zone */}
                                         <div 
                                             className="relative group cursor-pointer"
                                             onClick={handleUploadClick}
@@ -251,7 +249,6 @@ const Calculators = () => {
                                 </Card>
                             </div>
 
-                            {/* RIGHT COLUMN: DESKTOP-ONLY HERO DISPLAY */}
                             <div className="hidden lg:flex lg:col-span-8 relative">
                                 <div className="flex-grow flex flex-col justify-center items-start lg:p-12 animate-in fade-in duration-1000">
                                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-8 w-fit shrink-0">
@@ -281,7 +278,6 @@ const Calculators = () => {
                             </div>
                         </div>
                     ) : (
-                        /* RESULTS DISPLAY AREA (MODERNIZED REPORT) */
                         <div className="lg:col-span-12 relative animate-in zoom-in-95 fade-in duration-700">
                              <div className="absolute -inset-[2px] bg-gradient-to-tr from-primary via-slate-200 to-sky-500 rounded-[2.5rem] opacity-30 lg:opacity-100 blur-[1px]"></div>
                              <div className="relative bg-white dark:bg-card min-h-[500px] rounded-[2.5rem] overflow-hidden flex flex-col p-6 lg:p-10">
@@ -343,7 +339,6 @@ const Calculators = () => {
                         </div>
                     )}
 
-                    {/* LEGACY SECTION: 2x2 GRID FOR MOBILE / 1x4 FOR DESKTOP */}
                     <div className="mt-4 lg:mt-6 animate-in slide-in-from-bottom-5 duration-700">
                         <p className="text-[8px] lg:text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 px-4 mb-4 text-center lg:text-left">Legacy Estimation Protocol Modules</p>
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 pb-2">
