@@ -35,9 +35,8 @@ const BottomNav = () => {
             return [
                 { label: "Dashboard", icon: LayoutDashboard, path: "/pro-portal" },
                 { label: "AI Studio", icon: Sparkles, path: "/pro/ai-studio" },
-                { label: "BoQ Calc", icon: Calculator, path: "/calculators" },
+                { label: "BOQ Calculator", icon: Calculator, path: "/calculators" },
                 { label: "Resources", icon: BookOpen, path: "/resources" },
-                { label: "Profile", icon: User, path: `/pro/profile/${user?.id}` },
             ];
         } else if (role === 'vendor') {
             return [

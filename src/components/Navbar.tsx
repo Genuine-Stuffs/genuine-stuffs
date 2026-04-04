@@ -169,6 +169,38 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
+            {role === 'professional' && (
+              <>
+                <Link
+                  to="/pro/ai-studio"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 px-4 py-1.5 rounded-xl font-bold text-xs text-[#ffffff] hover:bg-white/10 active:scale-95 transition-all"
+                >
+                  <Sparkles className="w-4 h-4 opacity-70 text-primary" /> AI Studio
+                </Link>
+                <Link
+                  to="/calculators"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 px-4 py-1.5 rounded-xl font-bold text-xs text-amber-400 hover:bg-white/10 active:scale-95 transition-all"
+                >
+                  <Calculator className="w-4 h-4 opacity-70" /> BOQ Calculator
+                </Link>
+                <Link
+                  to={`/pro/profile/${user?.id}`}
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 px-4 py-1.5 rounded-xl font-bold text-xs text-[#ffffff] hover:bg-white/10 active:scale-95 transition-all"
+                >
+                  <User className="w-4 h-4 opacity-70" /> View Profile
+                </Link>
+                <Link
+                  to="/resources"
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center gap-2 px-4 py-1.5 rounded-xl font-bold text-xs text-[#ffffff] hover:bg-white/10 active:scale-95 transition-all"
+                >
+                  <BookOpen className="w-4 h-4 opacity-70" /> Resources
+                </Link>
+              </>
+            )}
             {role !== 'guest' && (
               <Link
                 to={role === 'vendor' ? "/vendor-settings" : "/settings"}
