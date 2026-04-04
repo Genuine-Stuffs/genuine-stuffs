@@ -609,45 +609,45 @@ const AIStudio = () => {
                 </main>
 
                 <Dialog open={showRefillModal} onOpenChange={setShowRefillModal}>
-                    <DialogContent className="max-w-4xl p-0 rounded-[2.5rem] overflow-y-auto max-h-[95dvh] border-none shadow-3xl bg-white dark:bg-background custom-scrollbar">
-                        <div className="p-6 md:p-12">
-                            <DialogHeader className="mb-10 text-center">
-                                <DialogTitle className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white flex items-center justify-center gap-3">
-                                    <Sparkles className="w-8 h-8 text-primary" /> Refill AI Credits
+                    <DialogContent className="max-w-4xl p-0 md:rounded-[2.5rem] border-none md:shadow-3xl bg-transparent md:bg-white md:dark:bg-background shadow-none">
+                        <div className="p-4 md:p-12">
+                            <DialogHeader className="mb-4 md:mb-10 text-center">
+                                <DialogTitle className="text-xl md:text-3xl font-black uppercase tracking-tight text-white md:text-slate-900 md:dark:text-white flex items-center justify-center gap-2">
+                                    <Sparkles className="w-5 h-5 md:w-8 md:h-8 text-primary" /> Refill AI Credits
                                 </DialogTitle>
-                                <DialogDescription className="text-lg font-medium italic text-slate-500 max-w-xl mx-auto mt-4">
+                                <DialogDescription className="text-xs md:text-lg font-medium italic text-slate-300 md:text-slate-500 max-w-xl mx-auto mt-1 md:mt-4">
                                     Choose a package to power your architectural design visions.
                                 </DialogDescription>
                             </DialogHeader>
 
-                            <div className="flex md:grid md:grid-cols-3 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory md:snap-none gap-6 pb-4 md:pb-0 px-2 md:px-0 -mx-2 md:mx-0 custom-scrollbar scroll-smooth whitespace-nowrap md:whitespace-normal">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
                                 {creditPackages.map((pack) => (
                                     <Card
                                         key={pack.name}
-                                        className={`relative group border-2 transition-all p-6 flex flex-col rounded-[2.5rem] cursor-pointer shrink-0 w-[85vw] md:w-auto snap-center snap-always whitespace-normal ${pack.popular ? 'border-primary bg-primary/5 shadow-2xl shadow-primary/10' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-card'
+                                        className={`relative group border-2 transition-all p-3 md:p-6 flex flex-col rounded-2xl md:rounded-[2.5rem] cursor-pointer w-full md:w-auto ${pack.popular ? 'border-primary bg-primary/5 shadow-2xl shadow-primary/10' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-card'
                                             }`}
                                         onClick={() => handlePaystackPayment(pack)}
                                     >
                                         {pack.popular && (
-                                            <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-widest">
+                                            <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-primary text-white text-[8px] md:text-[10px] font-black px-3 md:px-4 py-0.5 md:py-1 rounded-full uppercase tracking-widest">
                                                 Most Popular
                                             </span>
                                         )}
-                                        <div className="mb-6">
-                                            <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest mb-1">{pack.name}</h4>
+                                        <div className="mb-2 md:mb-6">
+                                            <h4 className="text-[10px] md:text-sm font-black text-slate-400 uppercase tracking-widest mb-0.5 md:mb-1">{pack.name}</h4>
                                             <div className="flex items-baseline gap-1">
-                                                <span className="text-4xl font-black text-slate-900 dark:text-white italic">{pack.credits}</span>
-                                                <span className="text-xs font-bold text-slate-400 uppercase">Credits</span>
+                                                <span className="text-xl md:text-4xl font-black text-slate-900 dark:text-white italic">{pack.credits}</span>
+                                                <span className="text-[8px] md:text-xs font-bold text-slate-400 uppercase">Credits</span>
                                             </div>
                                         </div>
-                                        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium italic mb-8 flex-grow">
+                                        <p className="hidden md:block text-sm text-slate-500 dark:text-slate-400 font-medium italic mb-8 flex-grow">
                                             {pack.description}
                                         </p>
-                                        <div className="mt-auto">
-                                            <div className="text-2xl font-black text-slate-900 dark:text-white mb-4">
+                                        <div className="mt-2 md:mt-auto">
+                                            <div className="text-lg md:text-2xl font-black text-slate-900 dark:text-white mb-2 md:mb-4">
                                                 ₦{pack.price.toLocaleString()}
                                             </div>
-                                            <Button className="w-full bg-slate-900 dark:bg-white dark:text-black hover:bg-primary hover:text-white transition-all rounded-xl font-black uppercase tracking-widest text-xs h-12">
+                                            <Button className="w-full bg-slate-900 dark:bg-white dark:text-black hover:bg-primary hover:text-white transition-all rounded-lg md:rounded-xl font-black uppercase tracking-widest text-[10px] md:text-xs h-9 md:h-12">
                                                 Buy Node
                                             </Button>
                                         </div>
