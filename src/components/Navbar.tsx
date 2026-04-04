@@ -20,32 +20,26 @@ const Navbar = () => {
   const location = useLocation();
   const { user, role, logout } = useAuth();
 
-  const getFilteredLinks = () => {
-    if (role === 'professional') {
-      return [
-        { path: "/pros", label: "ProHub" },
-        { path: "/pro/ai-studio", label: "AI-Studio" },
-        { path: "/calculators", label: "BOQ-Cal" },
-        { path: "/resources", label: "Resources" },
-        { path: "/pro-portal", label: "Dashboard" },
-      ];
-    }
-    
-    return [
-      { path: "/", label: "Home" },
-      { path: "/marketplace", label: "Marketplace" },
-      { path: "/hire-experts", label: "Hire Certified AEC Experts", hideForRole: "professional" },
-      { path: "/pros", label: "ProHuB", role: "professional" },
-      { path: "/pro-portal", label: "Dashboard", role: "professional" },
-      { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
-    ].filter(link => {
-      if (link.role && link.role !== role) return false;
-      if (link.hideForRole && link.hideForRole === role) return false;
-      return true;
-    });
-  };
+  const filteredLinks = [
+    { path: "/", label: "Home" },
+    { path: "/marketplace", label: "Marketplace" },
+    { path: "/hire-experts", label: "Hire Certified AEC Experts", hideForRole: "professional" },
+    { path: "/pros", label: "ProHuB", role: "professional" },
+    { path: "/pro-portal", label: "Dashboard", role: "professional" },
+    { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
+  ].filter(link => {
+    if (link.role && link.role !== role) return false;
+    if (link.hideForRole && link.hideForRole === role) return false;
+    return true;
+  });
 
-  const filteredLinks = getFilteredLinks();
+  const desktopLinks = role === 'professional' ? [
+    { path: "/pros", label: "ProHub" },
+    { path: "/pro/ai-studio", label: "AI-Studio" },
+    { path: "/calculators", label: "BOQ-Cal" },
+    { path: "/resources", label: "Resources" },
+    { path: "/pro-portal", label: "Dashboard" },
+  ] : filteredLinks;
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -60,7 +54,7 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             <div className="flex items-center space-x-1 bg-slate-100/50 dark:bg-muted/50 p-1.5 rounded-2xl">
-              {filteredLinks.map((link) => (
+              {desktopLinks.map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
@@ -181,17 +175,6 @@ const Navbar = () => {
                 {link.label}
               </Link>
             ))}
-            {role === 'professional' && (
-              <>
-                <Link
-                  to={`/pro/profile/${user?.id}`}
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-2 px-4 py-1.5 rounded-xl font-bold text-xs text-[#ffffff] hover:bg-white/10 active:scale-95 transition-all"
-                >
-                  <User className="w-4 h-4 opacity-70" /> View Profile
-                </Link>
-              </>
-            )}
             {role !== 'guest' && (
               <Link
                 to={role === 'vendor' ? "/vendor-settings" : "/settings"}
