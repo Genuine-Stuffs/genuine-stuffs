@@ -609,7 +609,7 @@ const AIStudio = () => {
                 </main>
 
                 <Dialog open={showRefillModal} onOpenChange={setShowRefillModal}>
-                    <DialogContent className="max-w-4xl p-0 md:rounded-[2.5rem] border-none md:shadow-3xl bg-transparent md:bg-white md:dark:bg-background shadow-none">
+                    <DialogContent className="max-w-4xl p-0 md:rounded-[2.5rem] border-none md:shadow-3xl bg-transparent md:bg-white md:dark:bg-background shadow-none [&>button]:text-white md:[&>button]:text-slate-400 md:dark:[&>button]:text-slate-500 [&>button]:opacity-100 [&>button]:scale-150 md:[&>button]:scale-100">
                         <div className="p-4 md:p-12">
                             <DialogHeader className="mb-4 md:mb-10 text-center">
                                 <DialogTitle className="text-xl md:text-3xl font-black uppercase tracking-tight text-white md:text-slate-900 md:dark:text-white flex items-center justify-center gap-2">
@@ -624,7 +624,9 @@ const AIStudio = () => {
                                 {creditPackages.map((pack) => (
                                     <Card
                                         key={pack.name}
-                                        className={`relative group border-2 transition-all p-3 md:p-6 flex flex-col rounded-2xl md:rounded-[2.5rem] cursor-pointer w-full md:w-auto ${pack.popular ? 'border-primary bg-primary/5 shadow-2xl shadow-primary/10' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-card'
+                                        className={`relative border-2 transition-all p-3 md:p-6 flex flex-col rounded-2xl md:rounded-[2.5rem] cursor-pointer w-full md:w-auto ${pack.popular 
+                                            ? 'border-red-500 bg-red-50/50 dark:bg-red-500/5 shadow-[0_0_20px_-5px_rgba(59,130,246,0.6)]' 
+                                            : 'border-slate-100 dark:border-white/5 bg-white dark:bg-card'
                                             }`}
                                         onClick={() => handlePaystackPayment(pack)}
                                     >
