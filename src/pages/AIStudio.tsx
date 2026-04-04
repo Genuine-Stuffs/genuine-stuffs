@@ -177,7 +177,7 @@ const AIStudio = () => {
             ]
         },
         {
-            name: "QS",
+            name: "Quantity Surveyor",
             icon: <Calculator className="w-5 h-5 text-primary" />,
             recipes: [
                 "Foundation phase site study.",
@@ -296,7 +296,7 @@ const AIStudio = () => {
                             align="end"
                             style={{ width: '200px', maxHeight: '300px' }}
                         >
-                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 p-2 border-b dark:border-white/5 mb-1">Pick a Profession</p>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 p-2 border-b dark:border-white/5 mb-1">Pick A Role</p>
                             {professionalRoles.map(r => (
                                 <SelectItem
                                     key={r.name}
@@ -486,7 +486,7 @@ const AIStudio = () => {
 
                         <div className="flex items-center gap-6">
                             <div className="flex flex-col items-end">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Pick A Profession</span>
+                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1.5">Pick A Role</span>
                                 <Select value={selectedRole} onValueChange={setSelectedRole}>
                                     <SelectTrigger className="w-56 h-11 rounded-xl bg-white dark:bg-background border-slate-200 dark:border-border font-bold text-xs uppercase tracking-widest shadow-sm focus:ring-primary/20 transition-all">
                                         <SelectValue placeholder="Select Profession" />
