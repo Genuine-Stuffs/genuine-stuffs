@@ -23,7 +23,7 @@ const BottomNav = () => {
         return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
-    const isPortalRoute = location.pathname.startsWith('/vendor-') || location.pathname.startsWith('/pro-') || location.pathname === '/pro-portal';
+    const isPortalRoute = location.pathname.startsWith('/vendor-') || location.pathname.startsWith('/pro-') || location.pathname === '/pro-portal' || location.pathname === '/pro/ai-studio';
     if (location.pathname === "/login" || location.pathname === "/register" || isPortalRoute) {
         return null;
     }
