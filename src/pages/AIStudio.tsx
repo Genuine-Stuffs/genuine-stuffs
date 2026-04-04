@@ -620,11 +620,11 @@ const AIStudio = () => {
                                 </DialogDescription>
                             </DialogHeader>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="flex md:grid md:grid-cols-3 overflow-x-auto md:overflow-x-visible snap-x snap-mandatory md:snap-none gap-6 pb-4 md:pb-0 px-2 md:px-0 -mx-2 md:mx-0 custom-scrollbar scroll-smooth whitespace-nowrap md:whitespace-normal">
                                 {creditPackages.map((pack) => (
                                     <Card
                                         key={pack.name}
-                                        className={`relative group border-2 transition-all p-6 flex flex-col rounded-[2rem] hover:scale-[1.02] cursor-pointer ${pack.popular ? 'border-primary bg-primary/5 shadow-2xl shadow-primary/10' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-card'
+                                        className={`relative group border-2 transition-all p-6 flex flex-col rounded-[2.5rem] cursor-pointer shrink-0 w-[85vw] md:w-auto snap-center snap-always whitespace-normal ${pack.popular ? 'border-primary bg-primary/5 shadow-2xl shadow-primary/10' : 'border-slate-100 dark:border-white/5 bg-white dark:bg-card'
                                             }`}
                                         onClick={() => handlePaystackPayment(pack)}
                                     >
