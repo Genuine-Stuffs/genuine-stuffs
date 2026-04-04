@@ -35,7 +35,8 @@ import {
     Zap,
     Scale,
     ShieldCheck,
-    User
+    User,
+    BookOpen
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "backend/supabaseClient";
@@ -451,7 +452,7 @@ const ProDashboard = () => {
                                 { name: "AI Workspace", icon: Sparkles, path: "/pro/ai-studio", color: "text-primary" },
                                 { name: "Materials", icon: Building2, path: "/marketplace", color: "text-blue-500" },
                                 { name: "Neural BoQ", icon: Cpu, path: "/calculators", color: "text-amber-500" },
-                                { name: "QS Calculator", icon: Calculator, path: "/calculators", color: "text-sky-500" },
+                                { name: "Resources", icon: BookOpen, path: "/resources", color: "text-emerald-500" },
                             ].map((tool, i) => (
                                 <Link 
                                     key={i} 
