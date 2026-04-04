@@ -359,7 +359,7 @@ const ProDashboard = () => {
                     <div className="col-span-12 lg:col-span-4 space-y-8">
                         
                         {/* Profile Overview (Inspired by Sample) */}
-                        <Card className="rounded-[3rem] border-none bg-primary text-white p-1 shadow-2xl dark:shadow-[-20px_0_50px_-15px_rgba(239,68,68,0.6),20px_0_50px_-15px_rgba(59,130,246,0.6)] relative overflow-hidden group">
+                        <Card className="rounded-[3rem] border-none bg-gradient-to-r from-red-500 to-blue-500 text-white p-1 shadow-2xl dark:shadow-[-20px_0_50px_-15px_rgba(239,68,68,0.6),20px_0_50px_-15px_rgba(59,130,246,0.6)] relative overflow-hidden group">
                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
                            <CardContent className="bg-slate-900 dark:bg-[#0F1115] rounded-[2.8rem] p-10 h-full relative z-10 border dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50">
                                 <div className="flex flex-col items-center text-center">
