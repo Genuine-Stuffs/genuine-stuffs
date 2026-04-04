@@ -616,7 +616,7 @@ const AIStudio = () => {
                                     <Sparkles className="w-5 h-5 md:w-8 md:h-8 text-primary" /> Refill AI Credits
                                 </DialogTitle>
                                 <DialogDescription className="text-xs md:text-lg font-medium italic text-slate-300 md:text-slate-500 max-w-xl mx-auto mt-1 md:mt-4">
-                                    Choose a package to power your architectural design visions.
+                                    Choose a package to power your AEC design visions.
                                 </DialogDescription>
                             </DialogHeader>
 
