@@ -625,8 +625,8 @@ const AIStudio = () => {
                                     <Card
                                         key={pack.name}
                                         className={`relative border-2 transition-all p-3 md:p-6 flex flex-col rounded-2xl md:rounded-[2.5rem] cursor-pointer w-full md:w-auto ${pack.popular 
-                                            ? 'border-red-500 bg-black/[0.03] dark:bg-red-500/5 backdrop-blur-md shadow-[0_0_20px_-5px_rgba(59,130,246,0.6)]' 
-                                            : 'border-slate-100 dark:border-white/5 bg-white dark:bg-card'
+                                            ? 'border-red-500 bg-slate-900/90 text-white dark:bg-red-500/10 dark:text-white backdrop-blur-md shadow-[0_0_20px_-5px_rgba(59,130,246,0.6)]' 
+                                            : 'border-slate-100 dark:border-white/5 bg-white text-slate-900 dark:bg-white/5 dark:text-white dark:backdrop-blur-md'
                                             }`}
                                         onClick={() => handlePaystackPayment(pack)}
                                     >
@@ -636,20 +636,20 @@ const AIStudio = () => {
                                             </span>
                                         )}
                                         <div className="mb-2 md:mb-6">
-                                            <h4 className="text-[10px] md:text-sm font-black text-slate-400 uppercase tracking-widest mb-0.5 md:mb-1">{pack.name}</h4>
+                                            <h4 className={`text-[10px] md:text-sm font-black uppercase tracking-widest mb-0.5 md:mb-1 ${pack.popular ? 'text-slate-400' : 'text-slate-400 dark:text-slate-500'}`}>{pack.name}</h4>
                                             <div className="flex items-baseline gap-1">
-                                                <span className="text-xl md:text-4xl font-black text-slate-900 dark:text-white italic">{pack.credits}</span>
-                                                <span className="text-[8px] md:text-xs font-bold text-slate-400 uppercase">Credits</span>
+                                                <span className="text-xl md:text-4xl font-black italic">{pack.credits}</span>
+                                                <span className={`text-[8px] md:text-xs font-bold uppercase ${pack.popular ? 'text-slate-400' : 'text-slate-400 dark:text-slate-500'}`}>Credits</span>
                                             </div>
                                         </div>
-                                        <p className="hidden md:block text-sm text-slate-500 dark:text-slate-400 font-medium italic mb-8 flex-grow">
+                                        <p className={`hidden md:block text-sm font-medium italic mb-8 flex-grow ${pack.popular ? 'text-slate-300' : 'text-slate-500 dark:text-slate-400'}`}>
                                             {pack.description}
                                         </p>
                                         <div className="mt-2 md:mt-auto">
-                                            <div className="text-lg md:text-2xl font-black text-slate-900 dark:text-white mb-2 md:mb-4">
+                                            <div className="text-lg md:text-2xl font-black mb-2 md:mb-4 italic">
                                                 ₦{pack.price.toLocaleString()}
                                             </div>
-                                            <Button className="w-full bg-slate-900 dark:bg-white dark:text-black hover:bg-primary hover:text-white transition-all rounded-lg md:rounded-xl font-black uppercase tracking-widest text-[10px] md:text-xs h-9 md:h-12">
+                                            <Button className={`w-full transition-all rounded-lg md:rounded-xl font-black uppercase tracking-widest text-[10px] md:text-xs h-9 md:h-12 ${pack.popular ? 'bg-white text-slate-900 hover:bg-primary hover:text-white' : 'bg-slate-900 dark:bg-white text-white dark:text-black hover:bg-primary hover:text-white'}`}>
                                                 Buy Node
                                             </Button>
                                         </div>
