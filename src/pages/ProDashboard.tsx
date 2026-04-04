@@ -190,7 +190,7 @@ const ProDashboard = () => {
                         
                         {/* Analytics Overview Cards */}
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6">
-                            <Card className="rounded-[2.5rem] border border-slate-200/50 dark:border-red-500/50 bg-white/70 dark:bg-[#0F1115]/80 backdrop-blur-xl shadow-xl dark:shadow-[0_4px_20px_-5px_rgba(59,130,246,0.5)] overflow-hidden group">
+                            <Card className="rounded-[2.5rem] border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50 bg-white/70 dark:bg-[#0F1115]/80 backdrop-blur-xl shadow-xl dark:shadow-[-10px_0_20px_-15px_rgba(239,68,68,0.5),10px_0_20px_-15px_rgba(59,130,246,0.5)] overflow-hidden group">
                                 <CardContent className="p-6 md:p-8">
                                     <div className="flex justify-between items-start mb-6">
                                         <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20">
@@ -208,7 +208,7 @@ const ProDashboard = () => {
                                 </CardContent>
                             </Card>
 
-                             <Card className="rounded-[2.5rem] border border-slate-200/50 dark:border-red-500/50 bg-white/70 dark:bg-[#0F1115]/80 backdrop-blur-xl shadow-xl dark:shadow-[0_4px_20px_-5px_rgba(59,130,246,0.5)] overflow-hidden group">
+                             <Card className="rounded-[2.5rem] border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50 bg-white/70 dark:bg-[#0F1115]/80 backdrop-blur-xl shadow-xl dark:shadow-[-10px_0_20px_-15px_rgba(239,68,68,0.5),10px_0_20px_-15px_rgba(59,130,246,0.5)] overflow-hidden group">
                                 <CardContent className="p-6 md:p-8">
                                     <div className="flex justify-between items-start mb-6">
                                         <div className="p-4 bg-emerald-500/10 rounded-2xl border border-emerald-500/20">
@@ -226,7 +226,7 @@ const ProDashboard = () => {
                                 </CardContent>
                             </Card>
 
-                             <Card className="rounded-[2.5rem] border border-slate-200/50 dark:border-red-500/50 bg-slate-900 dark:bg-[#0F1115]/90 backdrop-blur-xl shadow-2xl dark:shadow-[0_8px_30px_-10px_rgba(59,130,246,0.6)] overflow-hidden group">
+                             <Card className="rounded-[2.5rem] border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50 bg-slate-900 dark:bg-[#0F1115]/90 backdrop-blur-xl shadow-2xl dark:shadow-[-15px_0_30px_-15px_rgba(239,68,68,0.6),15px_0_30px_-15px_rgba(59,130,246,0.6)] overflow-hidden group">
                                 <CardContent className="p-6 md:p-8">
                                     <div className="flex justify-between items-start mb-6">
                                         <div className="p-4 bg-primary rounded-2xl">
@@ -246,7 +246,7 @@ const ProDashboard = () => {
                         </div>
 
                         {/* Active Pipeline Table / Card List */}
-                        <Card className="rounded-[2.5rem] border border-slate-200/50 dark:border-red-500/50 bg-white/70 dark:bg-[#0F1115]/80 backdrop-blur-3xl shadow-2xl dark:shadow-[0_10px_40px_-15px_rgba(59,130,246,0.5)] overflow-hidden">
+                        <Card className="rounded-[2.5rem] border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/30 bg-white/70 dark:bg-[#0F1115]/80 backdrop-blur-3xl shadow-2xl dark:shadow-[-20px_0_40px_-20px_rgba(239,68,68,0.5),20px_0_40px_-20px_rgba(59,130,246,0.5)] overflow-hidden">
                             <CardHeader className="p-6 md:p-10 border-b border-slate-100 dark:border-white/5">
                                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                                     <div className="flex items-center gap-4">
@@ -359,9 +359,9 @@ const ProDashboard = () => {
                     <div className="col-span-12 lg:col-span-4 space-y-8">
                         
                         {/* Profile Overview (Inspired by Sample) */}
-                        <Card className="rounded-[3rem] border-none bg-primary text-white p-1 shadow-2xl dark:shadow-[0_10px_50px_-10px_rgba(59,130,246,0.6)] relative overflow-hidden group">
+                        <Card className="rounded-[3rem] border-none bg-primary text-white p-1 shadow-2xl dark:shadow-[-20px_0_50px_-15px_rgba(239,68,68,0.6),20px_0_50px_-15px_rgba(59,130,246,0.6)] relative overflow-hidden group">
                            <div className="absolute top-0 right-0 w-32 h-32 bg-white/20 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700" />
-                           <CardContent className="bg-slate-900 dark:bg-[#0F1115] rounded-[2.8rem] p-10 h-full relative z-10 border dark:border-red-500/50">
+                           <CardContent className="bg-slate-900 dark:bg-[#0F1115] rounded-[2.8rem] p-10 h-full relative z-10 border dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50">
                                 <div className="flex flex-col items-center text-center">
                                     <div className="relative group cursor-pointer">
                                         <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-tr from-primary to-rose-500 flex items-center justify-center p-1 shadow-2xl transform group-hover:rotate-6 transition-all duration-500">
@@ -395,7 +395,7 @@ const ProDashboard = () => {
                         </Card>
 
                         {/* Market Volatility (Market Trend Chart) */}
-                        <Card className="rounded-[3rem] border border-slate-200/50 dark:border-red-500/50 bg-white/70 dark:bg-[#0F1115]/80 backdrop-blur-xl shadow-xl dark:shadow-[0_8px_30px_-10px_rgba(59,130,246,0.6)] overflow-hidden p-8">
+                        <Card className="rounded-[3rem] border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50 bg-white/70 dark:bg-[#0F1115]/80 backdrop-blur-xl shadow-xl dark:shadow-[-15px_0_30px_-15px_rgba(239,68,68,0.5),15px_0_30px_-15px_rgba(59,130,246,0.5)] overflow-hidden p-8">
                             <div className="flex items-center justify-between mb-8">
                                 <div className="flex items-center gap-3">
                                     <TrendingUp className="w-5 h-5 text-emerald-500" />
@@ -457,7 +457,7 @@ const ProDashboard = () => {
                                 <Link 
                                     key={i} 
                                     to={tool.path}
-                                    className="p-6 bg-white dark:bg-[#0F1115] rounded-[2rem] border border-slate-200/50 dark:border-red-500/50 shadow-lg dark:shadow-[0_4px_25px_-5px_rgba(59,130,246,0.6)] hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col items-center text-center group"
+                                    className="p-6 bg-white dark:bg-[#0F1115] rounded-[2rem] border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50 shadow-lg dark:shadow-[-10px_0_20px_-12px_rgba(239,68,68,0.4),10px_0_20px_-12px_rgba(59,130,246,0.4)] hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 flex flex-col items-center text-center group"
                                 >
                                     <div className="w-12 h-12 rounded-2xl bg-slate-50 dark:bg-background/20 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                         <tool.icon className={`w-6 h-6 ${tool.color}`} />
