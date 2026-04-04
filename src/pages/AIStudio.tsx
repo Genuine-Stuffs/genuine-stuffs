@@ -625,7 +625,7 @@ const AIStudio = () => {
                                     <Card
                                         key={pack.name}
                                         className={`relative border-2 transition-all p-3 md:p-6 flex flex-col rounded-2xl md:rounded-[2.5rem] cursor-pointer w-full md:w-auto ${pack.popular 
-                                            ? 'border-red-500 bg-red-50/50 dark:bg-red-500/5 shadow-[0_0_20px_-5px_rgba(59,130,246,0.6)]' 
+                                            ? 'border-red-500 bg-black/[0.03] dark:bg-red-500/5 backdrop-blur-md shadow-[0_0_20px_-5px_rgba(59,130,246,0.6)]' 
                                             : 'border-slate-100 dark:border-white/5 bg-white dark:bg-card'
                                             }`}
                                         onClick={() => handlePaystackPayment(pack)}
