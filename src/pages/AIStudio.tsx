@@ -609,8 +609,8 @@ const AIStudio = () => {
                 </main>
 
                 <Dialog open={showRefillModal} onOpenChange={setShowRefillModal}>
-                    <DialogContent className="max-w-4xl p-0 rounded-[2.5rem] overflow-hidden border-none shadow-3xl bg-white dark:bg-background">
-                        <div className="p-8 md:p-12">
+                    <DialogContent className="max-w-4xl p-0 rounded-[2.5rem] overflow-y-auto max-h-[95dvh] border-none shadow-3xl bg-white dark:bg-background custom-scrollbar">
+                        <div className="p-6 md:p-12">
                             <DialogHeader className="mb-10 text-center">
                                 <DialogTitle className="text-3xl font-black uppercase tracking-tight text-slate-900 dark:text-white flex items-center justify-center gap-3">
                                     <Sparkles className="w-8 h-8 text-primary" /> Refill AI Credits
