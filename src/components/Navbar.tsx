@@ -48,18 +48,24 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             <div className="flex items-center space-x-1 bg-slate-100/50 dark:bg-muted/50 p-1.5 rounded-2xl">
-              {filteredLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  className={`text-sm font-bold px-4 py-2 rounded-xl transition-all ${isActive(link.path)
-                    ? "bg-white dark:bg-primary/20 text-primary shadow-sm"
-                    : "text-slate-500 dark:text-white hover:text-slate-900 dark:hover:text-red-500 hover:bg-white/50 dark:hover:bg-white/10"
-                    }`}
-                >
-                  {link.label}
-                </Link>
-              ))}
+              {filteredLinks.map((link) => {
+                const isMarketplaceSwap = role === 'professional' && link.path === '/marketplace';
+                const path = isMarketplaceSwap ? '/resources' : link.path;
+                const label = isMarketplaceSwap ? 'Resources' : link.label;
+
+                return (
+                  <Link
+                    key={path}
+                    to={path}
+                    className={`text-sm font-bold px-4 py-2 rounded-xl transition-all ${isActive(path)
+                      ? "bg-white dark:bg-primary/20 text-primary shadow-sm"
+                      : "text-slate-500 dark:text-white hover:text-slate-900 dark:hover:text-red-500 hover:bg-white/50 dark:hover:bg-white/10"
+                      }`}
+                  >
+                    {label}
+                  </Link>
+                );
+              })}
             </div>
 
             <ModeToggle />
@@ -118,8 +124,8 @@ const Navbar = () => {
                   )}
                   {role === 'professional' && (
                     <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors">
-                      <Link to="/resources" className="flex items-center gap-3 w-full">
-                        <BookOpen className="w-4 h-4 text-slate-500 dark:text-slate-400" /> <span className="font-bold text-slate-700 dark:text-slate-200">Resources</span>
+                      <Link to="/marketplace" className="flex items-center gap-3 w-full">
+                        <ShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" /> <span className="font-bold text-slate-700 dark:text-slate-200">Marketplace</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
