@@ -20,20 +20,32 @@ const Navbar = () => {
   const location = useLocation();
   const { user, role, logout } = useAuth();
 
-  const navLinks = [
-    { path: "/", label: "Home" },
-    { path: "/marketplace", label: "Marketplace" },
-    { path: "/hire-experts", label: "Hire Certified AEC Experts", hideForRole: "professional" },
-    { path: "/pros", label: "ProHuB", role: "professional" },
-    { path: "/pro-portal", label: "Dashboard", role: "professional" },
-    { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
-  ];
+  const getFilteredLinks = () => {
+    if (role === 'professional') {
+      return [
+        { path: "/pros", label: "ProHub" },
+        { path: "/pro/ai-studio", label: "AI-Studio" },
+        { path: "/calculators", label: "BOQ-Cal" },
+        { path: "/resources", label: "Resources" },
+        { path: "/pro-portal", label: "Dashboard" },
+      ];
+    }
+    
+    return [
+      { path: "/", label: "Home" },
+      { path: "/marketplace", label: "Marketplace" },
+      { path: "/hire-experts", label: "Hire Certified AEC Experts", hideForRole: "professional" },
+      { path: "/pros", label: "ProHuB", role: "professional" },
+      { path: "/pro-portal", label: "Dashboard", role: "professional" },
+      { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
+    ].filter(link => {
+      if (link.role && link.role !== role) return false;
+      if (link.hideForRole && link.hideForRole === role) return false;
+      return true;
+    });
+  };
 
-  const filteredLinks = navLinks.filter(link => {
-    if (link.role && link.role !== role) return false;
-    if (link.hideForRole && link.hideForRole === role) return false;
-    return true;
-  });
+  const filteredLinks = getFilteredLinks();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -48,24 +60,18 @@ const Navbar = () => {
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-6">
             <div className="flex items-center space-x-1 bg-slate-100/50 dark:bg-muted/50 p-1.5 rounded-2xl">
-              {filteredLinks.map((link) => {
-                const isMarketplaceSwap = role === 'professional' && link.path === '/marketplace';
-                const path = isMarketplaceSwap ? '/resources' : link.path;
-                const label = isMarketplaceSwap ? 'Resources' : link.label;
-
-                return (
-                  <Link
-                    key={path}
-                    to={path}
-                    className={`text-sm font-bold px-4 py-2 rounded-xl transition-all ${isActive(path)
-                      ? "bg-white dark:bg-primary/20 text-primary shadow-sm"
-                      : "text-slate-500 dark:text-white hover:text-slate-900 dark:hover:text-red-500 hover:bg-white/50 dark:hover:bg-white/10"
-                      }`}
-                  >
-                    {label}
-                  </Link>
-                );
-              })}
+              {filteredLinks.map((link) => (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`text-sm font-bold px-4 py-2 rounded-xl transition-all ${isActive(link.path)
+                    ? "bg-white dark:bg-primary/20 text-primary shadow-sm"
+                    : "text-slate-500 dark:text-white hover:text-slate-900 dark:hover:text-red-500 hover:bg-white/50 dark:hover:bg-white/10"
+                    }`}
+                >
+                  {link.label}
+                </Link>
+              ))}
             </div>
 
             <ModeToggle />
@@ -178,32 +184,11 @@ const Navbar = () => {
             {role === 'professional' && (
               <>
                 <Link
-                  to="/pro/ai-studio"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-2 px-4 py-1.5 rounded-xl font-bold text-xs text-[#ffffff] hover:bg-white/10 active:scale-95 transition-all"
-                >
-                  <Sparkles className="w-4 h-4 opacity-70 text-primary" /> AI Studio
-                </Link>
-                <Link
-                  to="/calculators"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-2 px-4 py-1.5 rounded-xl font-bold text-xs text-amber-400 hover:bg-white/10 active:scale-95 transition-all"
-                >
-                  <Calculator className="w-4 h-4 opacity-70" /> BOQ Calculator
-                </Link>
-                <Link
                   to={`/pro/profile/${user?.id}`}
                   onClick={() => setIsOpen(false)}
                   className="flex items-center gap-2 px-4 py-1.5 rounded-xl font-bold text-xs text-[#ffffff] hover:bg-white/10 active:scale-95 transition-all"
                 >
                   <User className="w-4 h-4 opacity-70" /> View Profile
-                </Link>
-                <Link
-                  to="/resources"
-                  onClick={() => setIsOpen(false)}
-                  className="flex items-center gap-2 px-4 py-1.5 rounded-xl font-bold text-xs text-[#ffffff] hover:bg-white/10 active:scale-95 transition-all"
-                >
-                  <BookOpen className="w-4 h-4 opacity-70" /> Resources
                 </Link>
               </>
             )}
