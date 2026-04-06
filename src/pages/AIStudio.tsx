@@ -493,25 +493,25 @@ const AIStudio = () => {
                 <main className="flex-1 flex flex-col relative overflow-hidden">
                     <div className="mesh-background opacity-20" />
 
-                    {/* Floating Header Controls */}
-                    <div className="absolute top-0 right-0 left-0 hidden md:flex items-center justify-between p-6 z-30 pointer-events-none">
-                        <div className="flex items-center gap-4 pointer-events-auto">
+                    {/* Top Static Bar */}
+                    <div className="hidden md:flex items-center justify-between px-6 py-3 bg-white dark:bg-[#15171a] border-b border-slate-200 dark:border-white/5 z-40 shrink-0 w-full">
+                        <div className="flex items-center gap-4">
                             {!sidebarOpen && (
-                                <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="rounded-xl bg-white/50 dark:bg-card/50 backdrop-blur-md border border-slate-200/50 dark:border-white/5 shadow-sm hover:shadow-md transition-all">
+                                <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="rounded-xl border border-slate-200 dark:border-white/5 shadow-sm hover:shadow-md transition-all shrink-0">
                                     <Menu className="w-5 h-5 text-slate-900 dark:text-white" />
                                 </Button>
                             )}
-                             <div className="bg-white/50 dark:bg-card/50 backdrop-blur-md border border-slate-200/50 dark:border-white/5 px-5 py-3 rounded-[1.5rem] shadow-sm">
-                                <h2 className="text-sm font-black uppercase tracking-tight text-slate-900 dark:text-white leading-tight">Studio Environment</h2>
-                                <p className="text-[9px] font-black uppercase tracking-widest text-primary mt-0.5">Active AI Node</p>
+                             <div>
+                                <h2 className="text-[15px] font-black uppercase tracking-tight text-slate-900 dark:text-white leading-tight">Studio Environment</h2>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-[#e11d48] mt-0.5">Active AI Node</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-6 pointer-events-auto">
+                        <div className="flex items-center gap-6">
                             <div className="flex flex-col items-end">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 mb-1.5 drop-shadow-sm bg-white/30 dark:bg-black/30 backdrop-blur-sm px-2 py-0.5 rounded-full">Pick A Role</span>
+                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400/80 mb-1.5">Pick A Role</span>
                                 <Select value={selectedRole} onValueChange={setSelectedRole}>
-                                    <SelectTrigger className="w-56 h-12 rounded-2xl bg-white/70 dark:bg-background/70 backdrop-blur-xl border border-slate-200/80 dark:border-white/10 font-bold text-xs uppercase tracking-widest shadow-lg focus:ring-primary/20 transition-all hover:bg-white dark:hover:bg-background">
+                                    <SelectTrigger className="w-60 h-11 rounded-[1rem] bg-white dark:bg-card border border-slate-200 dark:border-white/10 font-bold text-[11px] uppercase tracking-widest shadow-sm hover:border-slate-300 dark:hover:border-white/20 focus:ring-primary/20 transition-all">
                                         <SelectValue placeholder="Select Profession" />
                                     </SelectTrigger>
                                     <SelectContent className="bg-white dark:bg-card border-slate-200 dark:border-border rounded-xl overflow-hidden shadow-2xl">
@@ -519,7 +519,7 @@ const AIStudio = () => {
                                             <SelectItem
                                                 key={r.name}
                                                 value={r.name}
-                                                className="font-bold text-xs uppercase tracking-widest py-3 focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer"
+                                                className="font-bold text-[11px] uppercase tracking-widest py-3 focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer"
                                             >
                                                 <div className="flex items-center gap-3">
                                                     {r.icon}
