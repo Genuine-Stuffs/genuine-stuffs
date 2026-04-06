@@ -328,11 +328,11 @@ const AIStudio = () => {
                 {/* Sidebar (Responsive ChatGPT/DeepSeek style) */}
                 <aside
                     className={`fixed inset-y-0 left-0 md:relative flex flex-col bg-slate-50 dark:bg-card border-r border-slate-200 dark:border-border transition-all duration-300 z-[60] overflow-hidden flex-shrink-0 
-                        ${sidebarOpen ? 'md:w-64' : 'md:w-0 md:min-w-0 md:border-r-0'}
+                        ${sidebarOpen ? 'md:w-64' : 'md:w-16'}
                         ${mobileSidebarOpen ? 'translate-x-0 w-[280px]' : '-translate-x-full md:translate-x-0'}
                     `}
                 >
-                    <div className="px-5 py-4 flex flex-col h-full overflow-y-auto overflow-x-hidden custom-scrollbar">
+                    <div className={`py-4 flex flex-col h-full overflow-y-auto overflow-x-hidden custom-scrollbar ${sidebarOpen ? 'px-5' : 'px-2'}`}>
                         {isMobile ? (
                             <>
                                 {/* Mobile Sidebar — mirrors Desktop layout exactly */}
@@ -387,83 +387,102 @@ const AIStudio = () => {
                             </>
                         ) : (
                             <>
-                                {/* Desktop Sidebar Layout - Condensed */}
-                                <div className="mb-2 flex items-center gap-1">
-                                    <Button variant="ghost" asChild className="flex-1 justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-[11px] uppercase tracking-widest hover:text-slate-900 dark:hover:text-white">
-                                        <Link to="/">
-                                            <Home className="w-4 h-4 text-slate-400" /> Home
+                                {/* Desktop Sidebar Layout - Smart Expand/Collapse */}
+                                
+                                <div className={`mb-4 flex ${sidebarOpen ? 'items-center gap-1' : 'flex-col items-center gap-3'} transition-all`}>
+                                    <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(!sidebarOpen)} className={`rounded-xl shrink-0 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 ${sidebarOpen ? 'order-last h-8 w-8 ml-auto' : 'h-10 w-10 mb-2 mt-1 mx-auto'}`}>
+                                        <Menu className="w-5 h-5" />
+                                    </Button>
+                                    <Button variant="ghost" asChild className={`justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 transition-all font-black uppercase tracking-widest hover:text-slate-900 dark:hover:text-white ${sidebarOpen ? 'flex-1 h-10 text-[11px]' : 'w-10 h-10 p-0 flex items-center justify-center'}`}>
+                                        <Link to="/" title="Home">
+                                            <Home className={`text-slate-400 ${sidebarOpen ? 'w-4 h-4' : 'w-5 h-5'}`} /> {sidebarOpen && "Home"}
                                         </Link>
                                     </Button>
-                                    <div className="flex items-center gap-0.5">
-                                        <Button 
-                                            variant="ghost" 
-                                            size="icon" 
-                                            onClick={() => { setPromptText(""); setGeneratedImage(null); toast.info("New project session initiated."); }} 
-                                            className="rounded-xl h-8 w-8 shrink-0 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors"
-                                            title="New Project"
-                                        >
-                                            <Plus className="w-4 h-4" />
-                                        </Button>
-                                        <ModeToggle />
-                                        <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(false)} className="rounded-xl h-8 w-8 shrink-0 hover:bg-white dark:hover:bg-white/5">
-                                            <X className="w-5 h-5 text-slate-400" />
-                                        </Button>
-                                    </div>
+                                </div>
+                                <div className={`flex ${sidebarOpen ? 'items-center gap-0.5 mb-2' : 'flex-col items-center gap-3 mb-6'} transition-all`}>
+                                    <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        onClick={() => { setPromptText(""); setGeneratedImage(null); toast.info("New project session initiated."); }} 
+                                        className={`rounded-xl shrink-0 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors ${sidebarOpen ? 'h-8 w-8' : 'h-10 w-10'}`}
+                                        title="New Project"
+                                    >
+                                        <Plus className={`${sidebarOpen ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                                    </Button>
+                                    <ModeToggle />
+                                    {/* Excluded redundant X toggle because Menu toggle exists. */}
                                 </div>
 
-                                <div className="mb-4">
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 px-2">Studio Hub</p>
-                                    <div className="space-y-0.5">
-                                        <Button asChild variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest">
+                                <div className={`mb-4 ${sidebarOpen ? '' : 'flex flex-col items-center'}`}>
+                                    {sidebarOpen ? (
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 px-2 line-clamp-1">Studio Hub</p>
+                                    ) : (
+                                        <div className="w-6 h-[2px] bg-slate-200 dark:bg-border mb-4 rounded-full"></div>
+                                    )}
+                                    <div className={`space-y-0.5 ${sidebarOpen ? '' : 'space-y-3 w-full flex flex-col items-center'}`}>
+                                        <Button asChild variant="ghost" className={`rounded-xl text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest hover:text-slate-900 dark:hover:text-white ${sidebarOpen ? 'w-full justify-start gap-4 h-9 text-[10px]' : 'w-10 h-10 p-0 flex items-center justify-center'}`} title="Documentation">
                                             <Link to="/pro/documentation">
-                                                <BookOpen className="w-4 h-4 text-slate-400" /> Documentation
+                                                <BookOpen className={`text-slate-400 ${sidebarOpen ? 'w-4 h-4' : 'w-5 h-5'}`} /> {sidebarOpen && "Documentation"}
                                             </Link>
                                         </Button>
-                                        <Button variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest">
-                                            <Building2 className="w-4 h-4 text-slate-400" /> Materials Hub
+                                        <Button variant="ghost" className={`rounded-xl text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest hover:text-slate-900 dark:hover:text-white ${sidebarOpen ? 'w-full justify-start gap-4 h-9 text-[10px]' : 'w-10 h-10 p-0 flex items-center justify-center'}`} title="Materials Hub">
+                                            <Building2 className={`text-slate-400 ${sidebarOpen ? 'w-4 h-4' : 'w-5 h-5'}`} /> {sidebarOpen && "Materials Hub"}
                                         </Button>
-                                        <Button asChild variant="ghost" className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest">
+                                        <Button asChild variant="ghost" className={`rounded-xl text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest hover:text-slate-900 dark:hover:text-white ${sidebarOpen ? 'w-full justify-start gap-4 h-9 text-[10px]' : 'w-10 h-10 p-0 flex items-center justify-center'}`} title="Dashboard Feed">
                                             <Link to="/pro-portal">
-                                                <LayoutDashboard className="w-4 h-4 text-slate-400" /> Dashboard Feed
+                                                <LayoutDashboard className={`text-slate-400 ${sidebarOpen ? 'w-4 h-4' : 'w-5 h-5'}`} /> {sidebarOpen && "Dashboard Feed"}
                                             </Link>
                                         </Button>
                                     </div>
                                 </div>
 
-                                <div className="flex items-center gap-2 px-2 mb-2">
-                                    <Sparkles className="w-4 h-4 text-primary" />
-                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">AI Studio</span>
+                                <div className={`flex items-center gap-2 mb-2 ${sidebarOpen ? 'px-2' : 'justify-center py-2'}`} title="AI Studio">
+                                    <Sparkles className={`text-primary ${sidebarOpen ? 'w-4 h-4' : 'w-5 h-5'}`} />
+                                    {sidebarOpen && <span className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">AI Studio</span>}
                                 </div>
                             </>
                         )}
 
-                        <div className="space-y-6 pt-2">
-                            <div>
-                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 px-2">Recent Projects</p>
-                                <div className="space-y-0.5">
-                                    {chatHistory.map((chat) => (
-                                        <button
-                                            key={chat.id}
-                                            onClick={() => {
-                                                setPromptText(chat.title);
-                                                setMobileSidebarOpen(false);
-                                            }}
-                                            className="w-full text-left px-3 h-8 flex items-center rounded-lg transition-none text-[11px] font-semibold text-slate-800 dark:text-slate-200 hover:bg-transparent hover:text-current cursor-pointer active:scale-[0.98] group overflow-hidden"
-                                        >
-                                            <span className="truncate flex-1">{chat.title}</span>
-                                        </button>
-                                    ))}
+                        {sidebarOpen && (
+                            <div className="space-y-6 pt-2">
+                                <div>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 px-2">Recent Projects</p>
+                                    <div className="space-y-0.5">
+                                        {chatHistory.map((chat) => (
+                                            <button
+                                                key={chat.id}
+                                                onClick={() => {
+                                                    setPromptText(chat.title);
+                                                    setMobileSidebarOpen(false);
+                                                }}
+                                                className="w-full text-left px-3 h-8 flex items-center rounded-lg transition-none text-[11px] font-semibold text-slate-800 dark:text-slate-200 hover:bg-transparent hover:text-current cursor-pointer active:scale-[0.98] group overflow-hidden"
+                                            >
+                                                <span className="truncate flex-1">{chat.title}</span>
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
-                        <div className="mt-auto pt-4 border-t dark:border-border">
-                            <Button 
-                                onClick={() => setShowRefillModal(true)}
-                                className="w-full rounded-[1.5rem] bg-red-600/90 text-white hover:bg-red-700 h-11 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-red-600/20"
-                            >
-                                Upgrade to Premium
-                            </Button>
+                        <div className={`mt-auto pt-4 border-t dark:border-border flex ${sidebarOpen ? 'flex-col' : 'justify-center'}`}>
+                            {sidebarOpen ? (
+                                <Button 
+                                    onClick={() => setShowRefillModal(true)}
+                                    className="w-full rounded-[1.5rem] bg-red-600/90 text-white hover:bg-red-700 h-11 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-red-600/20"
+                                >
+                                    Upgrade to Premium
+                                </Button>
+                            ) : (
+                                <Button 
+                                    onClick={() => setShowRefillModal(true)}
+                                    size="icon"
+                                    className="w-10 h-10 rounded-xl bg-red-600/90 text-white hover:bg-red-700 shadow-xl shadow-red-600/20 mx-auto"
+                                    title="Upgrade to Premium"
+                                >
+                                    <Sparkles className="w-5 h-5" />
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </aside>
