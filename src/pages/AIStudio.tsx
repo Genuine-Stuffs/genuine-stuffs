@@ -539,9 +539,12 @@ const AIStudio = () => {
                         {!generatedImage && !isGenerating ? (
                             /* --- IDLE STATE: Massive Centered UI --- */
                             <div className="w-full max-w-3xl flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-700 mb-[10vh]">
-                                <h1 className="text-3xl md:text-5xl font-black tracking-tight text-slate-800 dark:text-slate-100 mb-8 md:mb-12">
-                                    Genuine Stuffs <span className="text-primary">Super Agent</span>
-                                </h1>
+                                <div className="text-center mb-8 md:mb-12">
+                                    <h1 className="text-3xl md:text-[2.75rem] font-semibold text-slate-800 dark:text-slate-100 tracking-tight mb-2">
+                                        What can I <span className="text-primary">design?</span>
+                                    </h1>
+                                    <p className="text-[10px] md:text-xs text-slate-400 font-semibold tracking-widest uppercase mb-4 md:mb-0">Studio AI · {selectedRole} Mode</p>
+                                </div>
                                 
                                 <div className="w-full relative">
                                     <div className="bg-white dark:bg-[#1c1d21] rounded-[2rem] border border-slate-200 dark:border-white/5 shadow-2xl focus-within:ring-4 ring-primary/10 transition-all flex flex-col">
