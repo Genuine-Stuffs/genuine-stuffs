@@ -17,7 +17,8 @@ import {
     LogOut,
     CheckCircle2,
     Sun,
-    Moon
+    Moon,
+    ArrowRight
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -236,9 +237,9 @@ const PMDashboard = () => {
                                         <Button 
                                             variant="ghost" 
                                             onClick={() => setActiveTab('vendors')}
-                                            className="text-red-500 font-black text-[10px] uppercase tracking-widest gap-2 hover:bg-red-600/5"
+                                            className="group text-red-500 font-black text-[10px] uppercase tracking-widest gap-2 hover:bg-red-600 hover:text-white transition-all duration-300 rounded-xl px-5 h-10 shadow-sm hover:shadow-lg hover:shadow-red-600/20 active:scale-95 border border-red-600/10 hover:border-red-600"
                                         >
-                                            View Pipeline <CheckCircle2 size={14} />
+                                            View Pipeline <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
                                         </Button>
                                     </div>
                                     <div className="p-4">
