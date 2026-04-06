@@ -23,10 +23,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
-import { useAdminStats, usePendingVerifications } from "@/hooks/useAdminData";
+import { useAdminStats, usePendingVerifications, useListingReports, usePendingMaterials } from "@/hooks/useAdminData";
 import { toast } from "sonner";
 import { supabase } from "backend/supabaseClient";
 import ManagementTable from "@/components/admin/ManagementTable";
+import ContentModerationTable from "@/components/admin/ContentModerationTable";
+import IncidentReportTable from "@/components/admin/IncidentReportTable";
 
 const PMDashboard = () => {
     const { user, role, logout } = useAuth();
@@ -37,6 +39,8 @@ const PMDashboard = () => {
     const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
     const { data: pendingVendors, isLoading: vendorsLoading, refetch: refetchVendors } = usePendingVerifications('vendor');
     const { data: pendingPros, isLoading: prosLoading, refetch: refetchPros } = usePendingVerifications('professional');
+    const { data: pendingMaterials, isLoading: materialsLoading, refetch: refetchMaterials } = usePendingMaterials();
+    const { data: incidentReports, isLoading: reportsLoading, refetch: refetchReports } = useListingReports();
 
     if (role !== 'pm') {
         return <Navigate to="/" replace />;
@@ -293,16 +297,54 @@ const PMDashboard = () => {
                         </div>
                     )}
 
-                    {(activeTab === 'materials' || activeTab === 'reports') && (
-                        <div className="flex flex-col items-center justify-center py-24 text-center">
-                            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
-                                <AlertTriangle className="text-slate-500 w-10 h-10" />
+                    {activeTab === 'materials' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="mb-8">
+                                <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Content Moderation Pipeline</h3>
+                                <p className="text-sm text-slate-500 font-medium italic">Review new marketplace listings for accuracy and quality.</p>
                             </div>
-                            <h3 className="text-xl font-black text-white uppercase">Module Pending</h3>
-                            <p className="text-slate-500 max-w-sm mt-2 italic font-medium">The {activeTab.replace("-", " ")} module is currently in Phase 3 of development.</p>
-                            <Button variant="outline" className="mt-8 border-white/10 rounded-xl" onClick={() => setActiveTab('overview')}>
-                                Return to Overview
-                            </Button>
+                            <ContentModerationTable 
+                                data={pendingMaterials || []} 
+                                isLoading={materialsLoading} 
+                                onApprove={async (id) => {
+                                    const { error } = await supabase.from('materials').update({ is_verified: true }).eq('id', id);
+                                    if (error) toast.error("Failed to approve listing.");
+                                    else { toast.success("Listing verified!"); refetchMaterials(); refetchStats(); }
+                                }}
+                                onReject={async (id) => {
+                                    const { error } = await supabase.from('materials').delete().eq('id', id);
+                                    if (error) toast.error("Failed to delete listing.");
+                                    else { toast.info("Listing rejected and removed."); refetchMaterials(); refetchStats(); }
+                                }}
+                                onView={(item) => console.log("View material", item)}
+                            />
+                        </div>
+                    )}
+
+                    {activeTab === 'reports' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="mb-8 flex justify-between items-end">
+                                <div>
+                                    <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Incident Reports</h3>
+                                    <p className="text-sm text-slate-500 font-medium italic">Flagged listings and user complaints.</p>
+                                </div>
+                                <Badge className="bg-red-600/20 text-red-500 font-black h-6 px-3">{incidentReports?.length || 0} ACTIVE</Badge>
+                            </div>
+                            <IncidentReportTable 
+                                data={incidentReports || []} 
+                                isLoading={reportsLoading} 
+                                onResolve={async (id) => {
+                                    const { error } = await supabase.from('listing_reports').delete().eq('id', id);
+                                    if (error) toast.error("Failed to resolve report.");
+                                    else { toast.success("Report resolved and cleared."); refetchReports(); }
+                                }}
+                                onDismiss={async (id) => {
+                                    const { error } = await supabase.from('listing_reports').delete().eq('id', id);
+                                    if (error) toast.error("Failed to dismiss report.");
+                                    else { toast.info("Report dismissed."); refetchReports(); }
+                                }}
+                                onView={(item) => console.log("View report context", item)}
+                            />
                         </div>
                     )}
                 </div>
