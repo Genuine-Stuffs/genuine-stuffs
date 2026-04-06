@@ -37,7 +37,7 @@ const Settings = () => {
                         [role === 'vendor' ? 'company_name' : 'full_name']: user.user_metadata?.full_name || user.email?.split('@')[0] || "User",
                         ...(role === 'professional' ? { specialty: "Expert Professional", credits: 10, subscription_status: 'trial' } : {})
                     };
-                    await supabase.from(table).insert(newProfile);
+                    await (supabase as any).from(table).insert(newProfile);
                     setProfile(newProfile);
                 } else {
                     setProfile(data);
@@ -196,6 +196,47 @@ const Settings = () => {
                                             ) : (
                                                 <>Save Changes <Save className="w-4 h-4" /></>
                                             )}
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                            <Card className="border-none shadow-xl dark:bg-card rounded-[2.5rem] transition-colors overflow-hidden">
+                                <CardHeader className="bg-primary/5 dark:bg-white/5 border-b dark:border-white/10 p-8">
+                                    <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-3">
+                                        <Save className="w-6 h-6 text-primary" /> Security
+                                    </CardTitle>
+                                    <CardDescription className="dark:text-slate-400 font-medium italic">Update your login password.</CardDescription>
+                                </CardHeader>
+                                <CardContent className="p-8 space-y-6">
+                                    <div className="space-y-2">
+                                        <Label htmlFor="new_password" title="password" className="text-xs font-black uppercase tracking-widest text-slate-400">New Password</Label>
+                                        <Input
+                                            id="new_password"
+                                            type="password"
+                                            placeholder="••••••••"
+                                            className="h-12 bg-slate-50 dark:bg-white/5 border-none rounded-2xl font-bold dark:text-white"
+                                        />
+                                    </div>
+                                    <div className="pt-6 border-t dark:border-white/10 flex justify-end">
+                                        <Button
+                                            type="button"
+                                            onClick={async () => {
+                                                const passwordInput = document.getElementById('new_password') as HTMLInputElement;
+                                                const password = passwordInput.value;
+                                                if (!password || password.length < 6) {
+                                                    toast.error("Password must be at least 6 characters.");
+                                                    return;
+                                                }
+                                                const { error } = await supabase.auth.updateUser({ password });
+                                                if (error) toast.error(error.message);
+                                                else {
+                                                    toast.success("Password updated successfully!");
+                                                    passwordInput.value = '';
+                                                }
+                                            }}
+                                            className="h-12 px-10 rounded-2xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-xl transition-all font-black uppercase tracking-widest text-[10px] gap-3"
+                                        >
+                                            Update Password
                                         </Button>
                                     </div>
                                 </CardContent>

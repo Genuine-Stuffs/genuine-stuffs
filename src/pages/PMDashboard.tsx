@@ -117,6 +117,7 @@ const PMDashboard = () => {
                                 { id: "pros", icon: UserCheck, label: "Pro Verification" },
                                 { id: "materials", icon: ShoppingBag, label: "Content Moderation" },
                                 { id: "reports", icon: AlertTriangle, label: "Incident Reports" },
+                                { id: "team", icon: Users, label: "Team Management" },
                             ].map((item) => (
                                 <button
                                     key={item.id}
@@ -345,6 +346,63 @@ const PMDashboard = () => {
                                 }}
                                 onView={(item) => console.log("View report context", item)}
                             />
+                        </div>
+                    )}
+                    {activeTab === 'team' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto py-12">
+                            <Card className="bg-[#1E293B]/50 border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
+                                <div className="text-center mb-10">
+                                    <div className="w-20 h-20 bg-red-600/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
+                                        <Users className="text-red-500 w-10 h-10" />
+                                    </div>
+                                    <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Expand Admin Team</h3>
+                                    <p className="text-sm text-slate-500 font-medium italic">Grant Product Manager privileges to other users.</p>
+                                </div>
+                                
+                                <div className="space-y-6">
+                                    <div className="space-y-2">
+                                        <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2">Target User Email</p>
+                                        <Input 
+                                            id="admin_email"
+                                            placeholder="new-admin@genuinestuffs.com"
+                                            className="bg-white/5 border-white/10 h-14 rounded-2xl font-bold px-6 focus:ring-red-600/50"
+                                        />
+                                    </div>
+
+                                    <Button 
+                                        className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs gap-3 shadow-lg shadow-red-600/20"
+                                        onClick={async () => {
+                                            const email = (document.getElementById('admin_email') as HTMLInputElement).value;
+                                            if (!email) { toast.error("Please enter an email address."); return; }
+                                            
+                                            toast.loading("Processing promotion...");
+                                            
+                                            // Promotion logic (Note: This assumes the promote_user_to_pm RPC exists)
+                                            try {
+                                                const { data, error } = await (supabase as any).rpc('promote_user_to_pm', { user_email: email });
+                                                toast.dismiss();
+                                                
+                                                if (error) {
+                                                    console.error(error);
+                                                    toast.error("Internal promotion failed. Please use SQL Editor.");
+                                                } else {
+                                                    toast.success("User successfully promoted to PM!");
+                                                }
+                                            } catch (err) {
+                                                toast.dismiss();
+                                                toast.error("Process failed.");
+                                            }
+                                        }}
+                                    >
+                                        Promote to PM <ShieldCheck size={18} />
+                                    </Button>
+
+                                    <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-[11px] text-amber-200/70 italic flex gap-4">
+                                        <AlertTriangle size={32} className="shrink-0 text-amber-500" />
+                                        <p>Warning: Promoting a user grants them full administrative control over vendors, professionals, and marketplace content. This action is logged for audit purposes.</p>
+                                    </div>
+                                </div>
+                            </Card>
                         </div>
                     )}
                 </div>
