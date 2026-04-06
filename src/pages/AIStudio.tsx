@@ -33,6 +33,8 @@ import {
     Plus,
     PenTool
 } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { useAuth } from "@/context/AuthContext";
 import { Link, useSearchParams } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -620,8 +622,13 @@ const AIStudio = () => {
                                                         <span className="text-sm font-semibold tracking-wider uppercase">Synthesizing Protocol...</span>
                                                     </div>
                                                 ) : (
-                                                    <div className="w-full text-slate-700 dark:text-slate-300 text-[15px] md:text-base leading-[1.8] font-medium whitespace-pre-wrap">
-                                                        {generatedImage}
+                                                    <div className="w-full text-slate-700 dark:text-slate-300 text-[15px] md:text-base leading-[1.8] font-medium">
+                                                        <ReactMarkdown 
+                                                            remarkPlugins={[remarkGfm]} 
+                                                            className="prose prose-slate dark:prose-invert prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-white prose-headings:font-black prose-headings:tracking-tight max-w-none break-words w-full"
+                                                        >
+                                                            {generatedImage || ""}
+                                                        </ReactMarkdown>
                                                         
                                                         {/* Actions append at the bottom of the response */}
                                                         <div className="flex gap-4 mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
