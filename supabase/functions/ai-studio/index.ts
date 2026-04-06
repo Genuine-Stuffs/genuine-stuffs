@@ -80,12 +80,12 @@ serve(async (req: Request) => {
             throw new Error('Server configuration error: OpenRouter API key missing')
         }
 
-        // Fallback model strategy to reduce interruptions/429 errors
+        // Premium model strategy utilizing purchased credits for high availability
         const textModels = [
-            "meta-llama/llama-3.2-3b-instruct:free",
-            "google/gemma-2-9b-it:free",
-            "mistralai/mistral-7b-instruct:free",
-            "qwen/qwen-2.5-7b-instruct:free"
+            "anthropic/claude-3.5-sonnet",
+            "google/gemini-1.5-pro",
+            "meta-llama/llama-3.2-90b-vision-instruct",
+            "openai/gpt-4o-mini"
         ];
 
         const systemPrompt = `You are an expert architectural design AI for Genuine Stuffs AI Studio. 
