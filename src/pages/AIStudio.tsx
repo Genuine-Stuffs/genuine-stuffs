@@ -535,14 +535,23 @@ const AIStudio = () => {
                                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Synthesizing Protocol...</p>
                                         </div>
                                     ) : (
-                                        <div className="relative flex-1 w-full h-full">
-                                            {/* Full bleed image */}
-                                            <img src={generatedImage!} alt="Generated Vision" className="w-full min-h-[100dvh] h-full object-cover absolute inset-0" />
-                                            {/* Cinematic gradient overlay pushing up text */}
-                                            <div className="absolute inset-x-0 bottom-0 top-1/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-8 md:p-16 pb-32">
-                                                <h4 className="text-white font-black uppercase tracking-tight text-3xl md:text-5xl mb-4 drop-shadow-lg">{selectedRole} Concept</h4>
-                                                <p className="text-white/80 text-lg md:text-xl font-medium italic max-w-3xl drop-shadow-md">"{promptText}"</p>
-                                                <div className="flex gap-4 mt-8">
+                                        <div className="relative flex-1 w-full h-full flex flex-col justify-end">
+                                            {/* Cinematic architectural backdrop for the generated text */}
+                                            <div className="absolute inset-0 z-0">
+                                                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=2070" className="w-full h-full object-cover" alt="Architecture Core" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/90 to-black/30"></div>
+                                            </div>
+
+                                            {/* Text Analysis Content Layer */}
+                                            <div className="relative z-10 flex flex-col justify-end p-8 md:p-16 pt-[20vh] pb-32">
+                                                <h4 className="text-white font-black uppercase tracking-tight text-3xl md:text-5xl mb-2 drop-shadow-lg">{selectedRole} Analysis</h4>
+                                                <p className="text-white/60 text-sm md:text-lg font-medium italic mb-8 max-w-3xl drop-shadow-md">"{promptText}"</p>
+                                                
+                                                <div className="text-white/90 text-sm md:text-base font-medium max-w-4xl whitespace-pre-wrap leading-[1.8] tracking-wide mb-10">
+                                                    {generatedImage}
+                                                </div>
+
+                                                <div className="flex gap-4">
                                                     <Button size="lg" className="bg-white text-slate-900 hover:bg-primary hover:text-white rounded-xl font-black uppercase tracking-widest text-[10px]">Save Node</Button>
                                                     <Button size="lg" variant="outline" className="text-white border-white/20 hover:bg-white/10 rounded-xl font-black uppercase tracking-widest text-[10px] backdrop-blur-sm"><Share2 className="w-4 h-4 mr-2" /> Dispatch</Button>
                                                 </div>
