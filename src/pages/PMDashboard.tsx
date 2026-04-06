@@ -15,7 +15,9 @@ import {
     UserCheck, 
     FileText,
     LogOut,
-    CheckCircle2
+    CheckCircle2,
+    Sun,
+    Moon
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -29,9 +31,12 @@ import { supabase } from "backend/supabaseClient";
 import ManagementTable from "@/components/admin/ManagementTable";
 import ContentModerationTable from "@/components/admin/ContentModerationTable";
 import IncidentReportTable from "@/components/admin/IncidentReportTable";
+import Logo from "@/components/Logo";
+import { useTheme } from "@/components/ThemeProvider";
 
 const PMDashboard = () => {
     const { user, role, logout } = useAuth();
+    const { theme, setTheme } = useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("overview");
 
@@ -103,11 +108,7 @@ const PMDashboard = () => {
                 <div className="flex flex-col h-full">
                     <div className="p-8">
                         <div className="flex items-center gap-3 mb-10">
-                            <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-red-600/20">GS</div>
-                            <div>
-                                <h1 className="text-xl font-black tracking-tighter text-white">GENUINE<span className="text-red-600">STUFFS</span></h1>
-                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Platform Manage</p>
-                            </div>
+                            <Logo iconClassName="h-10" textClassName="!text-white" />
                         </div>
 
                         <nav className="space-y-2">
@@ -167,10 +168,18 @@ const PMDashboard = () => {
                                 className="w-64 bg-white/5 border-white/5 rounded-xl pl-10 h-10 text-sm focus:ring-red-600/50"
                             />
                         </div>
-                        <button className="relative text-slate-400 hover:text-white transition-colors">
-                            <Bell size={20} />
-                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full border-2 border-[#0F172A]" />
-                        </button>
+                        <div className="flex items-center gap-4">
+                            <button 
+                                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                                className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-sm active:scale-95"
+                            >
+                                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                            </button>
+                            <button className="relative text-slate-400 hover:text-white transition-colors p-2.5 bg-white/5 hover:bg-white/10 rounded-xl shadow-sm">
+                                <Bell size={18} />
+                                <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border-2 border-[#0F172A]" />
+                            </button>
+                        </div>
                         <div className="flex items-center gap-3 pl-6 border-l border-white/5">
                             <div className="text-right hidden sm:block">
                                 <p className="text-xs font-black text-white uppercase">{user?.email?.split('@')[0]}</p>
