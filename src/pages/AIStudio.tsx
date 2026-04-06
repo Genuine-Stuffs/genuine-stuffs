@@ -494,39 +494,39 @@ const AIStudio = () => {
                 <main className="flex-1 flex flex-col relative overflow-hidden">
                     <div className="mesh-background opacity-20" />
 
-                    {/* Top Static Bar - Compact & Professional */}
-                    <div className="hidden md:flex items-center justify-between px-6 py-2 bg-white dark:bg-[#15171a] border-b border-slate-200 dark:border-white/5 z-40 shrink-0 w-full h-[60px]">
+                    {/* Top Static Bar - Ultra Thin & Professional */}
+                    <div className="hidden md:flex items-center justify-between px-6 py-1.5 bg-white dark:bg-[#15171a] border-b border-slate-200 dark:border-white/5 z-40 shrink-0 w-full min-h-[52px]">
                         <div className="flex items-center gap-4">
                              <div>
-                                <h2 className="text-[13px] font-black uppercase tracking-tight text-slate-900 dark:text-white leading-none">Studio Environment</h2>
-                                <p className="text-[9px] font-black uppercase tracking-widest text-[#e11d48] mt-1 opacity-90">Active AI Node</p>
+                                <h2 className="text-[12px] font-black uppercase tracking-tight text-slate-800 dark:text-white leading-none">Studio Environment</h2>
+                                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#e11d48] mt-0.5 opacity-80">Active AI Node</p>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 px-4 py-1.5 rounded-xl border border-slate-200 dark:border-white/10">
-                                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-400">Pick A Role</span>
-                                <div className="h-4 w-px bg-slate-200 dark:bg-white/10" />
-                                <Select value={selectedRole} onValueChange={setSelectedRole}>
-                                    <SelectTrigger className="w-48 h-7 bg-transparent border-none font-bold text-[10px] uppercase tracking-widest shadow-none hover:bg-transparent focus:ring-0 p-0 text-slate-700 dark:text-slate-200">
-                                        <SelectValue placeholder="Select Profession" />
-                                    </SelectTrigger>
-                                    <SelectContent className="bg-white dark:bg-[#1c1d21] border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl">
-                                        {professionalRoles.map(r => (
-                                            <SelectItem
-                                                key={r.name}
-                                                value={r.name}
-                                                className="font-bold text-[10px] uppercase tracking-widest py-2.5 focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <span className="opacity-70 scale-75">{r.icon}</span>
-                                                    {r.name}
-                                                </div>
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                            <Select value={selectedRole} onValueChange={setSelectedRole}>
+                                <SelectTrigger className="w-64 h-8 rounded-lg bg-white dark:bg-[#1c1d21] border border-slate-200 dark:border-white/10 font-bold text-[9px] uppercase tracking-widest shadow-none hover:border-slate-300 dark:hover:border-white/20 focus:ring-1 ring-primary/20 transition-all flex items-center justify-start gap-3 px-3">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-slate-400 font-bold">Pick A Role:</span>
+                                        <div className="h-3 w-px bg-slate-200 dark:bg-white/10" />
+                                    </div>
+                                    <SelectValue placeholder="Select Profession" />
+                                </SelectTrigger>
+                                <SelectContent className="bg-white dark:bg-[#1c1d21] border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl">
+                                    {professionalRoles.map(r => (
+                                        <SelectItem
+                                            key={r.name}
+                                            value={r.name}
+                                            className="font-bold text-[9px] uppercase tracking-widest py-2.5 focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <span className="scale-75 opacity-70">{r.icon}</span>
+                                                {r.name}
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
                     </div>
 
