@@ -263,12 +263,25 @@ const PMDashboard = () => {
                                         
                                         <div className="space-y-3">
                                             {[
-                                                { label: "Marketplace Broadcast", icon: Bell, color: "bg-blue-600" },
+                                                { 
+                                                    label: "Marketplace Broadcast", 
+                                                    icon: Bell, 
+                                                    color: "bg-blue-600",
+                                                    action: () => toast.promise(new Promise(res => setTimeout(res, 2000)), {
+                                                        loading: 'Broadcasting to marketplace...',
+                                                        success: 'Global broadcast sent to all vendors!',
+                                                        error: 'Broadcast failed',
+                                                    })
+                                                },
                                                 { label: "Generate Tax Report", icon: FileText, color: "bg-purple-600" },
                                                 { label: "Review Flagged Items", icon: AlertTriangle, color: "bg-red-600" },
                                                 { label: "System Maintenance", icon: BarChart3, color: "bg-emerald-600" },
                                             ].map((action, idx) => (
-                                                <button key={idx} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group font-bold text-sm text-slate-600 dark:text-slate-300">
+                                                <button 
+                                                    key={idx} 
+                                                    onClick={() => action.action?.()}
+                                                    className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group font-bold text-sm text-slate-600 dark:text-slate-300"
+                                                >
                                                     <div className={`w-10 h-10 rounded-xl ${action.color} flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform`}>
                                                         <action.icon size={18} />
                                                     </div>
