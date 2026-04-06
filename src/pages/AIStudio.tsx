@@ -510,24 +510,24 @@ const AIStudio = () => {
                         </div>
                     </div>
 
-                    {/* Centered Area - uses flex to layout main interaction space */}
-                    <div className={`flex-1 flex flex-col items-center p-4 md:p-6 pt-[12dvh] md:pt-[100px] relative z-10 transition-all duration-500 w-full ${(!generatedImage && !isGenerating) ? 'justify-start md:justify-center overflow-hidden' : 'justify-start overflow-y-auto overflow-x-hidden custom-scrollbar'}`}>
-                        <div className="w-full max-w-2xl py-2 md:py-4 flex flex-col min-h-full">
-                        {!generatedImage && !isGenerating ? (
-                            <div className="text-center mb-4 md:mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                <h1 className="text-xl md:text-3xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight mb-1 md:mb-2">
-                                    What can I <span className="text-primary">design?</span>
-                                </h1>
-                                <p className="text-[10px] text-slate-400 font-medium tracking-widest uppercase mb-4 md:mb-0">Studio AI · {selectedRole} Mode</p>
-                            </div>
-                        ) : null}
+                    {/* Centered Area - Scrollable space z-30 (Over Pick a Role, Under Studio Env) */}
+                    <div className={`flex-1 flex flex-col transition-all duration-500 w-full relative z-[30] ${(!generatedImage && !isGenerating) ? 'items-center p-4 md:p-6 pt-[12dvh] md:pt-[100px] justify-start md:justify-center overflow-hidden' : 'p-0 justify-start overflow-y-auto overflow-x-hidden custom-scrollbar bg-white dark:bg-black'}`}>
+                        <div className={`transition-all duration-500 flex flex-col min-h-full ${(!generatedImage && !isGenerating) ? 'w-full max-w-2xl py-2 md:py-4' : 'w-full'}`}>
+                            
+                            {!generatedImage && !isGenerating && (
+                                <div className="text-center mb-4 md:mb-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                    <h1 className="text-xl md:text-3xl font-semibold text-slate-800 dark:text-slate-100 tracking-tight mb-1 md:mb-2">
+                                        What can I <span className="text-primary">design?</span>
+                                    </h1>
+                                    <p className="text-[10px] text-slate-400 font-medium tracking-widest uppercase mb-4 md:mb-0">Studio AI · {selectedRole} Mode</p>
+                                </div>
+                            )}
 
-                        {/* Result View */}
-                        {(generatedImage || isGenerating) && (
-                            <div className="w-full flex-1 flex flex-col justify-center mb-8 max-h-[60vh]">
-                                <div className="glass-card rounded-[3rem] overflow-hidden shadow-3xl border-slate-200 dark:border-border bg-white/70 dark:bg-card/50 relative group">
+                            {/* Full-Screen Result View */}
+                            {(generatedImage || isGenerating) && (
+                                <div className="w-full flex-1 min-h-[100dvh] flex flex-col bg-slate-100 dark:bg-black/50 relative animate-in fade-in duration-700">
                                     {isGenerating ? (
-                                        <div className="aspect-video flex flex-col items-center justify-center space-y-4">
+                                        <div className="flex-1 flex flex-col items-center justify-center space-y-4 pt-[100px]">
                                             <div className="relative">
                                                 <Loader2 className="w-12 h-12 text-primary animate-spin" />
                                                 <Sparkles className="absolute -top-4 -right-4 w-6 h-6 text-yellow-500 animate-pulse" />
@@ -535,60 +535,62 @@ const AIStudio = () => {
                                             <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Synthesizing Protocol...</p>
                                         </div>
                                     ) : (
-                                        <div className="relative aspect-video">
-                                            <img src={generatedImage!} alt="Generated Vision" className="w-full h-full object-cover" />
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex flex-col justify-end p-10">
-                                                <h4 className="text-white font-black uppercase tracking-tight text-xl mb-2">{selectedRole} Concept</h4>
-                                                <p className="text-white/60 text-sm italic line-clamp-2 max-w-xl">"{promptText}"</p>
-                                                <div className="flex gap-4 mt-6">
-                                                    <Button size="sm" className="bg-white text-slate-900 hover:bg-primary hover:text-white rounded-xl font-black uppercase tracking-widest text-[9px]">Save Node</Button>
-                                                    <Button size="sm" variant="outline" className="text-white border-white/20 hover:bg-white/10 rounded-xl font-black uppercase tracking-widest text-[9px]"><Share2 className="w-3 h-3 mr-2" /> Dispatch</Button>
+                                        <div className="relative flex-1 w-full h-full">
+                                            {/* Full bleed image */}
+                                            <img src={generatedImage!} alt="Generated Vision" className="w-full min-h-[100dvh] h-full object-cover absolute inset-0" />
+                                            {/* Cinematic gradient overlay pushing up text */}
+                                            <div className="absolute inset-x-0 bottom-0 top-1/3 bg-gradient-to-t from-black/90 via-black/40 to-transparent flex flex-col justify-end p-8 md:p-16 pb-32">
+                                                <h4 className="text-white font-black uppercase tracking-tight text-3xl md:text-5xl mb-4 drop-shadow-lg">{selectedRole} Concept</h4>
+                                                <p className="text-white/80 text-lg md:text-xl font-medium italic max-w-3xl drop-shadow-md">"{promptText}"</p>
+                                                <div className="flex gap-4 mt-8">
+                                                    <Button size="lg" className="bg-white text-slate-900 hover:bg-primary hover:text-white rounded-xl font-black uppercase tracking-widest text-[10px]">Save Node</Button>
+                                                    <Button size="lg" variant="outline" className="text-white border-white/20 hover:bg-white/10 rounded-xl font-black uppercase tracking-widest text-[10px] backdrop-blur-sm"><Share2 className="w-4 h-4 mr-2" /> Dispatch</Button>
                                                 </div>
                                             </div>
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {/* Chat Input Container */}
-                        <div className="w-full mt-auto relative mb-6">
-                            <div className="relative">
-                                <div className="bg-white dark:bg-card rounded-3xl border border-slate-200 dark:border-border shadow-xl focus-within:border-primary/40 transition-all flex flex-col">
-                                    <textarea
-                                        value={promptText}
-                                        onChange={(e) => setPromptText(e.target.value)}
-                                        placeholder={`Ask ${selectedRole} anything...`}
-                                        className="w-full min-h-[60px] md:min-h-[120px] bg-transparent resize-none p-4 md:p-5 text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 placeholder:text-sm"
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && !e.shiftKey) {
-                                                e.preventDefault();
-                                                handleGenerate();
-                                            }
-                                        }}
-                                    />
-                                        <div className="flex items-center justify-between px-3 pb-3">
-                                            <div className="flex items-center gap-0.5">
-                                                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-8 w-8"><Paperclip className="w-4 h-4" /></Button>
-                                                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-8 w-8"><ImageIcon className="w-4 h-4" /></Button>
-                                                <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-8 w-8"><Mic className="w-4 h-4" /></Button>
+                            {/* Chat Input Container */}
+                            <div className={`w-full relative ${(!generatedImage && !isGenerating) ? 'mt-auto mb-6' : 'max-w-3xl mx-auto px-4 md:px-0 -mt-20 mb-12 z-[40] relative'}`}>
+                                <div className="relative">
+                                    <div className="bg-white dark:bg-card rounded-3xl border border-slate-200 dark:border-border shadow-2xl focus-within:border-primary/40 transition-all flex flex-col">
+                                        <textarea
+                                            value={promptText}
+                                            onChange={(e) => setPromptText(e.target.value)}
+                                            placeholder={`Ask ${selectedRole} anything...`}
+                                            className="w-full min-h-[60px] md:min-h-[100px] bg-transparent resize-none p-4 md:p-5 text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 placeholder:text-sm"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' && !e.shiftKey) {
+                                                    e.preventDefault();
+                                                    handleGenerate();
+                                                }
+                                            }}
+                                        />
+                                            <div className="flex items-center justify-between px-3 pb-3">
+                                                <div className="flex items-center gap-0.5">
+                                                    <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-8 w-8"><Paperclip className="w-4 h-4" /></Button>
+                                                    <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-8 w-8"><ImageIcon className="w-4 h-4" /></Button>
+                                                    <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-8 w-8"><Mic className="w-4 h-4" /></Button>
+                                                </div>
+                                                <div className="flex items-center gap-3">
+                                                    <span className="text-[8px] font-semibold tracking-widest text-slate-400 uppercase hidden sm:block">2 Credits / Sync</span>
+                                                    <Button
+                                                        onClick={handleGenerate}
+                                                        disabled={isGenerating || !promptText}
+                                                        className="h-9 w-9 p-0 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                                                    >
+                                                        {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                                    </Button>
+                                                </div>
                                             </div>
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-[8px] font-semibold tracking-widest text-slate-400 uppercase hidden sm:block">2 Credits / Sync</span>
-                                                <Button
-                                                    onClick={handleGenerate}
-                                                    disabled={isGenerating || !promptText}
-                                                    className="h-9 w-9 p-0 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
-                                                >
-                                                    {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-                                                </Button>
-                                            </div>
-                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
                              {/* Recipe Pills - BELOW Input (Claude style) */}
-                             {!isGenerating && (
+                             {!isGenerating && !generatedImage && (
                                  <div className="flex flex-wrap justify-center gap-2 mt-3 md:mt-5">
                                      {professionalRoles.find(r => r.name === selectedRole)?.recipes.map((r, i) => (
                                          <button
@@ -602,9 +604,10 @@ const AIStudio = () => {
                                  </div>
                              )}
 
-                             <p className="text-center text-[9px] text-slate-400 mt-4 md:mt-6 tracking-widest opacity-40">Studio AI v4.0 · Verify critical outputs.</p>
-                        </div>
-                        </div>{/* end max-w-2xl wrapper */}
+                             {!isGenerating && !generatedImage && (
+                                 <p className="text-center text-[9px] text-slate-400 mt-4 md:mt-6 tracking-widest opacity-40">Studio AI v4.0 · Verify critical outputs.</p>
+                             )}
+                        </div>{/* end min-h-full wrapper */}
                     </div>
                 </main>
 
