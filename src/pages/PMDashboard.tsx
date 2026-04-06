@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { 
     Users, 
     ShieldCheck, 
@@ -58,6 +58,7 @@ import Logo from "@/components/Logo";
 import { useTheme } from "@/components/ThemeProvider";
 
 const PMDashboard = () => {
+    const navigate = useNavigate();
     const { user, role, logout } = useAuth();
     const { theme, setTheme } = useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -155,7 +156,14 @@ const PMDashboard = () => {
                             ].map((item) => (
                                 <button
                                     key={item.id}
-                                    onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                                    onClick={() => { 
+                                        if (item.id === 'system') {
+                                            navigate('/pm/system-maintenance');
+                                        } else {
+                                            setActiveTab(item.id); 
+                                        }
+                                        setSidebarOpen(false); 
+                                    }}
                                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === item.id ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}
                                 >
                                     <item.icon size={18} />
@@ -320,7 +328,7 @@ const PMDashboard = () => {
                                                     label: "System Maintenance", 
                                                     icon: Activity, 
                                                     color: "bg-emerald-600",
-                                                    action: () => setActiveTab('system')
+                                                    action: () => navigate('/pm/system-maintenance')
                                                 },
                                             ].map((action, idx) => (
                                                 <button 
@@ -484,120 +492,7 @@ const PMDashboard = () => {
                         </div>
                     )}
 
-                    {activeTab === 'system' && (
-                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto space-y-8">
-                            <div className="mb-8 flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">System Diagnostics</h3>
-                                    <p className="text-sm text-slate-400 dark:text-slate-500 font-medium italic">Real-time infrastructure health and development prioritization matrix.</p>
-                                </div>
-                                <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-emerald-500/10 text-emerald-600 rounded-full text-xs font-bold uppercase tracking-widest border border-emerald-500/20">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                    Platform Stable
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                                <Card className="p-6 bg-white dark:bg-[#1E293B]/50 rounded-[2.5rem] border-slate-200 dark:border-white/5 shadow-sm">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="p-3 bg-blue-500/10 text-blue-500 rounded-2xl"><ServerCrash size={24} /></div>
-                                        <span className="flex items-center gap-1 text-[10px] font-black text-emerald-500 uppercase tracking-widest">Operational</span>
-                                    </div>
-                                    <h4 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">99.98%</h4>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Core API Uptime</p>
-                                </Card>
-                                <Card className="p-6 bg-white dark:bg-[#1E293B]/50 rounded-[2.5rem] border-slate-200 dark:border-white/5 shadow-sm">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="p-3 bg-purple-500/10 text-purple-500 rounded-2xl"><Zap size={24} /></div>
-                                        <span className="flex items-center gap-1 text-[10px] font-black text-emerald-500 uppercase tracking-widest">Optimal</span>
-                                    </div>
-                                    <h4 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">142ms</h4>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Avg Query Latency</p>
-                                </Card>
-                                <Card className="p-6 bg-white dark:bg-[#1E293B]/50 rounded-[2.5rem] border-slate-200 dark:border-white/5 shadow-sm">
-                                    <div className="flex justify-between items-start mb-4">
-                                        <div className="p-3 bg-orange-500/10 text-orange-500 rounded-2xl"><HardDrive size={24} /></div>
-                                        <span className="flex items-center gap-1 text-[10px] font-black text-amber-500 uppercase tracking-widest">Warning</span>
-                                    </div>
-                                    <h4 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">78%</h4>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Media Storage Used</p>
-                                </Card>
-                            </div>
-
-                            <div className="grid lg:grid-cols-2 gap-6">
-                                {/* Development Needs Focus Area */}
-                                <Card className="bg-white dark:bg-[#1E293B]/50 p-8 rounded-[2.5rem] border-slate-200 dark:border-white/5 shadow-sm">
-                                    <h3 className="font-black flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-tight mb-4">
-                                        <Cpu className="text-red-500" size={20} /> Engineering Focus Queue
-                                    </h3>
-                                    <p className="text-xs text-slate-500 mb-6 font-medium italic">Issues actively affecting platform experience that require developer intervention.</p>
-                                    
-                                    <div className="space-y-4">
-                                        <div className="p-5 rounded-3xl bg-red-500/10 border border-red-500/20">
-                                            <div className="flex justify-between items-center mb-2">
-                                                <Badge className="bg-red-500 text-white border-none uppercase text-[8px] font-black tracking-widest">High Priority</Badge>
-                                                <span className="text-[10px] font-bold text-red-400">42 Occurrences</span>
-                                            </div>
-                                            <h5 className="font-bold text-base text-red-600 dark:text-red-400">AI Studio API Timeouts</h5>
-                                            <p className="text-xs text-red-500/80 mt-1 font-medium leading-relaxed">OpenRouter model inference failing occasionally due to heavy load. Needs retry logic expansion.</p>
-                                        </div>
-                                        <div className="p-5 rounded-3xl bg-amber-500/10 border border-amber-500/20">
-                                            <div className="flex justify-between items-center mb-2">
-                                                <Badge className="bg-amber-500 text-white border-none uppercase text-[8px] font-black tracking-widest">UI / UX Polish</Badge>
-                                            </div>
-                                            <h5 className="font-bold text-base text-amber-600 dark:text-amber-400">Mobile Marketplace Jitter</h5>
-                                            <p className="text-xs text-amber-500/80 mt-1 font-medium leading-relaxed">Lazy loading images causing layout shift on iOS Safari during infinite scroll.</p>
-                                        </div>
-                                    </div>
-                                </Card>
-
-                                {/* Critical System Controls */}
-                                <Card className="bg-white dark:bg-[#1E293B]/50 p-8 rounded-[2.5rem] border-slate-200 dark:border-white/5 shadow-sm flex flex-col justify-between">
-                                    <div>
-                                        <h3 className="font-black flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-tight mb-4">
-                                            <ShieldCheck className="text-blue-500" size={20} /> Master Controls
-                                        </h3>
-                                        <p className="text-xs text-slate-500 mb-6 font-medium italic">Use with extreme caution. These actions directly impact all active users globally.</p>
-                                        
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between p-5 rounded-3xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0F172A]/50">
-                                                <div>
-                                                    <h5 className="font-bold text-sm text-slate-900 dark:text-white">Enable Maintenance Mode</h5>
-                                                    <p className="text-[10px] text-slate-500">Temporarily disables all logins and marketplace checkouts.</p>
-                                                </div>
-                                                <div className="w-12 h-6 rounded-full bg-slate-200 dark:bg-slate-700 p-1 cursor-not-allowed">
-                                                    <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center justify-between p-5 rounded-3xl border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-[#0F172A]/50">
-                                                <div>
-                                                    <h5 className="font-bold text-sm text-slate-900 dark:text-white">Clear Global Cache</h5>
-                                                    <p className="text-[10px] text-slate-500">Forces all edges to refresh marketplace assets.</p>
-                                                </div>
-                                                <Button 
-                                                    variant="outline" 
-                                                    size="sm"
-                                                    className="font-black uppercase tracking-widest rounded-xl hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors"
-                                                    onClick={() => toast.success("CDN Purge initiated.")}
-                                                >
-                                                    Purge
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="mt-8 pt-6 border-t border-slate-200 dark:border-white/10 text-center">
-                                        <Button 
-                                            className="w-full h-14 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-xs shadow-lg shadow-emerald-600/20"
-                                            onClick={() => toast.success("System verified and marked as stable.")}
-                                        >
-                                            Acknowledge Stability <Activity size={18} className="ml-2" />
-                                        </Button>
-                                    </div>
-                                </Card>
-                            </div>
-                        </div>
-                    )}
+                    {/* old system tab removed - migrated to standalone page */}
                 </div>
             </main>
 
@@ -706,6 +601,7 @@ const PMDashboard = () => {
                                     { id: 'evaluation', icon: BarChart3, label: 'Evaluation' },
                                     { id: 'config', icon: Settings, label: 'Tax Configuration' },
                                     { id: 'reports', icon: FileText, label: 'Filing & Reports' },
+                                    { id: 'sop', icon: ShieldCheck, label: 'Compliance & SOP' },
                                 ].map(tab => (
                                     <button
                                         key={tab.id}
@@ -747,10 +643,19 @@ const PMDashboard = () => {
                                     </div>
 
                                     <div className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-3xl">
-                                        <h4 className="font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs mb-2">How this is calculated</h4>
-                                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
-                                            The estimated tax liability is automatically aggregated by applying the configured base tax rate ({taxRate}%) against the total platform fees collected from vendor transactions. As a Product Manager, you must evaluate these figures periodically against geographic compliance thresholds to ensure the platform avoids regulatory penalties.
-                                        </p>
+                                        <h4 className="font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs mb-3">Auditable Tax Logic</h4>
+                                        <div className="space-y-4">
+                                            <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                                                Tax figures are arrived at by aggregating the <span className="font-bold">Gross Platform Volume (GPV)</span> across all successful transactions and applying the currently active <span className="font-bold underline text-blue-600">Base Tax Rate</span>. 
+                                            </p>
+                                            <div className="p-4 bg-white/50 dark:bg-black/20 rounded-xl space-y-2">
+                                                <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest leading-none">Evaluation Formula</p>
+                                                <p className="text-xs font-mono font-bold text-slate-900 dark:text-white">Tax_Liability = Σ(Vendor_Payout + Transaction_Fees) * ACTIVE_RATE_PERCENTAGE</p>
+                                            </div>
+                                            <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                                                As a PM, you can evaluate what is being taxed by reviewing individual audit logs in the <span className="italic font-bold">Filing & Reports</span> tab, ensuring that only applicable professional fees and material commissions are included in the taxable pool.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -835,6 +740,51 @@ const PMDashboard = () => {
                                                 </Button>
                                             </div>
                                         ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTaxTab === 'sop' && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                                    <div className="mb-8">
+                                        <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Standard Business Procedure</h2>
+                                        <p className="text-sm font-medium italic text-slate-500">Regulatory guidelines and platform-wide tax handling protocols.</p>
+                                    </div>
+
+                                    <div className="space-y-8">
+                                        <div className="space-y-2">
+                                            <h4 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tight flex items-center gap-2">
+                                                <div className="w-1.5 h-6 bg-red-600" /> Phase 1: Aggregation & Transparency
+                                            </h4>
+                                            <p className="text-xs text-slate-500 leading-relaxed font-bold italic">
+                                                Objective: Ensure every marketplace transaction triggers an immutable ledger entry.
+                                            </p>
+                                            <p className="text-xs text-slate-500 leading-relaxed">
+                                                PMs must verify that vendor commission rates align with the current fiscal policy before end-of-month (EOM) reconciliation. Discrepancies should be flagged immediately.
+                                            </p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h4 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tight flex items-center gap-2">
+                                                <div className="w-1.5 h-6 bg-red-600" /> Phase 2: Reconciliation & Auditing
+                                            </h4>
+                                            <p className="text-xs text-slate-500 leading-relaxed font-bold italic">
+                                                Objective: Digital closure of the fiscal period.
+                                            </p>
+                                            <p className="text-xs text-slate-500 leading-relaxed">
+                                                The Product Owner is required to "Acknowledge" the platform's EOM report. This creates a digitally signed artifact used for internal audits and government filings.
+                                            </p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h4 className="font-black text-slate-900 dark:text-white text-sm uppercase tracking-tight flex items-center gap-2">
+                                                <div className="w-1.5 h-6 bg-red-600" /> Phase 3: Dispute Mitigation
+                                            </h4>
+                                            <p className="text-xs text-slate-500 leading-relaxed font-bold italic">
+                                                Objective: Maintain vendor trust and regulatory compliance.
+                                            </p>
+                                            <p className="text-xs text-slate-500 leading-relaxed">
+                                                In cases where professional vendors claim tax exemptions, the PM must manually flag the transaction in the Content Moderation area and attach valid tax-exemption identification.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             )}

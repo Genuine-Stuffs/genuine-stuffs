@@ -73,6 +73,7 @@ const AIStudio = () => {
     const [promptText, setPromptText] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const [ultraMode, setUltraMode] = useState(false);
     const isMobile = useIsMobile();
 
     // Static/Frozen Screen logic for DeepSeek effect
@@ -534,7 +535,7 @@ const AIStudio = () => {
                     </div>
 
                     {/* Main Workspace - Genspark Minimalist Style */}
-                    <div className={`flex-1 flex flex-col transition-all duration-700 w-full relative z-[30] ${(!generatedImage && !isGenerating) ? 'items-center justify-center p-4 md:p-8 bg-white dark:bg-background' : 'p-0 overflow-hidden bg-white dark:bg-[#15171a]'}`}>
+                    <div className={`flex-1 flex flex-col transition-all duration-700 w-full relative z-[30] overflow-y-auto custom-scrollbar ${(generatedImage || isGenerating) ? 'bg-white dark:bg-[#15171a]' : 'items-center justify-center p-4 md:p-8 bg-white dark:bg-background'}`}>
                         
                         {!generatedImage && !isGenerating ? (
                             /* --- IDLE STATE: Massive Centered UI --- */
@@ -563,7 +564,13 @@ const AIStudio = () => {
                                         <div className="flex items-center justify-between px-4 pb-4">
                                             <div className="flex items-center gap-2">
                                                 <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-xl h-10 w-10 bg-slate-50 dark:bg-white/5"><Plus className="w-5 h-5" /></Button>
-                                                <Button variant="ghost" className="text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-xl h-10 px-4 bg-slate-50 dark:bg-white/5 font-semibold text-[11px] uppercase tracking-widest"><Sparkles className="w-3.5 h-3.5 mr-2" /> Ultra</Button>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    onClick={() => setUltraMode(!ultraMode)}
+                                                    className={`rounded-xl h-10 px-4 font-semibold text-[11px] uppercase tracking-widest transition-all ${ultraMode ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'text-slate-400 hover:text-slate-700 dark:hover:text-white bg-slate-50 dark:bg-white/5'}`}
+                                                >
+                                                    <Sparkles className={`w-3.5 h-3.5 mr-2 ${ultraMode ? 'animate-pulse' : ''}`} /> Ultra
+                                                </Button>
                                             </div>
                                             <div className="flex items-center gap-4">
                                                 <Button variant="ghost" size="icon" className="text-slate-400 hover:text-primary rounded-xl h-10 w-10"><Mic className="w-5 h-5" /></Button>
@@ -622,7 +629,9 @@ const AIStudio = () => {
                                                 {isGenerating ? (
                                                     <div className="flex items-center gap-4 h-8 animate-pulse text-slate-400">
                                                         <Loader2 className="w-5 h-5 animate-spin" />
-                                                        <span className="text-sm font-semibold tracking-wider uppercase">Synthesizing Protocol...</span>
+                                                        <span className="text-sm font-semibold tracking-wider uppercase">
+                                                            {ultraMode ? "Synthesizing Deep Reasoning Protocol..." : "Synthesizing Protocol..."}
+                                                        </span>
                                                     </div>
                                                 ) : (
                                                     <div className="w-full text-slate-700 dark:text-slate-300 text-[15px] md:text-base leading-[1.8] font-medium">
