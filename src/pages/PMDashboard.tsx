@@ -94,7 +94,7 @@ const PMDashboard = () => {
     ];
 
     return (
-        <div className="flex min-h-screen bg-[#0F172A] text-slate-200">
+        <div className="flex min-h-screen bg-slate-50 dark:bg-[#0F172A] text-slate-900 dark:text-slate-200 transition-colors duration-300">
             {/* Sidebar Overlay */}
             {sidebarOpen && (
                 <div 
@@ -104,11 +104,11 @@ const PMDashboard = () => {
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#1E293B]/80 backdrop-blur-xl border-r border-white/5 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#1E293B]/80 backdrop-blur-xl border-r border-slate-200 dark:border-white/5 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="flex flex-col h-full">
                     <div className="p-8">
                         <div className="flex items-center gap-3 mb-10">
-                            <Logo iconClassName="h-10" textClassName="!text-white" />
+                            <Logo iconClassName="h-10" textClassName="dark:!text-white !text-slate-900" />
                         </div>
 
                         <nav className="space-y-2">
@@ -123,7 +123,7 @@ const PMDashboard = () => {
                                 <button
                                     key={item.id}
                                     onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
-                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === item.id ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === item.id ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}
                                 >
                                     <item.icon size={18} />
                                     {item.label}
@@ -132,10 +132,10 @@ const PMDashboard = () => {
                         </nav>
                     </div>
 
-                    <div className="mt-auto p-8 border-t border-white/5">
+                    <div className="mt-auto p-8 border-t border-slate-200 dark:border-white/5">
                         <button 
                             onClick={logout}
-                            className="flex items-center gap-3 text-slate-500 hover:text-red-500 font-bold transition-colors text-sm"
+                            className="flex items-center gap-3 text-slate-400 dark:text-slate-500 hover:text-red-500 font-bold transition-colors text-sm"
                         >
                             <LogOut size={18} />
                             Sign Out
@@ -147,7 +147,7 @@ const PMDashboard = () => {
             {/* Main Content */}
             <main className="flex-1 lg:ml-72 min-h-screen">
                 {/* Header */}
-                <header className="sticky top-0 z-30 flex items-center justify-between px-8 py-4 bg-[#0F172A]/80 backdrop-blur-md border-b border-white/5">
+                <header className="sticky top-0 z-30 flex items-center justify-between px-8 py-4 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5">
                     <div className="flex items-center gap-4">
                         <button 
                             className="lg:hidden p-2 text-slate-400"
@@ -155,37 +155,45 @@ const PMDashboard = () => {
                         >
                             <Menu size={24} />
                         </button>
-                        <h2 className="text-lg font-black uppercase tracking-tight text-white">
+                        <h2 className="text-lg font-black uppercase tracking-tight text-slate-900 dark:text-white">
                             {activeTab.replace("-", " ")}
                         </h2>
                     </div>
 
                     <div className="flex items-center gap-6">
                         <div className="hidden md:flex relative group">
-                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-hover:text-red-500 transition-colors" size={16} />
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-red-500 transition-colors" size={16} />
                             <Input 
                                 placeholder="Global Search..." 
-                                className="w-64 bg-white/5 border-white/5 rounded-xl pl-10 h-10 text-sm focus:ring-red-600/50"
+                                className="w-64 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 rounded-xl pl-10 h-10 text-sm focus:ring-red-600/50 dark:text-white"
                             />
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-3 p-1 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner">
                             <button 
-                                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                                className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl text-slate-400 hover:text-white transition-all shadow-sm active:scale-95"
+                                onClick={() => setTheme('light')}
+                                className={`p-2 rounded-xl transition-all ${theme === 'light' ? 'bg-white text-orange-500 shadow-sm scale-105' : 'text-slate-400 hover:bg-white/30'}`}
+                                title="Light Mode"
                             >
-                                {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+                                <Sun size={18} />
                             </button>
-                            <button className="relative text-slate-400 hover:text-white transition-colors p-2.5 bg-white/5 hover:bg-white/10 rounded-xl shadow-sm">
-                                <Bell size={18} />
-                                <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border-2 border-[#0F172A]" />
+                            <button 
+                                onClick={() => setTheme('dark')}
+                                className={`p-2 rounded-xl transition-all ${theme === 'dark' ? 'bg-slate-800 text-blue-400 shadow-sm scale-105' : 'text-slate-400 hover:bg-slate-800/30'}`}
+                                title="Dark Mode"
+                            >
+                                <Moon size={18} />
                             </button>
                         </div>
-                        <div className="flex items-center gap-3 pl-6 border-l border-white/5">
+                        <button className="relative text-slate-400 hover:text-red-500 transition-colors p-2.5 bg-slate-100 dark:bg-white/5 rounded-xl shadow-sm border border-slate-200 dark:border-white/5">
+                            <Bell size={18} />
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border-2 border-white dark:border-[#0F172A]" />
+                        </button>
+                        <div className="flex items-center gap-3 pl-6 border-l border-slate-200 dark:border-white/5">
                             <div className="text-right hidden sm:block">
-                                <p className="text-xs font-black text-white uppercase">{user?.email?.split('@')[0]}</p>
+                                <p className="text-xs font-black text-slate-900 dark:text-white uppercase">{user?.email?.split('@')[0]}</p>
                                 <Badge className="bg-red-600/10 text-red-500 border-none text-[8px]">SUPER ADMIN</Badge>
                             </div>
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-red-400 flex items-center justify-center font-black text-white border-2 border-white/10">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-red-400 flex items-center justify-center font-black text-white border-2 border-white/10 shadow-lg shadow-red-600/20">
                                 {user?.email?.[0].toUpperCase()}
                             </div>
                         </div>
@@ -199,17 +207,17 @@ const PMDashboard = () => {
                             {/* Stats Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {statCards.map((card, idx) => (
-                                    <Card key={idx} className="bg-[#1E293B]/50 border-white/5 p-6 rounded-[2rem] hover:border-red-600/30 transition-all group overflow-hidden relative">
+                                    <Card key={idx} className="bg-white dark:bg-[#1E293B]/50 border-slate-200 dark:border-white/5 p-6 rounded-[2rem] hover:border-red-600/30 transition-all group overflow-hidden relative shadow-sm hover:shadow-xl dark:shadow-none">
                                         <div className="absolute top-0 right-0 w-24 h-24 bg-red-600/5 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-red-600/10 transition-colors" />
                                         <div className="flex items-center justify-between mb-4">
-                                            <div className={`p-3 rounded-2xl bg-white/5 text-red-500`}>
+                                            <div className={`p-3 rounded-2xl bg-slate-50 dark:bg-white/5 text-red-500`}>
                                                 <card.icon size={22} />
                                             </div>
                                             <Badge className="bg-emerald-500/10 text-emerald-500 border-none font-bold text-[10px] uppercase">{card.trend}</Badge>
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{card.label}</p>
-                                            <h3 className="text-3xl font-black text-white tracking-tighter">
+                                            <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest">{card.label}</p>
+                                            <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">
                                                 {statsLoading ? "..." : card.value.toLocaleString()}
                                             </h3>
                                         </div>
@@ -219,11 +227,11 @@ const PMDashboard = () => {
 
                             {/* Verification Feed Preview */}
                             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                                <Card className="xl:col-span-2 bg-[#1E293B]/50 border-white/5 rounded-[2.5rem] overflow-hidden">
-                                    <div className="p-8 border-b border-white/5 flex items-center justify-between">
+                                <Card className="xl:col-span-2 bg-white dark:bg-[#1E293B]/50 border-slate-200 dark:border-white/5 rounded-[2.5rem] overflow-hidden shadow-sm">
+                                    <div className="p-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
                                         <div>
-                                            <h3 className="text-lg font-black text-white uppercase tracking-tight">Recent Pending Vendors</h3>
-                                            <p className="text-xs text-slate-500 font-medium italic">Pending CAC and Identity verification.</p>
+                                            <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Recent Pending Vendors</h3>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium italic">Pending CAC and Identity verification.</p>
                                         </div>
                                         <Button 
                                             variant="ghost" 
@@ -245,11 +253,11 @@ const PMDashboard = () => {
                                     </div>
                                 </Card>
 
-                                <Card className="bg-[#1E293B]/50 border-white/5 rounded-[2.5rem] p-8">
+                                <Card className="bg-white dark:bg-[#1E293B]/50 border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 shadow-sm">
                                     <div className="space-y-6">
                                         <div>
-                                            <h3 className="text-lg font-black text-white uppercase tracking-tight">Quick Actions</h3>
-                                            <p className="text-xs text-slate-500 font-medium italic">Execute high-priority tasks.</p>
+                                            <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Quick Actions</h3>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium italic">Execute high-priority tasks.</p>
                                         </div>
                                         
                                         <div className="space-y-3">
@@ -259,7 +267,7 @@ const PMDashboard = () => {
                                                 { label: "Review Flagged Items", icon: AlertTriangle, color: "bg-red-600" },
                                                 { label: "System Maintenance", icon: BarChart3, color: "bg-emerald-600" },
                                             ].map((action, idx) => (
-                                                <button key={idx} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all group font-bold text-sm text-slate-300">
+                                                <button key={idx} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 transition-all group font-bold text-sm text-slate-600 dark:text-slate-300">
                                                     <div className={`w-10 h-10 rounded-xl ${action.color} flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform`}>
                                                         <action.icon size={18} />
                                                     </div>
@@ -276,8 +284,8 @@ const PMDashboard = () => {
                     {activeTab === 'vendors' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="mb-8">
-                                <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Vendor Management Pipeline</h3>
-                                <p className="text-sm text-slate-500 font-medium italic">Review and approve vendor business credentials.</p>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Vendor Management Pipeline</h3>
+                                <p className="text-sm text-slate-400 dark:text-slate-500 font-medium italic">Review and approve vendor business credentials.</p>
                             </div>
                             <ManagementTable 
                                 data={pendingVendors || []} 
@@ -293,8 +301,8 @@ const PMDashboard = () => {
                     {activeTab === 'pros' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="mb-8">
-                                <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Professional Verification</h3>
-                                <p className="text-sm text-slate-500 font-medium italic">Verify professional licenses and specialties.</p>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Professional Verification</h3>
+                                <p className="text-sm text-slate-400 dark:text-slate-500 font-medium italic">Verify professional licenses and specialties.</p>
                             </div>
                             <ManagementTable 
                                 data={pendingPros || []} 
@@ -310,8 +318,8 @@ const PMDashboard = () => {
                     {activeTab === 'materials' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="mb-8">
-                                <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Content Moderation Pipeline</h3>
-                                <p className="text-sm text-slate-500 font-medium italic">Review new marketplace listings for accuracy and quality.</p>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Content Moderation Pipeline</h3>
+                                <p className="text-sm text-slate-400 dark:text-slate-500 font-medium italic">Review new marketplace listings for accuracy and quality.</p>
                             </div>
                             <ContentModerationTable 
                                 data={pendingMaterials || []} 
@@ -335,8 +343,8 @@ const PMDashboard = () => {
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="mb-8 flex justify-between items-end">
                                 <div>
-                                    <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Incident Reports</h3>
-                                    <p className="text-sm text-slate-500 font-medium italic">Flagged listings and user complaints.</p>
+                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Incident Reports</h3>
+                                    <p className="text-sm text-slate-400 dark:text-slate-500 font-medium italic">Flagged listings and user complaints.</p>
                                 </div>
                                 <Badge className="bg-red-600/20 text-red-500 font-black h-6 px-3">{incidentReports?.length || 0} ACTIVE</Badge>
                             </div>
@@ -357,24 +365,25 @@ const PMDashboard = () => {
                             />
                         </div>
                     )}
+
                     {activeTab === 'team' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto py-12">
-                            <Card className="bg-[#1E293B]/50 border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-2xl">
+                            <Card className="bg-white dark:bg-[#1E293B]/50 border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-xl dark:shadow-2xl">
                                 <div className="text-center mb-10">
                                     <div className="w-20 h-20 bg-red-600/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
                                         <Users className="text-red-500 w-10 h-10" />
                                     </div>
-                                    <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Expand Admin Team</h3>
-                                    <p className="text-sm text-slate-500 font-medium italic">Grant Product Manager privileges to other users.</p>
+                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Expand Admin Team</h3>
+                                    <p className="text-sm text-slate-400 dark:text-slate-500 font-medium italic">Grant Product Manager privileges to other users.</p>
                                 </div>
                                 
                                 <div className="space-y-6">
                                     <div className="space-y-2">
-                                        <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2">Target User Email</p>
+                                        <p className="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 tracking-widest px-2">Target User Email</p>
                                         <Input 
                                             id="admin_email"
                                             placeholder="new-admin@genuinestuffs.com"
-                                            className="bg-white/5 border-white/10 h-14 rounded-2xl font-bold px-6 focus:ring-red-600/50"
+                                            className="bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 h-14 rounded-2xl font-bold px-6 focus:ring-red-600/50 dark:text-white"
                                         />
                                     </div>
 
@@ -406,7 +415,7 @@ const PMDashboard = () => {
                                         Promote to PM <ShieldCheck size={18} />
                                     </Button>
 
-                                    <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-[11px] text-amber-200/70 italic flex gap-4">
+                                    <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-2xl text-[11px] text-amber-600 dark:text-amber-200/70 italic flex gap-4">
                                         <AlertTriangle size={32} className="shrink-0 text-amber-500" />
                                         <p>Warning: Promoting a user grants them full administrative control over vendors, professionals, and marketplace content. This action is logged for audit purposes.</p>
                                     </div>
