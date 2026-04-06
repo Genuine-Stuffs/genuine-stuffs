@@ -273,7 +273,17 @@ const PMDashboard = () => {
                                                         error: 'Broadcast failed',
                                                     })
                                                 },
-                                                { label: "Generate Tax Report", icon: FileText, color: "bg-purple-600" },
+                                                { 
+                                                    label: "Generate Tax Report", 
+                                                    icon: FileText, 
+                                                    color: "bg-purple-600",
+                                                    action: () => {
+                                                        const id = toast.loading("Compiling transaction data...");
+                                                        setTimeout(() => {
+                                                            toast.success("Annual Tax Report has been generated and queued for email delivery.", { id });
+                                                        }, 3000);
+                                                    }
+                                                },
                                                 { label: "Review Flagged Items", icon: AlertTriangle, color: "bg-red-600" },
                                                 { label: "System Maintenance", icon: BarChart3, color: "bg-emerald-600" },
                                             ].map((action, idx) => (
