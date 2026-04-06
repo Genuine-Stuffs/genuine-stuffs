@@ -1,204 +1,314 @@
-import React, { useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { Navigate } from 'react-router-dom';
+import { useState } from "react";
+import { Navigate } from "react-router-dom";
 import { 
-  Users, 
-  Store, 
-  Briefcase, 
-  ShieldCheck, 
-  BarChart3, 
-  AlertCircle,
-  Search,
-  Filter,
-  MoreVertical,
-  CheckCircle2,
-  XCircle,
-  Clock
-} from 'lucide-react';
+    Users, 
+    ShieldCheck, 
+    ShoppingBag, 
+    AlertTriangle, 
+    Search, 
+    Bell, 
+    Menu, 
+    X, 
+    BarChart3, 
+    Store, 
+    Briefcase, 
+    UserCheck, 
+    FileText,
+    LogOut,
+    CheckCircle2
+} from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/context/AuthContext";
+import { useAdminStats, usePendingVerifications } from "@/hooks/useAdminData";
+import { toast } from "sonner";
+import { supabase } from "backend/supabaseClient";
+import ManagementTable from "@/components/admin/ManagementTable";
 
 const PMDashboard = () => {
-  const { role, isLoading } = useAuth();
-  const [activeTab, setActiveTab] = useState('overview');
+    const { user, role, logout } = useAuth();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState("overview");
 
-  // Protection Check
-  if (isLoading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
-  if (role !== 'pm') return <Navigate to="/" replace />;
+    // Real data hooks
+    const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
+    const { data: pendingVendors, isLoading: vendorsLoading, refetch: refetchVendors } = usePendingVerifications('vendor');
+    const { data: pendingPros, isLoading: prosLoading, refetch: refetchPros } = usePendingVerifications('professional');
 
-  const tabs = [
-    { id: 'overview', label: 'Overview', icon: BarChart3 },
-    { id: 'vendors', label: 'Vendors', icon: Store },
-    { id: 'pros', label: 'Professionals', icon: Briefcase },
-    { id: 'marketplace', label: 'Marketplace', icon: ShieldCheck },
-    { id: 'users', label: 'Users', icon: Users },
-  ];
+    if (role !== 'pm') {
+        return <Navigate to="/" replace />;
+    }
 
-  return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex">
-      {/* Glassmorphic Sidebar */}
-      <aside className="w-64 border-r border-slate-200/50 dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl sticky top-0 h-screen hidden md:flex flex-col">
-        <div className="p-6 border-b border-slate-200/50 dark:border-slate-800/50">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-red-600 to-red-400 bg-clip-text text-transparent">
-            PM Control
-          </h1>
-          <p className="text-xs text-slate-500 mt-1 uppercase tracking-wider font-semibold">Material Insight</p>
-        </div>
-        
-        <nav className="flex-grow p-4 space-y-2">
-          {tabs.map((tab) => {
-            const Icon = tab.icon;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-200 ${
-                  activeTab === tab.id 
-                    ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-medium shadow-sm' 
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                }`}
-              >
-                <Icon size={20} />
-                <span>{tab.label}</span>
-              </button>
-            )
-          })}
-        </nav>
+    const handleApproval = async (id: string, type: 'vendor' | 'professional') => {
+        const table = type === 'vendor' ? 'vendors' : 'professionals';
+        const updateData = type === 'vendor' ? { verified_status: 'approved' } : { is_verified: true };
 
-        <div className="p-4 border-t border-slate-200/50 dark:border-slate-800/50">
-          <div className="bg-slate-900 dark:bg-slate-800 rounded-xl p-4 text-white">
-            <p className="text-xs text-slate-400 font-medium">System Role</p>
-            <p className="font-bold text-sm">Product Manager</p>
-          </div>
-        </div>
-      </aside>
+        try {
+            const { error } = await supabase.from(table).update(updateData).eq('id', id);
+            if (error) throw error;
+            
+            toast.success(`${type === 'vendor' ? 'Vendor' : 'Professional'} successfully verified!`);
+            refetchStats();
+            if (type === 'vendor') refetchVendors();
+            else refetchPros();
+        } catch (err) {
+            console.error("Verification failed:", err);
+            toast.error("Failed to update verification status.");
+        }
+    };
 
-      {/* Main Content Area */}
-      <main className="flex-grow">
-        {/* Top Header - Sticky Glass */}
-        <header className="sticky top-0 z-30 bg-white/70 dark:bg-slate-900/70 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-800/50 px-8 py-4 flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white capitalize">
-              {activeTab} Management
-            </h2>
-            <p className="text-sm text-slate-500">Welcome back, PM Dashboard is ready.</p>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <div className="relative hidden sm:block">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-              <input 
-                type="text" 
-                placeholder="Global Search..." 
-                className="pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-transparent focus:border-red-500 rounded-full text-sm w-64 focus:ring-2 focus:ring-red-500/20 transition-all outline-none"
-              />
-            </div>
-            <button className="p-2 text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors relative">
-              <AlertCircle size={22} />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
-            </button>
-          </div>
-        </header>
+    const handleRejection = async (id: string, type: 'vendor' | 'professional') => {
+        const table = type === 'vendor' ? 'vendors' : 'professionals';
+        const updateData = type === 'vendor' ? { verified_status: 'rejected' } : { is_verified: false }; // Pros stay unverified
 
-        {/* Dynamic Canvas */}
-        <div className="p-8">
-          {activeTab === 'overview' && (
-            <div className="space-y-8">
-              {/* Stats Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  { label: 'Total Users', value: '1,248', trend: '+12%', icon: Users, color: 'blue' },
-                  { label: 'Verified Vendors', value: '84', sub: '12 pending', icon: Store, color: 'red' },
-                  { label: 'Verified Pros', value: '156', sub: '9 pending', icon: Briefcase, color: 'green' },
-                  { label: 'Market Active', value: '$12.4k', trend: '+5%', icon: BarChart3, color: 'purple' },
-                ].map((stat, i) => {
-                  const Icon = stat.icon;
-                  return (
-                    <div key={i} className="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm hover:shadow-md transition-shadow cursor-pointer group">
-                      <div className="flex justify-between items-start mb-4">
-                        <div className={`p-3 rounded-xl bg-${stat.color}-500/10 text-${stat.color}-600 dark:text-${stat.color}-400 group-hover:scale-110 transition-transform`}>
-                          <Icon size={24} />
+        try {
+            const { error } = await supabase.from(table).update(updateData).eq('id', id);
+            if (error) throw error;
+            
+            toast.info(`Application ${type === 'vendor' ? 'rejected' : 'flagged'}.`);
+            if (type === 'vendor') refetchVendors();
+            else refetchPros();
+        } catch (err) {
+            console.error("Rejection failed:", err);
+            toast.error("Process failed.");
+        }
+    };
+
+    const statCards = [
+        { label: "Active Vendors", value: stats?.totalVendors || 0, icon: Store, trend: "+12%", color: "text-blue-600" },
+        { label: "Pending Vendors", value: stats?.pendingVendors || 0, icon: AlertTriangle, trend: "Priority", color: "text-amber-600" },
+        { label: "Pending Professionals", value: stats?.pendingPros || 0, icon: ShieldCheck, trend: "Action Required", color: "text-red-600" },
+        { label: "Marketplace Assets", value: stats?.totalMaterials || 0, icon: ShoppingBag, trend: "+5.1k", color: "text-emerald-600" },
+    ];
+
+    return (
+        <div className="flex min-h-screen bg-[#0F172A] text-slate-200">
+            {/* Sidebar Overlay */}
+            {sidebarOpen && (
+                <div 
+                    className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
+                    onClick={() => setSidebarOpen(false)}
+                />
+            )}
+
+            {/* Sidebar */}
+            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#1E293B]/80 backdrop-blur-xl border-r border-white/5 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+                <div className="flex flex-col h-full">
+                    <div className="p-8">
+                        <div className="flex items-center gap-3 mb-10">
+                            <div className="w-10 h-10 bg-red-600 rounded-xl flex items-center justify-center font-black text-white shadow-lg shadow-red-600/20">GS</div>
+                            <div>
+                                <h1 className="text-xl font-black tracking-tighter text-white">GENUINE<span className="text-red-600">STUFFS</span></h1>
+                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Platform Manage</p>
+                            </div>
                         </div>
-                        {stat.trend && (
-                          <span className="text-xs font-bold text-green-500 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded-full">
-                            {stat.trend}
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-sm font-medium text-slate-500 mb-1">{stat.label}</p>
-                      <h3 className="text-2xl font-bold text-slate-900 dark:text-white">{stat.value}</h3>
-                      {stat.sub && <p className="text-xs text-slate-400 mt-1">{stat.sub}</p>}
+
+                        <nav className="space-y-2">
+                            {[
+                                { id: "overview", icon: BarChart3, label: "Overview" },
+                                { id: "vendors", icon: Store, label: "Vendor Pipeline" },
+                                { id: "pros", icon: UserCheck, label: "Pro Verification" },
+                                { id: "materials", icon: ShoppingBag, label: "Content Moderation" },
+                                { id: "reports", icon: AlertTriangle, label: "Incident Reports" },
+                            ].map((item) => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => { setActiveTab(item.id); setSidebarOpen(false); }}
+                                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTab === item.id ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
+                                >
+                                    <item.icon size={18} />
+                                    {item.label}
+                                </button>
+                            ))}
+                        </nav>
                     </div>
-                  )
-                })}
-              </div>
 
-              {/* Pending Verification Preview (High Density Card) */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm overflow-hidden">
-                  <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                    <h3 className="font-bold flex items-center gap-2">
-                       <Clock className="text-amber-500" size={18} />
-                       Recent Verification Requests
-                    </h3>
-                    <button className="text-xs text-red-600 hover:underline font-bold">View Pipeline</button>
-                  </div>
-                  <div className="divide-y divide-slate-100 dark:divide-slate-700">
-                    {[
-                      { name: 'BuildLink Solutions', type: 'Vendor', date: '2h ago', status: 'Pending' },
-                      { name: 'Engr. Sarah John', type: 'Professional', date: '5h ago', status: 'Reviewing' },
-                      { name: 'Apex Materials Ltd', type: 'Vendor', date: '1d ago', status: 'Pending' },
-                    ].map((req, i) => (
-                      <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center font-bold text-slate-500">
-                            {req.name.charAt(0)}
-                          </div>
-                          <div>
-                            <p className="text-sm font-bold">{req.name}</p>
-                            <p className="text-xs text-slate-500">{req.type} • {req.date}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <button className="p-2 text-green-600 hover:bg-green-50 rounded-lg"><CheckCircle2 size={18}/></button>
-                          <button className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><XCircle size={18}/></button>
-                          <button className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg"><MoreVertical size={18}/></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                    <div className="mt-auto p-8 border-t border-white/5">
+                        <button 
+                            onClick={logout}
+                            className="flex items-center gap-3 text-slate-500 hover:text-red-500 font-bold transition-colors text-sm"
+                        >
+                            <LogOut size={18} />
+                            Sign Out
+                        </button>
+                    </div>
                 </div>
+            </aside>
 
-                <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm overflow-hidden">
-                   <div className="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-                    <h3 className="font-bold text-slate-900 dark:text-white">Marketplace Activity</h3>
-                    <BarChart3 className="text-slate-400" size={18} />
-                   </div>
-                   <div className="p-8 flex flex-col items-center justify-center text-center h-full min-h-[200px]">
-                      <div className="w-12 h-12 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-4">
-                        <BarChart3 size={24} />
-                      </div>
-                      <p className="text-slate-500 text-sm max-w-xs">Data trends and charts will be integrated in Phase 2 using the platform's analytics hook.</p>
-                   </div>
+            {/* Main Content */}
+            <main className="flex-1 lg:ml-72 min-h-screen">
+                {/* Header */}
+                <header className="sticky top-0 z-30 flex items-center justify-between px-8 py-4 bg-[#0F172A]/80 backdrop-blur-md border-b border-white/5">
+                    <div className="flex items-center gap-4">
+                        <button 
+                            className="lg:hidden p-2 text-slate-400"
+                            onClick={() => setSidebarOpen(true)}
+                        >
+                            <Menu size={24} />
+                        </button>
+                        <h2 className="text-lg font-black uppercase tracking-tight text-white">
+                            {activeTab.replace("-", " ")}
+                        </h2>
+                    </div>
+
+                    <div className="flex items-center gap-6">
+                        <div className="hidden md:flex relative group">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-hover:text-red-500 transition-colors" size={16} />
+                            <Input 
+                                placeholder="Global Search..." 
+                                className="w-64 bg-white/5 border-white/5 rounded-xl pl-10 h-10 text-sm focus:ring-red-600/50"
+                            />
+                        </div>
+                        <button className="relative text-slate-400 hover:text-white transition-colors">
+                            <Bell size={20} />
+                            <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-600 rounded-full border-2 border-[#0F172A]" />
+                        </button>
+                        <div className="flex items-center gap-3 pl-6 border-l border-white/5">
+                            <div className="text-right hidden sm:block">
+                                <p className="text-xs font-black text-white uppercase">{user?.email?.split('@')[0]}</p>
+                                <Badge className="bg-red-600/10 text-red-500 border-none text-[8px]">SUPER ADMIN</Badge>
+                            </div>
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-red-400 flex items-center justify-center font-black text-white border-2 border-white/10">
+                                {user?.email?.[0].toUpperCase()}
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <div className="p-8">
+                    {/* Dynamic Rendering of Tabs */}
+                    {activeTab === 'overview' && (
+                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            {/* Stats Grid */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                {statCards.map((card, idx) => (
+                                    <Card key={idx} className="bg-[#1E293B]/50 border-white/5 p-6 rounded-[2rem] hover:border-red-600/30 transition-all group overflow-hidden relative">
+                                        <div className="absolute top-0 right-0 w-24 h-24 bg-red-600/5 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-red-600/10 transition-colors" />
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className={`p-3 rounded-2xl bg-white/5 text-red-500`}>
+                                                <card.icon size={22} />
+                                            </div>
+                                            <Badge className="bg-emerald-500/10 text-emerald-500 border-none font-bold text-[10px] uppercase">{card.trend}</Badge>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{card.label}</p>
+                                            <h3 className="text-3xl font-black text-white tracking-tighter">
+                                                {statsLoading ? "..." : card.value.toLocaleString()}
+                                            </h3>
+                                        </div>
+                                    </Card>
+                                ))}
+                            </div>
+
+                            {/* Verification Feed Preview */}
+                            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                                <Card className="xl:col-span-2 bg-[#1E293B]/50 border-white/5 rounded-[2.5rem] overflow-hidden">
+                                    <div className="p-8 border-b border-white/5 flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-lg font-black text-white uppercase tracking-tight">Recent Pending Vendors</h3>
+                                            <p className="text-xs text-slate-500 font-medium italic">Pending CAC and Identity verification.</p>
+                                        </div>
+                                        <Button 
+                                            variant="ghost" 
+                                            onClick={() => setActiveTab('vendors')}
+                                            className="text-red-500 font-black text-[10px] uppercase tracking-widest gap-2 hover:bg-red-600/5"
+                                        >
+                                            View Pipeline <CheckCircle2 size={14} />
+                                        </Button>
+                                    </div>
+                                    <div className="p-4">
+                                        <ManagementTable 
+                                            data={pendingVendors?.slice(0, 5) || []} 
+                                            isLoading={vendorsLoading} 
+                                            type="vendor"
+                                            onApprove={(id) => handleApproval(id, 'vendor')}
+                                            onReject={(id) => handleRejection(id, 'vendor')}
+                                            onView={(item) => console.log("View", item)}
+                                        />
+                                    </div>
+                                </Card>
+
+                                <Card className="bg-[#1E293B]/50 border-white/5 rounded-[2.5rem] p-8">
+                                    <div className="space-y-6">
+                                        <div>
+                                            <h3 className="text-lg font-black text-white uppercase tracking-tight">Quick Actions</h3>
+                                            <p className="text-xs text-slate-500 font-medium italic">Execute high-priority tasks.</p>
+                                        </div>
+                                        
+                                        <div className="space-y-3">
+                                            {[
+                                                { label: "Marketplace Broadcast", icon: Bell, color: "bg-blue-600" },
+                                                { label: "Generate Tax Report", icon: FileText, color: "bg-purple-600" },
+                                                { label: "Review Flagged Items", icon: AlertTriangle, color: "bg-red-600" },
+                                                { label: "System Maintenance", icon: BarChart3, color: "bg-emerald-600" },
+                                            ].map((action, idx) => (
+                                                <button key={idx} className="w-full flex items-center gap-4 p-4 rounded-2xl bg-white/5 hover:bg-white/10 transition-all group font-bold text-sm text-slate-300">
+                                                    <div className={`w-10 h-10 rounded-xl ${action.color} flex items-center justify-center text-white shrink-0 group-hover:scale-110 transition-transform`}>
+                                                        <action.icon size={18} />
+                                                    </div>
+                                                    {action.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </Card>
+                            </div>
+                        </div>
+                    )}
+
+                    {activeTab === 'vendors' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="mb-8">
+                                <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Vendor Management Pipeline</h3>
+                                <p className="text-sm text-slate-500 font-medium italic">Review and approve vendor business credentials.</p>
+                            </div>
+                            <ManagementTable 
+                                data={pendingVendors || []} 
+                                isLoading={vendorsLoading} 
+                                type="vendor"
+                                onApprove={(id) => handleApproval(id, 'vendor')}
+                                onReject={(id) => handleRejection(id, 'vendor')}
+                                onView={(item) => console.log("View", item)}
+                            />
+                        </div>
+                    )}
+
+                    {activeTab === 'pros' && (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                            <div className="mb-8">
+                                <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Professional Verification</h3>
+                                <p className="text-sm text-slate-500 font-medium italic">Verify professional licenses and specialties.</p>
+                            </div>
+                            <ManagementTable 
+                                data={pendingPros || []} 
+                                isLoading={prosLoading} 
+                                type="professional"
+                                onApprove={(id) => handleApproval(id, 'professional')}
+                                onReject={(id) => handleRejection(id, 'professional')}
+                                onView={(item) => console.log("View", item)}
+                            />
+                        </div>
+                    )}
+
+                    {(activeTab === 'materials' || activeTab === 'reports') && (
+                        <div className="flex flex-col items-center justify-center py-24 text-center">
+                            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-6">
+                                <AlertTriangle className="text-slate-500 w-10 h-10" />
+                            </div>
+                            <h3 className="text-xl font-black text-white uppercase">Module Pending</h3>
+                            <p className="text-slate-500 max-w-sm mt-2 italic font-medium">The {activeTab.replace("-", " ")} module is currently in Phase 3 of development.</p>
+                            <Button variant="outline" className="mt-8 border-white/10 rounded-xl" onClick={() => setActiveTab('overview')}>
+                                Return to Overview
+                            </Button>
+                        </div>
+                    )}
                 </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab !== 'overview' && (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
-               <div className="w-20 h-20 bg-slate-100 dark:bg-slate-800 rounded-3xl flex items-center justify-center mb-6 border border-slate-200 dark:border-slate-700">
-                  <Filter className="text-slate-400" size={32} />
-               </div>
-               <h3 className="text-xl font-bold mb-2">Detailed {activeTab} Control</h3>
-               <p className="text-slate-500 max-w-md">The management table and detailed moderation workflows for {activeTab} will be implemented in the next step.</p>
-               <button className="mt-8 px-6 py-2 bg-red-600 text-white rounded-full font-bold shadow-lg shadow-red-500/20 hover:scale-105 transition-transform">
-                  Configure Table
-               </button>
-            </div>
-          )}
+            </main>
         </div>
-      </main>
-    </div>
-  );
+    );
 };
 
 export default PMDashboard;
