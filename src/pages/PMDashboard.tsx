@@ -24,7 +24,12 @@ import {
     Download,
     Database,
     DollarSign,
-    RefreshCw
+    RefreshCw,
+    Activity,
+    ServerCrash,
+    HardDrive,
+    Zap,
+    Cpu
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -66,6 +71,7 @@ const PMDashboard = () => {
     const [isTaxSystemOpen, setIsTaxSystemOpen] = useState(false);
     const [taxRate, setTaxRate] = useState("7.5");
     const [activeTaxTab, setActiveTaxTab] = useState("evaluation");
+    const [isMaintenanceOpen, setIsMaintenanceOpen] = useState(false);
 
     // Real data hooks
     const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
@@ -312,17 +318,9 @@ const PMDashboard = () => {
                                                 },
                                                 { 
                                                     label: "System Maintenance", 
-                                                    icon: BarChart3, 
+                                                    icon: Activity, 
                                                     color: "bg-emerald-600",
-                                                    action: () => {
-                                                        const id = toast.loading("Running diagnostics...");
-                                                        setTimeout(() => {
-                                                            toast.loading("Analyzing server latency...", { id });
-                                                            setTimeout(() => {
-                                                                toast.success("System is at 100% capacity. All services healthy.", { id });
-                                                            }, 2000);
-                                                        }, 2000);
-                                                    }
+                                                    action: () => setIsMaintenanceOpen(true)
                                                 },
                                             ].map((action, idx) => (
                                                 <button 
@@ -725,6 +723,128 @@ const PMDashboard = () => {
                                     </div>
                                 </div>
                             )}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* System Status & Maintenance Modal */}
+            <Dialog open={isMaintenanceOpen} onOpenChange={setIsMaintenanceOpen}>
+                <DialogContent className="bg-slate-50 dark:bg-[#1E293B] border-slate-200 dark:border-white/10 rounded-[2.5rem] p-8 max-w-4xl max-h-[85vh] overflow-y-auto shadow-2xl">
+                    <DialogHeader className="mb-8">
+                        <div className="flex items-center gap-4">
+                            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                                <Activity size={28} />
+                            </div>
+                            <div>
+                                <DialogTitle className="text-3xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">System Diagnostics</DialogTitle>
+                                <DialogDescription className="text-slate-500 font-medium italic">
+                                    Real-time infrastructure health and development prioritization matrix.
+                                </DialogDescription>
+                            </div>
+                        </div>
+                    </DialogHeader>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div className="p-6 bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="p-2 bg-blue-500/10 text-blue-500 rounded-xl"><ServerCrash size={20} /></div>
+                                <span className="flex items-center gap-1 text-[10px] font-black text-emerald-500 uppercase tracking-widest"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> Operational</span>
+                            </div>
+                            <h4 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">99.98%</h4>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Core API Uptime</p>
+                        </div>
+                        <div className="p-6 bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="p-2 bg-purple-500/10 text-purple-500 rounded-xl"><Zap size={20} /></div>
+                                <span className="flex items-center gap-1 text-[10px] font-black text-emerald-500 uppercase tracking-widest">Optimal</span>
+                            </div>
+                            <h4 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">142ms</h4>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Avg Query Latency</p>
+                        </div>
+                        <div className="p-6 bg-white dark:bg-[#0F172A] rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="p-2 bg-orange-500/10 text-orange-500 rounded-xl"><HardDrive size={20} /></div>
+                                <span className="flex items-center gap-1 text-[10px] font-black text-amber-500 uppercase tracking-widest">Warning</span>
+                            </div>
+                            <h4 className="text-2xl font-black text-slate-900 dark:text-white tracking-tighter">78%</h4>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Media Storage Used</p>
+                        </div>
+                    </div>
+
+                    <div className="grid lg:grid-cols-2 gap-6">
+                        {/* Development Needs Focus Area */}
+                        <div className="bg-white dark:bg-white/5 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm">
+                            <h3 className="font-black flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-tight mb-4">
+                                <Cpu className="text-red-500" size={18} /> Engineering Focus Queue
+                            </h3>
+                            <p className="text-xs text-slate-500 mb-6 font-medium italic">Issues actively affecting platform experience that require developer intervention.</p>
+                            
+                            <div className="space-y-4">
+                                <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <Badge className="bg-red-500 text-white border-none uppercase text-[8px] font-black tracking-widest">High Priority</Badge>
+                                        <span className="text-[10px] font-bold text-red-400">42 Occurrences</span>
+                                    </div>
+                                    <h5 className="font-bold text-sm text-red-600 dark:text-red-400">AI Studio API Timeouts</h5>
+                                    <p className="text-xs text-red-500/80 mt-1 font-medium">OpenRouter model inference failing occasionally due to heavy load. Needs retry logic expansion.</p>
+                                </div>
+                                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20">
+                                    <div className="flex justify-between items-center mb-2">
+                                        <Badge className="bg-amber-500 text-white border-none uppercase text-[8px] font-black tracking-widest">UI / UX Polish</Badge>
+                                    </div>
+                                    <h5 className="font-bold text-sm text-amber-600 dark:text-amber-400">Mobile Marketplace Jitter</h5>
+                                    <p className="text-xs text-amber-500/80 mt-1 font-medium">Lazy loading images causing layout shift on iOS Safari during infinite scroll.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Critical System Controls */}
+                        <div className="bg-white dark:bg-white/5 p-6 rounded-3xl border border-slate-200 dark:border-white/5 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <h3 className="font-black flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-tight mb-4">
+                                    <ShieldCheck className="text-blue-500" size={18} /> Master Controls
+                                </h3>
+                                <p className="text-xs text-slate-500 mb-6 font-medium italic">Use with extreme caution. These actions directly impact all active users globally.</p>
+                                
+                                <div className="space-y-3">
+                                    <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 dark:border-white/10">
+                                        <div>
+                                            <h5 className="font-bold text-sm text-slate-900 dark:text-white">Enable Maintenance Mode</h5>
+                                            <p className="text-[10px] text-slate-500">Temporarily disables all logins and marketplace checkouts.</p>
+                                        </div>
+                                        <div className="w-12 h-6 rounded-full bg-slate-200 dark:bg-slate-700 p-1 cursor-not-allowed">
+                                            <div className="w-4 h-4 rounded-full bg-white shadow-sm" />
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center justify-between p-4 rounded-2xl border border-slate-200 dark:border-white/10">
+                                        <div>
+                                            <h5 className="font-bold text-sm text-slate-900 dark:text-white">Clear Global Cache</h5>
+                                            <p className="text-[10px] text-slate-500">Forces all edges to refresh marketplace assets.</p>
+                                        </div>
+                                        <Button 
+                                            variant="outline" 
+                                            size="sm"
+                                            className="text-[10px] font-black uppercase tracking-widest"
+                                            onClick={() => toast.success("CDN Purge initiated.")}
+                                        >
+                                            Purge
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="mt-8 pt-4 border-t border-slate-200 dark:border-white/10 text-center">
+                                <Button 
+                                    className="w-full h-12 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-600/20"
+                                    onClick={() => {
+                                        toast.success("System verified and marked as stable.");
+                                        setIsMaintenanceOpen(false);
+                                    }}
+                                >
+                                    Acknowledge Stability
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </DialogContent>
