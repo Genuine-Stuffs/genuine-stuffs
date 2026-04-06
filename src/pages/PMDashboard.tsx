@@ -34,6 +34,8 @@ import {
     DialogFooter
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useAuth } from "@/context/AuthContext";
 import { useAdminStats, usePendingVerifications, useListingReports, usePendingMaterials } from "@/hooks/useAdminData";
 import { toast } from "sonner";
@@ -52,6 +54,7 @@ const PMDashboard = () => {
     const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
     const [broadcastMessage, setBroadcastMessage] = useState("");
     const [broadcastSubject, setBroadcastSubject] = useState("Marketplace Update");
+    const [broadcastAudience, setBroadcastAudience] = useState<string[]>(['vendor', 'pro']);
 
     // Real data hooks
     const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
@@ -484,10 +487,39 @@ const PMDashboard = () => {
                 <DialogContent className="bg-white dark:bg-[#1E293B] border-none rounded-[2.5rem] p-8 max-w-lg">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Compose Broadcast</DialogTitle>
-                        <DialogDescription className="text-slate-400 font-medium italic">Your message will be sent to all active vendors and professionals.</DialogDescription>
+                        <DialogDescription className="text-slate-400 font-medium italic">
+                            Select which segments of the ecosystem should receive this announcement.
+                        </DialogDescription>
                     </DialogHeader>
                     
                     <div className="space-y-6 py-6">
+                        {/* Audience Filter */}
+                        <div className="space-y-3 p-6 bg-slate-50 dark:bg-white/5 rounded-3xl border border-slate-200 dark:border-white/5">
+                            <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2 mb-2">Target Audience</p>
+                            <div className="flex flex-wrap gap-4">
+                                {[
+                                    { id: 'vendor', label: 'Vendors', count: 124 },
+                                    { id: 'pro', label: 'Professionals', count: 328 },
+                                    { id: 'guest', label: 'Guests', count: 1540 },
+                                ].map((group) => (
+                                    <div key={group.id} className="flex items-center space-x-3 bg-white dark:bg-white/5 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
+                                        <Checkbox 
+                                            id={group.id} 
+                                            checked={broadcastAudience.includes(group.id)}
+                                            onCheckedChange={(checked) => {
+                                                if (checked) setBroadcastAudience([...broadcastAudience, group.id]);
+                                                else setBroadcastAudience(broadcastAudience.filter(a => a !== group.id));
+                                            }}
+                                            className="border-slate-300 dark:border-white/20 data-[state=checked]:bg-red-600 data-[state=checked]:border-red-600"
+                                        />
+                                        <Label htmlFor={group.id} className="text-xs font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
+                                            {group.label} <span className="text-[10px] text-slate-400 ml-1">({group.count})</span>
+                                        </Label>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2">Broadcast Subject</label>
                             <Input 
@@ -502,7 +534,7 @@ const PMDashboard = () => {
                             <Textarea 
                                 value={broadcastMessage}
                                 onChange={(e) => setBroadcastMessage(e.target.value)}
-                                rows={6}
+                                rows={4}
                                 className="bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-[2rem] font-medium p-6 dark:text-white resize-none"
                                 placeholder="Write your announcement here..."
                             />
@@ -518,12 +550,12 @@ const PMDashboard = () => {
                             Cancel
                         </Button>
                         <Button 
-                            disabled={!broadcastMessage}
+                            disabled={!broadcastMessage || broadcastAudience.length === 0}
                             onClick={async () => {
-                                const id = toast.loading("Initiating global broadcast...");
+                                const id = toast.loading(`Preparing broadcast for ${broadcastAudience.length} segments...`);
                                 // Simulated logic
                                 setTimeout(() => {
-                                    toast.success("Broadcast successfully delivered to 452 recipients.", { id });
+                                    toast.success(`Broadcast successfully delivered to selected segments.`, { id });
                                     setIsBroadcastOpen(false);
                                     setBroadcastMessage("");
                                 }, 2500);
