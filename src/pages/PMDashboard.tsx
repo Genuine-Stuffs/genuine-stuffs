@@ -284,7 +284,15 @@ const PMDashboard = () => {
                                                         }, 3000);
                                                     }
                                                 },
-                                                { label: "Review Flagged Items", icon: AlertTriangle, color: "bg-red-600" },
+                                                { 
+                                                    label: "Review Flagged Items", 
+                                                    icon: AlertTriangle, 
+                                                    color: "bg-red-600",
+                                                    action: () => {
+                                                        setActiveTab('reports');
+                                                        toast.info("Navigated to Incident Reports");
+                                                    }
+                                                },
                                                 { label: "System Maintenance", icon: BarChart3, color: "bg-emerald-600" },
                                             ].map((action, idx) => (
                                                 <button 
