@@ -19,14 +19,31 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
 const Login = () => {
-    const { signInWithGoogle, signInWithEmail } = useAuth();
+    const { signInWithGoogle, signInWithEmail, signInWithOtp } = useAuth();
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(false);
+    const [isMagicLinkLoading, setIsMagicLinkLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [formData, setFormData] = useState({
         email: "",
         password: ""
     });
+
+    const handleMagicLink = async () => {
+        if (!formData.email) {
+            toast.error("Please enter your email address first.");
+            return;
+        }
+        setIsMagicLinkLoading(true);
+        try {
+            await signInWithOtp(formData.email);
+            toast.success("Magic link sent! Please check your email inbox.");
+        } catch (err: any) {
+            toast.error(err.message || "Failed to send magic link.");
+        } finally {
+            setIsMagicLinkLoading(false);
+        }
+    };
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -148,6 +165,22 @@ const Login = () => {
                                             <>Authenticate <ArrowRight className="w-4 h-4" /></>
                                         )}
                                     </Button>
+
+                                    <div className="pt-2">
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            onClick={handleMagicLink}
+                                            disabled={isMagicLinkLoading}
+                                            className="w-full h-11 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-primary hover:bg-primary/5 gap-2"
+                                        >
+                                            {isMagicLinkLoading ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                            ) : (
+                                                <><Sparkles className="w-3.5 h-3.5" /> Sign in with Magic Link</>
+                                            )}
+                                        </Button>
+                                    </div>
                                 </form>
                             </div>
                         </CardContent>

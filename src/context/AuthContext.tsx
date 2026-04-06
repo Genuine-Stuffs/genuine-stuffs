@@ -13,6 +13,7 @@ interface AuthContextType {
     isLoading: boolean;
     signInWithGoogle: () => Promise<void>;
     signInWithEmail: (email: string, password: string) => Promise<void>;
+    signInWithOtp: (email: string) => Promise<void>;
     logout: () => Promise<void>;
 }
 
@@ -75,6 +76,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) throw error;
     };
 
+    const signInWithOtp = async (email: string) => {
+        const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+                emailRedirectTo: window.location.origin
+            }
+        });
+        if (error) throw error;
+    };
+
     const logout = async () => {
         // Always force-clear local auth state FIRST, then attempt server-side signout.
         // We do not rely on the SIGNED_OUT event because it may not fire
@@ -92,7 +103,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, role, isLoading, signInWithGoogle, signInWithEmail, logout }}>
+        <AuthContext.Provider value={{ user, session, role, isLoading, signInWithGoogle, signInWithEmail, signInWithOtp, logout }}>
             {children}
         </AuthContext.Provider>
     );
