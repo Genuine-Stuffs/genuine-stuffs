@@ -18,7 +18,13 @@ import {
     CheckCircle2,
     Sun,
     Moon,
-    ArrowRight
+    ArrowRight,
+    Calculator,
+    Settings,
+    Download,
+    Database,
+    DollarSign,
+    RefreshCw
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -55,6 +61,11 @@ const PMDashboard = () => {
     const [broadcastMessage, setBroadcastMessage] = useState("");
     const [broadcastSubject, setBroadcastSubject] = useState("Marketplace Update");
     const [broadcastAudience, setBroadcastAudience] = useState<string[]>(['vendor', 'pro']);
+
+    // Tax System State
+    const [isTaxSystemOpen, setIsTaxSystemOpen] = useState(false);
+    const [taxRate, setTaxRate] = useState("7.5");
+    const [activeTaxTab, setActiveTaxTab] = useState("evaluation");
 
     // Real data hooks
     const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
@@ -285,15 +296,10 @@ const PMDashboard = () => {
                                                     action: () => setIsBroadcastOpen(true)
                                                 },
                                                 { 
-                                                    label: "Generate Tax Report", 
-                                                    icon: FileText, 
+                                                    label: "Tax Control Center", 
+                                                    icon: Calculator, 
                                                     color: "bg-purple-600",
-                                                    action: () => {
-                                                        const id = toast.loading("Compiling transaction data...");
-                                                        setTimeout(() => {
-                                                            toast.success("Annual Tax Report has been generated and queued for email delivery.", { id });
-                                                        }, 3000);
-                                                    }
+                                                    action: () => setIsTaxSystemOpen(true)
                                                 },
                                                 { 
                                                     label: "Review Flagged Items", 
@@ -565,6 +571,162 @@ const PMDashboard = () => {
                             Send Broadcast <Bell size={18} />
                         </Button>
                     </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Tax Evaluation & Control Center Modal */}
+            <Dialog open={isTaxSystemOpen} onOpenChange={setIsTaxSystemOpen}>
+                <DialogContent className="bg-slate-50 dark:bg-[#1E293B] border-slate-200 dark:border-white/10 rounded-[2.5rem] p-0 max-w-5xl overflow-hidden shadow-2xl">
+                    <div className="flex h-[80vh]">
+                        {/* Tax Center Sidebar */}
+                        <div className="w-64 bg-white dark:bg-[#0F172A]/50 border-r border-slate-200 dark:border-white/5 p-6 flex flex-col">
+                            <div className="flex items-center gap-3 mb-8 text-purple-600 dark:text-purple-400">
+                                <Database size={28} />
+                                <div>
+                                    <h3 className="font-black tracking-tight text-slate-900 dark:text-white leading-none">TAX SYSTEM</h3>
+                                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Control Center</p>
+                                </div>
+                            </div>
+
+                            <nav className="space-y-2 flex-grow">
+                                {[
+                                    { id: 'evaluation', icon: BarChart3, label: 'Evaluation' },
+                                    { id: 'config', icon: Settings, label: 'Tax Configuration' },
+                                    { id: 'reports', icon: FileText, label: 'Filing & Reports' },
+                                ].map(tab => (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTaxTab(tab.id)}
+                                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-sm transition-all ${activeTaxTab === tab.id ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'}`}
+                                    >
+                                        <tab.icon size={18} />
+                                        {tab.label}
+                                    </button>
+                                ))}
+                            </nav>
+                        </div>
+
+                        {/* Tax Center Main View */}
+                        <div className="flex-1 overflow-y-auto p-8">
+                            {activeTaxTab === 'evaluation' && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                                    <div className="mb-8">
+                                        <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Real-Time Evaluation</h2>
+                                        <p className="text-sm font-medium italic text-slate-500">Monitor current platform transaction capacity and estimated tax liabilities.</p>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <Card className="bg-white dark:bg-white/5 border-none p-6 rounded-3xl shadow-sm">
+                                            <div className="flex items-center gap-3 mb-4 text-emerald-500">
+                                                <DollarSign size={20} />
+                                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">Gross Platform Volume (YTD)</h4>
+                                            </div>
+                                            <p className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">₦24,500,000</p>
+                                        </Card>
+                                        <Card className="bg-white dark:bg-white/5 border-none p-6 rounded-3xl shadow-sm">
+                                            <div className="flex items-center gap-3 mb-4 text-purple-500">
+                                                <Calculator size={20} />
+                                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">Estimated Tax Liability</h4>
+                                            </div>
+                                            <p className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">₦1,837,500</p>
+                                            <p className="text-xs font-bold text-purple-500 mt-2">Based on active {taxRate}% rate</p>
+                                        </Card>
+                                    </div>
+
+                                    <div className="p-6 bg-blue-500/10 border border-blue-500/20 rounded-3xl">
+                                        <h4 className="font-black uppercase tracking-widest text-blue-600 dark:text-blue-400 text-xs mb-2">How this is calculated</h4>
+                                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+                                            The estimated tax liability is automatically aggregated by applying the configured base tax rate ({taxRate}%) against the total platform fees collected from vendor transactions. As a Product Manager, you must evaluate these figures periodically against geographic compliance thresholds to ensure the platform avoids regulatory penalties.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTaxTab === 'config' && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                                    <div className="mb-8">
+                                        <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Tax Configuration</h2>
+                                        <p className="text-sm font-medium italic text-slate-500">Set platform-wide tax variables. Changes affect future transactions.</p>
+                                    </div>
+
+                                    <Card className="bg-white dark:bg-white/5 border-none p-8 rounded-3xl shadow-sm space-y-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2">Base Tax Rate (%)</label>
+                                            <div className="flex gap-4">
+                                                <Input 
+                                                    type="number"
+                                                    value={taxRate}
+                                                    onChange={(e) => setTaxRate(e.target.value)}
+                                                    className="bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-white/10 h-14 rounded-2xl font-black text-xl px-6 max-w-[200px] dark:text-white"
+                                                />
+                                                <Button 
+                                                    onClick={() => {
+                                                        const id = toast.loading("Updating Global Tax Configuration...");
+                                                        setTimeout(() => toast.success(`Base rate successfully updated to ${taxRate}%`, { id }), 1500);
+                                                    }}
+                                                    className="h-14 px-8 rounded-2xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 font-black uppercase tracking-widest text-xs transition-all shadow-xl"
+                                                >
+                                                    <RefreshCw size={16} className="mr-2" /> Update Rate
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        <div className="pt-6 border-t border-slate-200 dark:border-white/5">
+                                            <h4 className="font-black uppercase tracking-widest text-slate-900 dark:text-white text-sm mb-4">Tax Rules & Exceptions</h4>
+                                            <div className="space-y-3">
+                                                {[
+                                                    { label: "Apply VAT to Professional Consultation Fees", active: true },
+                                                    { label: "Exempt Raw Building Materials (Government Directive)", active: false },
+                                                    { label: "Enable Automated End-of-Month Filing Drafts", active: true }
+                                                ].map((rule, idx) => (
+                                                    <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-white/5">
+                                                        <span className="font-bold text-sm text-slate-600 dark:text-slate-300">{rule.label}</span>
+                                                        <div className={`w-12 h-6 rounded-full p-1 transition-colors ${rule.active ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
+                                                            <div className={`w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform ${rule.active ? 'translate-x-6' : 'translate-x-0'}`} />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </Card>
+                                </div>
+                            )}
+
+                            {activeTaxTab === 'reports' && (
+                                <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                                    <div className="mb-8">
+                                        <h2 className="text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Filing & Reports</h2>
+                                        <p className="text-sm font-medium italic text-slate-500">Generate compliance documentation for regulatory bodies.</p>
+                                    </div>
+
+                                    <div className="grid gap-4">
+                                        {[
+                                            { period: "Q1 2026 Tax Summary", date: "April 1, 2026", status: "Ready to File" },
+                                            { period: "Q4 2025 Tax Summary", date: "Jan 5, 2026", status: "Filed & Audited" },
+                                            { period: "Q3 2025 Tax Summary", date: "Oct 2, 2025", status: "Filed & Audited" }
+                                        ].map((report, idx) => (
+                                            <div key={idx} className="flex items-center justify-between p-6 rounded-3xl bg-white dark:bg-white/5 border-none shadow-sm">
+                                                <div>
+                                                    <h4 className="font-black text-slate-900 dark:text-white">{report.period}</h4>
+                                                    <p className="text-xs font-bold text-slate-400 mt-1">Generated: {report.date}</p>
+                                                    <Badge className={`mt-3 ${report.status === 'Ready to File' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'} border-none uppercase text-[10px]`}>
+                                                        {report.status}
+                                                    </Badge>
+                                                </div>
+                                                <Button 
+                                                    variant="ghost" 
+                                                    onClick={() => toast.success("Report downloaded successfully.")}
+                                                    className="w-12 h-12 rounded-full bg-slate-50 dark:bg-[#0F172A] hover:bg-purple-100 hover:text-purple-600 dark:hover:bg-purple-900/40 text-slate-400 transition-all"
+                                                >
+                                                    <Download size={18} />
+                                                </Button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </DialogContent>
             </Dialog>
         </div>
