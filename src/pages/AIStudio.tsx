@@ -494,36 +494,32 @@ const AIStudio = () => {
                 <main className="flex-1 flex flex-col relative overflow-hidden">
                     <div className="mesh-background opacity-20" />
 
-                    {/* Top Static Bar */}
-                    <div className="hidden md:flex items-center justify-between px-6 py-3 bg-white dark:bg-[#15171a] border-b border-slate-200 dark:border-white/5 z-40 shrink-0 w-full">
+                    {/* Top Static Bar - Compact & Professional */}
+                    <div className="hidden md:flex items-center justify-between px-6 py-2 bg-white dark:bg-[#15171a] border-b border-slate-200 dark:border-white/5 z-40 shrink-0 w-full h-[60px]">
                         <div className="flex items-center gap-4">
-                            {!sidebarOpen && (
-                                <Button variant="ghost" size="icon" onClick={() => setSidebarOpen(true)} className="rounded-xl border border-slate-200 dark:border-white/5 shadow-sm hover:shadow-md transition-all shrink-0">
-                                    <Menu className="w-5 h-5 text-slate-900 dark:text-white" />
-                                </Button>
-                            )}
                              <div>
-                                <h2 className="text-[15px] font-black uppercase tracking-tight text-slate-900 dark:text-white leading-tight">Studio Environment</h2>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-[#e11d48] mt-0.5">Active AI Node</p>
+                                <h2 className="text-[13px] font-black uppercase tracking-tight text-slate-900 dark:text-white leading-none">Studio Environment</h2>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-[#e11d48] mt-1 opacity-90">Active AI Node</p>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-6">
-                            <div className="flex flex-col items-end">
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400/80 mb-1.5">Pick A Role</span>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-3 bg-slate-50 dark:bg-white/5 px-4 py-1.5 rounded-xl border border-slate-200 dark:border-white/10">
+                                <span className="text-[9px] font-black uppercase tracking-[0.15em] text-slate-400">Pick A Role</span>
+                                <div className="h-4 w-px bg-slate-200 dark:bg-white/10" />
                                 <Select value={selectedRole} onValueChange={setSelectedRole}>
-                                    <SelectTrigger className="w-60 h-11 rounded-[1rem] bg-white dark:bg-card border border-slate-200 dark:border-white/10 font-bold text-[11px] uppercase tracking-widest shadow-sm hover:border-slate-300 dark:hover:border-white/20 focus:ring-primary/20 transition-all">
+                                    <SelectTrigger className="w-48 h-7 bg-transparent border-none font-bold text-[10px] uppercase tracking-widest shadow-none hover:bg-transparent focus:ring-0 p-0 text-slate-700 dark:text-slate-200">
                                         <SelectValue placeholder="Select Profession" />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-white dark:bg-card border-slate-200 dark:border-border rounded-xl overflow-hidden shadow-2xl">
+                                    <SelectContent className="bg-white dark:bg-[#1c1d21] border-slate-200 dark:border-white/10 rounded-xl overflow-hidden shadow-2xl">
                                         {professionalRoles.map(r => (
                                             <SelectItem
                                                 key={r.name}
                                                 value={r.name}
-                                                className="font-bold text-[11px] uppercase tracking-widest py-3 focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer"
+                                                className="font-bold text-[10px] uppercase tracking-widest py-2.5 focus:bg-primary/10 focus:text-primary transition-colors cursor-pointer"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    {r.icon}
+                                                    <span className="opacity-70 scale-75">{r.icon}</span>
                                                     {r.name}
                                                 </div>
                                             </SelectItem>
