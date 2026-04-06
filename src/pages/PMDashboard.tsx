@@ -25,6 +25,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+    Dialog, 
+    DialogContent, 
+    DialogHeader, 
+    DialogTitle,
+    DialogDescription,
+    DialogFooter
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/context/AuthContext";
 import { useAdminStats, usePendingVerifications, useListingReports, usePendingMaterials } from "@/hooks/useAdminData";
 import { toast } from "sonner";
@@ -40,6 +49,9 @@ const PMDashboard = () => {
     const { theme, setTheme } = useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("overview");
+    const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
+    const [broadcastMessage, setBroadcastMessage] = useState("");
+    const [broadcastSubject, setBroadcastSubject] = useState("Marketplace Update");
 
     // Real data hooks
     const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
@@ -267,11 +279,7 @@ const PMDashboard = () => {
                                                     label: "Marketplace Broadcast", 
                                                     icon: Bell, 
                                                     color: "bg-blue-600",
-                                                    action: () => toast.promise(new Promise(res => setTimeout(res, 2000)), {
-                                                        loading: 'Broadcasting to marketplace...',
-                                                        success: 'Global broadcast sent to all vendors!',
-                                                        error: 'Broadcast failed',
-                                                    })
+                                                    action: () => setIsBroadcastOpen(true)
                                                 },
                                                 { 
                                                     label: "Generate Tax Report", 
@@ -470,6 +478,63 @@ const PMDashboard = () => {
                     )}
                 </div>
             </main>
+
+            {/* Broadcast Modal */}
+            <Dialog open={isBroadcastOpen} onOpenChange={setIsBroadcastOpen}>
+                <DialogContent className="bg-white dark:bg-[#1E293B] border-none rounded-[2.5rem] p-8 max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Compose Broadcast</DialogTitle>
+                        <DialogDescription className="text-slate-400 font-medium italic">Your message will be sent to all active vendors and professionals.</DialogDescription>
+                    </DialogHeader>
+                    
+                    <div className="space-y-6 py-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2">Broadcast Subject</label>
+                            <Input 
+                                value={broadcastSubject}
+                                onChange={(e) => setBroadcastSubject(e.target.value)}
+                                className="bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 h-12 rounded-2xl font-bold dark:text-white"
+                                placeholder="e.g. System Maintenance"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2">Message Content</label>
+                            <Textarea 
+                                value={broadcastMessage}
+                                onChange={(e) => setBroadcastMessage(e.target.value)}
+                                rows={6}
+                                className="bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-[2rem] font-medium p-6 dark:text-white resize-none"
+                                placeholder="Write your announcement here..."
+                            />
+                        </div>
+                    </div>
+
+                    <DialogFooter className="gap-3">
+                        <Button 
+                            variant="ghost" 
+                            onClick={() => setIsBroadcastOpen(false)}
+                            className="h-14 px-8 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-100 dark:hover:bg-white/5"
+                        >
+                            Cancel
+                        </Button>
+                        <Button 
+                            disabled={!broadcastMessage}
+                            onClick={async () => {
+                                const id = toast.loading("Initiating global broadcast...");
+                                // Simulated logic
+                                setTimeout(() => {
+                                    toast.success("Broadcast successfully delivered to 452 recipients.", { id });
+                                    setIsBroadcastOpen(false);
+                                    setBroadcastMessage("");
+                                }, 2500);
+                            }}
+                            className="h-14 px-10 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs gap-3 shadow-lg shadow-red-600/20"
+                        >
+                            Send Broadcast <Bell size={18} />
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
