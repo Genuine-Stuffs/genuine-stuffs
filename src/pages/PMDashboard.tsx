@@ -293,7 +293,20 @@ const PMDashboard = () => {
                                                         toast.info("Navigated to Incident Reports");
                                                     }
                                                 },
-                                                { label: "System Maintenance", icon: BarChart3, color: "bg-emerald-600" },
+                                                { 
+                                                    label: "System Maintenance", 
+                                                    icon: BarChart3, 
+                                                    color: "bg-emerald-600",
+                                                    action: () => {
+                                                        const id = toast.loading("Running diagnostics...");
+                                                        setTimeout(() => {
+                                                            toast.loading("Analyzing server latency...", { id });
+                                                            setTimeout(() => {
+                                                                toast.success("System is at 100% capacity. All services healthy.", { id });
+                                                            }, 2000);
+                                                        }, 2000);
+                                                    }
+                                                },
                                             ].map((action, idx) => (
                                                 <button 
                                                     key={idx} 
