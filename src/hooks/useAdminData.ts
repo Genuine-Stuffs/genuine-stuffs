@@ -46,3 +46,38 @@ export const usePendingVerifications = (type: 'vendor' | 'professional') => {
     }
   });
 };
+
+export const useListingReports = () => {
+    return useQuery({
+      queryKey: ['listing-reports'],
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from('listing_reports')
+          .select(`
+            *,
+            materials (name, image_url, vendor_name)
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        return data || [];
+      }
+    });
+  };
+  
+  export const usePendingMaterials = () => {
+    return useQuery({
+      queryKey: ['pending-materials'],
+      queryFn: async () => {
+        const { data, error } = await supabase
+          .from('materials')
+          .select('*')
+          .eq('is_verified', false)
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        return data || [];
+      }
+    });
+  };
+
