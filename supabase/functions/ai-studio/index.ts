@@ -82,10 +82,10 @@ serve(async (req: Request) => {
 
         // Premium model strategy utilizing purchased credits for high availability
         const textModels = [
-            "anthropic/claude-3.5-sonnet",
-            "google/gemini-1.5-pro",
-            "meta-llama/llama-3.2-90b-vision-instruct",
-            "openai/gpt-4o-mini"
+            "openai/gpt-4o-mini",
+            "anthropic/claude-3-haiku",
+            "google/gemini-flash-1.5",
+            "meta-llama/llama-3.1-8b-instruct"
         ];
 
         const systemPrompt = `You are an expert architectural design AI for Genuine Stuffs AI Studio. 
