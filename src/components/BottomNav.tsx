@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home, ShoppingBag, ShoppingCart, User, Sparkles, BookOpen, LayoutDashboard, Settings, Calculator } from "lucide-react";
+import { Home, ShoppingBag, ShoppingCart, User, Sparkles, BookOpen, LayoutDashboard, Settings, Calculator, Store, Briefcase } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 
 const BottomNav = () => {
@@ -44,6 +44,13 @@ const BottomNav = () => {
                 { label: "Shop", icon: ShoppingBag, path: "/marketplace" },
                 { label: "Dashboard", icon: LayoutDashboard, path: "/vendor-dashboard" },
                 { label: "Settings", icon: Settings, path: "/vendor-settings" },
+            ];
+        } else if (role === 'pm') {
+            return [
+                { label: "Overview", icon: LayoutDashboard, path: "/pm-dashboard" },
+                { label: "Vendors", icon: Store, path: "/pm-dashboard" },
+                { label: "Pros", icon: Briefcase, path: "/pm-dashboard" },
+                { label: "Market", icon: ShoppingBag, path: "/marketplace" },
             ];
         } else {
             return [

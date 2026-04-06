@@ -27,6 +27,7 @@ const Navbar = () => {
     { path: "/pros", label: "ProHuB", role: "professional" },
     { path: "/pro-portal", label: "Dashboard", role: "professional" },
     { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
+    { path: "/pm-dashboard", label: "Dashboard", role: "pm" },
   ].filter(link => {
     if (link.role && link.role !== role) return false;
     if (link.hideForRole && link.hideForRole === role) return false;
@@ -88,6 +89,7 @@ const Navbar = () => {
                   <Button variant="ghost" className="rounded-2xl gap-2 font-black text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-card border-none hover:bg-slate-100 dark:hover:bg-muted text-xs">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center ${role === 'professional' ? 'bg-primary text-white' :
                       role === 'vendor' ? 'bg-orange-500 text-white' :
+                      role === 'pm' ? 'bg-red-600 text-white' :
                         'bg-slate-300 dark:bg-slate-600 text-white'
                       }`}>
                       <User className="w-4 h-4" />
@@ -126,6 +128,13 @@ const Navbar = () => {
                     <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors">
                       <Link to="/marketplace" className="flex items-center gap-3 w-full">
                         <ShoppingBag className="w-4 h-4 text-slate-500 dark:text-slate-400" /> <span className="font-bold text-slate-700 dark:text-slate-200">Marketplace</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {role === 'pm' && (
+                    <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors">
+                      <Link to="/pm-dashboard" className="flex items-center gap-3 w-full">
+                        <LayoutDashboard className="w-4 h-4 text-red-600" /> <span className="font-bold text-slate-700 dark:text-slate-200">PM Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
                   )}

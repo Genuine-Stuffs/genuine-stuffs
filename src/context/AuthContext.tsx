@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { supabase } from 'backend/supabaseClient';
 import { User, Session } from '@supabase/supabase-js';
 
-type Role = 'client' | 'professional' | 'vendor' | 'guest';
+type Role = 'client' | 'professional' | 'vendor' | 'guest' | 'pm';
 
 interface AuthContextType {
     user: User | null;
