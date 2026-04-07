@@ -43,7 +43,7 @@ serve(async (req: Request) => {
         }
 
         console.log('Authenticated user:', user.id);
-        const isAdmin = user.email === 'samuel.edu@aktok.com' || user.user_metadata?.role === 'admin';
+        const isAdmin = user.email?.toLowerCase() === 'samuel.edu@aktok.com' || user.user_metadata?.role === 'admin';
 
         const { prompt, type = 'text' } = await req.json()
         if (!prompt) {
