@@ -29,12 +29,12 @@ const Navbar = () => {
     { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
     { path: "/pm-dashboard", label: "Dashboard", role: "pm" },
   ].filter(link => {
-    if (link.role && link.role !== role) return false;
+    if (link.role && link.role !== role && role !== 'admin') return false;
     if (link.hideForRole && link.hideForRole === role) return false;
     return true;
   });
 
-  const desktopLinks = role === 'professional' ? [
+  const desktopLinks = (role === 'professional' || role === 'admin' || role === 'pm') ? [
     { path: "/pros", label: "ProHub" },
     { path: "/pro/ai-studio", label: "AI-Studio" },
     { path: "/calculators", label: "BOQ-Cal" },
@@ -103,7 +103,7 @@ const Navbar = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64 rounded-2xl p-2 border-slate-100 dark:border-white/5 shadow-2xl bg-white dark:bg-slate-900">
                   <DropdownMenuLabel className="px-4 py-3 text-[10px] font-black uppercase text-slate-500 dark:text-slate-400 tracking-widest">Account</DropdownMenuLabel>
-                  {role === 'professional' && (
+                  {(role === 'professional' || role === 'admin' || role === 'pm') && (
                     <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors">
                       <Link to="/pro/ai-studio" className="flex items-center gap-3 w-full">
                         <Sparkles className="w-4 h-4 text-primary" /> <span className="font-bold text-slate-700 dark:text-slate-200">AI Studio</span>

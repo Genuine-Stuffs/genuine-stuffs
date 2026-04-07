@@ -31,7 +31,7 @@ const BottomNav = () => {
     const isActive = (path: string) => location.pathname === path;
 
     const getNavItems = () => {
-        if (role === 'professional') {
+        if (role === 'professional' || role === 'admin') {
             return [
                 { label: "Dashboard", icon: LayoutDashboard, path: "/pro-portal" },
                 { label: "AI Studio", icon: Sparkles, path: "/pro/ai-studio" },
@@ -48,9 +48,9 @@ const BottomNav = () => {
         } else if (role === 'pm') {
             return [
                 { label: "Overview", icon: LayoutDashboard, path: "/pm-dashboard" },
-                { label: "Vendors", icon: Store, path: "/pm-dashboard" },
-                { label: "Pros", icon: Briefcase, path: "/pm-dashboard" },
+                { label: "AI Studio", icon: Sparkles, path: "/pro/ai-studio" },
                 { label: "Market", icon: ShoppingBag, path: "/marketplace" },
+                { label: "Settings", icon: Settings, path: "/settings" },
             ];
         } else {
             return [
