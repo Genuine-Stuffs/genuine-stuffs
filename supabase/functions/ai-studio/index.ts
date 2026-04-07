@@ -43,6 +43,7 @@ serve(async (req: Request) => {
         }
 
         console.log('Authenticated user:', user.id);
+        const isAdmin = user.email === 'samuel.edu@aktok.com' || user.user_metadata?.role === 'admin';
 
         const { prompt, type = 'text' } = await req.json()
         if (!prompt) {
@@ -68,7 +69,7 @@ serve(async (req: Request) => {
         }
 
         const cost = 2;
-        if (profile.credits < cost) {
+        if (!isAdmin && profile.credits < cost) {
             return new Response(JSON.stringify({ error: 'Insufficient credits' }), {
                 status: 402,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -156,13 +157,16 @@ Keep it professional, concise and actionable for a ${user.email || 'professional
             })
         }
 
-        // Deduct credits only on success
-        await supabaseClient
-            .from('professionals')
-            .update({ credits: profile.credits - cost })
-            .eq('id', user.id)
-
-        console.log('Successfully generated response, credits deducted.');
+        // Deduct credits only on success and for non-admins
+        if (!isAdmin) {
+            await supabaseClient
+                .from('professionals')
+                .update({ credits: profile.credits - cost })
+                .eq('id', user.id)
+            console.log('Successfully generated response, credits deducted.');
+        } else {
+            console.log('Successfully generated response, credit deduction bypassed for admin.');
+        }
 
         return new Response(JSON.stringify({ result, type: 'text' }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
