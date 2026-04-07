@@ -80,7 +80,7 @@ const PMDashboard = () => {
     const { data: pendingMaterials, isLoading: materialsLoading, refetch: refetchMaterials } = usePendingMaterials();
     const { data: incidentReports, isLoading: reportsLoading, refetch: refetchReports } = useListingReports();
 
-    if (role !== 'pm') {
+    if (role !== 'pm' && role !== 'admin') {
         return <Navigate to="/" replace />;
     }
 

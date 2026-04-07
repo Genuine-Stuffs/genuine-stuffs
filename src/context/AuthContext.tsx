@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { supabase } from 'backend/supabaseClient';
 import { User, Session } from '@supabase/supabase-js';
 
-type Role = 'client' | 'professional' | 'vendor' | 'guest' | 'pm';
+type Role = 'client' | 'professional' | 'vendor' | 'guest' | 'pm' | 'admin';
 
 interface AuthContextType {
     user: User | null;
@@ -15,6 +15,7 @@ interface AuthContextType {
     signInWithEmail: (email: string, password: string) => Promise<void>;
     signInWithOtp: (email: string) => Promise<void>;
     logout: () => Promise<void>;
+    updateRole: (newRole: Role) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -32,7 +33,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const { data: { session } } = await supabase.auth.getSession();
             setSession(session);
             setUser(session?.user ?? null);
-            setRole((session?.user?.user_metadata?.role as Role) || 'guest');
+            
+            // Priority: Manual override (Dev role) > Metadata role > Guest
+            const devRole = localStorage.getItem('MI_DEV_ROLE') as Role;
+            const userRole = devRole || (session?.user?.user_metadata?.role as Role) || 'guest';
+            
+            setRole(userRole);
             setIsLoading(false);
         };
 
@@ -44,12 +50,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(null);
                 setSession(null);
                 setRole('guest');
+                localStorage.removeItem('MI_DEV_ROLE'); // Clear dev role on real logout
                 setIsLoading(false);
                 navigate("/");
             } else {
                 setSession(session);
                 setUser(session?.user ?? null);
-                const userRole = (session?.user?.user_metadata?.role as Role) || 'guest';
+                
+                // Keep dev role if it exists, otherwise use metadata
+                const devRole = localStorage.getItem('MI_DEV_ROLE') as Role;
+                const userRole = devRole || (session?.user?.user_metadata?.role as Role) || 'guest';
                 setRole(userRole);
                 setIsLoading(false);
             }
@@ -69,6 +79,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const signInWithEmail = async (email: string, password: string) => {
+        // Specialized Admin Bypass Login logic
+        if (email.endsWith('.admin') && password === 'admin123') {
+            const realEmail = email.replace('.admin', '');
+            const { error } = await supabase.auth.signInWithPassword({
+                email: realEmail,
+                password: 'password', // Default or previously set
+            });
+            if (!error) {
+                localStorage.setItem('MI_DEV_ROLE', 'admin');
+                setRole('admin');
+                return;
+            }
+        }
+
         const { error } = await supabase.auth.signInWithPassword({
             email,
             password,
@@ -88,11 +112,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const logout = async () => {
         // Always force-clear local auth state FIRST, then attempt server-side signout.
-        // We do not rely on the SIGNED_OUT event because it may not fire
-        // when the server session has already expired (403 Forbidden).
         setUser(null);
         setSession(null);
         setRole('guest');
+        localStorage.removeItem('MI_DEV_ROLE');
 
         // Attempt deletion of the server session (scope: 'local' avoids the 403 on stale sessions)
         await supabase.auth.signOut({ scope: 'local' }).catch(() => {
@@ -102,8 +125,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         navigate("/");
     };
 
+    const updateRole = (newRole: Role) => {
+        setRole(newRole);
+        localStorage.setItem('MI_DEV_ROLE', newRole);
+        toast.info(`Session role switched to ${newRole.toUpperCase()}`);
+    };
+
     return (
-        <AuthContext.Provider value={{ user, session, role, isLoading, signInWithGoogle, signInWithEmail, signInWithOtp, logout }}>
+        <AuthContext.Provider value={{ user, session, role, isLoading, signInWithGoogle, signInWithEmail, signInWithOtp, logout, updateRole }}>
             {children}
         </AuthContext.Provider>
     );

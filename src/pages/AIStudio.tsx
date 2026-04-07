@@ -30,7 +30,6 @@ import {
     Home,
     ShoppingBag,
     ShieldCheck,
-    Plus,
     PenTool
 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
@@ -61,7 +60,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ModeToggle } from "@/components/ModeToggle";
 
 const AIStudio = () => {
-    const { user, role } = useAuth();
+    const { user, role, updateRole } = useAuth();
     const isPro = role === "professional";
     const [searchParams] = useSearchParams();
     const [selectedRole, setSelectedRole] = useState("Architect");
@@ -247,7 +246,8 @@ const AIStudio = () => {
     ];
 
     const handleGenerate = async () => {
-        if (credits === null || credits < 2) {
+        // Bypass credit check for admin/pm users to allow unobstructed testing
+        if (role !== 'admin' && role !== 'pm' && (credits === null || credits < 2)) {
             toast.error("Insufficient credits.");
             if (isPro) setShowRefillModal(true);
             return;
@@ -268,7 +268,9 @@ const AIStudio = () => {
             if (data?.error) throw new Error(data.error);
 
             // Backend handles credit deduction; reflect it locally
-            setCredits(prev => (prev !== null ? prev - 2 : prev));
+            if (role !== 'admin' && role !== 'pm') {
+                setCredits(prev => (prev !== null ? prev - 2 : prev));
+            }
 
             // Store text result for display
             setGeneratedImage(data.result);
@@ -501,6 +503,24 @@ const AIStudio = () => {
                                 <h2 className="text-[12px] font-black uppercase tracking-tight text-slate-800 dark:text-white leading-none">Studio Environment</h2>
                                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#e11d48] mt-0.5 opacity-80">Active AI Node</p>
                             </div>
+                            
+                            {(role === 'admin' || localStorage.getItem('MI_DEV_ROLE') === 'admin') && (
+                                <div className="flex items-center gap-2 ml-4 p-1 bg-amber-500/10 rounded-lg border border-amber-500/20">
+                                    <span className="text-[9px] font-black uppercase text-amber-600 px-2 tracking-widest">Impersonate:</span>
+                                    <button 
+                                        onClick={() => updateRole('professional')}
+                                        className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${role === 'professional' ? 'bg-amber-600 text-white' : 'text-amber-600 hover:bg-amber-600/10'}`}
+                                    >
+                                        Pro User
+                                    </button>
+                                    <button 
+                                        onClick={() => updateRole('admin')}
+                                        className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${role === 'admin' ? 'bg-amber-600 text-white' : 'text-amber-600 hover:bg-amber-600/10'}`}
+                                    >
+                                        Admin
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex items-center gap-4">
@@ -631,12 +651,11 @@ const AIStudio = () => {
                                                     </div>
                                                 ) : (
                                                     <div className="w-full text-slate-700 dark:text-slate-300 text-[15px] md:text-base leading-[1.8] font-medium">
-                                                        <ReactMarkdown 
-                                                            remarkPlugins={[remarkGfm]} 
-                                                            className="prose prose-slate dark:prose-invert prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:text-white prose-headings:font-black prose-headings:tracking-tight max-w-none break-words w-full"
-                                                        >
-                                                            {generatedImage || ""}
-                                                        </ReactMarkdown>
+                                                        <div className="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:border prose-pre:border-white/5 prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight">
+                                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                                {generatedImage}
+                                                            </ReactMarkdown>
+                                                        </div>
                                                         
                                                         {/* Actions append at the bottom of the response */}
                                                         <div className="flex gap-4 mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
