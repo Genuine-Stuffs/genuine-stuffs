@@ -69,6 +69,7 @@ const AIStudio = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [showRefillModal, setShowRefillModal] = useState(false);
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+    const [designPackage, setDesignPackage] = useState<any | null>(null);
     const [promptText, setPromptText] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -257,7 +258,11 @@ const AIStudio = () => {
         setGeneratedImage(null);
         try {
             const { data, error } = await supabase.functions.invoke('ai-studio', {
-                body: { prompt: promptText, type: 'text' }
+                body: { 
+                    prompt: promptText, 
+                    type: 'text',
+                    selectedRole: selectedRole 
+                }
             });
 
             if (error) {
@@ -272,8 +277,9 @@ const AIStudio = () => {
                 setCredits(prev => (prev !== null ? prev - 2 : prev));
             }
 
-            // Store text result for display
+            // Store text and structured data
             setGeneratedImage(data.result);
+            setDesignPackage(data.data);
 
             toast.success("Design Analysis Ready!");
         } catch (err: any) {
