@@ -212,7 +212,7 @@ Output must be actionable, precise, and professional. Ensure all dimensions and 
         // --- GENERATE ARCHITECTURAL VISUALIZATION ---
         let imageUrl = null;
         try {
-            console.log("Generating architectural visualization...");
+            console.log("Generating architectural visualization via DALL-E 3...");
             const imageResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -222,21 +222,23 @@ Output must be actionable, precise, and professional. Ensure all dimensions and 
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    "model": "recraft-ai/recraft-v3", // Top-tier for architectural/design accuracy
+                    "model": "openai/dall-e-3", // Extremely reliable for high-end architectural prompts
                     "messages": [
-                        { "role": "user", "content": `Photorealistic, high-end architectural visualization of: ${prompt}. Cinematic lighting, 8k resolution, professional architectural photography style. Show the following details: ${designData?.summary || prompt}` }
+                        { "role": "user", "content": `Photorealistic, high-end architectural visualization of: ${prompt}. Cinematic lighting, 8k resolution, professional architectural photography style. Design details to include: ${designData?.summary || prompt}` }
                     ]
                 })
             });
 
             if (imageResponse.ok) {
                 const imageData = await imageResponse.json();
-                imageUrl = imageData.choices?.[0]?.message?.content;
-                // If it's a URL in content, or if some models use a different format, handle it.
-                // Note: recraft-v3 on OpenRouter returns a message content that is often the image URL or a markdown image.
-                if (imageUrl && imageUrl.includes('http')) {
-                    const match = imageUrl.match(/https?:\/\/[^\s\)]+/);
-                    if (match) imageUrl = match[0];
+                const rawContent = imageData.choices?.[0]?.message?.content;
+                
+                // Extract URL from markdown or raw string
+                if (rawContent) {
+                    const urlMatch = rawContent.match(/https?:\/\/[^\s\)]+/);
+                    if (urlMatch) {
+                        imageUrl = urlMatch[0];
+                    }
                 }
             }
         } catch (imgErr) {
