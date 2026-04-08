@@ -168,6 +168,25 @@ Output must be actionable, precise, and professional.`;
             })
         }
 
+        // --- EXTRACT STRUCTURED DATA ---
+        let designData = null;
+        try {
+            const startMarker = "<<<DESIGN_DATA_START>>>";
+            const endMarker = "<<<DESIGN_DATA_END>>>";
+            const startIndex = result.indexOf(startMarker);
+            const endIndex = result.indexOf(endMarker);
+
+            if (startIndex !== -1 && endIndex !== -1) {
+                const jsonText = result.substring(startIndex + startMarker.length, endIndex).trim();
+                designData = JSON.parse(jsonText);
+                
+                // Optional: Strip the technical data block from the user-facing text for a cleaner UI
+                // result = result.replace(result.substring(startIndex, endIndex + endMarker.length), "").trim();
+            }
+        } catch (parseErr) {
+            console.error("Failed to parse AEC design data block:", parseErr);
+        }
+
         // Deduct credits only on success and for non-admins
         if (!isAdmin) {
             await supabaseClient
@@ -179,7 +198,11 @@ Output must be actionable, precise, and professional.`;
             console.log('Successfully generated response, credit deduction bypassed for admin.');
         }
 
-        return new Response(JSON.stringify({ result, type: 'text' }), {
+        return new Response(JSON.stringify({ 
+            result, 
+            data: designData,
+            type: 'text' 
+        }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
 
