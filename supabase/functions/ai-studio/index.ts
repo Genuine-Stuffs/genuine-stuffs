@@ -84,30 +84,40 @@ serve(async (req: Request) => {
 
         // Premium model orchestration strategy
         const textModels = [
+            "anthropic/claude-3-5-sonnet",
             "google/gemini-2.0-flash-001",
-            "anthropic/claude-3.5-sonnet",
-            "openai/gpt-4o-mini"
+            "openai/gpt-4o"
         ];
 
         const systemPrompt = `You are the lead AEC (Architecture, Engineering, Construction) Intelligence Agent for Genuine Stuffs AI Studio.
 Acting as a ${selectedRole}, your goal is to provide engineering-compliant, structurally correct design data.
 
-You MUST respond in two parts:
-1. A professional HUMAN-READABLE summary of your design decisions.
-2. A technical DATA-BLOCK containing a JSON representation of the design following the DesignPackage schema.
+CRITICAL INSTRUCTIONS:
+1. DO NOT simply repeat the user's prompt. You must provide a NEW analysis.
+2. YOU MUST respond in two distinct sections:
+   - PART 1: A professional, human-readable architectural and engineering narrative.
+   - PART 2: A highly technical JSON data block wrapped in specific markers.
 
-SCHEMA REQUIREMENTS:
-- architectural_layout: Array of elements with dimensions (m/mm/ft).
-- material_schedule: List of specific materials with estimated quantities.
-- structural_skeleton: Basic load-bearing constraints and beam spans.
-- compliance: Initial report against building codes (e.g., Nigerian NBC 2024).
+JSON SCHEMA EXPECTATIONS (DesignPackage):
+- architectural_layout: Array of objects { id, type, name, dimensions: { width, length, height, unit } }.
+- material_schedule: Array of objects { id, category, specification, quantity_estimate, unit }.
+- structural_skeleton: { load_bearing_points, beam_span_max, footing_type, risk_factors }.
+- compliance: { status: 'compliant'|'warning', checked_against, findings, recommendations }.
 
-FORMAT YOUR DATA BLOCK CLEARLY AS:
+DATA BLOCK FORMAT:
 <<<DESIGN_DATA_START>>>
-{ "project_id": "auto", ... }
+{
+  "project_id": "GS-${Math.random().toString(36).substr(2, 5).toUpperCase()}",
+  "version": "1.0.0",
+  "architectural_layout": [...],
+  "material_schedule": [...],
+  "structural_skeleton": {...},
+  "compliance": {...},
+  "summary": "Detailed technical summary here..."
+}
 <<<DESIGN_DATA_END>>>
 
-Output must be actionable, precise, and professional.`;
+Output must be actionable, precise, and professional. Ensure all dimensions and quantities are realistic for the design requested.`;
 
         let openRouterResponse: Response | null = null;
         let openRouterData: any = null;
@@ -132,7 +142,8 @@ Output must be actionable, precise, and professional.`;
                             { "role": "system", "content": systemPrompt },
                             { "role": "user", "content": prompt }
                         ],
-                        "max_tokens": 2000
+                        "temperature": 0.3, // Lower temperature for more consistent JSON
+                        "max_tokens": 3000
                     })
                 });
 
@@ -180,8 +191,8 @@ Output must be actionable, precise, and professional.`;
                 const jsonText = result.substring(startIndex + startMarker.length, endIndex).trim();
                 designData = JSON.parse(jsonText);
                 
-                // Optional: Strip the technical data block from the user-facing text for a cleaner UI
-                // result = result.replace(result.substring(startIndex, endIndex + endMarker.length), "").trim();
+                // Strip the technical data block from the user-facing text for a cleaner UI
+                result = result.replace(result.substring(startIndex, endIndex + endMarker.length), "").trim();
             }
         } catch (parseErr) {
             console.error("Failed to parse AEC design data block:", parseErr);
