@@ -193,6 +193,17 @@ Output must be actionable, precise, and professional. Ensure all dimensions and 
                 
                 // Strip the technical data block from the user-facing text for a cleaner UI
                 result = result.replace(result.substring(startIndex, endIndex + endMarker.length), "").trim();
+            } else {
+                // FALLBACK: Try to find any JSON-like block in the text
+                const jsonMatch = result.match(/\{[\s\S]*\}/);
+                if (jsonMatch) {
+                    try {
+                        designData = JSON.parse(jsonMatch[0]);
+                        console.log("Fallback JSON extraction success.");
+                    } catch (e) {
+                        console.log("Fallback JSON extraction failed.");
+                    }
+                }
             }
         } catch (parseErr) {
             console.error("Failed to parse AEC design data block:", parseErr);
