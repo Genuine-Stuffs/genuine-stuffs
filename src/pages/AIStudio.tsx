@@ -348,7 +348,8 @@ const AIStudio = () => {
             
             doc.setFontSize(9);
             const isCompliant = designPackage.compliance.status?.toLowerCase() === 'compliant';
-            doc.setTextColor(isCompliant ? [22, 163, 74] : [234, 88, 12]);
+            const complianceColor = isCompliant ? [22, 163, 74] : [234, 88, 12];
+            doc.setTextColor(complianceColor[0], complianceColor[1], complianceColor[2]);
             doc.text(`VERIFICATION STATUS: ${designPackage.compliance.status?.toUpperCase() || 'PENDING'}`, 14, currentY);
             
             currentY += 5;
@@ -358,11 +359,11 @@ const AIStudio = () => {
             // Compliance Seal
             const sealX = 150;
             const sealY = currentY - 5;
-            doc.setDrawColor(isCompliant ? [22, 163, 74] : [234, 88, 12]);
+            doc.setDrawColor(complianceColor[0], complianceColor[1], complianceColor[2]);
             doc.setLineWidth(0.8);
             doc.rect(sealX, sealY, 45, 20);
             doc.setFontSize(7);
-            doc.setTextColor(isCompliant ? [22, 163, 74] : [234, 88, 12]);
+            doc.setTextColor(complianceColor[0], complianceColor[1], complianceColor[2]);
             doc.text("VALIDATED BY AI", sealX + 12, sealY + 8);
             doc.text(timestamp.split(',')[0], sealX + 14, sealY + 15);
         }

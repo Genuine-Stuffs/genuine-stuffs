@@ -35,11 +35,11 @@ export const usePendingVerifications = (type: 'vendor' | 'professional') => {
   return useQuery({
     queryKey: ['pending-verifications', type],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from(table)
-        .select('*')
-        .eq(filterCol, filterVal)
-        .order('created_at', { ascending: false });
+      const query = type === 'vendor' 
+        ? supabase.from('vendors').select('*').eq('verified_status', 'pending')
+        : supabase.from('professionals').select('*').eq('is_verified', false);
+
+      const { data, error } = await query.order('created_at', { ascending: false });
       
       if (error) throw error;
       return data || [];
