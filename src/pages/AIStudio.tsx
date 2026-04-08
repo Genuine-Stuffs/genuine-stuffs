@@ -58,6 +58,8 @@ import {
 } from "@/components/ui/select";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { ModeToggle } from "@/components/ModeToggle";
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const AIStudio = () => {
     const { user, role, updateRole } = useAuth();
@@ -245,6 +247,127 @@ const AIStudio = () => {
             ]
         }
     ];
+
+    const handleDownloadBlueprint = () => {
+        if (!designPackage) return;
+
+        const doc = new jsPDF();
+        const timestamp = new Date().toLocaleString();
+        
+        // Header
+        doc.setFontSize(22);
+        doc.setTextColor(20, 20, 20);
+        doc.text("AEC BLUEPRINT REPORT", 14, 22);
+        
+        doc.setFontSize(9);
+        doc.setTextColor(120, 120, 120);
+        doc.text(`Generated via Material Insight AI Studio Node`, 14, 30);
+        doc.text(`Issuance Date: ${timestamp}`, 14, 35);
+        doc.text(`Professional Role: ${selectedRole}`, 14, 40);
+        doc.text(`Project Integrity ID: MI-${Math.random().toString(36).substr(2, 9).toUpperCase()}`, 14, 45);
+
+        // Project Summary
+        doc.setDrawColor(230, 230, 230);
+        doc.line(14, 50, 196, 50);
+        
+        doc.setFontSize(12);
+        doc.setTextColor(0, 0, 0);
+        doc.text("Project Brief & Intent", 14, 60);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(60, 60, 60);
+        const splitTitle = doc.splitTextToSize(promptText, 180);
+        doc.text(splitTitle, 14, 68);
+
+        let currentY = 68 + (splitTitle.length * 5) + 15;
+
+        // Architectural Layout Table
+        if (designPackage.architectural_layout && designPackage.architectural_layout.length > 0) {
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text("Structural/Spatial Layout", 14, currentY);
+            currentY += 6;
+            
+            autoTable(doc, {
+                startY: currentY,
+                head: [['Element Name', 'Classification', 'Dimensions (LxWxH)']],
+                body: designPackage.architectural_layout.map((el: any) => [
+                    el.name || "Unnamed Element",
+                    el.type || "N/A",
+                    `${el.dimensions?.width || '0'}${el.dimensions?.unit || 'm'} x ${el.dimensions?.length || '0'}${el.dimensions?.unit || 'm'}`
+                ]),
+                theme: 'grid',
+                headStyles: { fillColor: [15, 23, 42], textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+                bodyStyles: { fontSize: 8, textColor: [50, 50, 50] },
+                alternateRowStyles: { fillColor: [250, 250, 250] },
+                margin: { left: 14, right: 14 }
+            });
+            currentY = (doc as any).lastAutoTable.finalY + 15;
+        }
+
+        // Material Schedule Table
+        if (designPackage.material_schedule && designPackage.material_schedule.length > 0) {
+            if (currentY > 240) { doc.addPage(); currentY = 20; }
+            
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text("Material Schedule & Specifications", 14, currentY);
+            currentY += 6;
+
+            autoTable(doc, {
+                startY: currentY,
+                head: [['Category', 'Quantity Estimate', 'Technical Specification']],
+                body: designPackage.material_schedule.map((mat: any) => [
+                    mat.category || "General",
+                    `${mat.quantity_estimate || '0'} ${mat.unit || 'units'}`,
+                    mat.specification || "No spec provided"
+                ]),
+                theme: 'grid',
+                headStyles: { fillColor: [225, 29, 72], textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
+                bodyStyles: { fontSize: 8, textColor: [50, 50, 50] },
+                alternateRowStyles: { fillColor: [250, 250, 250] },
+                margin: { left: 14, right: 14 }
+            });
+            currentY = (doc as any).lastAutoTable.finalY + 20;
+        }
+
+        // Compliance Section
+        if (designPackage.compliance) {
+            if (currentY > 230) { doc.addPage(); currentY = 20; }
+            
+            doc.setDrawColor(230, 230, 230);
+            doc.line(14, currentY, 196, currentY);
+            currentY += 10;
+
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text("Engineering Compliance & Validation", 14, currentY);
+            currentY += 8;
+            
+            doc.setFontSize(9);
+            const isCompliant = designPackage.compliance.status?.toLowerCase() === 'compliant';
+            doc.setTextColor(isCompliant ? [22, 163, 74] : [234, 88, 12]);
+            doc.text(`VERIFICATION STATUS: ${designPackage.compliance.status?.toUpperCase() || 'PENDING'}`, 14, currentY);
+            
+            currentY += 5;
+            doc.setTextColor(100, 100, 100);
+            doc.text(`Regulatory Framework: ${designPackage.compliance.checked_against || 'Standard Global AEC Guidelines'}`, 14, currentY);
+            
+            // Compliance Seal
+            const sealX = 150;
+            const sealY = currentY - 5;
+            doc.setDrawColor(isCompliant ? [22, 163, 74] : [234, 88, 12]);
+            doc.setLineWidth(0.8);
+            doc.rect(sealX, sealY, 45, 20);
+            doc.setFontSize(7);
+            doc.setTextColor(isCompliant ? [22, 163, 74] : [234, 88, 12]);
+            doc.text("VALIDATED BY AI", sealX + 12, sealY + 8);
+            doc.text(timestamp.split(',')[0], sealX + 14, sealY + 15);
+        }
+
+        doc.save(`MaterialInsight_Blueprint_${selectedRole.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
+        toast.success("Professional Blueprint Exported!");
+    };
 
     const handleGenerate = async () => {
         // Bypass credit check for admin/pm users to allow unobstructed testing
@@ -729,17 +852,34 @@ const AIStudio = () => {
                                                                                 <p className="text-[9px] text-slate-400 font-medium italic">Checked Against: {designPackage.compliance?.checked_against || 'General Global Standards'}</p>
                                                                             </div>
                                                                         </div>
-                                                                        <Button size="sm" className="bg-white text-slate-900 hover:bg-slate-100 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9 shadow-xl shadow-white/5">
-                                                                            View Structural Details
-                                                                        </Button>
+                                                                        <div className="flex items-center gap-3">
+                                                                            <Button size="sm" className="bg-white text-slate-900 hover:bg-slate-100 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9 shadow-xl shadow-white/5">
+                                                                                View Structural Details
+                                                                            </Button>
+                                                                            <Button 
+                                                                                onClick={handleDownloadBlueprint}
+                                                                                size="sm" 
+                                                                                className="bg-primary text-white hover:bg-primary/90 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9 shadow-xl shadow-primary/20"
+                                                                            >
+                                                                                <FileText className="w-3 h-3 mr-2" /> Download Blueprint
+                                                                            </Button>
+                                                                        </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         )}
                                                         
                                                         {/* Actions append at the bottom of the response */}
-                                                        <div className="flex gap-4 mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
-                                                            <Button variant="outline" className="text-slate-700 dark:text-white border-slate-300 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-white/10 rounded-xl font-bold uppercase tracking-widest text-[9px] h-10 px-5 shadow-sm bg-white dark:bg-transparent"><Share2 className="w-3.5 h-3.5 mr-2" /> Dispatch Node</Button>
+                                                        <div className="flex flex-wrap gap-4 mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
+                                                            <Button variant="outline" className="text-slate-700 dark:text-white border-slate-300 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-white/10 rounded-xl font-bold uppercase tracking-widest text-[9px] h-10 px-5 shadow-sm bg-white dark:bg-transparent">
+                                                                <Share2 className="w-3.5 h-3.5 mr-2" /> Dispatch Node
+                                                            </Button>
+                                                            <Button 
+                                                                onClick={handleDownloadBlueprint}
+                                                                className="bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl font-bold uppercase tracking-widest text-[9px] h-10 px-5 shadow-lg"
+                                                            >
+                                                                <FileText className="w-3.5 h-3.5 mr-2" /> Download Blueprint
+                                                            </Button>
                                                             <Button className="bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-primary dark:hover:bg-primary hover:text-white rounded-xl font-bold uppercase tracking-widest text-[9px] h-10 px-5 shadow-lg">Save Architecture</Button>
                                                         </div>
                                                     </div>
