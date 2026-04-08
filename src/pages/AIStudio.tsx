@@ -658,10 +658,84 @@ const AIStudio = () => {
                                                 ) : (
                                                     <div className="w-full text-slate-700 dark:text-slate-300 text-[15px] md:text-base leading-[1.8] font-medium">
                                                         <div className="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:border prose-pre:border-white/5 prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight">
-                                                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                                                 {generatedImage}
                                                             </ReactMarkdown>
                                                         </div>
+
+                                                        {/* --- NEW: Technical Blueprint Node --- */}
+                                                        {designPackage && (
+                                                            <div className="mt-8 animate-in fade-in slide-in-from-top-4 duration-700">
+                                                                <div className="p-1 px-4 mb-4 bg-primary/10 border border-primary/20 rounded-full inline-flex items-center gap-2">
+                                                                    <DraftingCompass className="w-3.5 h-3.5 text-primary" />
+                                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">AEC Structured Node</span>
+                                                                </div>
+                                                                
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    {/* Architectural Elements */}
+                                                                    <Card className="bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
+                                                                        <div className="p-4 border-b dark:border-white/5 bg-white/50 dark:bg-black/20 flex items-center justify-between">
+                                                                            <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
+                                                                                <Home className="w-3.5 h-3.5" /> Spatial Elements
+                                                                            </h3>
+                                                                            <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest">{designPackage.architectural_layout?.length || 0} Elements</Badge>
+                                                                        </div>
+                                                                        <div className="p-4 space-y-3">
+                                                                            {designPackage.architectural_layout?.map((el: any, idx: number) => (
+                                                                                <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-black/40 border border-slate-100 dark:border-white/5 shadow-sm">
+                                                                                    <div>
+                                                                                        <p className="text-[10px] font-bold text-slate-800 dark:text-white uppercase tracking-tight">{el.name}</p>
+                                                                                        <p className="text-[9px] text-slate-500 font-medium">{el.type}</p>
+                                                                                    </div>
+                                                                                    <div className="text-right">
+                                                                                        <p className="text-[10px] font-black text-primary italic">
+                                                                                            {el.dimensions?.width}x{el.dimensions?.length} {el.dimensions?.unit}
+                                                                                        </p>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </Card>
+
+                                                                    {/* Material Schedule */}
+                                                                    <Card className="bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
+                                                                        <div className="p-4 border-b dark:border-white/5 bg-white/50 dark:bg-black/20 flex items-center justify-between">
+                                                                            <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
+                                                                                <ShoppingBag className="w-3.5 h-3.5" /> Material Schedule
+                                                                            </h3>
+                                                                            <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-emerald-500/30 text-emerald-600 dark:text-emerald-400">Ready to Quote</Badge>
+                                                                        </div>
+                                                                        <div className="p-4 space-y-3">
+                                                                            {designPackage.material_schedule?.map((mat: any, idx: number) => (
+                                                                                <div key={idx} className="group flex flex-col p-3 rounded-lg bg-white dark:bg-black/40 border border-slate-100 dark:border-white/5 hover:border-primary/30 transition-all cursor-pointer">
+                                                                                    <div className="flex items-center justify-between mb-1">
+                                                                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{mat.category}</span>
+                                                                                        <span className="text-[10px] font-black text-slate-900 dark:text-white">{mat.quantity_estimate} {mat.unit}</span>
+                                                                                    </div>
+                                                                                    <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 line-clamp-2 md:line-clamp-none">{mat.specification}</p>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </Card>
+
+                                                                    {/* Compliance & Structure Banner */}
+                                                                    <div className="md:col-span-2 p-4 rounded-2xl bg-slate-900 dark:bg-primary/10 border border-slate-800 dark:border-primary/20 flex flex-col md:flex-row items-center justify-between gap-4">
+                                                                        <div className="flex items-center gap-4">
+                                                                            <div className={`p-2 rounded-xl ${designPackage.compliance?.status === 'compliant' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-amber-500/20 text-amber-500'}`}>
+                                                                                <ShieldCheck className="w-5 h-5" />
+                                                                            </div>
+                                                                            <div>
+                                                                                <h4 className="text-[11px] font-black uppercase tracking-widest text-white">Engineering Compliance: {designPackage.compliance?.status || 'Verification Required'}</h4>
+                                                                                <p className="text-[9px] text-slate-400 font-medium italic">Checked Against: {designPackage.compliance?.checked_against || 'General Global Standards'}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <Button size="sm" className="bg-white text-slate-900 hover:bg-slate-100 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9 shadow-xl shadow-white/5">
+                                                                            View Structural Details
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                         
                                                         {/* Actions append at the bottom of the response */}
                                                         <div className="flex gap-4 mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
