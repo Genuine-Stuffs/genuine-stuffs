@@ -71,6 +71,7 @@ const AIStudio = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [showRefillModal, setShowRefillModal] = useState(false);
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+    const [visualUrl, setVisualUrl] = useState<string | null>(null);
     const [designPackage, setDesignPackage] = useState<any | null>(null);
     const [promptText, setPromptText] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -248,8 +249,9 @@ const AIStudio = () => {
         }
     ];
 
-    const handleDownloadBlueprint = () => {
+    const handleDownloadBlueprint = async () => {
         if (!designPackage) return;
+        toast.info("Preparing high-resolution blueprint...");
 
         const doc = new jsPDF();
         const timestamp = new Date().toLocaleString();
@@ -365,6 +367,43 @@ const AIStudio = () => {
             doc.text(timestamp.split(',')[0], sealX + 14, sealY + 15);
         }
 
+        // --- NEW: Visual Preview Page ---
+        if (visualUrl) {
+            try {
+                // Fetch image and convert to base64 for PDF inclusion
+                const imgResp = await fetch(visualUrl);
+                const blob = await imgResp.blob();
+                const base64: string = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result as string);
+                    reader.readAsDataURL(blob);
+                });
+
+                doc.addPage();
+                doc.setDrawColor(240, 240, 240);
+                doc.rect(10, 10, 190, 277); // Border
+                
+                doc.setFontSize(14);
+                doc.setTextColor(0, 0, 0);
+                doc.text("Conceptual Architectural Visualization", 14, 25);
+                
+                // Add the image
+                doc.addImage(base64, 'JPEG', 14, 35, 182, 120, undefined, 'FAST');
+                
+                doc.setFontSize(9);
+                doc.setTextColor(100, 100, 100);
+                const disclaimer = "Disclaimer: This visualization is an AI-generated conceptual representation based on the project brief. It serves as design inspiration and should be validated by professional site surveys and structural engineering before construction.";
+                const splitDisclaimer = doc.splitTextToSize(disclaimer, 180);
+                doc.text(splitDisclaimer, 14, 165);
+                
+                doc.setFontSize(8);
+                doc.setTextColor(150, 150, 150);
+                doc.text(`Project Node: ${designPackage.project_id || 'GS-AUTO'}`, 14, 280);
+            } catch (err) {
+                console.error("PDF Image Inclusion Error:", err);
+            }
+        }
+
         doc.save(`MaterialInsight_Blueprint_${selectedRole.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
         toast.success("Professional Blueprint Exported!");
     };
@@ -403,6 +442,7 @@ const AIStudio = () => {
             // Store text and structured data
             setGeneratedImage(data.result);
             setDesignPackage(data.data);
+            setVisualUrl(data.imageUrl);
 
             toast.success("Design Analysis Ready!");
         } catch (err: any) {
@@ -537,7 +577,7 @@ const AIStudio = () => {
                                     <Button 
                                         variant="ghost" 
                                         size="icon" 
-                                        onClick={() => { setPromptText(""); setGeneratedImage(null); toast.info("New project session initiated."); }} 
+                                        onClick={() => { setPromptText(""); setGeneratedImage(null); setVisualUrl(null); toast.info("New project session initiated."); }} 
                                         className={`rounded-xl shrink-0 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors ${sidebarOpen ? 'h-8 w-8' : 'h-10 w-10'}`}
                                         title="New Project"
                                     >
@@ -780,6 +820,18 @@ const AIStudio = () => {
                                                     </div>
                                                 ) : (
                                                     <div className="w-full text-slate-700 dark:text-slate-300 text-[15px] md:text-base leading-[1.8] font-medium">
+                                                        {visualUrl && (
+                                                            <div className="mb-8 rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl animate-in zoom-in duration-700 group relative">
+                                                                <img 
+                                                                    src={visualUrl} 
+                                                                    alt="AI Visualization" 
+                                                                    className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                                />
+                                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
+                                                                    <p className="text-[10px] text-white font-black uppercase tracking-widest bg-primary/80 px-4 py-2 rounded-full backdrop-blur-md">Photorealistic Architectural Preview</p>
+                                                                </div>
+                                                            </div>
+                                                        )}
                                                         <div className="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:border prose-pre:border-white/5 prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight">
                                                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                                                 {generatedImage}

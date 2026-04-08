@@ -198,6 +198,40 @@ Output must be actionable, precise, and professional. Ensure all dimensions and 
             console.error("Failed to parse AEC design data block:", parseErr);
         }
 
+        // --- GENERATE ARCHITECTURAL VISUALIZATION ---
+        let imageUrl = null;
+        try {
+            console.log("Generating architectural visualization...");
+            const imageResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${openRouterKey}`,
+                    "HTTP-Referer": "https://genuinestuffs.com/",
+                    "X-Title": "Genuine Stuffs AI Studio",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    "model": "recraft-ai/recraft-v3", // Top-tier for architectural/design accuracy
+                    "messages": [
+                        { "role": "user", "content": `Photorealistic, high-end architectural visualization of: ${prompt}. Cinematic lighting, 8k resolution, professional architectural photography style. Show the following details: ${designData?.summary || prompt}` }
+                    ]
+                })
+            });
+
+            if (imageResponse.ok) {
+                const imageData = await imageResponse.json();
+                imageUrl = imageData.choices?.[0]?.message?.content;
+                // If it's a URL in content, or if some models use a different format, handle it.
+                // Note: recraft-v3 on OpenRouter returns a message content that is often the image URL or a markdown image.
+                if (imageUrl && imageUrl.includes('http')) {
+                    const match = imageUrl.match(/https?:\/\/[^\s\)]+/);
+                    if (match) imageUrl = match[0];
+                }
+            }
+        } catch (imgErr) {
+            console.error("Image generation failed:", imgErr);
+        }
+
         // Deduct credits only on success and for non-admins
         if (!isAdmin) {
             await supabaseClient
@@ -212,6 +246,7 @@ Output must be actionable, precise, and professional. Ensure all dimensions and 
         return new Response(JSON.stringify({ 
             result, 
             data: designData,
+            imageUrl,
             type: 'text' 
         }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
