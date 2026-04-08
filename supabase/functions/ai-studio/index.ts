@@ -2,6 +2,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 // @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
+import { DesignPackage, AgentResponse } from "./schema.ts"
 
 declare const Deno: any;
 
@@ -45,7 +46,7 @@ serve(async (req: Request) => {
         console.log('Authenticated user:', user.id);
         const isAdmin = user.email?.toLowerCase() === 'samuel.edu@aktok.com' || user.user_metadata?.role === 'admin';
 
-        const { prompt, type = 'text' } = await req.json()
+        const { prompt, type = 'text', selectedRole = 'Architect' } = await req.json()
         if (!prompt) {
             return new Response(JSON.stringify({ error: 'Prompt is required' }), {
                 status: 400,
@@ -81,22 +82,32 @@ serve(async (req: Request) => {
             throw new Error('Server configuration error: OpenRouter API key missing')
         }
 
-        // Premium model strategy utilizing purchased credits for high availability
+        // Premium model orchestration strategy
         const textModels = [
-            "openai/gpt-4o-mini",
-            "anthropic/claude-3-haiku",
-            "google/gemini-flash-1.5",
-            "meta-llama/llama-3.1-8b-instruct"
+            "google/gemini-2.0-flash-001",
+            "anthropic/claude-3.5-sonnet",
+            "openai/gpt-4o-mini"
         ];
 
-        const systemPrompt = `You are an expert architectural design AI for Genuine Stuffs AI Studio. 
-When given a design brief or concept, provide a structured, detailed design analysis with:
-1. Design concept overview
-2. Key architectural features
-3. Material recommendations  
-4. Spatial layout suggestions
-5. Sustainability considerations
-Keep it professional, concise and actionable for a ${user.email || 'professional'}.`;
+        const systemPrompt = `You are the lead AEC (Architecture, Engineering, Construction) Intelligence Agent for Genuine Stuffs AI Studio.
+Acting as a ${selectedRole}, your goal is to provide engineering-compliant, structurally correct design data.
+
+You MUST respond in two parts:
+1. A professional HUMAN-READABLE summary of your design decisions.
+2. A technical DATA-BLOCK containing a JSON representation of the design following the DesignPackage schema.
+
+SCHEMA REQUIREMENTS:
+- architectural_layout: Array of elements with dimensions (m/mm/ft).
+- material_schedule: List of specific materials with estimated quantities.
+- structural_skeleton: Basic load-bearing constraints and beam spans.
+- compliance: Initial report against building codes (e.g., Nigerian NBC 2024).
+
+FORMAT YOUR DATA BLOCK CLEARLY AS:
+<<<DESIGN_DATA_START>>>
+{ "project_id": "auto", ... }
+<<<DESIGN_DATA_END>>>
+
+Output must be actionable, precise, and professional.`;
 
         let openRouterResponse: Response | null = null;
         let openRouterData: any = null;
@@ -106,7 +117,7 @@ Keep it professional, concise and actionable for a ${user.email || 'professional
 
         for (const textModel of textModels) {
             try {
-                console.log(`Calling OpenRouter model: ${textModel}...`);
+                console.log(`Calling Orchestrator model: ${textModel}...`);
                 const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                     method: "POST",
                     headers: {
@@ -121,7 +132,7 @@ Keep it professional, concise and actionable for a ${user.email || 'professional
                             { "role": "system", "content": systemPrompt },
                             { "role": "user", "content": prompt }
                         ],
-                        "max_tokens": 1000
+                        "max_tokens": 2000
                     })
                 });
 
