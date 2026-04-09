@@ -56,7 +56,8 @@ serve(async (req: Request) => {
 
         // --- NEW: DEDICATED VISUALIZATION MODE (PATH 3) ---
         if (type === 'visualize') {
-            console.log("Generating visualization Agent...");
+            console.log("Generating specialized visualization Agent...");
+            const modelToUse = "google/imagen-3"; // High consistency for architectural renders
             try {
                 const imageResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
                     method: "POST",
@@ -67,21 +68,21 @@ serve(async (req: Request) => {
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
-                        "model": "black-forest-labs/flux-1.1-pro", 
+                        "model": modelToUse, 
                         "messages": [
-                            { "role": "user", "content": `Photorealistic, high-end architectural visualization of: ${prompt}. Cinematic lighting, 8k, professional architectural photography style. Show the following details: Modern sustainable villa with expansive glass faces.` }
+                            { "role": "user", "content": prompt }
                         ]
                     })
                 });
 
                 if (imageResponse.ok) {
                     const imageData = await imageResponse.json();
-                    let imgUrl = imageData.choices?.[0]?.message?.content || 
-                                 imageData.data?.[0]?.url || 
+                    let imgUrl = imageData.data?.[0]?.url || 
+                                 imageData.choices?.[0]?.message?.content || 
                                  imageData.url;
                                  
                     if (imgUrl && typeof imgUrl === 'string') {
-                        const match = imgUrl.match(/https?:\/\/[^\s\)]+/);
+                        const match = imgUrl.match(/https?:\/\/[^\s"'<>|]+(?:\.jpg|\.jpeg|\.png|\.webp|\.gif)?/i);
                         if (match) imgUrl = match[0];
                     }
 
@@ -89,11 +90,11 @@ serve(async (req: Request) => {
                         headers: { ...corsHeaders, "Content-Type": "application/json" },
                     });
                 }
-                throw new Error("Visualizer service failed");
-            } catch (err) {
+                throw new Error(`Visualizer service (${modelToUse}) failed`);
+            } catch (err: any) {
                 return new Response(JSON.stringify({ error: err.message }), {
                     status: 500,
-                    headers: { ...corsHeaders, "Content-Type": "application/json" },
+                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
                 });
             }
         }
@@ -121,7 +122,6 @@ serve(async (req: Request) => {
             })
         }
 
-        const openRouterKey = Deno.env.get('OPENROUTER_API_KEY')
         if (!openRouterKey) {
             throw new Error('Server configuration error: OpenRouter API key missing')
         }
@@ -148,7 +148,6 @@ JSON SCHEMA EXPECTATIONS (DesignPackage):
 - structural_skeleton: { load_bearing_points, beam_span_max, footing_type, risk_factors }.
 - compliance: { status: 'compliant'|'warning', checked_against, findings, recommendations }.
 
-DATA BLOCK FORMAT:
 <<<DESIGN_DATA_START>>>
 {
   "project_id": "GS-${Math.random().toString(36).substr(2, 5).toUpperCase()}",
@@ -157,7 +156,8 @@ DATA BLOCK FORMAT:
   "material_schedule": [...],
   "structural_skeleton": {...},
   "compliance": {...},
-  "summary": "Detailed technical summary here..."
+  "summary": "Detailed technical summary here...",
+  "image_prompt": "A specialized, technical prompt for an architectural render of this specific design"
 }
 <<<DESIGN_DATA_END>>>
 

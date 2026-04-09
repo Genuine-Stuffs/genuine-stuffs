@@ -420,6 +420,7 @@ const AIStudio = () => {
 
         setIsGenerating(true);
         setGeneratedImage(null);
+        setVisualUrl(null); // Clear previous vision state
         try {
             const { data, error } = await supabase.functions.invoke('ai-studio', {
                 body: { 
@@ -449,24 +450,27 @@ const AIStudio = () => {
             toast.success("Design Analysis Ready!");
 
             // --- PATH 3: Decoupled High-Priority Rendering ---
-            setIsVisualizing(true);
-            try {
-                const { data: vizData, error: vizError } = await supabase.functions.invoke('ai-studio', {
-                    body: { 
-                        prompt: promptText, 
-                        type: 'visualize',
-                        selectedRole: selectedRole 
-                    }
-                });
+            // Only fire if the AI deciphered that an image is appropriate
+            if (data.data?.image_prompt) {
+                setIsVisualizing(true);
+                try {
+                    const { data: vizData, error: vizError } = await supabase.functions.invoke('ai-studio', {
+                        body: { 
+                            prompt: data.data.image_prompt, 
+                            type: 'visualize',
+                            selectedRole: selectedRole 
+                        }
+                    });
 
-                if (vizError) throw vizError;
-                if (vizData?.imageUrl) {
-                    setVisualUrl(vizData.imageUrl);
+                    if (vizError) throw vizError;
+                    if (vizData?.imageUrl) {
+                        setVisualUrl(vizData.imageUrl);
+                    }
+                } catch (vizErr) {
+                    console.error("Path 3 Visualization Error:", vizErr);
+                } finally {
+                    setIsVisualizing(false);
                 }
-            } catch (vizErr) {
-                console.error("Path 3 Visualization Error:", vizErr);
-            } finally {
-                setIsVisualizing(false);
             }
         } catch (err: any) {
             setIsGenerating(false);
