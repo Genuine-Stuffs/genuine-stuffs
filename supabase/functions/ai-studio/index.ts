@@ -46,6 +46,14 @@ serve(async (req: Request) => {
         console.log('Authenticated user:', user.id);
         const isAdmin = user.email?.toLowerCase() === 'samuel.edu@aktok.com' || user.user_metadata?.role === 'admin';
 
+        const openRouterKey = Deno.env.get('OPENROUTER_API_KEY')
+        if (!openRouterKey) {
+            return new Response(JSON.stringify({ error: 'OPENROUTER_API_KEY is not defined in Supabase Secrets' }), {
+                status: 500,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
+        }
+
         const { prompt, type = 'text', selectedRole = 'Architect' } = await req.json()
         if (!prompt) {
             return new Response(JSON.stringify({ error: 'Prompt is required' }), {
