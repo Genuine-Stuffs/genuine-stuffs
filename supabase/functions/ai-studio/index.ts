@@ -234,26 +234,32 @@ Output must be actionable, precise, and professional.`;
             })
         }
 
-        // --- EXTRACT STRUCTURED DATA ---
+        // --- EXTRACT STRUCTURED DATA (Resilient Case-Insensitive Parsing) ---
         let designData = null;
         try {
-            const startMarker = "<<<DESIGN_DATA_START>>>";
-            const endMarker = "<<<DESIGN_DATA_END>>>";
-            const startIndex = result.indexOf(startMarker);
-            const endIndex = result.indexOf(endMarker);
+            const startMarkerPattern = /<<<DESIGN_DATA_START>>>/i;
+            const endMarkerPattern = /<<<DESIGN_DATA_END>>>/i;
+            
+            const startMatch = result.match(startMarkerPattern);
+            const endMatch = result.match(endMarkerPattern);
 
-            if (startIndex !== -1 && endIndex !== -1) {
-                const jsonText = result.substring(startIndex + startMarker.length, endIndex).trim();
+            if (startMatch && endMatch) {
+                const startIndex = startMatch.index! + startMatch[0].length;
+                const endIndex = endMatch.index!;
+                
+                const jsonText = result.substring(startIndex, endIndex).trim();
                 designData = JSON.parse(jsonText);
                 
-                // Strip the technical data block from the user-facing text for a cleaner UI
-                result = result.replace(result.substring(startIndex, endIndex + endMarker.length), "").trim();
+                // Surgically remove the entire technical block from the user-facing narrative
+                result = result.substring(0, startMatch.index!) + result.substring(endMatch.index! + endMatch[0].length);
+                result = result.trim();
             } else {
-                // FALLBACK: Try to find any JSON-like block in the text
-                const jsonMatch = result.match(/\{[\s\S]*\}/);
+                // FALLBACK: Try to find any JSON-like block if markers are missing
+                const jsonMatch = result.match(/\{[\s\S]*"status":\s*"(READY|DISCOVERY)"[\s\S]*\}/);
                 if (jsonMatch) {
                     try {
                         designData = JSON.parse(jsonMatch[0]);
+                        result = result.replace(jsonMatch[0], "").trim();
                         console.log("Fallback JSON extraction success.");
                     } catch (e) {
                         console.log("Fallback JSON extraction failed.");
