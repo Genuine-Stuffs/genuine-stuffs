@@ -78,6 +78,7 @@ const AIStudio = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const [ultraMode, setUltraMode] = useState(false);
+    const [messages, setMessages] = useState<any[]>([]);
     const isMobile = useIsMobile();
 
     // Static/Frozen Screen logic for DeepSeek effect
@@ -421,10 +422,17 @@ const AIStudio = () => {
         setIsGenerating(true);
         setGeneratedImage(null);
         setVisualUrl(null); // Clear previous vision state
+        
+        // Add user message to history for continuity
+        const newUserMessage = { role: 'user', content: promptText };
+        const updatedMessages = [...messages, newUserMessage];
+        setMessages(updatedMessages);
+
         try {
             const { data, error } = await supabase.functions.invoke('ai-studio', {
                 body: { 
                     prompt: promptText, 
+                    messages: updatedMessages, // Pass full history
                     type: 'text',
                     selectedRole: selectedRole 
                 }
@@ -446,6 +454,9 @@ const AIStudio = () => {
             setGeneratedImage(data.result);
             setDesignPackage(data.data);
             setIsGenerating(false);
+            
+            // Add assistant response to history
+            setMessages(prev => [...prev, { role: 'assistant', content: data.result }]);
             
             toast.success("Design Analysis Ready!");
 

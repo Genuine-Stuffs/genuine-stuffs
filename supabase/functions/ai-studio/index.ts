@@ -54,7 +54,7 @@ serve(async (req: Request) => {
             })
         }
 
-        const { prompt, type = 'text', selectedRole = 'Architect' } = await req.json()
+        const { prompt, messages: history = [], type = 'text', selectedRole = 'Architect' } = await req.json()
         if (!prompt) {
             return new Response(JSON.stringify({ error: 'Prompt is required' }), {
                 status: 400,
@@ -195,7 +195,7 @@ Output must be actionable, precise, and professional.`;
                         "model": textModel,
                         "messages": [
                             { "role": "system", "content": systemPrompt },
-                            { "role": "user", "content": prompt }
+                            ...(history && history.length > 0 ? history : [{ "role": "user", "content": prompt }])
                         ],
                         "temperature": 0.3, // Lower temperature for more consistent JSON
                         "max_tokens": 3000
