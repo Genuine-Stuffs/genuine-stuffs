@@ -54,6 +54,50 @@ serve(async (req: Request) => {
             })
         }
 
+        // --- NEW: DEDICATED VISUALIZATION MODE (PATH 3) ---
+        if (type === 'visualize') {
+            console.log("Generating visualization Agent...");
+            try {
+                const imageResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${openRouterKey}`,
+                        "HTTP-Referer": "https://genuinestuffs.com/",
+                        "X-Title": "Genuine Stuffs AI Studio",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "model": "black-forest-labs/flux-1.1-pro", 
+                        "messages": [
+                            { "role": "user", "content": `Photorealistic, high-end architectural visualization of: ${prompt}. Cinematic lighting, 8k, professional architectural photography style. Show the following details: Modern sustainable villa with expansive glass faces.` }
+                        ]
+                    })
+                });
+
+                if (imageResponse.ok) {
+                    const imageData = await imageResponse.json();
+                    let imgUrl = imageData.choices?.[0]?.message?.content || 
+                                 imageData.data?.[0]?.url || 
+                                 imageData.url;
+                                 
+                    if (imgUrl && typeof imgUrl === 'string') {
+                        const match = imgUrl.match(/https?:\/\/[^\s\)]+/);
+                        if (match) imgUrl = match[0];
+                    }
+
+                    return new Response(JSON.stringify({ imageUrl: imgUrl }), {
+                        headers: { ...corsHeaders, "Content-Type": "application/json" },
+                    });
+                }
+                throw new Error("Visualizer service failed");
+            } catch (err) {
+                return new Response(JSON.stringify({ error: err.message }), {
+                    status: 500,
+                    headers: { ...corsHeaders, "Content-Type": "application/json" },
+                });
+            }
+        }
+
         // Fetch user credits
         const { data: profile, error: profileError } = await supabaseClient
             .from('professionals')
@@ -209,41 +253,8 @@ Output must be actionable, precise, and professional. Ensure all dimensions and 
             console.error("Failed to parse AEC design data block:", parseErr);
         }
 
-        // --- GENERATE ARCHITECTURAL VISUALIZATION ---
+        // --- VISUALIZATION (MOVED TO PATH 3 DECOUPLED MODE) ---
         let imageUrl = null;
-        try {
-            console.log("Generating architectural visualization via DALL-E 3...");
-            const imageResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${openRouterKey}`,
-                    "HTTP-Referer": "https://genuinestuffs.com/",
-                    "X-Title": "Genuine Stuffs AI Studio",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    "model": "openai/dall-e-3", // Extremely reliable for high-end architectural prompts
-                    "messages": [
-                        { "role": "user", "content": `Photorealistic, high-end architectural visualization of: ${prompt}. Cinematic lighting, 8k resolution, professional architectural photography style. Design details to include: ${designData?.summary || prompt}` }
-                    ]
-                })
-            });
-
-            if (imageResponse.ok) {
-                const imageData = await imageResponse.json();
-                const rawContent = imageData.choices?.[0]?.message?.content;
-                
-                // Extract URL from markdown or raw string
-                if (rawContent) {
-                    const urlMatch = rawContent.match(/https?:\/\/[^\s\)]+/);
-                    if (urlMatch) {
-                        imageUrl = urlMatch[0];
-                    }
-                }
-            }
-        } catch (imgErr) {
-            console.error("Image generation failed:", imgErr);
-        }
 
         // Deduct credits only on success and for non-admins
         if (!isAdmin) {

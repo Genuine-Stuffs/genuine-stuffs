@@ -69,6 +69,7 @@ const AIStudio = () => {
     const [credits, setCredits] = useState<number | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [isVisualizing, setIsVisualizing] = useState(false);
     const [showRefillModal, setShowRefillModal] = useState(false);
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
     const [visualUrl, setVisualUrl] = useState<string | null>(null);
@@ -443,13 +444,33 @@ const AIStudio = () => {
             // Store text and structured data
             setGeneratedImage(data.result);
             setDesignPackage(data.data);
-            setVisualUrl(data.imageUrl);
-
-            toast.success("Design Analysis Ready!");
-        } catch (err: any) {
-            toast.error(err.message || "Generation failed.");
-        } finally {
             setIsGenerating(false);
+            
+            toast.success("Design Analysis Ready!");
+
+            // --- PATH 3: Decoupled High-Priority Rendering ---
+            setIsVisualizing(true);
+            try {
+                const { data: vizData, error: vizError } = await supabase.functions.invoke('ai-studio', {
+                    body: { 
+                        prompt: promptText, 
+                        type: 'visualize',
+                        selectedRole: selectedRole 
+                    }
+                });
+
+                if (vizError) throw vizError;
+                if (vizData?.imageUrl) {
+                    setVisualUrl(vizData.imageUrl);
+                }
+            } catch (vizErr) {
+                console.error("Path 3 Visualization Error:", vizErr);
+            } finally {
+                setIsVisualizing(false);
+            }
+        } catch (err: any) {
+            setIsGenerating(false);
+            toast.error(err.message || "Generation failed.");
         }
     };
 
@@ -821,16 +842,38 @@ const AIStudio = () => {
                                                     </div>
                                                 ) : (
                                                     <div className="w-full text-slate-700 dark:text-slate-300 text-[15px] md:text-base leading-[1.8] font-medium">
-                                                        {visualUrl && (
-                                                            <div className="mb-8 rounded-3xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-2xl animate-in zoom-in duration-700 group relative">
-                                                                <img 
-                                                                    src={visualUrl} 
-                                                                    alt="AI Visualization" 
-                                                                    className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                                                />
-                                                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-6">
-                                                                    <p className="text-[10px] text-white font-black uppercase tracking-widest bg-primary/80 px-4 py-2 rounded-full backdrop-blur-md">Photorealistic Architectural Preview</p>
-                                                                </div>
+                                                        {(visualUrl || isVisualizing) && (
+                                                            <div className="mb-8 rounded-3xl overflow-hidden bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-2xl animate-in zoom-in duration-700 group relative">
+                                                                {isVisualizing ? (
+                                                                    <div className="aspect-[16/9] w-full flex flex-col items-center justify-center p-12 space-y-6">
+                                                                        <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                                                                        <div className="text-center space-y-2">
+                                                                            <p className="text-xs font-black uppercase tracking-[0.3em] text-primary animate-pulse">Rendering Design Vision</p>
+                                                                            <p className="text-[10px] text-slate-500 font-medium">Flux Engine is synthesizing architectural details...</p>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <>
+                                                                        <img 
+                                                                            src={visualUrl || ""} 
+                                                                            alt="AI Visualization" 
+                                                                            className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                                        />
+                                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
+                                                                            <div className="flex items-center gap-4">
+                                                                                <DraftingCompass className="w-6 h-6 text-primary" />
+                                                                                <div>
+                                                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">High-Fidelity Render</p>
+                                                                                    <p className="text-xs text-white/70 italic">Calculated atmospheric lighting & material synergy</p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="absolute top-4 right-4 flex gap-2">
+                                                                            <Badge className="bg-primary/90 hover:bg-primary backdrop-blur-md border-none text-[8px] font-black">ULTRA-HIGH RES</Badge>
+                                                                            <Badge variant="outline" className="bg-black/50 backdrop-blur-md border-white/20 text-white text-[8px] font-black">AI CONCEPT</Badge>
+                                                                        </div>
+                                                                    </>
+                                                                )}
                                                             </div>
                                                         )}
                                                         <div className="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:border prose-pre:border-white/5 prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight">
