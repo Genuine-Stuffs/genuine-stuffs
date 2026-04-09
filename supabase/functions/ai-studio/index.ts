@@ -234,40 +234,38 @@ Output must be actionable, precise, and professional.`;
             })
         }
 
-        // --- EXTRACT STRUCTURED DATA (Resilient Case-Insensitive Parsing) ---
+        // --- EXTRACT STRUCTURED DATA (Global Regex Sweep) ---
         let designData = null;
         try {
-            const startMarkerPattern = /<<<DESIGN_DATA_START>>>/i;
-            const endMarkerPattern = /<<<DESIGN_DATA_END>>>/i;
-            
-            const startMatch = result.match(startMarkerPattern);
-            const endMatch = result.match(endMarkerPattern);
+            const dataBlockRegex = /<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/gi;
+            const match = result.match(dataBlockRegex);
 
-            if (startMatch && endMatch) {
-                const startIndex = startMatch.index! + startMatch[0].length;
-                const endIndex = endMatch.index!;
+            if (match) {
+                // Extract the content between the tags
+                let jsonText = match[0]
+                    .replace(/<<<DESIGN_DATA_START>>>/i, "")
+                    .replace(/<<<DESIGN_DATA_END>>>/i, "")
+                    .trim();
                 
-                const jsonText = result.substring(startIndex, endIndex).trim();
-                designData = JSON.parse(jsonText);
-                
-                // Surgically remove the entire technical block from the user-facing narrative
-                result = result.substring(0, startMatch.index!) + result.substring(endMatch.index! + endMatch[0].length);
-                result = result.trim();
+                try {
+                    designData = JSON.parse(jsonText);
+                    // Purge the entire block from the user-facing text
+                    result = result.replace(dataBlockRegex, "").trim();
+                } catch (e) {
+                    console.error("JSON Parse Error in block:", e);
+                }
             } else {
-                // FALLBACK: Try to find any JSON-like block if markers are missing
+                // FALLBACK: Look for JSON status pattern
                 const jsonMatch = result.match(/\{[\s\S]*"status":\s*"(READY|DISCOVERY)"[\s\S]*\}/);
                 if (jsonMatch) {
                     try {
                         designData = JSON.parse(jsonMatch[0]);
                         result = result.replace(jsonMatch[0], "").trim();
-                        console.log("Fallback JSON extraction success.");
-                    } catch (e) {
-                        console.log("Fallback JSON extraction failed.");
-                    }
+                    } catch (e) {}
                 }
             }
         } catch (parseErr) {
-            console.error("Failed to parse AEC design data block:", parseErr);
+            console.error("Critical parsing error:", parseErr);
         }
 
         // --- VISUALIZATION (MOVED TO PATH 3 DECOUPLED MODE) ---
