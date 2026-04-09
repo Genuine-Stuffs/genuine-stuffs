@@ -846,7 +846,7 @@ const AIStudio = () => {
                                                     </div>
                                                 ) : (
                                                     <div className="w-full text-slate-700 dark:text-slate-300 text-[15px] md:text-base leading-[1.8] font-medium">
-                                                        {(visualUrl || isVisualizing) && (
+                                                        {(visualUrl || isVisualizing) && designPackage?.status !== 'DISCOVERY' && (
                                                             <div className="mb-8 rounded-3xl overflow-hidden bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-2xl animate-in zoom-in duration-700 group relative">
                                                                 {isVisualizing ? (
                                                                     <div className="aspect-[16/9] w-full flex flex-col items-center justify-center p-12 space-y-6">
@@ -887,7 +887,39 @@ const AIStudio = () => {
                                                         </div>
 
                                                         {/* --- NEW: Technical Blueprint Node --- */}
-                                                        {designPackage && (
+                                                        {/* --- NEW: Discovery Phase Node (Architectural Consultation) --- */}
+                                                        {designPackage?.status === 'DISCOVERY' && (
+                                                            <div className="mt-8 p-8 rounded-[2rem] bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 shadow-xl animate-in fade-in slide-in-from-top-6 duration-1000">
+                                                                <div className="flex items-center gap-4 mb-6">
+                                                                    <div className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center text-white shadow-lg">
+                                                                        <Sparkles className="w-6 h-6" />
+                                                                    </div>
+                                                                    <div>
+                                                                        <h3 className="text-sm font-black uppercase tracking-widest text-amber-900 dark:text-amber-400">Architect's Discovery</h3>
+                                                                        <p className="text-[10px] text-amber-800/70 dark:text-amber-400/50 font-medium tracking-tight">Refining parameters for structural integrity</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="space-y-3">
+                                                                    {designPackage.discovery_questions?.map((q: string, i: number) => (
+                                                                        <div key={i} className="group p-5 rounded-2xl bg-white dark:bg-black/40 border border-amber-100 dark:border-amber-500/10 shadow-sm hover:border-amber-500 transition-all cursor-pointer flex items-center gap-4">
+                                                                            <div className="w-7 h-7 rounded-full bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center text-[11px] font-black text-amber-600">
+                                                                                {i + 1}
+                                                                            </div>
+                                                                            <p className="text-sm text-slate-700 dark:text-slate-200 font-bold leading-tight">{q}</p>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                                <div className="mt-6 p-4 rounded-xl bg-white/40 dark:bg-amber-500/5 border border-amber-100 dark:border-amber-500/10 flex items-start gap-3">
+                                                                    <div className="mt-0.5 text-amber-600">⚠️</div>
+                                                                    <p className="text-[11px] text-amber-900/60 dark:text-amber-400/60 italic leading-relaxed font-medium">
+                                                                        "I need these answers to better understand your vision. This ensures the final blueprint is construction-ready."
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        {/* --- NEW: Technical Blueprint Node --- */}
+                                                        {designPackage && designPackage.status !== 'DISCOVERY' && (
                                                             <div className="mt-8 animate-in fade-in slide-in-from-top-4 duration-700">
                                                                 <div className="p-1 px-4 mb-4 bg-primary/10 border border-primary/20 rounded-full inline-flex items-center gap-2">
                                                                     <DraftingCompass className="w-3.5 h-3.5 text-primary" />
