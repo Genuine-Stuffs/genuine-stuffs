@@ -80,6 +80,22 @@ const PMDashboard = () => {
         { id: 3, title: 'System Healthy', text: 'Weekly maintenance successfully completed.', time: '5h ago', read: true }
     ]);
 
+    // Handle clicking outside of notification dropdown
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            const target = event.target as HTMLElement;
+            if (notificationsOpen && !target.closest('#notification-container')) {
+                setNotificationsOpen(false);
+            }
+        };
+
+        if (notificationsOpen) {
+            window.addEventListener('mousedown', handleClickOutside);
+        }
+        
+        return () => window.removeEventListener('mousedown', handleClickOutside);
+    }, [notificationsOpen]);
+
     // Tax System State
     const [isTaxSystemOpen, setIsTaxSystemOpen] = useState(false);
     const [taxRate, setTaxRate] = useState(() => localStorage.getItem('pm_tax_rate') || "7.5");
@@ -165,6 +181,34 @@ const PMDashboard = () => {
         m.vendor_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         m.category?.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    // Stress Test: Inject an edge-case item for UI validation
+    const stressTestVendor = {
+        id: 'stress-test-uuid',
+        company_name: 'EDGE CASE CORP LIMITLESS STRINGS',
+        bio: 'This is an extremely long bio intended to test the layout wrapping and overflow properties of the investigation dialog. It should not break the grid or overlap with other elements. '.repeat(10),
+        cac_number: '', // Missing
+        phone: '', // Missing
+        street_address: 'Overflow Street 101, Long Text District',
+        city: 'DataCity',
+        state: 'StabilityState',
+        verified_status: 'pending'
+    };
+
+    if (searchQuery.toLowerCase() === 'stress') {
+        filteredVendors.push(stressTestVendor);
+    }
+
+    if (searchQuery.toLowerCase() === 'heavy') {
+        for (let i = 0; i < 500; i++) {
+            filteredVendors.push({
+                ...stressTestVendor,
+                id: `heavy-${i}`,
+                company_name: `MOCK VENDOR ${i}`,
+                cac_number: `RC-${100000 + i}`
+            });
+        }
+    }
 
     const handleViewDetail = (item: any, type: typeof detailType) => {
         setSelectedItem(item);
@@ -270,13 +314,13 @@ const PMDashboard = () => {
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <div className="hidden md:flex relative group">
+                        <div className="hidden sm:flex relative group flex-1 max-w-sm">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-red-500 transition-colors" size={16} />
                             <Input 
                                 placeholder="Global Search..." 
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-64 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 rounded-xl pl-10 h-10 text-sm focus:ring-red-600/50 dark:text-white"
+                                className="w-full bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 rounded-xl pl-10 h-10 text-sm focus:ring-red-600/50 dark:text-white"
                             />
                         </div>
                         <div className="flex items-center gap-3 p-1 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner">
@@ -295,7 +339,7 @@ const PMDashboard = () => {
                                 <Moon size={18} />
                             </button>
                         </div>
-                        <div className="relative">
+                        <div className="relative" id="notification-container">
                             <button 
                                 onClick={() => setNotificationsOpen(!notificationsOpen)}
                                 className="relative text-slate-400 hover:text-red-500 transition-colors p-2.5 bg-slate-100 dark:bg-white/5 rounded-xl shadow-sm border border-slate-200 dark:border-white/5"
@@ -779,12 +823,12 @@ const PMDashboard = () => {
                                     <Card className="bg-white dark:bg-white/5 border-none p-8 rounded-3xl shadow-sm space-y-6">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2">Base Tax Rate (%)</label>
-                                            <div className="flex gap-4">
+                                    <div className="flex flex-col sm:flex-row gap-4">
                                                 <Input 
                                                     type="number"
                                                     value={taxRate}
                                                     onChange={(e) => setTaxRate(e.target.value)}
-                                                    className="bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-white/10 h-14 rounded-2xl font-black text-xl px-6 max-w-[200px] dark:text-white"
+                                                    className="bg-slate-50 dark:bg-[#0F172A] border-slate-200 dark:border-white/10 h-14 rounded-2xl font-black text-xl px-6 w-full sm:max-w-[200px] dark:text-white"
                                                 />
                                                 <Button 
                                                     onClick={() => {
@@ -792,7 +836,7 @@ const PMDashboard = () => {
                                                         updateTaxRate(taxRate);
                                                         setTimeout(() => toast.success(`Base rate successfully updated to ${taxRate}%`, { id }), 1500);
                                                     }}
-                                                    className="h-14 px-8 rounded-2xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 font-black uppercase tracking-widest text-xs transition-all shadow-xl"
+                                                    className="h-14 px-8 rounded-2xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 font-black uppercase tracking-widest text-xs transition-all shadow-xl w-full sm:w-auto"
                                                 >
                                                     <RefreshCw size={16} className="mr-2" /> Update Rate
                                                 </Button>
@@ -905,9 +949,9 @@ const PMDashboard = () => {
 
             {/* Entity Detail Investigation Dialog */}
             <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-                <DialogContent className="bg-white dark:bg-[#1E293B] border-none rounded-[2.5rem] p-0 max-w-2xl overflow-hidden">
-                    <div className="relative h-32 bg-gradient-to-r from-red-600 to-red-400">
-                        <div className="absolute -bottom-12 left-8 w-24 h-24 rounded-3xl bg-white dark:bg-[#0F172A] border-4 border-white dark:border-[#0F172A] flex items-center justify-center text-3xl font-black text-red-600 shadow-xl">
+                <DialogContent className="bg-white dark:bg-[#1E293B] border-none rounded-[2.5rem] p-0 max-w-2xl overflow-hidden max-h-[95vh] flex flex-col">
+                    <div className="relative h-24 sm:h-32 bg-gradient-to-r from-red-600 to-red-400 shrink-0">
+                        <div className="absolute -bottom-10 sm:-bottom-12 left-8 w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-white dark:bg-[#0F172A] border-4 border-white dark:border-[#0F172A] flex items-center justify-center text-2xl sm:text-3xl font-black text-red-600 shadow-xl">
                             {detailType === 'vendor' && (selectedItem?.company_name?.[0] || 'V')}
                             {detailType === 'professional' && (selectedItem?.full_name?.[0] || 'P')}
                             {detailType === 'material' && selectedItem?.image_url ? (
@@ -917,16 +961,16 @@ const PMDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="pt-16 px-8 pb-8 space-y-8">
+                    <div className="pt-14 sm:pt-16 px-6 sm:px-8 pb-8 space-y-8 overflow-y-auto custom-scrollbar">
                         <div>
-                            <div className="flex items-center gap-3 mb-1">
-                                <h2 className="text-2xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">
+                            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-1">
+                                <h2 className="text-xl sm:text-2xl font-black tracking-tighter text-slate-900 dark:text-white uppercase truncate">
                                     {detailType === 'vendor' && selectedItem?.company_name}
                                     {detailType === 'professional' && selectedItem?.full_name}
                                     {detailType === 'material' && selectedItem?.name}
                                     {detailType === 'report' && `Report: ${selectedItem?.materials?.name}`}
                                 </h2>
-                                <Badge className="bg-red-600/10 text-red-600 border-none text-[10px] font-black uppercase">
+                                <Badge className="bg-red-600/10 text-red-600 border-none text-[10px] font-black uppercase w-fit">
                                     {detailType}
                                 </Badge>
                             </div>
@@ -938,7 +982,7 @@ const PMDashboard = () => {
                             </p>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             {/* Dynamic Details based on Type */}
                             {detailType === 'vendor' && (
                                 <>
@@ -953,6 +997,12 @@ const PMDashboard = () => {
                                     <div className="space-y-1 col-span-2">
                                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Business Address</p>
                                         <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedItem?.street_address}, {selectedItem?.city}, {selectedItem?.state}</p>
+                                    </div>
+                                    <div className="space-y-1 col-span-2">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Business Description</p>
+                                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed italic">
+                                            {selectedItem?.bio || selectedItem?.description || 'No additional bio provided by this vendor.'}
+                                        </p>
                                     </div>
                                 </>
                             )}
@@ -1011,17 +1061,17 @@ const PMDashboard = () => {
                             )}
                         </div>
 
-                        <div className="pt-6 border-t border-slate-100 dark:border-white/5 flex gap-3">
+                        <div className="pt-6 border-t border-slate-100 dark:border-white/5 flex flex-col sm:flex-row gap-3">
                             <Button 
                                 variant="ghost" 
-                                className="flex-1 h-14 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-100 dark:hover:bg-white/5"
+                                className="w-full sm:flex-1 h-14 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-100 dark:hover:bg-white/5"
                                 onClick={() => setIsDetailOpen(false)}
                             >
                                 Close Investigation
                             </Button>
                             {(detailType === 'vendor' || detailType === 'professional' || detailType === 'material') && (
                                 <Button 
-                                    className="flex-1 h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase text-xs tracking-widest shadow-lg shadow-red-600/20 gap-2"
+                                    className="w-full sm:flex-1 h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase text-xs tracking-widest shadow-lg shadow-red-600/20 gap-2"
                                     onClick={() => {
                                         if (detailType === 'vendor') handleApproval(selectedItem.id, 'vendor');
                                         if (detailType === 'professional') handleApproval(selectedItem.id, 'professional');
