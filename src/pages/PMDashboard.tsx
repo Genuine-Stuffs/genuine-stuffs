@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, Link } from "react-router-dom";
 import { 
     Users, 
     ShieldCheck, 
@@ -200,9 +200,9 @@ const PMDashboard = () => {
             <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#1E293B]/80 backdrop-blur-xl border-r border-slate-200 dark:border-white/5 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="flex flex-col h-full">
                     <div className="p-8">
-                        <div className="flex items-center gap-3 mb-10">
+                        <Link to="/" className="flex items-center gap-3 mb-10 hover:opacity-80 transition-opacity">
                             <Logo iconClassName="h-10" textClassName="dark:!text-white !text-slate-900" />
-                        </div>
+                        </Link>
 
                         <nav className="space-y-2">
                             {[
