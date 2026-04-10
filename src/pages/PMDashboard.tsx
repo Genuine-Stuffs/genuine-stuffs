@@ -73,6 +73,12 @@ const PMDashboard = () => {
     const [selectedItem, setSelectedItem] = useState<any>(null);
     const [detailType, setDetailType] = useState<'vendor' | 'professional' | 'material' | 'report' | null>(null);
     const [searchQuery, setSearchQuery] = useState("");
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
+    const [notifications, setNotifications] = useState([
+        { id: 1, title: 'New Vendor Registration', text: 'Task Atlantic Cooperation submitted documents.', time: '2m ago', read: false },
+        { id: 2, title: 'Material Reported', text: 'Listing "Titan Steel" flagged by user.', time: '1h ago', read: false },
+        { id: 3, title: 'System Healthy', text: 'Weekly maintenance successfully completed.', time: '5h ago', read: true }
+    ]);
 
     // Tax System State
     const [isTaxSystemOpen, setIsTaxSystemOpen] = useState(false);
@@ -281,10 +287,43 @@ const PMDashboard = () => {
                                 <Moon size={18} />
                             </button>
                         </div>
-                        <button className="relative text-slate-400 hover:text-red-500 transition-colors p-2.5 bg-slate-100 dark:bg-white/5 rounded-xl shadow-sm border border-slate-200 dark:border-white/5">
-                            <Bell size={18} />
-                            <span className="absolute top-2 right-2 w-2 h-2 bg-red-600 rounded-full border-2 border-white dark:border-[#0F172A]" />
-                        </button>
+                        <div className="relative">
+                            <button 
+                                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                                className="relative text-slate-400 hover:text-red-500 transition-colors p-2.5 bg-slate-100 dark:bg-white/5 rounded-xl shadow-sm border border-slate-200 dark:border-white/5"
+                            >
+                                <Bell size={18} />
+                                {notifications.some(n => !n.read) && (
+                                    <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white dark:border-[#0F172A]" />
+                                )}
+                            </button>
+                            
+                            {notificationsOpen && (
+                                <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+                                    <div className="p-5 border-b border-slate-100 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
+                                        <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Recent Alerts</h4>
+                                        <Badge className="bg-red-600 text-white border-none text-[8px]">{notifications.filter(n => !n.read).length} NEW</Badge>
+                                    </div>
+                                    <div className="max-h-[350px] overflow-y-auto">
+                                        {notifications.map((n) => (
+                                            <div key={n.id} className={`p-4 border-b border-slate-100 dark:border-white/5 hover:bg-slate-50 dark:hover:bg-white/5 transition-colors cursor-pointer ${!n.read ? 'bg-red-500/5' : ''}`}>
+                                                <div className="flex justify-between items-start mb-1">
+                                                    <p className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-tight">{n.title}</p>
+                                                    <p className="text-[9px] font-bold text-slate-400">{n.time}</p>
+                                                </div>
+                                                <p className="text-[10px] text-slate-500 font-medium leading-relaxed">{n.text}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <button 
+                                        onClick={() => setNotificationsOpen(false)}
+                                        className="w-full py-3 bg-slate-50 dark:bg-[#0F172A] text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-red-500 transition-colors"
+                                    >
+                                        Dismiss All
+                                    </button>
+                                </div>
+                            )}
+                        </div>
                         <div className="flex items-center gap-3 pl-6 border-l border-slate-200 dark:border-white/5">
                             <div className="text-right hidden sm:block">
                                 <p className="text-xs font-black text-slate-900 dark:text-white uppercase">{user?.email?.split('@')[0]}</p>
@@ -304,7 +343,7 @@ const PMDashboard = () => {
                             {/* Stats Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {statCards.map((card, idx) => (
-                                    <Card key={idx} className="bg-white dark:bg-[#1E293B]/50 border-slate-200 dark:border-white/5 p-6 rounded-[2rem] hover:border-red-600/30 transition-all group overflow-hidden relative shadow-sm hover:shadow-xl dark:shadow-none">
+                            <Card key={idx} className="bg-white dark:bg-[#1E293B]/50 border-slate-200 dark:border-white/5 p-6 rounded-[2rem] hover:border-red-600/30 transition-all hover:scale-[1.02] hover:-translate-y-1 active:scale-95 group overflow-hidden relative shadow-sm hover:shadow-xl dark:shadow-none cursor-default">
                                         <div className="absolute top-0 right-0 w-24 h-24 bg-red-600/5 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-red-600/10 transition-colors" />
                                         <div className="flex items-center justify-between mb-4">
                                             <div className={`p-3 rounded-2xl bg-slate-50 dark:bg-white/5 text-red-500`}>
@@ -512,27 +551,32 @@ const PMDashboard = () => {
                                     </div>
 
                                     <Button 
-                                        className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs gap-3 shadow-lg shadow-red-600/20"
-                                        onClick={async () => {
+                                        className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs gap-3 shadow-lg shadow-red-600/20 active:scale-95 transition-transform"
+                                        onClick={async (e) => {
+                                            const btn = e.currentTarget;
                                             const email = (document.getElementById('admin_email') as HTMLInputElement).value;
                                             if (!email) { toast.error("Please enter an email address."); return; }
                                             
-                                            toast.loading("Processing promotion...");
+                                            btn.disabled = true;
+                                            const loadId = toast.loading("Processing promotion audit...");
                                             
-                                            // Promotion logic (Note: This assumes the promote_user_to_pm RPC exists)
                                             try {
-                                                const { data, error } = await (supabase as any).rpc('promote_user_to_pm', { user_email: email });
-                                                toast.dismiss();
+                                                const { error } = await (supabase as any).rpc('promote_user_to_pm', { user_email: email });
+                                                toast.dismiss(loadId);
                                                 
                                                 if (error) {
-                                                    console.error(error);
                                                     toast.error("Internal promotion failed. Please use SQL Editor.");
                                                 } else {
-                                                    toast.success("User successfully promoted to PM!");
+                                                    toast.success(`${email} promoted to PM status.`, {
+                                                        description: "Permissions synchronized across all modules."
+                                                    });
+                                                    (document.getElementById('admin_email') as HTMLInputElement).value = "";
                                                 }
                                             } catch (err) {
-                                                toast.dismiss();
+                                                toast.dismiss(loadId);
                                                 toast.error("Process failed.");
+                                            } finally {
+                                                btn.disabled = false;
                                             }
                                         }}
                                     >
