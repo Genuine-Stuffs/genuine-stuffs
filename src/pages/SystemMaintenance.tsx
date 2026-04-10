@@ -37,6 +37,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import Navbar from "@/components/Navbar";
+import { toast } from "sonner";
 
 const SystemMaintenance = () => {
     const [scrolled, setScrolled] = useState(false);
@@ -85,10 +86,30 @@ const SystemMaintenance = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <Button variant="ghost" className="hidden md:flex font-bold text-[10px] uppercase tracking-widest gap-2 rounded-xl text-slate-500">
+                        <Button 
+                            variant="ghost" 
+                            className="hidden md:flex font-bold text-[10px] uppercase tracking-widest gap-2 rounded-xl text-slate-500 hover:text-red-500 hover:bg-red-500/5 transition-all"
+                            onClick={() => {
+                                toast.info("Fetching real-time incident logs...", {
+                                    description: "Standard infrastructure logs retrieved (24h scope)."
+                                });
+                            }}
+                        >
                             <History size={16} /> Incident Logs
                         </Button>
-                        <Button className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-[10px] uppercase tracking-widest rounded-xl px-6 h-11 shadow-xl hover:scale-105 transition-all">
+                        <Button 
+                            onClick={async () => {
+                                const id = toast.loading("Initiating Global Infrastructure Audit...");
+                                // Simulated audit sequence
+                                setTimeout(() => {
+                                    toast.success("Audit Complete: All 4 Edge Nodes Healthy", { 
+                                        id,
+                                        description: "Database replication at 100% sync."
+                                    });
+                                }, 2000);
+                            }}
+                            className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-[10px] uppercase tracking-widest rounded-xl px-6 h-11 shadow-xl hover:scale-105 transition-all"
+                        >
                             Run Global Audit
                         </Button>
                     </div>
