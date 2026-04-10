@@ -152,7 +152,19 @@ const SystemMaintenance = () => {
                                     <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Prometheus Traffic Matrix</h3>
                                     <p className="text-xs text-slate-400 font-medium italic">Inbound requests per second across all edge nodes.</p>
                                 </div>
-                                <Select defaultValue="1h">
+                                <Select 
+                                    defaultValue="1h"
+                                    onValueChange={(val) => {
+                                        toast.promise(
+                                            new Promise((resolve) => setTimeout(resolve, 800)),
+                                            {
+                                                loading: `Fetching matrix data for ${val} scope...`,
+                                                success: 'Traffic matrix synchronized.',
+                                                error: 'Matrix fetch failed.'
+                                            }
+                                        );
+                                    }}
+                                >
                                     <SelectTrigger className="w-24 h-9 rounded-lg border-slate-200 dark:border-white/10 text-[10px] font-bold uppercase tracking-widest">
                                         <SelectValue />
                                     </SelectTrigger>
@@ -216,7 +228,13 @@ const SystemMaintenance = () => {
                                             <div className="w-6 h-6 rounded-full bg-blue-500 border-2 border-white dark:border-[#15171a]" title="Senior Dev" />
                                             <div className="w-6 h-6 rounded-full bg-emerald-500 border-2 border-white dark:border-[#15171a]" title="Frontend Lead" />
                                         </div>
-                                        <Button size="sm" className="h-7 text-[9px] font-black uppercase tracking-widest rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900">Sprint Map</Button>
+                                        <Button 
+                                            onClick={() => toast.info("Navigating to AI Studio Sprint Map", { description: "Redirecting to internal JIRA/Linear instance." })}
+                                            size="sm" 
+                                            className="h-7 text-[9px] font-black uppercase tracking-widest rounded-lg bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-sm"
+                                        >
+                                            Sprint Map
+                                        </Button>
                                     </div>
                                 </Card>
 
@@ -233,7 +251,13 @@ const SystemMaintenance = () => {
                                         <div className="flex -space-x-2">
                                             <div className="w-6 h-6 rounded-full bg-purple-500 border-2 border-white dark:border-[#15171a]" title="Ops Engineer" />
                                         </div>
-                                        <Button size="sm" className="h-7 text-[9px] font-black uppercase tracking-widest rounded-lg bg-slate-50 text-slate-500">Backlog</Button>
+                                        <Button 
+                                            onClick={() => toast.info("Vendor Media Backlog", { description: "Viewing prioritized engineering tasks for #OPS-128." })}
+                                            size="sm" 
+                                            className="h-7 text-[9px] font-black uppercase tracking-widest rounded-lg bg-slate-50 text-slate-500 hover:text-slate-900 transition-colors"
+                                        >
+                                            Backlog
+                                        </Button>
                                     </div>
                                 </Card>
                             </div>
