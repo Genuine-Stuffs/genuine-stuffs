@@ -568,8 +568,8 @@ const PMDashboard = () => {
                             <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2 mb-2">Target Audience</p>
                             <div className="flex flex-wrap gap-4">
                                 {[
-                                    { id: 'vendor', label: 'Vendors', count: 124 },
-                                    { id: 'pro', label: 'Professionals', count: 328 },
+                                    { id: 'vendor', label: 'Vendors', count: stats?.totalVendors || 0 },
+                                    { id: 'pro', label: 'Professionals', count: stats?.totalPros || 0 },
                                     { id: 'guest', label: 'Guests', count: 1540 },
                                 ].map((group) => (
                                     <div key={group.id} className="flex items-center space-x-3 bg-white dark:bg-white/5 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/5 shadow-sm">
@@ -620,14 +620,15 @@ const PMDashboard = () => {
                             Cancel
                         </Button>
                         <Button 
-                            disabled={!broadcastMessage || broadcastAudience.length === 0}
+                            disabled={!broadcastMessage || !broadcastSubject || broadcastAudience.length === 0}
                             onClick={async () => {
                                 const id = toast.loading(`Preparing broadcast for ${broadcastAudience.length} segments...`);
-                                // Simulated logic
+                                // Simulated delivery logic
                                 setTimeout(() => {
-                                    toast.success(`Broadcast successfully delivered to selected segments.`, { id });
+                                    toast.success(`Broadcasting to ${broadcastAudience.join(' & ')} completed. Message delivered to queue.`, { id });
                                     setIsBroadcastOpen(false);
                                     setBroadcastMessage("");
+                                    setBroadcastSubject("Marketplace Update");
                                 }, 2500);
                             }}
                             className="h-14 px-10 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-xs gap-3 shadow-lg shadow-red-600/20"

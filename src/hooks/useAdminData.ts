@@ -9,11 +9,13 @@ export const useAdminStats = () => {
         { count: vendorsCount },
         { count: pendingVendorsCount },
         { count: pendingProsCount },
+        { count: prosCount },
         { count: materialsCount }
       ] = await Promise.all([
         supabase.from('vendors').select('*', { count: 'exact', head: true }),
         supabase.from('vendors').select('*', { count: 'exact', head: true }).eq('verified_status', 'pending'),
         supabase.from('professionals').select('*', { count: 'exact', head: true }).eq('is_verified', false),
+        supabase.from('professionals').select('*', { count: 'exact', head: true }),
         supabase.from('materials').select('*', { count: 'exact', head: true })
       ]);
 
@@ -21,6 +23,7 @@ export const useAdminStats = () => {
         totalVendors: vendorsCount || 0,
         pendingVendors: pendingVendorsCount || 0,
         pendingPros: pendingProsCount || 0,
+        totalPros: prosCount || 0,
         totalMaterials: materialsCount || 0,
       };
     }
