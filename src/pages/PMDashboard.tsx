@@ -76,8 +76,16 @@ const PMDashboard = () => {
 
     // Tax System State
     const [isTaxSystemOpen, setIsTaxSystemOpen] = useState(false);
-    const [taxRate, setTaxRate] = useState("7.5");
+    const [taxRate, setTaxRate] = useState(() => localStorage.getItem('pm_tax_rate') || "7.5");
     const [activeTaxTab, setActiveTaxTab] = useState("evaluation");
+    const [taxRules, setTaxRules] = useState(() => {
+        const saved = localStorage.getItem('pm_tax_rules');
+        return saved ? JSON.parse(saved) : [
+            { id: 'vat_pro', label: "Apply VAT to Professional Consultation Fees", active: true },
+            { id: 'exempt_raw', label: "Exempt Raw Building Materials (Government Directive)", active: false },
+            { id: 'auto_file', label: "Enable Automated End-of-Month Filing Drafts", active: true }
+        ];
+    });
 
     // Real data hooks
     const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useAdminStats();
@@ -149,6 +157,21 @@ const PMDashboard = () => {
         setDetailType(type);
         setIsDetailOpen(true);
     };
+
+    const updateTaxRate = (val: string) => {
+        setTaxRate(val);
+        localStorage.setItem('pm_tax_rate', val);
+    };
+
+    const toggleTaxRule = (id: string) => {
+        const newRules = taxRules.map((r: any) => r.id === id ? { ...r, active: !r.active } : r);
+        setTaxRules(newRules);
+        localStorage.setItem('pm_tax_rules', JSON.stringify(newRules));
+        toast.info("Tax policy updated.");
+    };
+
+    const platformVolume = 24500000;
+    const estimatedTax = (platformVolume * (parseFloat(taxRate) || 0)) / 100;
 
     const statCards = [
         { label: "Active Vendors", value: stats?.totalVendors || 0, icon: Store, trend: "+12%", color: "text-blue-600" },
@@ -663,14 +686,14 @@ const PMDashboard = () => {
                                                 <DollarSign size={20} />
                                                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">Gross Platform Volume (YTD)</h4>
                                             </div>
-                                            <p className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">₦24,500,000</p>
+                                            <p className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">₦{platformVolume.toLocaleString()}</p>
                                         </Card>
                                         <Card className="bg-white dark:bg-white/5 border-none p-6 rounded-3xl shadow-sm">
                                             <div className="flex items-center gap-3 mb-4 text-purple-500">
                                                 <Calculator size={20} />
                                                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">Estimated Tax Liability</h4>
                                             </div>
-                                            <p className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">₦1,837,500</p>
+                                            <p className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">₦{estimatedTax.toLocaleString()}</p>
                                             <p className="text-xs font-bold text-purple-500 mt-2">Based on active {taxRate}% rate</p>
                                         </Card>
                                     </div>
@@ -713,6 +736,7 @@ const PMDashboard = () => {
                                                 <Button 
                                                     onClick={() => {
                                                         const id = toast.loading("Updating Global Tax Configuration...");
+                                                        updateTaxRate(taxRate);
                                                         setTimeout(() => toast.success(`Base rate successfully updated to ${taxRate}%`, { id }), 1500);
                                                     }}
                                                     className="h-14 px-8 rounded-2xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 font-black uppercase tracking-widest text-xs transition-all shadow-xl"
@@ -725,12 +749,12 @@ const PMDashboard = () => {
                                         <div className="pt-6 border-t border-slate-200 dark:border-white/5">
                                             <h4 className="font-black uppercase tracking-widest text-slate-900 dark:text-white text-sm mb-4">Tax Rules & Exceptions</h4>
                                             <div className="space-y-3">
-                                                {[
-                                                    { label: "Apply VAT to Professional Consultation Fees", active: true },
-                                                    { label: "Exempt Raw Building Materials (Government Directive)", active: false },
-                                                    { label: "Enable Automated End-of-Month Filing Drafts", active: true }
-                                                ].map((rule, idx) => (
-                                                    <div key={idx} className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-white/5">
+                                                {taxRules.map((rule: any) => (
+                                                    <div 
+                                                        key={rule.id} 
+                                                        onClick={() => toggleTaxRule(rule.id)}
+                                                        className="flex items-center justify-between p-4 rounded-xl bg-slate-50 dark:bg-[#0F172A] border border-slate-200 dark:border-white/5 cursor-pointer hover:border-purple-600/30 transition-all"
+                                                    >
                                                         <span className="font-bold text-sm text-slate-600 dark:text-slate-300">{rule.label}</span>
                                                         <div className={`w-12 h-6 rounded-full p-1 transition-colors ${rule.active ? 'bg-emerald-500' : 'bg-slate-300 dark:bg-slate-700'}`}>
                                                             <div className={`w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform ${rule.active ? 'translate-x-6' : 'translate-x-0'}`} />
