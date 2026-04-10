@@ -22,7 +22,8 @@ import {
     Settings,
     MessageSquare,
     Terminal,
-    ArrowLeft
+    ArrowLeft,
+    Power
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -274,14 +275,33 @@ const SystemMaintenance = () => {
                            <p className="text-xs font-bold text-slate-400 dark:text-slate-500 mb-8 relative z-10 italic">Global state modification portal.</p>
                            
                            <div className="space-y-4 relative z-10">
-                               <Button className="w-full h-14 rounded-2xl bg-white/10 dark:bg-black/5 hover:bg-white/20 border border-white/10 dark:border-black/5 font-black uppercase tracking-widest text-[10px] flex items-center justify-between px-6 transition-all">
+                               <Button 
+                                    onClick={() => {
+                                        const id = toast.loading("Purging global CDN edge cache...");
+                                        setTimeout(() => toast.success("CDN Purged Successfully (Global Scope)", { id }), 2000);
+                                    }}
+                                    className="w-full h-14 rounded-2xl bg-white/10 dark:bg-black/5 hover:bg-white/20 border border-white/10 dark:border-black/5 font-black uppercase tracking-widest text-[10px] flex items-center justify-between px-6 transition-all"
+                                >
                                    CDN Refresh <RefreshCw size={18} className="text-blue-400" />
                                </Button>
-                               <Button className="w-full h-14 rounded-2xl bg-white/10 dark:bg-black/5 hover:bg-white/20 border border-white/10 dark:border-black/5 font-black uppercase tracking-widest text-[10px] flex items-center justify-between px-6 transition-all">
+                               <Button 
+                                    onClick={() => {
+                                        const id = toast.loading("Rebuilding search index matrices...");
+                                        setTimeout(() => toast.success("Marketplace Search Index Rebuilt", { id }), 3000);
+                                    }}
+                                    className="w-full h-14 rounded-2xl bg-white/10 dark:bg-black/5 hover:bg-white/20 border border-white/10 dark:border-black/5 font-black uppercase tracking-widest text-[10px] flex items-center justify-between px-6 transition-all"
+                                >
                                    Rebuild Search Index <BarChart3 size={18} className="text-purple-400" />
                                </Button>
-                               <Button className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-[10px] flex items-center justify-between px-6 shadow-xl shadow-red-600/20 translate-y-4">
-                                   MAINTENANCE MODE <PowerOff size={18} />
+                               <Button 
+                                    onClick={() => {
+                                        toast.warning("Warning: Maintenance Mode", {
+                                            description: "This action requires secondary approval from Lead DevOps."
+                                        });
+                                    }}
+                                    className="w-full h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase tracking-widest text-[10px] flex items-center justify-between px-6 shadow-xl shadow-red-600/20 translate-y-4 transition-all hover:scale-[1.02]"
+                                >
+                                   MAINTENANCE MODE <Power size={18} />
                                </Button>
                            </div>
                         </Card>
@@ -303,10 +323,5 @@ const SystemMaintenance = () => {
         </div>
     );
 };
-
-// Internal utility since Lucide doesnt have "PowerOff" exactly in this version sometimes
-const PowerOff = ({ size, className }: { size?: number, className?: string }) => (
-    <Activity size={size} className={className} />
-);
 
 export default SystemMaintenance;
