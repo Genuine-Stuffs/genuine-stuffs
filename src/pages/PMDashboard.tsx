@@ -72,6 +72,7 @@ const PMDashboard = () => {
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [selectedItem, setSelectedItem] = useState<any>(null);
     const [detailType, setDetailType] = useState<'vendor' | 'professional' | 'material' | 'report' | null>(null);
+    const [searchQuery, setSearchQuery] = useState("");
 
     // Tax System State
     const [isTaxSystemOpen, setIsTaxSystemOpen] = useState(false);
@@ -123,6 +124,25 @@ const PMDashboard = () => {
             toast.error("Process failed.");
         }
     };
+
+    // Filtered data based on search query
+    const filteredVendors = (pendingVendors || []).filter(v => 
+        v.company_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        v.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        v.cac_number?.includes(searchQuery)
+    );
+
+    const filteredPros = (pendingPros || []).filter(p => 
+        p.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        p.specialty?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.city?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const filteredMaterials = (pendingMaterials || []).filter(m => 
+        m.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        m.vendor_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        m.category?.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
     const handleViewDetail = (item: any, type: typeof detailType) => {
         setSelectedItem(item);
@@ -217,6 +237,8 @@ const PMDashboard = () => {
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-red-500 transition-colors" size={16} />
                             <Input 
                                 placeholder="Global Search..." 
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
                                 className="w-64 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 rounded-xl pl-10 h-10 text-sm focus:ring-red-600/50 dark:text-white"
                             />
                         </div>
@@ -295,7 +317,7 @@ const PMDashboard = () => {
                                     </div>
                                     <div className="p-4">
                                         <ManagementTable 
-                                            data={pendingVendors?.slice(0, 5) || []} 
+                                            data={filteredVendors.slice(0, 5)} 
                                             isLoading={vendorsLoading} 
                                             type="vendor"
                                             onApprove={(id) => handleApproval(id, 'vendor')}
@@ -367,7 +389,7 @@ const PMDashboard = () => {
                                 <p className="text-sm text-slate-400 dark:text-slate-500 font-medium italic">Review and approve vendor business credentials.</p>
                             </div>
                             <ManagementTable 
-                                data={pendingVendors || []} 
+                                data={filteredVendors} 
                                 isLoading={vendorsLoading} 
                                 type="vendor"
                                 onApprove={(id) => handleApproval(id, 'vendor')}
@@ -384,7 +406,7 @@ const PMDashboard = () => {
                                 <p className="text-sm text-slate-400 dark:text-slate-500 font-medium italic">Verify professional licenses and specialties.</p>
                             </div>
                             <ManagementTable 
-                                data={pendingPros || []} 
+                                data={filteredPros} 
                                 isLoading={prosLoading} 
                                 type="professional"
                                 onApprove={(id) => handleApproval(id, 'professional')}
@@ -401,7 +423,7 @@ const PMDashboard = () => {
                                 <p className="text-sm text-slate-400 dark:text-slate-500 font-medium italic">Review new marketplace listings for accuracy and quality.</p>
                             </div>
                             <ContentModerationTable 
-                                data={pendingMaterials || []} 
+                                data={filteredMaterials} 
                                 isLoading={materialsLoading} 
                                 onApprove={async (id) => {
                                     const { error } = await supabase.from('materials').update({ is_verified: true }).eq('id', id);
