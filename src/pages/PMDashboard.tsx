@@ -59,7 +59,7 @@ import { useTheme } from "@/components/ThemeProvider";
 
 const PMDashboard = () => {
     const navigate = useNavigate();
-    const { user, role, logout } = useAuth();
+    const { user, role, logout, isLoading: authLoading } = useAuth();
     const { theme, setTheme } = useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("overview");
@@ -99,6 +99,14 @@ const PMDashboard = () => {
     const { data: pendingPros, isLoading: prosLoading, refetch: refetchPros } = usePendingVerifications('professional');
     const { data: pendingMaterials, isLoading: materialsLoading, refetch: refetchMaterials } = usePendingMaterials();
     const { data: incidentReports, isLoading: reportsLoading, refetch: refetchReports } = useListingReports();
+
+    if (authLoading) {
+        return (
+            <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] flex items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+            </div>
+        );
+    }
 
     if (role !== 'pm' && role !== 'admin') {
         return <Navigate to="/" replace />;
