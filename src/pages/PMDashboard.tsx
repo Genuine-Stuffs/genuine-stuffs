@@ -68,6 +68,11 @@ const PMDashboard = () => {
     const [broadcastSubject, setBroadcastSubject] = useState("Marketplace Update");
     const [broadcastAudience, setBroadcastAudience] = useState<string[]>(['vendor', 'pro']);
 
+    // Detail View State
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [selectedItem, setSelectedItem] = useState<any>(null);
+    const [detailType, setDetailType] = useState<'vendor' | 'professional' | 'material' | 'report' | null>(null);
+
     // Tax System State
     const [isTaxSystemOpen, setIsTaxSystemOpen] = useState(false);
     const [taxRate, setTaxRate] = useState("7.5");
@@ -117,6 +122,12 @@ const PMDashboard = () => {
             console.error("Rejection failed:", err);
             toast.error("Process failed.");
         }
+    };
+
+    const handleViewDetail = (item: any, type: typeof detailType) => {
+        setSelectedItem(item);
+        setDetailType(type);
+        setIsDetailOpen(true);
     };
 
     const statCards = [
@@ -289,7 +300,7 @@ const PMDashboard = () => {
                                             type="vendor"
                                             onApprove={(id) => handleApproval(id, 'vendor')}
                                             onReject={(id) => handleRejection(id, 'vendor')}
-                                            onView={(item) => console.log("View", item)}
+                                            onView={(item) => handleViewDetail(item, 'vendor')}
                                         />
                                     </div>
                                 </Card>
@@ -361,7 +372,7 @@ const PMDashboard = () => {
                                 type="vendor"
                                 onApprove={(id) => handleApproval(id, 'vendor')}
                                 onReject={(id) => handleRejection(id, 'vendor')}
-                                onView={(item) => console.log("View", item)}
+                                onView={(item) => handleViewDetail(item, 'vendor')}
                             />
                         </div>
                     )}
@@ -378,7 +389,7 @@ const PMDashboard = () => {
                                 type="professional"
                                 onApprove={(id) => handleApproval(id, 'professional')}
                                 onReject={(id) => handleRejection(id, 'professional')}
-                                onView={(item) => console.log("View", item)}
+                                onView={(item) => handleViewDetail(item, 'professional')}
                             />
                         </div>
                     )}
@@ -402,7 +413,7 @@ const PMDashboard = () => {
                                     if (error) toast.error("Failed to delete listing.");
                                     else { toast.info("Listing rejected and removed."); refetchMaterials(); refetchStats(); }
                                 }}
-                                onView={(item) => console.log("View material", item)}
+                                onView={(item) => handleViewDetail(item, 'material')}
                             />
                         </div>
                     )}
@@ -429,7 +440,7 @@ const PMDashboard = () => {
                                     if (error) toast.error("Failed to dismiss report.");
                                     else { toast.info("Report dismissed."); refetchReports(); }
                                 }}
-                                onView={(item) => console.log("View report context", item)}
+                                onView={(item) => handleViewDetail(item, 'report')}
                             />
                         </div>
                     )}
@@ -787,6 +798,144 @@ const PMDashboard = () => {
                                         </div>
                                     </div>
                                 </div>
+                            )}
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Entity Detail Investigation Dialog */}
+            <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+                <DialogContent className="bg-white dark:bg-[#1E293B] border-none rounded-[2.5rem] p-0 max-w-2xl overflow-hidden">
+                    <div className="relative h-32 bg-gradient-to-r from-red-600 to-red-400">
+                        <div className="absolute -bottom-12 left-8 w-24 h-24 rounded-3xl bg-white dark:bg-[#0F172A] border-4 border-white dark:border-[#0F172A] flex items-center justify-center text-3xl font-black text-red-600 shadow-xl">
+                            {detailType === 'vendor' && (selectedItem?.company_name?.[0] || 'V')}
+                            {detailType === 'professional' && (selectedItem?.full_name?.[0] || 'P')}
+                            {detailType === 'material' && selectedItem?.image_url ? (
+                                <img src={selectedItem.image_url} alt="" className="w-full h-full object-cover rounded-2xl" />
+                            ) : (detailType === 'material' ? 'M' : '')}
+                            {detailType === 'report' && <AlertTriangle size={40} />}
+                        </div>
+                    </div>
+
+                    <div className="pt-16 px-8 pb-8 space-y-8">
+                        <div>
+                            <div className="flex items-center gap-3 mb-1">
+                                <h2 className="text-2xl font-black tracking-tighter text-slate-900 dark:text-white uppercase">
+                                    {detailType === 'vendor' && selectedItem?.company_name}
+                                    {detailType === 'professional' && selectedItem?.full_name}
+                                    {detailType === 'material' && selectedItem?.name}
+                                    {detailType === 'report' && `Report: ${selectedItem?.materials?.name}`}
+                                </h2>
+                                <Badge className="bg-red-600/10 text-red-600 border-none text-[10px] font-black uppercase">
+                                    {detailType}
+                                </Badge>
+                            </div>
+                            <p className="text-sm font-medium text-slate-500 italic">
+                                {detailType === 'vendor' && `Registration ID: ${selectedItem?.id?.slice(0, 8)}`}
+                                {detailType === 'professional' && selectedItem?.specialty}
+                                {detailType === 'material' && selectedItem?.category}
+                                {detailType === 'report' && `Reason: ${selectedItem?.reason}`}
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6">
+                            {/* Dynamic Details based on Type */}
+                            {detailType === 'vendor' && (
+                                <>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">CAC Number</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedItem?.cac_number || 'N/A'}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedItem?.phone || 'N/A'}</p>
+                                    </div>
+                                    <div className="space-y-1 col-span-2">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Business Address</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedItem?.street_address}, {selectedItem?.city}, {selectedItem?.state}</p>
+                                    </div>
+                                </>
+                            )}
+
+                            {detailType === 'professional' && (
+                                <>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">License Number</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedItem?.license_number || 'STILL_PEND_VERIF'}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedItem?.phone || 'N/A'}</p>
+                                    </div>
+                                    <div className="space-y-1 col-span-2">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Location</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedItem?.city}, {selectedItem?.state}, {selectedItem?.country}</p>
+                                    </div>
+                                </>
+                            )}
+
+                            {detailType === 'material' && (
+                                <>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Vendor</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedItem?.vendor_name}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Price</p>
+                                        <p className="text-sm font-bold text-red-600">₦{Number(selectedItem?.price).toLocaleString()} / {selectedItem?.unit}</p>
+                                    </div>
+                                    <div className="space-y-1 col-span-2">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Description</p>
+                                        <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">{selectedItem?.description || 'No description provided.'}</p>
+                                    </div>
+                                </>
+                            )}
+
+                            {detailType === 'report' && (
+                                <>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Vendor Name</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedItem?.materials?.vendor_name}</p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Report Date</p>
+                                        <p className="text-sm font-bold text-slate-900 dark:text-white">{new Date(selectedItem?.created_at).toLocaleDateString()}</p>
+                                    </div>
+                                    <div className="space-y-1 col-span-2">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Full Report Context</p>
+                                        <div className="p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/20">
+                                            <p className="text-xs font-bold text-red-700 dark:text-red-400 italic">"{selectedItem?.reason}"</p>
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        <div className="pt-6 border-t border-slate-100 dark:border-white/5 flex gap-3">
+                            <Button 
+                                variant="ghost" 
+                                className="flex-1 h-14 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-100 dark:hover:bg-white/5"
+                                onClick={() => setIsDetailOpen(false)}
+                            >
+                                Close Investigation
+                            </Button>
+                            {(detailType === 'vendor' || detailType === 'professional' || detailType === 'material') && (
+                                <Button 
+                                    className="flex-1 h-14 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black uppercase text-xs tracking-widest shadow-lg shadow-red-600/20 gap-2"
+                                    onClick={() => {
+                                        if (detailType === 'vendor') handleApproval(selectedItem.id, 'vendor');
+                                        if (detailType === 'professional') handleApproval(selectedItem.id, 'professional');
+                                        if (detailType === 'material') {
+                                            toast.success("Material listing verified and published!");
+                                            refetchMaterials();
+                                            refetchStats();
+                                        }
+                                        setIsDetailOpen(false);
+                                    }}
+                                >
+                                    Approve Entity <CheckCircle2 size={18} />
+                                </Button>
                             )}
                         </div>
                     </div>
