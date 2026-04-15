@@ -737,7 +737,7 @@ const PMDashboard = () => {
 
             {/* Tax Evaluation & Control Center Modal */}
             <Dialog open={isTaxSystemOpen} onOpenChange={setIsTaxSystemOpen}>
-                <DialogContent className="bg-slate-50 dark:bg-[#1E293B] border-slate-200 dark:border-white/10 rounded-[2.5rem] p-0 max-w-5xl overflow-hidden shadow-2xl">
+                <DialogContent className="bg-slate-50/90 dark:bg-[#0F1115]/95 border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/30 rounded-[3rem] p-0 max-w-5xl overflow-hidden shadow-2xl dark:shadow-[-30px_0_70px_-30px_rgba(239,68,68,0.4),30px_0_70px_-30px_rgba(59,130,246,0.4)] backdrop-blur-3xl">
                     <div className="flex h-[80vh]">
                         {/* Tax Center Sidebar */}
                         <div className="w-64 bg-white dark:bg-[#0F172A]/50 border-r border-slate-200 dark:border-white/5 p-6 flex flex-col">
