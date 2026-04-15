@@ -778,14 +778,14 @@ const PMDashboard = () => {
                                     </div>
                                     
                                     <div className="grid grid-cols-2 gap-4">
-                                        <Card className="bg-white dark:bg-white/5 border-none p-6 rounded-3xl shadow-sm">
+                                        <Card className="bg-white/70 dark:bg-[#0F1115]/80 border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50 p-6 rounded-3xl shadow-xl dark:shadow-[-10px_0_30px_-15px_rgba(239,68,68,0.4),10px_0_30px_-15px_rgba(59,130,246,0.4)] backdrop-blur-xl">
                                             <div className="flex items-center gap-3 mb-4 text-emerald-500">
                                                 <DollarSign size={20} />
                                                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">Gross Platform Volume (YTD)</h4>
                                             </div>
                                             <p className="text-4xl font-black tracking-tighter text-slate-900 dark:text-white">₦{platformVolume.toLocaleString()}</p>
                                         </Card>
-                                        <Card className="bg-white dark:bg-white/5 border-none p-6 rounded-3xl shadow-sm">
+                                        <Card className="bg-white/70 dark:bg-[#0F1115]/80 border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50 p-6 rounded-3xl shadow-xl dark:shadow-[-10px_0_30px_-15px_rgba(239,68,68,0.4),10px_0_30px_-15px_rgba(59,130,246,0.4)] backdrop-blur-xl">
                                             <div className="flex items-center gap-3 mb-4 text-purple-500">
                                                 <Calculator size={20} />
                                                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-500">Estimated Tax Liability</h4>
@@ -820,7 +820,7 @@ const PMDashboard = () => {
                                         <p className="text-sm font-medium italic text-slate-500">Set platform-wide tax variables. Changes affect future transactions.</p>
                                     </div>
 
-                                    <Card className="bg-white dark:bg-white/5 border-none p-8 rounded-3xl shadow-sm space-y-6">
+                                    <Card className="bg-white/70 dark:bg-[#0F1115]/80 border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50 p-8 rounded-[2.5rem] shadow-2xl dark:shadow-[-15px_0_40px_-20px_rgba(239,68,68,0.4),15px_0_40px_-20px_rgba(59,130,246,0.4)] backdrop-blur-xl space-y-6">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase text-slate-500 tracking-widest px-2">Base Tax Rate (%)</label>
                                     <div className="flex flex-col sm:flex-row gap-4">
@@ -949,7 +949,7 @@ const PMDashboard = () => {
 
             {/* Entity Detail Investigation Dialog */}
             <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-                <DialogContent className="bg-white dark:bg-[#1E293B] border-none rounded-[2.5rem] p-0 max-w-2xl overflow-hidden max-h-[95vh] flex flex-col">
+                <DialogContent className="bg-white/95 dark:bg-[#0F1115]/98 border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50 rounded-[3rem] p-0 max-w-2xl overflow-hidden shadow-2xl dark:shadow-[-25px_0_60px_-25px_rgba(239,68,68,0.4),25px_0_60px_-25px_rgba(59,130,246,0.4)] backdrop-blur-3xl max-h-[95vh] flex flex-col">
                     <div className="relative h-24 sm:h-32 bg-gradient-to-r from-red-600 to-red-400 shrink-0">
                         <div className="absolute -bottom-10 sm:-bottom-12 left-8 w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-white dark:bg-[#0F172A] border-4 border-white dark:border-[#0F172A] flex items-center justify-center text-2xl sm:text-3xl font-black text-red-600 shadow-xl">
                             {detailType === 'vendor' && (selectedItem?.company_name?.[0] || 'V')}
