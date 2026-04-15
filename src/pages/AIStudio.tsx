@@ -61,6 +61,7 @@ import { ModeToggle } from "@/components/ModeToggle";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import AECFloorPlan from '@/components/aec/AECFloorPlan';
+import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 
 const AIStudio = () => {
     const { user, role, updateRole } = useAuth();
@@ -321,15 +322,22 @@ const AIStudio = () => {
 
             autoTable(doc, {
                 startY: currentY,
-                head: [['Category', 'Quantity Estimate', 'Technical Specification']],
-                body: designPackage.material_schedule.map((mat: any) => [
-                    mat.category || "General",
-                    `${mat.quantity_estimate || '0'} ${mat.unit || 'units'}`,
-                    mat.specification || "No spec provided"
-                ]),
+                head: [['Category', 'Quantity', 'Specification', 'Unit Price (NGN)', 'Line Total (NGN)']],
+                body: [
+                    ...designPackage.material_schedule.map((mat: any) => [
+                        mat.category || "General",
+                        `${mat.quantity_estimate || '0'} ${mat.unit || 'units'}`,
+                        mat.specification || "No spec provided",
+                        mat.unit_price ? mat.unit_price.toLocaleString() : '-',
+                        (mat.total_price || (mat.quantity_estimate * (mat.unit_price || 0))).toLocaleString()
+                    ]),
+                    // Add Summary Row
+                    [{ content: 'PROJECTED MATERIAL SUB-TOTAL', colSpan: 4, styles: { halign: 'right', fontStyle: 'bold', fillColor: [240, 240, 240] } }, 
+                     { content: designPackage.material_schedule.reduce((sum: number, mat: any) => sum + (mat.total_price || (mat.quantity_estimate * (mat.unit_price || 0))), 0).toLocaleString(), styles: { fontStyle: 'bold', fillColor: [240, 240, 240] } }]
+                ],
                 theme: 'grid',
-                headStyles: { fillColor: [225, 29, 72], textColor: [255, 255, 255], fontSize: 9, fontStyle: 'bold' },
-                bodyStyles: { fontSize: 8, textColor: [50, 50, 50] },
+                headStyles: { fillColor: [51, 65, 85], textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
+                bodyStyles: { fontSize: 7, textColor: [50, 50, 50] },
                 alternateRowStyles: { fillColor: [250, 250, 250] },
                 margin: { left: 14, right: 14 }
             });
@@ -993,26 +1001,10 @@ const AIStudio = () => {
                                                                         </div>
                                                                     </Card>
 
-                                                                    {/* Material Schedule */}
-                                                                    <Card className="bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
-                                                                        <div className="p-4 border-b dark:border-white/5 bg-white/50 dark:bg-black/20 flex items-center justify-between">
-                                                                            <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
-                                                                                <ShoppingBag className="w-3.5 h-3.5" /> Material Schedule
-                                                                            </h3>
-                                                                            <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest border-emerald-500/30 text-emerald-600 dark:text-emerald-400">Ready to Quote</Badge>
-                                                                        </div>
-                                                                        <div className="p-4 space-y-3">
-                                                                            {designPackage.material_schedule?.map((mat: any, idx: number) => (
-                                                                                <div key={idx} className="group flex flex-col p-3 rounded-lg bg-white dark:bg-black/40 border border-slate-100 dark:border-white/5 hover:border-primary/30 transition-all cursor-pointer">
-                                                                                    <div className="flex items-center justify-between mb-1">
-                                                                                        <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{mat.category}</span>
-                                                                                        <span className="text-[10px] font-black text-slate-900 dark:text-white">{mat.quantity_estimate} {mat.unit}</span>
-                                                                                    </div>
-                                                                                    <p className="text-[10px] font-bold text-slate-700 dark:text-slate-300 line-clamp-2 md:line-clamp-none">{mat.specification}</p>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    </Card>
+                                                                    {/* grand-totaled financial BOQ will be rendered below this grid */}
+                                                                 </div>
+
+                                                                 <AECBillOfQuantities materials={designPackage.material_schedule || []} />
 
                                                                     {/* Compliance & Structure Banner */}
                                                                     <div className="md:col-span-2 p-4 rounded-2xl bg-slate-900 dark:bg-primary/10 border border-slate-800 dark:border-primary/20 flex flex-col md:flex-row items-center justify-between gap-4">
