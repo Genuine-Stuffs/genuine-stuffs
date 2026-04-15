@@ -583,7 +583,7 @@ const PMDashboard = () => {
 
                     {activeTab === 'team' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-2xl mx-auto py-12">
-                            <Card className="bg-white dark:bg-[#1E293B]/50 border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 md:p-12 shadow-xl dark:shadow-2xl">
+                            <Card className="bg-white/70 dark:bg-[#0F1115]/80 border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/30 rounded-[2.5rem] p-8 md:p-12 shadow-2xl dark:shadow-[-25px_0_50px_-20px_rgba(239,68,68,0.5),25px_0_50px_-20px_rgba(59,130,246,0.5)] backdrop-blur-3xl">
                                 <div className="text-center mb-10">
                                     <div className="w-20 h-20 bg-red-600/10 rounded-3xl flex items-center justify-center mx-auto mb-6">
                                         <Users className="text-red-500 w-10 h-10" />
