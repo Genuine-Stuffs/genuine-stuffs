@@ -395,7 +395,7 @@ const PMDashboard = () => {
                             {/* Stats Grid */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                                 {statCards.map((card, idx) => (
-                            <Card key={idx} className="bg-white dark:bg-[#1E293B]/50 border-slate-200 dark:border-white/5 p-6 rounded-[2rem] hover:border-red-600/30 transition-all hover:scale-[1.02] hover:-translate-y-1 active:scale-95 group overflow-hidden relative shadow-sm hover:shadow-xl dark:shadow-none cursor-default">
+                                <Card key={idx} className="bg-white/70 dark:bg-[#0F1115]/80 border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50 p-6 rounded-[2.5rem] hover:border-red-600/30 transition-all hover:scale-[1.02] hover:-translate-y-1 active:scale-95 group overflow-hidden relative shadow-xl dark:shadow-[-10px_0_20px_-15px_rgba(239,68,68,0.5),10px_0_20px_-15px_rgba(59,130,246,0.5)] backdrop-blur-xl cursor-default">
                                         <div className="absolute top-0 right-0 w-24 h-24 bg-red-600/5 rounded-full -mr-12 -mt-12 blur-2xl group-hover:bg-red-600/10 transition-colors" />
                                         <div className="flex items-center justify-between mb-4">
                                             <div className={`p-3 rounded-2xl bg-slate-50 dark:bg-white/5 text-red-500`}>
