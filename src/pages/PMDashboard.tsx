@@ -249,7 +249,7 @@ const PMDashboard = () => {
             )}
 
             {/* Sidebar */}
-            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#1E293B]/80 backdrop-blur-xl border-r border-slate-200 dark:border-white/5 transform transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-white dark:bg-[#0F1115]/80 backdrop-blur-2xl border-r border-slate-200 dark:border-r-blue-500/50 dark:border-y-slate-800/50 transform transition-transform duration-300 ease-in-out lg:translate-x-0 dark:shadow-[15px_0_30px_-15px_rgba(59,130,246,0.3)] ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <div className="flex flex-col h-full">
                     <div className="p-8">
                         <Link to="/" className="flex items-center gap-3 mb-10 hover:opacity-80 transition-opacity">
