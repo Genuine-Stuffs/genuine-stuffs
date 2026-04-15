@@ -456,10 +456,10 @@ const Register = () => {
 
     if (submitted) {
         return (
-            <div className="min-h-screen bg-background">
+            <div className="min-h-screen bg-sky-100">
                 <Navbar />
                 <main className="container mx-auto px-4 py-20 flex justify-center">
-                    <Card className="max-w-xl w-full border-none shadow-2xl p-12 text-center rounded-[3rem] animate-in zoom-in-95 duration-500">
+                    <Card className="max-w-xl w-full border-none shadow-2xl bg-white p-12 text-center rounded-[3rem] animate-in zoom-in-95 duration-500">
                         <div className={`w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 ${role === 'professional' ? 'bg-primary/10' : 'bg-green-100'}`}>
                             {role === 'professional' ? <Sparkles className="w-12 h-12 text-primary" /> : <Check className="w-12 h-12 text-green-600" />}
                         </div>
@@ -486,7 +486,7 @@ const Register = () => {
     }
 
     return (
-        <div className="min-h-screen bg-background transition-colors duration-300 flex flex-col">
+        <div className="min-h-screen bg-sky-100 transition-colors duration-300 flex flex-col">
             <div className="w-full px-6 pt-4 md:pt-10 flex flex-col md:flex-row items-center md:items-center relative">
                 <div className="md:absolute md:left-10 mb-4 md:mb-0">
                     <Link to="/" className="group transition-transform hover:scale-105">
@@ -494,10 +494,10 @@ const Register = () => {
                     </Link>
                 </div>
                 <div className="mx-auto text-center">
-                    <h1 className="text-3xl md:text-4xl font-black mb-1 md:mb-2 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
+                    <h1 className="text-3xl md:text-4xl font-black mb-1 md:mb-2 text-slate-900 uppercase tracking-tighter leading-none">
                         Join the <span className="text-primary italic">Ecosystem</span>
                     </h1>
-                    <p className="text-xs md:text-sm text-muted-foreground dark:text-slate-400 font-medium italic hidden sm:block">
+                    <p className="text-xs md:text-sm text-muted-foreground font-medium italic hidden sm:block">
                         Select your account type to proceed.
                     </p>
                 </div>
@@ -506,32 +506,32 @@ const Register = () => {
             <main className="flex-1 container mx-auto px-4 pt-2 md:pt-4 pb-8 flex flex-col items-center justify-center">
                 <div className="w-full max-w-2xl">
                     {/* Role Toggle */}
-                    <div className="flex p-1.5 bg-sky-100/30 dark:bg-white/5 rounded-2xl mb-6 md:mb-8 max-w-md mx-auto border dark:border-white/10">
+                    <div className="flex p-1.5 bg-white rounded-2xl mb-6 md:mb-8 max-w-md mx-auto border">
                         <button
                             onClick={() => { setRole('professional'); setStep(1); }}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${role === 'professional' ? 'bg-white dark:bg-white/10 shadow-sm text-primary' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${role === 'professional' ? 'bg-slate-100 shadow-sm text-primary' : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             <User className="w-3.5 h-3.5" /> Professional
                         </button>
                         <button
                             onClick={() => { setRole('vendor'); setStep(1); }}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${role === 'vendor' ? 'bg-white dark:bg-white/10 shadow-sm text-primary' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${role === 'vendor' ? 'bg-slate-100 shadow-sm text-primary' : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             <Building2 className="w-3.5 h-3.5" /> Vendor / Supplier
                         </button>
                     </div>
 
-                    <Card className="border-none shadow-none md:shadow-2xl bg-card dark:bg-white/5 backdrop-blur-xl md:rounded-[2.5rem] overflow-hidden transition-all duration-500">
+                    <Card className="border-none shadow-none md:shadow-2xl bg-white backdrop-blur-xl md:rounded-[2.5rem] overflow-hidden transition-all duration-500">
                         {/* Progress Header for Vendors */}
                         {role === 'vendor' && (
-                            <div className="bg-sky-100/50 dark:bg-sky-900/10 flex justify-between items-center p-4 md:p-6 border-b dark:border-white/10">
+                            <div className="bg-white flex justify-between items-center p-4 md:p-6 border-b">
                                 {vendorSteps.map((s, idx) => (
                                     <div key={s.id} className={`flex items-center ${idx < vendorSteps.length - 1 ? "flex-1" : ""}`}>
-                                        <div className={`flex items-center justify-center w-8 h-8 rounded-xl font-black text-[10px] shrink-0 transition-all ${step === s.id ? "bg-primary text-white scale-110" : step > s.id ? "bg-green-500 text-white" : "bg-slate-200 dark:bg-white/10 text-slate-400"}`}>
+                                        <div className={`flex items-center justify-center w-8 h-8 rounded-xl font-black text-[10px] shrink-0 transition-all ${step === s.id ? "bg-primary text-white scale-110" : step > s.id ? "bg-green-500 text-white" : "bg-slate-100 text-slate-400"}`}>
                                             {step > s.id ? <Check className="w-4 h-4" /> : s.id}
                                         </div>
                                         {idx < vendorSteps.length - 1 && (
-                                            <div className={`flex-1 h-0.5 mx-2 transition-all duration-500 ${step > s.id ? "bg-green-500" : "bg-slate-200 dark:bg-white/10"}`} />
+                                            <div className={`flex-1 h-0.5 mx-2 transition-all duration-500 ${step > s.id ? "bg-green-500" : "bg-slate-100"}`} />
                                         )}
                                     </div>
                                 ))}
@@ -541,7 +541,7 @@ const Register = () => {
                         <CardContent className="p-4 md:p-8">
                             {/* Common Header */}
                             <div className="mb-6 md:mb-8 text-center">
-                                <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-slate-900 dark:text-white flex items-center justify-center gap-3">
+                                <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-slate-900 flex items-center justify-center gap-3">
                                     {role === 'professional' ? <><Sparkles className="w-5 h-5 text-primary" /> Pro Registration</> : vendorSteps[step - 1].title}
                                 </h2>
                                 <p className="text-[10px] md:text-xs text-slate-500 italic mt-1 font-medium tracking-widest uppercase">
@@ -556,20 +556,20 @@ const Register = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-first-name" className="text-[10px] font-black uppercase tracking-widest text-slate-400">First Name *</Label>
-                                                <Input id="pro-first-name" placeholder="John" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={`h-12 rounded-xl ${errors.firstName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Input id="pro-first-name" placeholder="John" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.firstName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-last-name" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Surname *</Label>
-                                                <Input id="pro-last-name" placeholder="Doe" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Input id="pro-last-name" placeholder="Doe" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-type" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Discipline *</Label>
-                                                <Input id="pro-type" placeholder="e.g. Architecture" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} className={`h-12 rounded-xl ${errors.proType ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Input id="pro-type" placeholder="e.g. Architecture" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.proType ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-nationality" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nationality *</Label>
                                                 <Select value={formData.nationality} onValueChange={(val) => handleInputChange('nationality', val)}>
-                                                    <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                    <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                         <SelectValue placeholder="Select Nationality" />
                                                     </SelectTrigger>
                                                     <SelectContent className="max-h-[300px]">
@@ -580,7 +580,7 @@ const Register = () => {
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-country" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Country of Residence *</Label>
                                                 <Select value={formData.country} onValueChange={(val) => { handleInputChange('country', val); handleInputChange('state', ''); handleInputChange('city', ''); }}>
-                                                    <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                    <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                         <SelectValue placeholder="Select Country" />
                                                     </SelectTrigger>
                                                     <SelectContent className="max-h-[300px]">
@@ -595,7 +595,7 @@ const Register = () => {
                                                     onValueChange={(val) => { handleInputChange('state', val); handleInputChange('city', ''); }}
                                                     disabled={!formData.country || isLoadingGeo.states}
                                                 >
-                                                    <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                    <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                         <SelectValue placeholder={isLoadingGeo.states ? "Loading..." : "Select State"} />
                                                     </SelectTrigger>
                                                     <SelectContent className="max-h-[300px]">
@@ -610,7 +610,7 @@ const Register = () => {
                                                     onValueChange={(val) => handleInputChange('city', val)}
                                                     disabled={!formData.state || isLoadingGeo.cities}
                                                 >
-                                                    <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                    <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                         <SelectValue placeholder={isLoadingGeo.cities ? "Loading..." : "Select City"} />
                                                     </SelectTrigger>
                                                     <SelectContent className="max-h-[300px]">
@@ -620,17 +620,17 @@ const Register = () => {
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-address" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Street Address *</Label>
-                                                <Input id="pro-address" placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={`h-12 rounded-xl ${errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Input id="pro-address" placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                         </div>
                                         <div className="space-y-1.5">
                                             <Label htmlFor="pro-email" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Address *</Label>
-                                            <Input id="pro-email" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={`h-12 rounded-xl ${errors.email ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                            <Input id="pro-email" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.email ? "border-red-500 ring-offset-red-500" : ""}`} />
                                         </div>
                                         <div className="space-y-1.5">
                                             <Label htmlFor="pro-password" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Password *</Label>
                                             <div className="relative">
-                                                <Input id="pro-password" type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} className={`h-12 rounded-xl pr-12 ${errors.password ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Input id="pro-password" type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} className={`h-12 rounded-xl bg-white pr-12 ${errors.password ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                                                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                                 </button>
@@ -639,7 +639,7 @@ const Register = () => {
 
                                         <Button
                                             onClick={(e) => handleProSubmit(e)}
-                                            className="w-full h-12 mt-4 rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-xl transition-all font-black uppercase tracking-[0.2em] text-[11px] gap-2"
+                                            className="w-full h-12 mt-4 rounded-xl bg-slate-900 text-white hover:bg-slate-800 shadow-xl transition-all font-black uppercase tracking-[0.2em] text-[11px] gap-2"
                                             disabled={isLoading}
                                         >
                                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (
@@ -657,16 +657,16 @@ const Register = () => {
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">First Name *</Label>
-                                                        <Input value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={`h-12 rounded-xl ${errors.firstName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Input value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.firstName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Last Name *</Label>
-                                                        <Input value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Input value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email *</Label>
-                                                    <Input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={`h-12 rounded-xl ${errors.email ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                    <Input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.email ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <div className="flex justify-between items-center">
@@ -677,7 +677,7 @@ const Register = () => {
                                                             type={showPassword ? "text" : "password"} 
                                                             value={formData.password} 
                                                             onChange={(e) => handleInputChange('password', e.target.value)} 
-                                                            className={`h-12 rounded-xl pr-12 ${errors.password ? "border-red-500 ring-offset-red-500" : ""}`}
+                                                            className={`h-12 rounded-xl bg-white pr-12 ${errors.password ? "border-red-500 ring-offset-red-500" : ""}`}
                                                         />
                                                         <button 
                                                             type="button"
@@ -692,7 +692,7 @@ const Register = () => {
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nationality *</Label>
                                                         <Select value={formData.nationality} onValueChange={(val) => handleInputChange('nationality', val)}>
-                                                            <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                                 <SelectValue placeholder="Select Nationality" />
                                                             </SelectTrigger>
                                                             <SelectContent className="max-h-[300px]">
@@ -703,7 +703,7 @@ const Register = () => {
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Country of Residence *</Label>
                                                         <Select value={formData.country} onValueChange={(val) => { handleInputChange('country', val); handleInputChange('state', ''); handleInputChange('city', ''); }}>
-                                                            <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                                 <SelectValue placeholder="Select Country" />
                                                             </SelectTrigger>
                                                             <SelectContent className="max-h-[300px]">
@@ -720,7 +720,7 @@ const Register = () => {
                                                             onValueChange={(val) => { handleInputChange('state', val); handleInputChange('city', ''); }}
                                                             disabled={!formData.country || isLoadingGeo.states}
                                                         >
-                                                            <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                                 <SelectValue placeholder={isLoadingGeo.states ? "Loading..." : "Select State"} />
                                                             </SelectTrigger>
                                                             <SelectContent className="max-h-[300px]">
@@ -735,7 +735,7 @@ const Register = () => {
                                                             onValueChange={(val) => handleInputChange('city', val)}
                                                             disabled={!formData.state || isLoadingGeo.cities}
                                                         >
-                                                            <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                                 <SelectValue placeholder={isLoadingGeo.cities ? "Loading..." : "Select City"} />
                                                             </SelectTrigger>
                                                             <SelectContent className="max-h-[300px]">
@@ -746,7 +746,7 @@ const Register = () => {
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Street Address *</Label>
-                                                    <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={`h-12 rounded-xl ${errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                    <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 </div>
                                             </div>
                                         )}
@@ -754,16 +754,16 @@ const Register = () => {
                                             <div className="space-y-1.5 md:space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
                                                 <div className="space-y-1.5">
                                                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Company Name *</Label>
-                                                    <Input value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} className={`h-12 rounded-xl ${errors.companyName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                    <Input value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.companyName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">CAC / Reg Number *</Label>
-                                                        <Input value={formData.bizRegNumber} onChange={(e) => handleInputChange('bizRegNumber', e.target.value)} className={`h-12 rounded-xl ${errors.bizRegNumber ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Input value={formData.bizRegNumber} onChange={(e) => handleInputChange('bizRegNumber', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.bizRegNumber ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Phone *</Label>
-                                                        <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className={`h-12 rounded-xl ${errors.phone ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.phone ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
@@ -774,7 +774,7 @@ const Register = () => {
                                                             onValueChange={(val) => { handleInputChange('bizState', val); handleInputChange('bizCity', ''); }}
                                                             disabled={!formData.country || isLoadingGeo.bizStates}
                                                         >
-                                                            <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.bizState ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.bizState ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                                 <SelectValue placeholder={isLoadingGeo.bizStates ? "Loading..." : "Select State"} />
                                                             </SelectTrigger>
                                                             <SelectContent className="max-h-[300px]">
@@ -789,7 +789,7 @@ const Register = () => {
                                                             onValueChange={(val) => handleInputChange('bizCity', val)}
                                                             disabled={!formData.bizState || isLoadingGeo.bizCities}
                                                         >
-                                                            <SelectTrigger className={`h-12 rounded-xl text-xs font-semibold ${errors.bizCity ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.bizCity ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                                 <SelectValue placeholder={isLoadingGeo.bizCities ? "Loading..." : "Select City"} />
                                                             </SelectTrigger>
                                                             <SelectContent className="max-h-[300px]">
@@ -800,7 +800,7 @@ const Register = () => {
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Street Address *</Label>
-                                                    <Input placeholder="123 Main St" value={formData.bizStreetAddress} onChange={(e) => handleInputChange('bizStreetAddress', e.target.value)} className={`h-12 rounded-xl ${errors.bizStreetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                    <Input placeholder="123 Main St" value={formData.bizStreetAddress} onChange={(e) => handleInputChange('bizStreetAddress', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.bizStreetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 </div>
                                             </div>
                                         )}
@@ -810,11 +810,11 @@ const Register = () => {
                                                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Select Business Categories *</Label>
                                                     <p className="text-[10px] md:text-xs text-slate-500 italic mt-1 font-medium tracking-widest uppercase">Choose all that apply to your inventory.</p>
                                                 </div>
-                                                <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 p-3 md:p-4 rounded-3xl ${errors.categories ? "border-2 border-dashed border-red-500 bg-red-50 dark:bg-red-900/10" : "bg-white dark:bg-white/5"}`}>
+                                                <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 p-3 md:p-4 rounded-3xl ${errors.categories ? "border-2 border-dashed border-red-500 bg-red-50" : "bg-white"}`}>
                                                     {["Cement", "Steel", "Electrical", "Plumbing", "Roofing", "Tiles", "Paints", "Tools"].map((cat) => (
-                                                        <div key={cat} onClick={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} className={`flex items-center space-x-2 md:space-x-3 p-3 md:p-4 border dark:border-white/10 rounded-2xl cursor-pointer transition-colors group ${formData.categories.includes(cat) ? "border-primary bg-primary/5" : "hover:bg-slate-50 dark:hover:bg-white/10"}`}>
+                                                        <div key={cat} onClick={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} className={`flex items-center space-x-2 md:space-x-3 p-3 md:p-4 border border-slate-100 rounded-2xl cursor-pointer transition-colors group ${formData.categories.includes(cat) ? "border-primary bg-primary/5" : "hover:bg-slate-50"}`}>
                                                             <Checkbox checked={formData.categories.includes(cat)} onCheckedChange={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} />
-                                                            <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-700 dark:text-slate-200 group-hover:text-slate-900 dark:group-hover:text-white">{cat}</span>
+                                                            <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-700 group-hover:text-slate-900">{cat}</span>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -829,7 +829,7 @@ const Register = () => {
                                                         </Label>
                                                         <div 
                                                             onClick={() => document.getElementById('biz-cert-upload')?.click()}
-                                                            className={`border-2 border-dashed rounded-3xl p-6 md:p-8 text-center cursor-pointer transition-all ${formData.bizCertificate ? 'border-green-500 bg-green-50/50 dark:bg-green-500/10' : errors.bizCertificate ? 'border-red-500 bg-red-50/50' : 'hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
+                                                            className={`border-2 border-dashed rounded-3xl p-6 md:p-8 text-center cursor-pointer transition-all ${formData.bizCertificate ? 'border-green-500 bg-green-50/50' : errors.bizCertificate ? 'border-red-500 bg-red-50/50' : 'hover:bg-slate-50 border-slate-200'}`}
                                                         >
                                                             <input 
                                                                 id="biz-cert-upload"
@@ -849,7 +849,7 @@ const Register = () => {
                                                         </Label>
                                                         <div 
                                                             onClick={() => document.getElementById('gov-id-upload')?.click()}
-                                                            className={`border-2 border-dashed rounded-3xl p-6 md:p-8 text-center cursor-pointer transition-all ${formData.govId ? 'border-green-500 bg-green-50/50 dark:bg-green-500/10' : errors.govId ? 'border-red-500 bg-red-50/50' : 'hover:bg-slate-50 dark:hover:bg-white/10 border-slate-200 dark:border-white/10'}`}
+                                                            className={`border-2 border-dashed rounded-3xl p-6 md:p-8 text-center cursor-pointer transition-all ${formData.govId ? 'border-green-500 bg-green-50/50' : errors.govId ? 'border-red-500 bg-red-50/50' : 'hover:bg-slate-50 border-slate-200'}`}
                                                         >
                                                             <input 
                                                                 id="gov-id-upload"
@@ -867,12 +867,12 @@ const Register = () => {
                                             </div>
                                         )}
 
-                                        <div className="flex gap-3 md:gap-4 mt-6 md:mt-8 pt-6 md:pt-8 border-t dark:border-white/10">
+                                        <div className="flex gap-3 md:gap-4 mt-6 md:mt-8 pt-6 md:pt-8 border-t">
                                             {step > 1 && (
                                                 <Button
                                                     variant="outline"
                                                     onClick={handleBack}
-                                                    className="w-1/3 h-12 rounded-xl font-black uppercase tracking-widest text-[9px] md:text-[10px] border-2 border-slate-200 dark:border-white/20"
+                                                    className="w-1/3 h-12 rounded-xl font-black uppercase tracking-widest text-[9px] md:text-[10px] border-2 border-slate-200"
                                                     disabled={isLoading}
                                                 >
                                                     <ChevronLeft className="w-4 h-4 mr-1 md:mr-2" /> Back
@@ -880,7 +880,7 @@ const Register = () => {
                                             )}
                                             <Button
                                                 onClick={handleNext}
-                                                className={`h-12 rounded-xl font-black uppercase tracking-[0.1em] md:tracking-[0.2em] text-[9px] md:text-[11px] gap-1 md:gap-2 shadow-xl ${step === 1 ? "w-full" : "flex-1"} bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-all`}
+                                                className={`h-12 rounded-xl font-black uppercase tracking-[0.1em] md:tracking-[0.2em] text-[9px] md:text-[11px] gap-1 md:gap-2 shadow-xl ${step === 1 ? "w-full" : "flex-1"} bg-slate-900 text-white hover:bg-slate-800 transition-all`}
                                                 disabled={isLoading}
                                             >
                                                 {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : (

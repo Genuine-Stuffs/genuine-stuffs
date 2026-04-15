@@ -65,7 +65,7 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-background transition-colors duration-300 flex flex-col">
+        <div className="min-h-screen bg-sky-100 transition-colors duration-300 flex flex-col">
             <div className="w-full px-6 pt-4 md:pt-10 flex flex-col md:flex-row items-center md:items-center relative">
                 <div className="md:absolute md:left-10 mb-4 md:mb-0">
                     <Link to="/" className="group transition-transform hover:scale-105">
@@ -73,10 +73,10 @@ const Login = () => {
                     </Link>
                 </div>
                 <div className="mx-auto text-center">
-                    <h1 className="text-3xl md:text-4xl font-black mb-1 md:mb-2 text-slate-900 dark:text-white uppercase tracking-tighter leading-none">
+                    <h1 className="text-3xl md:text-4xl font-black mb-1 md:mb-2 text-slate-900 uppercase tracking-tighter leading-none">
                         Welcome <span className="text-primary italic">Back</span>
                     </h1>
-                    <p className="text-xs md:text-sm text-muted-foreground dark:text-slate-400 font-medium italic hidden sm:block">
+                    <p className="text-xs md:text-sm text-muted-foreground font-medium italic hidden sm:block">
                         Enter your credentials to access your construction workspace.
                     </p>
                 </div>
@@ -84,9 +84,9 @@ const Login = () => {
 
             <main className="flex-1 container mx-auto px-4 pt-2 md:pt-4 pb-8 flex flex-col items-center justify-center">
                 <div className="w-full max-w-lg">
-                    <Card className="border-none shadow-2xl bg-card dark:bg-white/5 backdrop-blur-xl rounded-[2.5rem] overflow-hidden transition-all duration-500">
-                        <CardHeader className="bg-sky-100/50 dark:bg-sky-900/10 p-4 md:p-6 text-center border-b dark:border-white/10">
-                            <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center justify-center gap-3">
+                    <Card className="border-none shadow-2xl bg-white backdrop-blur-xl rounded-[2.5rem] overflow-hidden transition-all duration-500">
+                        <CardHeader className="bg-white p-4 md:p-6 text-center border-b">
+                            <CardTitle className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center justify-center gap-3">
                                 <KeyRound className="w-5 h-5 text-primary" /> Secure Gateway
                             </CardTitle>
                         </CardHeader>
@@ -96,7 +96,7 @@ const Login = () => {
                                 <Button
                                     onClick={signInWithGoogle}
                                     variant="outline"
-                                    className="w-full h-12 rounded-xl border-2 border-slate-100 dark:border-white/10 font-black uppercase tracking-widest text-[10px] gap-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-all"
+                                    className="w-full h-12 rounded-xl border-2 border-slate-100 font-black uppercase tracking-widest text-[10px] gap-3 hover:bg-slate-50 transition-all"
                                 >
                                     <svg className="w-4 h-4" viewBox="0 0 24 24">
                                         <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -109,10 +109,10 @@ const Login = () => {
 
                                 <div className="relative">
                                     <div className="absolute inset-0 flex items-center">
-                                        <span className="w-full border-t dark:border-white/10" />
+                                        <span className="w-full border-t border-slate-100" />
                                     </div>
                                     <div className="relative flex justify-center text-[10px] uppercase">
-                                        <span className="bg-white dark:bg-card px-4 text-slate-400 font-black tracking-widest italic">Or use credentials</span>
+                                        <span className="bg-white px-4 text-slate-400 font-black tracking-widest italic">Or use credentials</span>
                                     </div>
                                 </div>
 
@@ -124,7 +124,7 @@ const Login = () => {
                                             type="email"
                                             placeholder="pro@genuine.com"
                                             required
-                                            className="h-12 rounded-xl"
+                                            className="h-12 rounded-xl bg-white"
                                             value={formData.email}
                                             onChange={(e) => handleInputChange('email', e.target.value)}
                                         />
@@ -140,7 +140,7 @@ const Login = () => {
                                                 id="password"
                                                 type={showPassword ? "text" : "password"}
                                                 required
-                                                className="h-12 rounded-xl pr-12"
+                                                className="h-12 rounded-xl pr-12 bg-white"
                                                 value={formData.password}
                                                 onChange={(e) => handleInputChange('password', e.target.value)}
                                             />
@@ -156,7 +156,7 @@ const Login = () => {
 
                                     <Button
                                         type="submit"
-                                        className="w-full h-12 rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 shadow-xl transition-all font-black uppercase tracking-[0.2em] text-[11px] gap-2"
+                                        className="w-full h-12 rounded-xl bg-slate-900 text-white hover:bg-slate-800 shadow-xl transition-all font-black uppercase tracking-[0.2em] text-[11px] gap-2"
                                         disabled={isLoading}
                                     >
                                         {isLoading ? (
