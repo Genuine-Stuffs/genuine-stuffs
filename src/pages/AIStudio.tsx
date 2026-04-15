@@ -1034,7 +1034,6 @@ const AIStudio = () => {
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                            </div>
                                                         )}
                                                         
                                                         {/* Actions append at the bottom of the response */}
