@@ -62,6 +62,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import AECFloorPlan from '@/components/aec/AECFloorPlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
+import AECMassingView from '@/components/aec/AECMassingView';
 
 const AIStudio = () => {
     const { user, role, updateRole } = useAuth();
@@ -974,6 +975,8 @@ const AIStudio = () => {
                                                                 </div>
 
                                                                 <AECFloorPlan elements={designPackage.architectural_layout || []} />
+                                                                
+                                                                <AECMassingView elements={designPackage.architectural_layout || []} />
                                                                 
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                                                                     {/* Architectural Elements */}

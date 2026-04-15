@@ -13,7 +13,11 @@ export interface SpatialElement {
         height: number;
         unit: 'm' | 'mm' | 'ft';
     };
-    coordinates?: { x: number; y: number; z: number };
+    coordinates?: {
+        x: number;
+        y: number;
+        z: number;
+    };
     svg_path?: string; // SVG path data (e.g. "M0,0 L10,0 L10,10 L0,10 Z") for floor plan rendering
     notes?: string;
 }
