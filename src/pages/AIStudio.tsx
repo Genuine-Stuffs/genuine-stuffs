@@ -451,8 +451,27 @@ const AIStudio = () => {
                 setCredits(prev => (prev !== null ? prev - 2 : prev));
             }
 
+            // --- CLIENT-SIDE SANITIZER: Guarantee no JSON leaks in chat bubble ---
+            const sanitizeResultText = (raw: string | null): string | null => {
+                if (!raw) return null;
+                let clean = raw;
+                // Purge tag-wrapped AEC data blocks
+                clean = clean.replace(/<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/gi, "");
+                // Purge any stray start/end tags
+                clean = clean.replace(/<<<DESIGN_DATA_(START|END)>>>/gi, "");
+                // Purge any JSON code blocks containing status/status-like AEC data
+                clean = clean.replace(/```json[\s\S]*?```/gi, (match) => {
+                    try {
+                        const parsed = JSON.parse(match.replace(/```json|```/g, "").trim());
+                        if (parsed.status || parsed.architectural_layout || parsed.project_id) return "";
+                    } catch { /* not valid json, leave it */ }
+                    return match;
+                });
+                return clean.trim();
+            };
+
             // Store text and structured data
-            setGeneratedImage(data.result);
+            setGeneratedImage(sanitizeResultText(data.result));
             setDesignPackage(data.data);
             setIsGenerating(false);
             setPromptText(""); // Clear input after successful send
