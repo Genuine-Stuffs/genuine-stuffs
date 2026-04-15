@@ -441,7 +441,7 @@ const PMDashboard = () => {
                                     </div>
                                 </Card>
 
-                                <Card className="bg-white dark:bg-[#1E293B]/50 border-slate-200 dark:border-white/5 rounded-[2.5rem] p-8 shadow-sm">
+                                <Card className="bg-white/70 dark:bg-[#0F1115]/80 border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/30 rounded-[2.5rem] p-8 shadow-xl dark:shadow-[-15px_0_30px_-15px_rgba(239,68,68,0.5),15px_0_30px_-15px_rgba(59,130,246,0.5)] backdrop-blur-xl">
                                     <div className="space-y-6">
                                         <div>
                                             <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Quick Actions</h3>
