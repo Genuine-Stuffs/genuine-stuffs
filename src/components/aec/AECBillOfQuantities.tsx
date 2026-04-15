@@ -1,0 +1,118 @@
+import React from 'react';
+import { MaterialRequirement } from 'supabase/functions/ai-studio/schema';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from '@/components/ui/badge';
+import { Calculator, ShoppingCart, TrendingUp } from 'lucide-react';
+
+interface AECBillOfQuantitiesProps {
+  materials: MaterialRequirement[];
+}
+
+const AECBillOfQuantities: React.FC<AECBillOfQuantitiesProps> = ({ materials }) => {
+  const totalProjectCost = materials.reduce((sum, mat) => sum + (mat.total_price || (mat.quantity_estimate * (mat.unit_price || 0))), 0);
+
+  if (!materials || materials.length === 0) return null;
+
+  return (
+    <Card className="mt-6 border-slate-200 dark:border-white/10 overflow-hidden shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-1000">
+      <CardHeader className="bg-slate-900 border-b border-slate-800 py-4">
+        <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+                <div className="p-2 bg-primary/20 rounded-lg">
+                    <Calculator className="w-4 h-4 text-primary" />
+                </div>
+                <div>
+                    <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] text-white">Project Bill of Quantities</CardTitle>
+                    <p className="text-[9px] text-slate-400 font-medium uppercase tracking-widest mt-0.5">Automated Material Take-off & Costing (Est. NGN)</p>
+                </div>
+            </div>
+            <Badge className="bg-primary hover:bg-primary text-white text-[10px] font-black px-4 py-1 h-8 shadow-lg shadow-primary/20">
+                PROVISIONAL SUM: ₦{totalProjectCost.toLocaleString()}
+            </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="p-0">
+        <Table>
+          <TableHeader className="bg-slate-50 dark:bg-white/5">
+            <TableRow className="border-b dark:border-white/5 h-12">
+              <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-500 pl-6">Category</TableHead>
+              <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-500">Description / Specs</TableHead>
+              <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-500 text-right">Quantity</TableHead>
+              <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-500 text-right">Unit Price</TableHead>
+              <TableHead className="text-[9px] font-black uppercase tracking-widest text-slate-500 text-right pr-6">Line Total</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {materials.map((mat, idx) => {
+              const unitPrice = mat.unit_price || 0;
+              const lineTotal = mat.total_price || (mat.quantity_estimate * unitPrice);
+              
+              return (
+                <TableRow key={idx} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b dark:border-white/5 border-slate-100">
+                  <TableCell className="pl-6">
+                    <Badge variant="outline" className="text-[8px] font-black uppercase tracking-tighter bg-white dark:bg-black/20">
+                        {mat.category}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="max-w-[200px]">
+                    <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200 leading-tight">{mat.specification}</p>
+                    <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <ShoppingCart className="w-2.5 h-2.5 text-primary" />
+                        <span className="text-[8px] font-black text-primary uppercase tracking-widest">Buy on GS Marketplace</span>
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span className="text-[11px] font-black text-slate-800 dark:text-white">{mat.quantity_estimate}</span>
+                    <span className="text-[9px] font-bold text-slate-400 ml-1 uppercase">{mat.unit}</span>
+                  </TableCell>
+                  <TableCell className="text-right text-[11px] font-bold text-slate-600 dark:text-slate-400 font-mono">
+                    {unitPrice > 0 ? `₦${unitPrice.toLocaleString()}` : 'Market Price'}
+                  </TableCell>
+                  <TableCell className="text-right pr-6">
+                    <span className="text-[11px] font-black text-slate-900 dark:text-white font-mono">₦{lineTotal.toLocaleString()}</span>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+            {/* Grand Total Row */}
+            <TableRow className="bg-slate-900 hover:bg-slate-900 border-none">
+              <TableCell colSpan={4} className="text-right py-4 pl-6">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Projected Material Sub-total:</span>
+              </TableCell>
+              <TableCell className="text-right pr-6 py-4">
+                <span className="text-sm font-black text-primary italic">₦{totalProjectCost.toLocaleString()}</span>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+        
+        <div className="p-6 bg-slate-50 dark:bg-black/20 flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-4">
+                <div className="flex -space-x-2">
+                    {[1,2,3].map(i => (
+                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-800 bg-slate-200 flex items-center justify-center overflow-hidden">
+                            <img src={`https://i.pravatar.cc/100?u=${i}`} alt="Vendor" className="w-full h-full object-cover opacity-80" />
+                        </div>
+                    ))}
+                </div>
+                <div>
+                    <p className="text-[10px] font-black text-slate-800 dark:text-white uppercase tracking-widest">Vendor Insight</p>
+                    <p className="text-[9px] text-slate-500 font-medium italic">5 local suppliers matched your project specs.</p>
+                </div>
+            </div>
+            <div className="flex gap-3">
+                <button className="px-6 h-10 bg-white dark:bg-white/10 border border-slate-200 dark:border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/20 transition-all flex items-center gap-2">
+                    <TrendingUp className="w-3.5 h-3.5" /> Price Trend Report
+                </button>
+                <button className="px-8 h-10 bg-primary text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-primary/30 flex items-center gap-2">
+                    <ShoppingCart className="w-3.5 h-3.5" /> Request Quotes
+                </button>
+            </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default AECBillOfQuantities;
