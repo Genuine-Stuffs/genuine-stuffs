@@ -851,14 +851,29 @@ const AIStudio = () => {
                                             </div>
                                             <div className="flex-1 pt-1.5 pb-8 min-w-0">
                                                 {isGenerating ? (
-                                                    <div className="flex items-center gap-4 h-8 animate-pulse text-slate-400">
-                                                        <Loader2 className="w-5 h-5 animate-spin" />
-                                                        <span className="text-sm font-semibold tracking-wider uppercase">
-                                                            {ultraMode ? "Synthesizing Deep Reasoning Protocol..." : "Synthesizing Protocol..."}
-                                                        </span>
+                                                    <div className="flex flex-col gap-3">
+                                                        <div className="flex items-center gap-4 h-8 animate-pulse text-slate-400">
+                                                            <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                                                            <span className="text-sm font-semibold tracking-wider uppercase">
+                                                                {ultraMode ? "Deep Reasoning System Active..." : "Synthesizing Architecture..."}
+                                                            </span>
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            <div className="h-1 w-12 bg-primary/20 rounded-full overflow-hidden">
+                                                                <div className="h-full bg-primary animate-[shimmer_2s_infinite] w-full" />
+                                                            </div>
+                                                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Consulting NBC 2006</span>
+                                                        </div>
                                                     </div>
                                                 ) : (
                                                     <div className="w-full text-slate-700 dark:text-slate-300 text-[15px] md:text-base leading-[1.8] font-medium">
+                                                        <div className="mb-4 flex items-center gap-3">
+                                                            <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-primary/30 text-primary bg-primary/5 px-2 py-0.5 rounded-md">
+                                                                PROFESSIONAL NODE: {selectedRole}
+                                                            </Badge>
+                                                            <div className="h-1 w-1 rounded-full bg-slate-300 dark:bg-white/10" />
+                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">AEC CONTEXTUAL ENGINE V2</span>
+                                                        </div>
                                                         {(visualUrl || isVisualizing) && designPackage?.status !== 'DISCOVERY' && (
                                                             <div className="mb-8 rounded-3xl overflow-hidden bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-2xl animate-in zoom-in duration-700 group relative">
                                                                 {isVisualizing ? (
