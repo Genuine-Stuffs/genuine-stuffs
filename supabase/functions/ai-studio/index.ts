@@ -239,36 +239,47 @@ Output must be actionable, precise, and professional.`;
             })
         }
 
-        // --- EXTRACT STRUCTURED DATA (Global Regex Sweep) ---
+        // --- EXTRACT STRUCTURED DATA (Hardened Global Sweep) ---
         let designData = null;
         try {
+            // Priority 1: Tag-based extraction
             const dataBlockRegex = /<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/gi;
             const match = result.match(dataBlockRegex);
 
             if (match) {
-                // Extract the content between the tags
-                let jsonText = match[0]
+                const jsonText = match[0]
                     .replace(/<<<DESIGN_DATA_START>>>/i, "")
                     .replace(/<<<DESIGN_DATA_END>>>/i, "")
                     .trim();
                 
                 try {
                     designData = JSON.parse(jsonText);
-                    // Purge the entire block from the user-facing text
-                    result = result.replace(dataBlockRegex, "").trim();
                 } catch (e) {
-                    console.error("JSON Parse Error in block:", e);
+                    // If JSON.parse fails, try to strip potential markdown backticks
+                    const cleanedJson = jsonText.replace(/^```json\s*|```$/g, "").trim();
+                    designData = JSON.parse(cleanedJson);
                 }
-            } else {
-                // FALLBACK: Look for JSON status pattern
-                const jsonMatch = result.match(/\{[\s\S]*"status":\s*"(READY|DISCOVERY)"[\s\S]*\}/);
-                if (jsonMatch) {
+                // ALWAYS purge the entire block from the user-facing text
+                result = result.replace(dataBlockRegex, "").trim();
+            }
+
+            // Priority 2: Fallback to markdown code blocks if tags are missing or broken
+            if (!designData) {
+                const codeBlockRegex = /```json\s*([\s\S]*?)\s*```/gi;
+                let cbMatch;
+                while ((cbMatch = codeBlockRegex.exec(result)) !== null) {
                     try {
-                        designData = JSON.parse(jsonMatch[0]);
-                        result = result.replace(jsonMatch[0], "").trim();
+                        const parsed = JSON.parse(cbMatch[1]);
+                        if (parsed.status || parsed.architectural_layout) {
+                            designData = parsed;
+                            result = result.replace(cbMatch[0], "").trim();
+                        }
                     } catch (e) {}
                 }
             }
+
+             // Final Scrub: Remove any remaining tags that might have been malformed
+             result = result.replace(/<<<DESIGN_DATA_(START|END)>>>/gi, "").trim();
         } catch (parseErr) {
             console.error("Critical parsing error:", parseErr);
         }
