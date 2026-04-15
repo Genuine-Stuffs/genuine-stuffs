@@ -323,32 +323,32 @@ const PMDashboard = () => {
                                 className="w-full bg-slate-50/50 dark:bg-black/40 border-slate-200 dark:border-l-red-500/30 dark:border-r-blue-500/30 dark:border-y-slate-800/50 rounded-xl pl-10 h-10 text-sm focus:ring-red-600/50 dark:text-white shadow-sm dark:shadow-[-5px_0_15px_-10px_rgba(239,68,68,0.3),5px_0_15px_-10px_rgba(59,130,246,0.3)]"
                             />
                         </div>
-                        <div className="flex items-center gap-3 p-1 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner">
+                        <div className="flex items-center gap-3 p-1 bg-slate-100/50 dark:bg-black/40 rounded-2xl border border-slate-200 dark:border-l-red-500/30 dark:border-r-blue-500/30 dark:border-y-slate-800/50 shadow-inner dark:shadow-[-5px_0_15px_-10px_rgba(239,68,68,0.2),5px_0_15px_-10px_rgba(59,130,246,0.2)]">
                             <button 
                                 onClick={() => setTheme('light')}
-                                className={`p-2 rounded-xl transition-all ${theme === 'light' ? 'bg-white text-orange-500 shadow-sm scale-105' : 'text-slate-400 hover:bg-white/30'}`}
-                                title="Light Mode"
+                                className={`p-2 rounded-xl transition-all ${theme === 'light' ? 'bg-white text-red-500 shadow-sm' : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
                             >
                                 <Sun size={18} />
                             </button>
                             <button 
                                 onClick={() => setTheme('dark')}
-                                className={`p-2 rounded-xl transition-all ${theme === 'dark' ? 'bg-slate-800 text-blue-400 shadow-sm scale-105' : 'text-slate-400 hover:bg-slate-800/30'}`}
-                                title="Dark Mode"
+                                className={`p-2 rounded-xl transition-all ${theme === 'dark' ? 'bg-[#0F1115] text-blue-500 shadow-lg' : 'text-slate-400 hover:text-slate-600 dark:hover:text-white'}`}
                             >
                                 <Moon size={18} />
                             </button>
                         </div>
+
                         <div className="relative" id="notification-container">
                             <button 
                                 onClick={() => setNotificationsOpen(!notificationsOpen)}
-                                className="relative text-slate-400 hover:text-red-500 transition-colors p-2.5 bg-slate-100 dark:bg-white/5 rounded-xl shadow-sm border border-slate-200 dark:border-white/5"
+                                className="relative text-slate-400 hover:text-red-500 transition-colors p-2.5 bg-slate-100/50 dark:bg-black/40 rounded-xl shadow-sm border border-slate-200 dark:border-l-red-500/30 dark:border-r-blue-500/30 dark:border-y-slate-800/50"
                             >
                                 <Bell size={18} />
                                 {notifications.some(n => !n.read) && (
                                     <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-600 rounded-full border-2 border-white dark:border-[#0F172A]" />
                                 )}
                             </button>
+                        </div>
                             
                             {notificationsOpen && (
                                 <div className="absolute right-0 mt-3 w-80 bg-white dark:bg-[#1E293B] border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200 origin-top-right">
@@ -375,13 +375,12 @@ const PMDashboard = () => {
                                     </button>
                                 </div>
                             )}
-                        </div>
-                        <div className="flex items-center gap-3 pl-6 border-l border-slate-200 dark:border-white/5">
+                        <div className="flex items-center gap-3 pl-6 border-l border-slate-200 dark:border-l-blue-500/30">
                             <div className="text-right hidden sm:block">
-                                <p className="text-xs font-black text-slate-900 dark:text-white uppercase">{user?.email?.split('@')[0]}</p>
-                                <Badge className="bg-red-600/10 text-red-500 border-none text-[8px]">SUPER ADMIN</Badge>
+                                <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">{user?.email?.split('@')[0]}</p>
+                                <Badge className="bg-red-600/10 dark:bg-red-600/20 text-red-600 border-none text-[8px] font-black tracking-widest uppercase">SUPER ADMIN</Badge>
                             </div>
-                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-red-400 flex items-center justify-center font-black text-white border-2 border-white/10 shadow-lg shadow-red-600/20">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-red-400 flex items-center justify-center font-black text-white border-2 border-white/50 dark:border-red-500/50 shadow-lg dark:shadow-[0_0_20px_-5px_rgba(239,68,68,0.5)]">
                                 {user?.email?.[0].toUpperCase()}
                             </div>
                         </div>
