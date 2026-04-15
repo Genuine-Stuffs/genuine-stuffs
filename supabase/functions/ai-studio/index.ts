@@ -11,6 +11,33 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+/**
+ * Exponential Backoff Utility
+ * Retries on 429 (Rate Limit) or 5xx (Server Error)
+ */
+async function fetchWithRetry(url: string, options: any, maxRetries = 3) {
+    let lastError;
+    for (let i = 0; i < maxRetries; i++) {
+        try {
+            const response = await fetch(url, options);
+            if (response.ok) return response;
+            
+            // Do NOT retry on 400, 401, 403, 404 (Config/Auth issues)
+            if (response.status !== 429 && response.status < 500) return response;
+
+            const delay = Math.pow(2, i) * 1000;
+            console.warn(`[Retry ${i+1}/${maxRetries}] AI Provider busy (${response.status}). Retrying in ${delay}ms...`);
+            await new Promise(r => setTimeout(r, delay));
+        } catch (err) {
+            lastError = err;
+            const delay = Math.pow(2, i) * 1000;
+            console.warn(`[Retry ${i+1}/${maxRetries}] Network error. Retrying in ${delay}ms...`);
+            await new Promise(r => setTimeout(r, delay));
+        }
+    }
+    throw lastError || new Error("Max retries exceeded");
+}
+
 serve(async (req: Request) => {
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
@@ -188,7 +215,7 @@ Output must be actionable, precise, and professional.`;
         for (const textModel of textModels) {
             try {
                 console.log(`Calling Orchestrator model: ${textModel}...`);
-                const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                const response = await fetchWithRetry("https://openrouter.ai/api/v1/chat/completions", {
                     method: "POST",
                     headers: {
                         "Authorization": `Bearer ${openRouterKey}`,
