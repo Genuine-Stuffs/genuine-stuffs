@@ -300,7 +300,7 @@ const PMDashboard = () => {
             {/* Main Content */}
             <main className="flex-1 lg:ml-72 min-h-screen">
                 {/* Header */}
-                <header className="sticky top-0 z-30 flex items-center justify-between px-8 py-4 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-md border-b border-slate-200 dark:border-white/5">
+                <header className="sticky top-0 z-30 flex items-center justify-between px-8 py-4 bg-white/70 dark:bg-[#0F1115]/80 backdrop-blur-xl border-b border-slate-200 dark:border-b-blue-500/30">
                     <div className="flex items-center gap-4">
                         <button 
                             className="lg:hidden p-2 text-slate-400"
@@ -320,7 +320,7 @@ const PMDashboard = () => {
                                 placeholder="Global Search..." 
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 rounded-xl pl-10 h-10 text-sm focus:ring-red-600/50 dark:text-white"
+                                className="w-full bg-slate-50/50 dark:bg-black/40 border-slate-200 dark:border-l-red-500/30 dark:border-r-blue-500/30 dark:border-y-slate-800/50 rounded-xl pl-10 h-10 text-sm focus:ring-red-600/50 dark:text-white shadow-sm dark:shadow-[-5px_0_15px_-10px_rgba(239,68,68,0.3),5px_0_15px_-10px_rgba(59,130,246,0.3)]"
                             />
                         </div>
                         <div className="flex items-center gap-3 p-1 bg-slate-100 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/5 shadow-inner">
