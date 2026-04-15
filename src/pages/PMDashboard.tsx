@@ -415,7 +415,7 @@ const PMDashboard = () => {
 
                             {/* Verification Feed Preview */}
                             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                                <Card className="xl:col-span-2 bg-white dark:bg-[#1E293B]/50 border-slate-200 dark:border-white/5 rounded-[2.5rem] overflow-hidden shadow-sm">
+                                <Card className="xl:col-span-2 bg-white/70 dark:bg-[#0F1115]/80 border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/30 rounded-[2.5rem] overflow-hidden shadow-2xl dark:shadow-[-20px_0_40px_-20px_rgba(239,68,68,0.5),20px_0_40px_-20px_rgba(59,130,246,0.5)] backdrop-blur-3xl">
                                     <div className="p-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
                                         <div>
                                             <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Recent Pending Vendors</h3>
