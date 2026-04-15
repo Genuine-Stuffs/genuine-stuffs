@@ -1,0 +1,135 @@
+{
+  "project_configuration": {
+    "region": "Nigeria",
+    "primary_code": "National Building Code (NBC) 2006",
+    "last_updated": "2026-04-15"
+  },
+  "spatial_compliance": {
+    "habitable_spaces": {
+      "bedroom": {
+        "min_area_m2": 9.0,
+        "min_width_m": 2.7,
+        "notes": "Master bedrooms typically 12–16 m2 in practice"
+      },
+      "living_room": {
+        "min_area_m2": 12.0,
+        "min_width_m": 3.0
+      },
+      "kitchen": {
+        "min_area_m2": 5.5,
+        "min_width_m": 1.8
+      },
+      "dining": {
+        "min_area_m2": 7.5,
+        "min_width_m": 2.4
+      },
+      "bathroom": {
+        "min_area_m2": 1.8,
+        "min_width_m": 1.2
+      },
+      "toilet": {
+        "min_area_m2": 1.2,
+        "min_width_m": 0.9
+      }
+    },
+    "setbacks": {
+      "lagos_residential": {
+        "front_m": 6.0,
+        "rear_m": 3.0,
+        "side_m": 3.0,
+        "hoarding_height_min_m": 2.4,
+        "hoarding_required_within_m": 1.5
+      }
+    }
+  },
+  "material_constants": {
+    "blockwork": {
+      "9inch_block_per_m2": 10,
+      "6inch_block_per_m2": 12.5,
+      "waste_factor_percent": 5
+    },
+    "mortar_plaster": {
+      "block_laying_ratio": "1:6",
+      "plaster_ratio": "1:4",
+      "cement_per_m2_plaster_bags": 0.2,
+      "sand_per_m2_plaster_m3": 0.02,
+      "notes": "Assumes 12–15mm plaster thickness"
+    },
+    "concrete": {
+      "C20": {
+        "mix_ratio": "1:2:4",
+        "cement_bags_per_m3": 7.0,
+        "sand_m3": 0.5,
+        "granite_m3": 1.0
+      },
+      "C25": {
+        "mix_ratio": "1:1.5:3",
+        "cement_bags_per_m3": 8.5,
+        "sand_m3": 0.45,
+        "granite_m3": 0.9
+      }
+    },
+    "reinforcement": {
+      "10mm": { "weight_kg_per_m": 0.617 },
+      "12mm": { "weight_kg_per_m": 0.888 },
+      "16mm": { "weight_kg_per_m": 1.578 },
+      "20mm": { "weight_kg_per_m": 2.466 }
+    }
+  },
+  "structural_parameters": {
+    "beam_design": {
+      "beam_width_mm": 225,
+      "span_to_depth_ratio": {
+        "simply_supported": 15,
+        "continuous": 18
+      },
+      "max_span_m": {
+        "typical_residential": 4.5
+      }
+    },
+    "load_assumptions": {
+      "residential": {
+        "dead_load_kN_per_m2": 3.5,
+        "live_load_kN_per_m2": 2.0
+      },
+      "commercial": {
+        "dead_load_kN_per_m2": 4.0,
+        "live_load_kN_per_m2": 3.0
+      }
+    },
+    "slab_design": {
+      "thickness_mm": 150,
+      "reinforcement": {
+        "main_bar": "12mm @ 150mm c/c",
+        "distribution_bar": "10mm @ 200mm c/c"
+      }
+    }
+  },
+  "documentation_protocol": {
+    "mandatory_contract_package": [
+      "Architectural Drawings",
+      "Structural Engineering Specifications",
+      "Priced Bill of Quantities (BOQ)",
+      "Project Quality Management Plan (QMP)",
+      "Project Health & Safety (H&S) Plan",
+      "Construction Programme (Schedule)"
+    ],
+    "design_stage_reports": [
+      "Buildability/Maintainability Analysis Report"
+    ],
+    "post_construction_package": [
+      "As-Built Drawings",
+      "Building Maintenance Manual",
+      "Building Condition Survey Report",
+      "Certificate of Fitness for Habitation"
+    ]
+  },
+  "adjustment_factors": {
+    "contractor_quality_factor": 0.85,
+    "material_variation_factor": 1.1,
+    "wastage_range": {
+      "min": 0.05,
+      "max": 0.15
+    }
+  }
+}
