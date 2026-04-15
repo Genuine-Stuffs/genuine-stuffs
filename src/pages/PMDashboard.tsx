@@ -650,7 +650,7 @@ const PMDashboard = () => {
 
             {/* Broadcast Modal */}
             <Dialog open={isBroadcastOpen} onOpenChange={setIsBroadcastOpen}>
-                <DialogContent className="bg-white dark:bg-[#1E293B] border-none rounded-[2.5rem] p-8 max-w-lg">
+                <DialogContent className="bg-white/90 dark:bg-[#0F1115]/95 border border-slate-200/50 dark:border-l-red-500/50 dark:border-r-blue-500/50 dark:border-y-slate-800/50 rounded-[3rem] p-8 max-w-lg shadow-2xl dark:shadow-[-20px_0_60px_-20px_rgba(239,68,68,0.4),20px_0_60px_-20px_rgba(59,130,246,0.4)] backdrop-blur-2xl">
                     <DialogHeader>
                         <DialogTitle className="text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white">Compose Broadcast</DialogTitle>
                         <DialogDescription className="text-slate-400 font-medium italic">
