@@ -24,6 +24,8 @@ export interface MaterialRequirement {
     specification: string;
     quantity_estimate: number;
     unit: string;
+    unit_price?: number; // Estimated price in NGN
+    total_price?: number; // Calculated total (quantity * unit_price)
     suggested_marketplace_type?: string; 
 }
 

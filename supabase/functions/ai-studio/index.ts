@@ -178,6 +178,15 @@ NIGERIAN BUILDING CODE (NBC) CONSTANTS:
 - CONCRETE MIX: C20 (1:2:4, 7 bags/m3), C25 (1:1.5:3, 8.5 bags/m3).
 - STRUCTURAL: Max Beam Span for Residential = 4.5m. Span-to-depth ratio = 15.
 
+REGIONAL PRICING MARKERS (APPROX NGN):
+- Cement: 11,000/bag.
+- Block (9"): 800/unit.
+- Block (6"): 650/unit.
+- Reinforcement (Y12): 1,200,000/ton.
+- Sharp Sand: 7,500/m3.
+- Granite (20mm): 15,000/m3.
+- Labour (Est): 25-30% of material cost.
+
 PHASE 1: DISCOVERY & FIDELITY CHECK
 If the user's prompt is too vague (e.g., "design a house") or lacks critical AEC parameters (dimensions, site conditions, specific material preferences), YOU MUST prioritize discovery.
 Set status: "DISCOVERY" and provide 3 clarifying questions.
