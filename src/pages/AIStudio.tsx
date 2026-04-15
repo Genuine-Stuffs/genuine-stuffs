@@ -60,6 +60,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { ModeToggle } from "@/components/ModeToggle";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import AECFloorPlan from '@/components/aec/AECFloorPlan';
 
 const AIStudio = () => {
     const { user, role, updateRole } = useAuth();
@@ -908,13 +909,17 @@ const AIStudio = () => {
                                                                 </div>
                                                                 <div className="grid grid-cols-1 gap-2">
                                                                     {designPackage.discovery_questions?.map((q: string, i: number) => (
-                                                                        <div key={i} className="group p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 hover:border-primary/30 transition-all flex items-start gap-4">
+                                                                        <button 
+                                                                            key={i} 
+                                                                            onClick={() => setPromptText(prev => prev + (prev ? " " : "") + (q.startsWith('Answer:') ? q : `Answer regarding ${q.split(':')[0]}: `))}
+                                                                            className="group p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 hover:border-primary/30 transition-all flex items-start gap-4 text-left"
+                                                                        >
                                                                             <span className="text-[10px] font-black text-primary/40 mt-1">{String(i + 1).padStart(2, '0')}</span>
                                                                             <p className="text-sm text-slate-700 dark:text-slate-200 font-bold leading-snug">{q}</p>
-                                                                        </div>
+                                                                        </button>
                                                                     ))}
                                                                 </div>
-                                                                <p className="text-[10px] text-slate-500 font-medium italic">Please provide these details so I can refine your structural blueprint.</p>
+                                                                <p className="text-[10px] text-slate-500 font-medium italic">Click a question above to provide specific details so I can refine your structural blueprint.</p>
                                                             </div>
                                                         )}
 
@@ -925,8 +930,10 @@ const AIStudio = () => {
                                                                     <DraftingCompass className="w-3.5 h-3.5 text-primary" />
                                                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">AEC Structured Node</span>
                                                                 </div>
+
+                                                                <AECFloorPlan elements={designPackage.architectural_layout || []} />
                                                                 
-                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                                                                     {/* Architectural Elements */}
                                                                     <Card className="bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
                                                                         <div className="p-4 border-b dark:border-white/5 bg-white/50 dark:bg-black/20 flex items-center justify-between">
