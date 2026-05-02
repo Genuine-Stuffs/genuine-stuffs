@@ -506,7 +506,7 @@ const Register = () => {
             <main className="flex-1 container mx-auto px-4 pt-2 md:pt-4 pb-8 flex flex-col items-center justify-center">
                 <div className="w-full max-w-2xl">
                     {/* Role Toggle */}
-                    <div className="flex p-1.5 bg-white rounded-2xl mb-6 md:mb-8 max-w-md mx-auto border">
+                    <div className="flex p-1.5 bg-white text-slate-900 rounded-2xl mb-6 md:mb-8 max-w-md mx-auto border">
                         <button
                             onClick={() => { setRole('professional'); setStep(1); }}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${role === 'professional' ? 'bg-slate-100 shadow-sm text-primary' : 'text-slate-400 hover:text-slate-600'}`}
@@ -521,10 +521,10 @@ const Register = () => {
                         </button>
                     </div>
 
-                    <Card className="border-none shadow-none md:shadow-2xl bg-white backdrop-blur-xl md:rounded-[2.5rem] overflow-hidden transition-all duration-500">
+                    <Card className="border-none shadow-none md:shadow-2xl bg-white text-slate-900 backdrop-blur-xl md:rounded-[2.5rem] overflow-hidden transition-all duration-500">
                         {/* Progress Header for Vendors */}
                         {role === 'vendor' && (
-                            <div className="bg-white flex justify-between items-center p-4 md:p-6 border-b">
+                            <div className="bg-white text-slate-900 flex justify-between items-center p-4 md:p-6 border-b">
                                 {vendorSteps.map((s, idx) => (
                                     <div key={s.id} className={`flex items-center ${idx < vendorSteps.length - 1 ? "flex-1" : ""}`}>
                                         <div className={`flex items-center justify-center w-8 h-8 rounded-xl font-black text-[10px] shrink-0 transition-all ${step === s.id ? "bg-primary text-white scale-110" : step > s.id ? "bg-green-500 text-white" : "bg-slate-100 text-slate-400"}`}>
@@ -556,20 +556,20 @@ const Register = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-first-name" className="text-[10px] font-black uppercase tracking-widest text-slate-400">First Name *</Label>
-                                                <Input id="pro-first-name" placeholder="John" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.firstName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Input id="pro-first-name" placeholder="John" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.firstName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-last-name" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Surname *</Label>
-                                                <Input id="pro-last-name" placeholder="Doe" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Input id="pro-last-name" placeholder="Doe" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-type" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Discipline *</Label>
-                                                <Input id="pro-type" placeholder="e.g. Architecture" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.proType ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Input id="pro-type" placeholder="e.g. Architecture" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.proType ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-nationality" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nationality *</Label>
                                                 <Select value={formData.nationality} onValueChange={(val) => handleInputChange('nationality', val)}>
-                                                    <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                    <SelectTrigger className={`h-12 rounded-xl bg-white text-slate-900 text-xs font-semibold ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                         <SelectValue placeholder="Select Nationality" />
                                                     </SelectTrigger>
                                                     <SelectContent className="max-h-[300px]">
@@ -580,7 +580,7 @@ const Register = () => {
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-country" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Country of Residence *</Label>
                                                 <Select value={formData.country} onValueChange={(val) => { handleInputChange('country', val); handleInputChange('state', ''); handleInputChange('city', ''); }}>
-                                                    <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                    <SelectTrigger className={`h-12 rounded-xl bg-white text-slate-900 text-xs font-semibold ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                         <SelectValue placeholder="Select Country" />
                                                     </SelectTrigger>
                                                     <SelectContent className="max-h-[300px]">
@@ -595,7 +595,7 @@ const Register = () => {
                                                     onValueChange={(val) => { handleInputChange('state', val); handleInputChange('city', ''); }}
                                                     disabled={!formData.country || isLoadingGeo.states}
                                                 >
-                                                    <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                    <SelectTrigger className={`h-12 rounded-xl bg-white text-slate-900 text-xs font-semibold ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                         <SelectValue placeholder={isLoadingGeo.states ? "Loading..." : "Select State"} />
                                                     </SelectTrigger>
                                                     <SelectContent className="max-h-[300px]">
@@ -610,7 +610,7 @@ const Register = () => {
                                                     onValueChange={(val) => handleInputChange('city', val)}
                                                     disabled={!formData.state || isLoadingGeo.cities}
                                                 >
-                                                    <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                    <SelectTrigger className={`h-12 rounded-xl bg-white text-slate-900 text-xs font-semibold ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                         <SelectValue placeholder={isLoadingGeo.cities ? "Loading..." : "Select City"} />
                                                     </SelectTrigger>
                                                     <SelectContent className="max-h-[300px]">
@@ -620,17 +620,17 @@ const Register = () => {
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-address" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Street Address *</Label>
-                                                <Input id="pro-address" placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Input id="pro-address" placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                         </div>
                                         <div className="space-y-1.5">
                                             <Label htmlFor="pro-email" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email Address *</Label>
-                                            <Input id="pro-email" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.email ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                            <Input id="pro-email" type="email" placeholder="john@example.com" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.email ? "border-red-500 ring-offset-red-500" : ""}`} />
                                         </div>
                                         <div className="space-y-1.5">
                                             <Label htmlFor="pro-password" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Password *</Label>
                                             <div className="relative">
-                                                <Input id="pro-password" type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} className={`h-12 rounded-xl bg-white pr-12 ${errors.password ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Input id="pro-password" type={showPassword ? "text" : "password"} value={formData.password} onChange={(e) => handleInputChange('password', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 pr-12 ${errors.password ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                                                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                                                 </button>
@@ -657,16 +657,16 @@ const Register = () => {
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">First Name *</Label>
-                                                        <Input value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.firstName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Input value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.firstName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Last Name *</Label>
-                                                        <Input value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Input value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Email *</Label>
-                                                    <Input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.email ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                    <Input type="email" value={formData.email} onChange={(e) => handleInputChange('email', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.email ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <div className="flex justify-between items-center">
@@ -677,7 +677,7 @@ const Register = () => {
                                                             type={showPassword ? "text" : "password"} 
                                                             value={formData.password} 
                                                             onChange={(e) => handleInputChange('password', e.target.value)} 
-                                                            className={`h-12 rounded-xl bg-white pr-12 ${errors.password ? "border-red-500 ring-offset-red-500" : ""}`}
+                                                            className={`h-12 rounded-xl bg-white text-slate-900 pr-12 ${errors.password ? "border-red-500 ring-offset-red-500" : ""}`}
                                                         />
                                                         <button 
                                                             type="button"
@@ -692,7 +692,7 @@ const Register = () => {
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Nationality *</Label>
                                                         <Select value={formData.nationality} onValueChange={(val) => handleInputChange('nationality', val)}>
-                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-slate-900 text-xs font-semibold ${errors.nationality ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                                 <SelectValue placeholder="Select Nationality" />
                                                             </SelectTrigger>
                                                             <SelectContent className="max-h-[300px]">
@@ -703,7 +703,7 @@ const Register = () => {
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Country of Residence *</Label>
                                                         <Select value={formData.country} onValueChange={(val) => { handleInputChange('country', val); handleInputChange('state', ''); handleInputChange('city', ''); }}>
-                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-slate-900 text-xs font-semibold ${errors.country ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                                 <SelectValue placeholder="Select Country" />
                                                             </SelectTrigger>
                                                             <SelectContent className="max-h-[300px]">
@@ -720,7 +720,7 @@ const Register = () => {
                                                             onValueChange={(val) => { handleInputChange('state', val); handleInputChange('city', ''); }}
                                                             disabled={!formData.country || isLoadingGeo.states}
                                                         >
-                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-slate-900 text-xs font-semibold ${errors.state ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                                 <SelectValue placeholder={isLoadingGeo.states ? "Loading..." : "Select State"} />
                                                             </SelectTrigger>
                                                             <SelectContent className="max-h-[300px]">
@@ -735,7 +735,7 @@ const Register = () => {
                                                             onValueChange={(val) => handleInputChange('city', val)}
                                                             disabled={!formData.state || isLoadingGeo.cities}
                                                         >
-                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-slate-900 text-xs font-semibold ${errors.city ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                                 <SelectValue placeholder={isLoadingGeo.cities ? "Loading..." : "Select City"} />
                                                             </SelectTrigger>
                                                             <SelectContent className="max-h-[300px]">
@@ -746,7 +746,7 @@ const Register = () => {
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Street Address *</Label>
-                                                    <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                    <Input placeholder="123 Main St" value={formData.streetAddress} onChange={(e) => handleInputChange('streetAddress', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.streetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 </div>
                                             </div>
                                         )}
@@ -754,16 +754,16 @@ const Register = () => {
                                             <div className="space-y-1.5 md:space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
                                                 <div className="space-y-1.5">
                                                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Company Name *</Label>
-                                                    <Input value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.companyName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                    <Input value={formData.companyName} onChange={(e) => handleInputChange('companyName', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.companyName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">CAC / Reg Number *</Label>
-                                                        <Input value={formData.bizRegNumber} onChange={(e) => handleInputChange('bizRegNumber', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.bizRegNumber ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Input value={formData.bizRegNumber} onChange={(e) => handleInputChange('bizRegNumber', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.bizRegNumber ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                     <div className="space-y-1.5">
                                                         <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Phone *</Label>
-                                                        <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.phone ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Input value={formData.phone} onChange={(e) => handleInputChange('phone', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.phone ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                 </div>
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
@@ -774,7 +774,7 @@ const Register = () => {
                                                             onValueChange={(val) => { handleInputChange('bizState', val); handleInputChange('bizCity', ''); }}
                                                             disabled={!formData.country || isLoadingGeo.bizStates}
                                                         >
-                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.bizState ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-slate-900 text-xs font-semibold ${errors.bizState ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                                 <SelectValue placeholder={isLoadingGeo.bizStates ? "Loading..." : "Select State"} />
                                                             </SelectTrigger>
                                                             <SelectContent className="max-h-[300px]">
@@ -789,7 +789,7 @@ const Register = () => {
                                                             onValueChange={(val) => handleInputChange('bizCity', val)}
                                                             disabled={!formData.bizState || isLoadingGeo.bizCities}
                                                         >
-                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-xs font-semibold ${errors.bizCity ? "border-red-500 ring-offset-red-500" : ""}`}>
+                                                            <SelectTrigger className={`h-12 rounded-xl bg-white text-slate-900 text-xs font-semibold ${errors.bizCity ? "border-red-500 ring-offset-red-500" : ""}`}>
                                                                 <SelectValue placeholder={isLoadingGeo.bizCities ? "Loading..." : "Select City"} />
                                                             </SelectTrigger>
                                                             <SelectContent className="max-h-[300px]">
@@ -800,7 +800,7 @@ const Register = () => {
                                                 </div>
                                                 <div className="space-y-1.5">
                                                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Street Address *</Label>
-                                                    <Input placeholder="123 Main St" value={formData.bizStreetAddress} onChange={(e) => handleInputChange('bizStreetAddress', e.target.value)} className={`h-12 rounded-xl bg-white ${errors.bizStreetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                    <Input placeholder="123 Main St" value={formData.bizStreetAddress} onChange={(e) => handleInputChange('bizStreetAddress', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.bizStreetAddress ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                 </div>
                                             </div>
                                         )}
@@ -810,7 +810,7 @@ const Register = () => {
                                                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Select Business Categories *</Label>
                                                     <p className="text-[10px] md:text-xs text-slate-500 italic mt-1 font-medium tracking-widest uppercase">Choose all that apply to your inventory.</p>
                                                 </div>
-                                                <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 p-3 md:p-4 rounded-3xl ${errors.categories ? "border-2 border-dashed border-red-500 bg-red-50" : "bg-white"}`}>
+                                                <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 p-3 md:p-4 rounded-3xl ${errors.categories ? "border-2 border-dashed border-red-500 bg-red-50" : "bg-white text-slate-900"}`}>
                                                     {["Cement", "Steel", "Electrical", "Plumbing", "Roofing", "Tiles", "Paints", "Tools"].map((cat) => (
                                                         <div key={cat} onClick={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} className={`flex items-center space-x-2 md:space-x-3 p-3 md:p-4 border border-slate-100 rounded-2xl cursor-pointer transition-colors group ${formData.categories.includes(cat) ? "border-primary bg-primary/5" : "hover:bg-slate-50"}`}>
                                                             <Checkbox checked={formData.categories.includes(cat)} onCheckedChange={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} />
