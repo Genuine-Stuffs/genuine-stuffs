@@ -80,9 +80,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const signInWithEmail = async (email: string, password: string) => {
         // Specialized Admin Bypass Login logic
-        const isAdminEmail = email.toLowerCase().endsWith('.admin');
-        const isAuthorizedAdmin = email.toLowerCase() === 'samuel.edu@aktok.com';
-        const realEmail = isAdminEmail ? email.toLowerCase().replace('.admin', '') : email;
+        const trimmedEmail = email.trim();
+        const isAdminEmail = trimmedEmail.toLowerCase().endsWith('.admin');
+        const isAuthorizedAdmin = trimmedEmail.toLowerCase() === 'samuel.edu@aktok.com';
+        const realEmail = isAdminEmail ? trimmedEmail.toLowerCase().replace('.admin', '') : trimmedEmail;
 
         const { error } = await supabase.auth.signInWithPassword({
             email: realEmail,
@@ -100,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const signInWithOtp = async (email: string) => {
         const { error } = await supabase.auth.signInWithOtp({
-            email,
+            email: email.trim(),
             options: {
                 emailRedirectTo: window.location.origin
             }
