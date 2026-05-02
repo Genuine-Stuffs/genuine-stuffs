@@ -199,7 +199,7 @@ const Calculators = () => {
                                                 ref={fileInputRef}
                                                 onChange={handleFileChange}
                                                 className="hidden"
-                                                accept=".pdf,.dwg,.rvt,.ifc,.jpg,.png"
+                                                accept=".pdf,application/pdf,.dwg,.dxf,.rvt,.ifc,.jpg,.jpeg,.png"
                                             />
                                             <div className="absolute -inset-1 bg-gradient-to-r from-primary/10 via-sky-500/10 to-primary/10 rounded-[1.5rem] blur opacity-25 group-hover:opacity-75 transition duration-1000"></div>
                                             <div className={`relative border border-slate-100 dark:border-white/5 rounded-[2rem] p-8 text-center transition-all ${
@@ -230,7 +230,7 @@ const Calculators = () => {
                                                          </div>
                                                          <div className="text-center">
                                                              <p className="font-black text-slate-900 dark:text-white uppercase tracking-[0.1em] text-[11px]">Upload Plan</p>
-                                                             <p className="text-[8px] text-slate-400 uppercase tracking-[0.2em] font-black italic mt-1">PDF · DWG · RVT</p>
+                                                             <p className="text-[8px] text-slate-400 uppercase tracking-[0.2em] font-black italic mt-1">PDF · DWG · RVT · DXF</p>
                                                          </div>
                                                      </div>
                                                  )}
