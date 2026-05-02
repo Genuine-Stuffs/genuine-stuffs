@@ -67,11 +67,29 @@ const AddExperienceDialog = ({ isOpen, onClose, professionalId, onExperienceAdde
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        // Basic Validation
+        if (!formData.start_month || !formData.start_year) {
+            toast.error("Please select a start month and year.");
+            return;
+        }
+
+        if (!formData.is_current && (!formData.end_month || !formData.end_year)) {
+            toast.error("Please select an end month and year or mark as current.");
+            return;
+        }
+
         setIsSubmitting(true);
 
         try {
-            const startDate = `${formData.start_year}-${(months.indexOf(formData.start_month) + 1).toString().padStart(2, '0')}-01`;
-            const endDate = formData.is_current ? null : `${formData.end_year}-${(months.indexOf(formData.end_month) + 1).toString().padStart(2, '0')}-01`;
+            const startMonthIndex = months.indexOf(formData.start_month);
+            const startDate = `${formData.start_year}-${(startMonthIndex + 1).toString().padStart(2, '0')}-01`;
+            
+            let endDate = null;
+            if (!formData.is_current) {
+                const endMonthIndex = months.indexOf(formData.end_month);
+                endDate = `${formData.end_year}-${(endMonthIndex + 1).toString().padStart(2, '0')}-01`;
+            }
 
             const { error } = await supabase
                 .from('professional_experiences')
@@ -79,9 +97,9 @@ const AddExperienceDialog = ({ isOpen, onClose, professionalId, onExperienceAdde
                     professional_id: professionalId,
                     title: formData.title,
                     company: formData.company,
-                    employment_type: formData.employment_type,
+                    employment_type: formData.employment_type || null,
                     location: formData.location,
-                    location_type: formData.location_type,
+                    location_type: formData.location_type || null,
                     start_date: startDate,
                     end_date: endDate,
                     is_current: formData.is_current,
@@ -94,9 +112,9 @@ const AddExperienceDialog = ({ isOpen, onClose, professionalId, onExperienceAdde
             toast.success("Experience added successfully!");
             onExperienceAdded();
             onClose();
-        } catch (err) {
+        } catch (err: any) {
             console.error("Error adding experience:", err);
-            toast.error("Failed to add experience.");
+            toast.error(err.message || "Failed to add experience.");
         } finally {
             setIsSubmitting(false);
         }
