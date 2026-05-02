@@ -124,7 +124,7 @@ const Login = () => {
                                             type="email"
                                             placeholder="pro@genuine.com"
                                             required
-                                            className="h-12 rounded-xl bg-white"
+                                            className="h-12 rounded-xl bg-white text-slate-900"
                                             value={formData.email}
                                             onChange={(e) => handleInputChange('email', e.target.value)}
                                         />
@@ -140,7 +140,7 @@ const Login = () => {
                                                 id="password"
                                                 type={showPassword ? "text" : "password"}
                                                 required
-                                                className="h-12 rounded-xl pr-12 bg-white"
+                                                className="h-12 rounded-xl pr-12 bg-white text-slate-900"
                                                 value={formData.password}
                                                 onChange={(e) => handleInputChange('password', e.target.value)}
                                             />
