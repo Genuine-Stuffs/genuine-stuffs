@@ -28,8 +28,9 @@ const Navbar = () => {
     { path: "/pro-portal", label: "Dashboard", role: "professional" },
     { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
     { path: "/pm-dashboard", label: "Dashboard", role: "pm" },
+    { path: "/pm-dashboard", label: "Dashboard", role: "admin" }, // Admins get the PM dashboard
   ].filter(link => {
-    if (link.role && link.role !== role && role !== 'admin') return false;
+    if (link.role && link.role !== role) return false;
     if (link.hideForRole && link.hideForRole === role) return false;
     return true;
   });

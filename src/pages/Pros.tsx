@@ -20,7 +20,7 @@ const Pros = () => {
 
     // Strictly reserve this page for ProHub Networking
     useEffect(() => {
-        if (role !== 'professional' && !isLoading) {
+        if (role !== 'professional' && role !== 'admin' && !isLoading) {
             navigate('/hire-experts');
         }
     }, [role, navigate, isLoading]);
