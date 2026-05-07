@@ -421,6 +421,56 @@ const AIStudio = () => {
         toast.success("Professional Blueprint Exported!");
     };
 
+    const handleExportDXF = () => {
+        if (!designPackage || !designPackage.architectural_layout) {
+            toast.error("No design data available for CAD export.");
+            return;
+        }
+
+        // DXF Minimum Header
+        let dxfContent = "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n";
+
+        designPackage.architectural_layout.forEach((element: any) => {
+            if (element.svg_path) {
+                // Parse SVG path to DXF LINE entities
+                const commands = element.svg_path.split(/(?=[MLZ])/);
+                let startPoint = { x: 0, y: 0 };
+                let currentPoint = { x: 0, y: 0 };
+
+                commands.forEach((cmd: string) => {
+                    const type = cmd[0];
+                    const rawCoords = cmd.slice(1).split(',').filter(p => p.trim() !== "");
+                    const coords = rawCoords.map(Number);
+
+                    if (type === 'M' && coords.length >= 2) {
+                        startPoint = { x: coords[0], y: coords[1] };
+                        currentPoint = { ...startPoint };
+                    } else if (type === 'L' && coords.length >= 2) {
+                        const nextPoint = { x: coords[0], y: coords[1] };
+                        dxfContent += `0\nLINE\n8\n${element.type.toUpperCase()}\n10\n${currentPoint.x}\n20\n${currentPoint.y}\n30\n0.0\n11\n${nextPoint.x}\n21\n${nextPoint.y}\n31\n0.0\n`;
+                        currentPoint = { ...nextPoint };
+                    } else if (type === 'Z') {
+                        dxfContent += `0\nLINE\n8\n${element.type.toUpperCase()}\n10\n${currentPoint.x}\n20\n${currentPoint.y}\n30\n0.0\n11\n${startPoint.x}\n21\n${startPoint.y}\n31\n0.0\n`;
+                    }
+                });
+            }
+        });
+
+        dxfContent += "0\nENDSEC\n0\nEOF";
+
+        const blob = new Blob([dxfContent], { type: 'application/dxf' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `MaterialInsight_CAD_${designPackage.project_id || 'Design'}.dxf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        
+        toast.success("CAD File (.DXF) exported successfully!");
+    };
+
     const handleGenerate = async () => {
         // Bypass credit check for admin/pm users to allow unobstructed testing
         if (role !== 'admin' && role !== 'pm' && (credits === null || credits < 2)) {
@@ -1053,6 +1103,13 @@ const AIStudio = () => {
                                                                             >
                                                                                 <FileText className="w-3 h-3 mr-2" /> Download Blueprint
                                                                             </Button>
+                                                                            <Button 
+                                                                                onClick={handleExportDXF}
+                                                                                size="sm" 
+                                                                                className="bg-slate-800 text-white hover:bg-slate-700 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9 shadow-xl"
+                                                                            >
+                                                                                <DraftingCompass className="w-3 h-3 mr-2" /> Export to CAD
+                                                                            </Button>
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -1068,6 +1125,12 @@ const AIStudio = () => {
                                                                 className="bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl font-bold uppercase tracking-widest text-[9px] h-10 px-5 shadow-lg"
                                                             >
                                                                 <FileText className="w-3.5 h-3.5 mr-2" /> Download Blueprint
+                                                            </Button>
+                                                            <Button 
+                                                                onClick={handleExportDXF}
+                                                                className="bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 rounded-xl font-bold uppercase tracking-widest text-[9px] h-10 px-5 shadow-lg"
+                                                            >
+                                                                <DraftingCompass className="w-3.5 h-3.5 mr-2" /> Export to CAD (.DXF)
                                                             </Button>
                                                             <Button className="bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-primary dark:hover:bg-primary hover:text-white rounded-xl font-bold uppercase tracking-widest text-[9px] h-10 px-5 shadow-lg">Save Architecture</Button>
                                                         </div>
