@@ -468,7 +468,13 @@ const AIStudio = () => {
                 clean = clean.replace(/<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/gi, "");
                 // Purge any stray start/end tags
                 clean = clean.replace(/<<<DESIGN_DATA_(START|END)>>>/gi, "");
-                // Purge any JSON code blocks containing status/status-like AEC data
+                
+                // Purge any raw JSON blocks that look like AEC data (Greedy Scrub)
+                // Look for common AEC keys to avoid over-scrubbing normal conversational JSON
+                const aecJsonRegex = /\{[\s\S]*?"(status|project_id|architectural_layout|material_schedule)"[\s\S]*?\}/gi;
+                clean = clean.replace(aecJsonRegex, "");
+
+                // Purge markdown code blocks containing AEC data
                 clean = clean.replace(/```json[\s\S]*?```/gi, (match) => {
                     try {
                         const parsed = JSON.parse(match.replace(/```json|```/g, "").trim());
@@ -476,12 +482,28 @@ const AIStudio = () => {
                     } catch { /* not valid json, leave it */ }
                     return match;
                 });
+                
                 return clean.trim();
             };
 
+            // --- GREEDY PARSER FALLBACK: Recovery logic if AI misses tags ---
+            let finalDesignData = data.data;
+            if (!finalDesignData && data.result) {
+                try {
+                    const jsonMatch = data.result.match(/\{[\s\S]*?"status"[\s\S]*?"architectural_layout"[\s\S]*?\}/i);
+                    if (jsonMatch) {
+                        const parsed = JSON.parse(jsonMatch[0]);
+                        if (parsed.status && parsed.architectural_layout) {
+                            finalDesignData = parsed;
+                            console.log("Greedy parser successfully recovered AEC data from raw result.");
+                        }
+                    }
+                } catch (e) { /* Fallback failed, no structured data found */ }
+            }
+
             // Store text and structured data
             setGeneratedImage(sanitizeResultText(data.result));
-            setDesignPackage(data.data);
+            setDesignPackage(finalDesignData);
             setIsGenerating(false);
             setPromptText(""); // Clear input after successful send
             
