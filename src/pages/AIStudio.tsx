@@ -118,6 +118,7 @@ const AIStudio = () => {
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const [ultraMode, setUltraMode] = useState(false);
     const [messages, setMessages] = useState<any[]>([]);
+    const [chatSessions, setChatSessions] = useState<any[]>([]);
     const isMobile = useIsMobile();
 
     // Static/Frozen Screen logic for DeepSeek effect
@@ -609,6 +610,33 @@ const AIStudio = () => {
         }
     };
 
+    const handleNewProject = () => {
+        if (messages.length > 0) {
+            // Archive current session
+            const sessionTitle = messages.find(m => m.role === 'user')?.content?.substring(0, 30) + "..." || "Archived Project";
+            setChatSessions(prev => [
+                { 
+                    id: Date.now().toString(), 
+                    title: sessionTitle, 
+                    date: new Date().toLocaleTimeString(),
+                    messages: [...messages],
+                    design: designPackage
+                }, 
+                ...prev
+            ]);
+        }
+        
+        // 100% Clean Slate
+        setMessages([]);
+        setDesignPackage(null);
+        setGeneratedImage(null);
+        setVisualUrl(null);
+        setPromptText("");
+        setSidebarOpen(false);
+        setMobileSidebarOpen(false);
+        toast.success("New Project Session Initiated (Memory Cleared).");
+    };
+
     return (
         <div className="flex flex-col h-screen md:h-[100dvh] md:relative fixed inset-0 overflow-hidden bg-white dark:bg-black z-10">
             {/* Mobile Header (Fixed) */}
@@ -677,7 +705,7 @@ const AIStudio = () => {
                                         <Button
                                             variant="ghost"
                                             size="icon"
-                                            onClick={() => { setPromptText(""); setGeneratedImage(null); toast.info("New project session initiated."); setMobileSidebarOpen(false); }}
+                                            onClick={handleNewProject}
                                             className="rounded-xl h-9 w-9 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors shrink-0"
                                             title="New Project"
                                         >
@@ -734,7 +762,7 @@ const AIStudio = () => {
                                     <Button 
                                         variant="ghost" 
                                         size="icon" 
-                                        onClick={() => { setPromptText(""); setGeneratedImage(null); setVisualUrl(null); toast.info("New project session initiated."); }} 
+                                        onClick={handleNewProject} 
                                         className={`rounded-xl shrink-0 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10 transition-colors ${sidebarOpen ? 'h-8 w-8' : 'h-10 w-10'}`}
                                         title="New Project"
                                     >
@@ -777,7 +805,34 @@ const AIStudio = () => {
                         {sidebarOpen && (
                             <div className="space-y-6 pt-2">
                                 <div>
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 px-2">Recent Projects</p>
+                                    {/* Dynamic Past Sessions */}
+                                    {chatSessions.length > 0 && (
+                                        <div className="mb-4">
+                                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 px-1">Archived Sessions</p>
+                                            {chatSessions.map((session) => (
+                                                <div 
+                                                    key={session.id} 
+                                                    className="group flex items-center justify-between p-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-primary/30 transition-all cursor-pointer mb-2"
+                                                    onClick={() => {
+                                                        setMessages(session.messages);
+                                                        setDesignPackage(session.design);
+                                                        setSidebarOpen(false);
+                                                        toast.info(`Switched to: ${session.title}`);
+                                                    }}
+                                                >
+                                                    <div className="flex flex-col min-w-0">
+                                                        <span className="text-[10px] font-black text-slate-900 dark:text-white truncate uppercase tracking-tighter">
+                                                            {session.title}
+                                                        </span>
+                                                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{session.date}</span>
+                                                    </div>
+                                                    <History className="w-3 h-3 text-slate-300 group-hover:text-primary transition-colors" />
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2 px-1">Standard Reference</p>
                                     <div className="space-y-0.5">
                                         {chatHistory.map((chat) => (
                                             <button
