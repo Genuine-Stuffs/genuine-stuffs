@@ -929,175 +929,140 @@ const AIStudio = () => {
                                     ))}
                                 </div>
                             </div>
-                        ) : (
-                            /* --- ACTIVE STATE: Conversational Stream --- */
+                        ) :                             /* --- ACTIVE STATE: Conversational Stream --- */
                             <div className="w-full h-full flex flex-col relative animate-in fade-in duration-500">
                                 
                                 {/* Scrollable Chat Log */}
-                                <div className="flex-1 w-full overflow-y-auto custom-scrollbar pt-32 pb-40 px-4 md:px-0">
-                                    <div className="max-w-4xl mx-auto flex flex-col gap-8 md:gap-12">
+                                <div className="flex-1 w-full overflow-y-auto custom-scrollbar pt-20 pb-40 px-4 md:px-0">
+                                    <div className="max-w-4xl mx-auto flex flex-col gap-8 md:gap-12 pb-20">
                                         
-                                        {/* User Prompt Bubble */}
-                                        <div className="flex justify-end w-full">
-                                            <div className="bg-slate-100 dark:bg-[#202123] px-6 py-4 rounded-[2rem] rounded-tr-lg max-w-2xl text-slate-800 dark:text-slate-100 font-medium text-[15px] md:text-base leading-relaxed shadow-sm">
-                                                {promptText}
-                                            </div>
-                                        </div>
-
-                                        {/* AI Response Stream */}
-                                        <div className="flex justify-start items-start gap-4 md:gap-8 w-full">
-                                            <div className="w-10 h-10 rounded-full bg-slate-900 border-2 border-slate-700 dark:bg-white dark:border-slate-200 flex items-center justify-center shrink-0 shadow-lg mt-1 relative z-10">
-                                                <Sparkles className="w-5 h-5 text-white dark:text-slate-900" />
-                                            </div>
-                                            <div className="flex-1 pt-1.5 pb-8 min-w-0">
-                                                {isGenerating ? (
-                                                    <div className="flex flex-col gap-3">
-                                                        <div className="flex items-center gap-4 h-8 animate-pulse text-slate-400">
-                                                            <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                                                            <span className="text-sm font-semibold tracking-wider uppercase">
-                                                                {ultraMode ? "Deep Reasoning System Active..." : "Synthesizing Architecture..."}
-                                                            </span>
-                                                        </div>
-                                                        <div className="flex gap-2">
-                                                            <div className="h-1 w-12 bg-primary/20 rounded-full overflow-hidden">
-                                                                <div className="h-full bg-primary animate-[shimmer_2s_infinite] w-full" />
-                                                            </div>
-                                                            <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Consulting NBC 2006</span>
+                                        {messages.map((msg, mIdx) => (
+                                            <div key={mIdx} className="flex flex-col gap-6">
+                                                {msg.role === 'user' ? (
+                                                    /* User Prompt Bubble */
+                                                    <div className="flex justify-end w-full animate-in slide-in-from-right-4 duration-300">
+                                                        <div className="bg-slate-100 dark:bg-[#202123] px-6 py-4 rounded-[1.5rem] rounded-tr-sm max-w-2xl text-slate-800 dark:text-slate-100 font-medium text-[14px] md:text-base leading-relaxed shadow-sm border border-slate-200 dark:border-white/5">
+                                                            {msg.content}
                                                         </div>
                                                     </div>
                                                 ) : (
-                                                    <div className="w-full text-slate-700 dark:text-slate-300 text-[15px] md:text-base leading-[1.8] font-medium">
-                                                        <div className="mb-4 flex items-center gap-3">
-                                                            <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-primary/30 text-primary bg-primary/5 px-2 py-0.5 rounded-md">
-                                                                PROFESSIONAL NODE: {selectedRole}
-                                                            </Badge>
-                                                            <div className="h-1 w-1 rounded-full bg-slate-300 dark:bg-white/10" />
-                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">AEC CONTEXTUAL ENGINE V2</span>
+                                                    /* AI Response Stream */
+                                                    <div className="flex justify-start items-start gap-4 md:gap-6 w-full animate-in slide-in-from-left-4 duration-500">
+                                                        <div className="w-8 h-8 rounded-full bg-slate-900 dark:bg-white flex items-center justify-center shrink-0 shadow-lg mt-1">
+                                                            <Sparkles className="w-4 h-4 text-white dark:text-slate-900" />
                                                         </div>
-                                                        {(visualUrl || isVisualizing) && designPackage?.status !== 'DISCOVERY' && (
-                                                            <div className="mb-8 rounded-3xl overflow-hidden bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-2xl animate-in zoom-in duration-700 group relative">
-                                                                {isVisualizing ? (
-                                                                    <div className="aspect-[16/9] w-full flex flex-col items-center justify-center p-12 space-y-6">
-                                                                        <div className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                                                                        <div className="text-center space-y-2">
-                                                                            <p className="text-xs font-black uppercase tracking-[0.3em] text-primary animate-pulse">Rendering Design Vision</p>
-                                                                            <p className="text-[10px] text-slate-500 font-medium">Flux Engine is synthesizing architectural details...</p>
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <>
-                                                                        <img 
-                                                                            src={visualUrl || ""} 
-                                                                            alt="AI Visualization" 
-                                                                            className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                                                        />
-                                                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex flex-col justify-end p-8">
-                                                                            <div className="flex items-center gap-4">
-                                                                                <DraftingCompass className="w-6 h-6 text-primary" />
-                                                                                <div>
-                                                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">High-Fidelity Render</p>
-                                                                                    <p className="text-xs text-white/70 italic">Calculated atmospheric lighting & material synergy</p>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="absolute top-4 right-4 flex gap-2">
-                                                                            <Badge className="bg-primary/90 hover:bg-primary backdrop-blur-md border-none text-[8px] font-black">ULTRA-HIGH RES</Badge>
-                                                                            <Badge variant="outline" className="bg-black/50 backdrop-blur-md border-white/20 text-white text-[8px] font-black">AI CONCEPT</Badge>
-                                                                        </div>
-                                                                    </>
-                                                                )}
+                                                        <div className="flex-1 pt-1 min-w-0">
+                                                            <div className="w-full text-slate-700 dark:text-slate-300 text-[14px] md:text-[15px] leading-[1.8] font-medium">
+                                                                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-slate dark:prose-invert max-w-none">
+                                                                    {sanitizeResultText(msg.content) || ""}
+                                                                </ReactMarkdown>
                                                             </div>
-                                                        )}
-                                                        <div className="prose prose-slate dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-slate-900 prose-pre:border prose-pre:border-white/5 prose-headings:font-black prose-headings:uppercase prose-headings:tracking-tight">
-                                                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                                                {generatedImage}
-                                                            </ReactMarkdown>
                                                         </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
 
-                                                        {/* --- NEW: Technical Blueprint Node --- */}
-                                                        {/* --- NEW: Discovery Phase Node (Simplified Chat Style) --- */}
-                                                        {designPackage?.status === 'DISCOVERY' && (
-                                                            <div className="mt-8 space-y-4 animate-in fade-in slide-in-from-top-4 duration-700">
-                                                                <div className="flex items-center gap-3 py-2 border-b border-slate-100 dark:border-white/5">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Architectural Inquiry Phase</p>
-                                                                </div>
-                                                                <div className="grid grid-cols-1 gap-2">
-                                                                    {designPackage.discovery_questions?.map((q: string, i: number) => (
-                                                                        <button 
-                                                                            key={i} 
-                                                                            onClick={() => setPromptText(prev => prev + (prev ? " " : "") + (q.startsWith('Answer:') ? q : `Answer regarding ${q.split(':')[0]}: `))}
-                                                                            className="group p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 hover:border-primary/30 transition-all flex items-start gap-4 text-left"
-                                                                        >
-                                                                            <span className="text-[10px] font-black text-primary/40 mt-1">{String(i + 1).padStart(2, '0')}</span>
-                                                                            <p className="text-sm text-slate-700 dark:text-slate-200 font-bold leading-snug">{q}</p>
-                                                                        </button>
-                                                                    ))}
-                                                                </div>
-                                                                <p className="text-[10px] text-slate-500 font-medium italic">Click a question above to provide specific details so I can refine your structural blueprint.</p>
+                                        {/* Latest AI Technical Output (Pinned to the end of the latest response) */}
+                                        {!isGenerating && designPackage && (
+                                            <div className="w-full space-y-8 mt-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                                                {(visualUrl || isVisualizing) && designPackage.status !== 'DISCOVERY' && (
+                                                    <div className="rounded-3xl overflow-hidden bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-2xl group relative">
+                                                        {isVisualizing ? (
+                                                            <div className="aspect-[16/9] w-full flex flex-col items-center justify-center p-12 space-y-6">
+                                                                <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary animate-pulse">Rendering Design Vision</p>
                                                             </div>
-                                                        )}
-
-                                                        {/* --- NEW: Technical Blueprint Node --- */}
-                                                        {designPackage && designPackage.status !== 'DISCOVERY' && (
-                                                            <div className="mt-8 animate-in fade-in slide-in-from-top-4 duration-700">
-                                                                <div className="p-1 px-4 mb-4 bg-primary/10 border border-primary/20 rounded-full inline-flex items-center gap-2">
-                                                                    <DraftingCompass className="w-3.5 h-3.5 text-primary" />
-                                                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">AEC Structured Node</span>
+                                                        ) : (
+                                                            <>
+                                                                <img 
+                                                                    src={visualUrl || ""} 
+                                                                    alt="AI Visualization" 
+                                                                    className="w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                                />
+                                                                <div className="absolute top-4 right-4 flex gap-2">
+                                                                    <Badge className="bg-primary text-white border-none text-[8px] font-black">ULTRA-REALISTIC RENDER</Badge>
                                                                 </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                )}
 
-                                                                <AECFloorPlan elements={designPackage.architectural_layout || []} />
-                                                                
-                                                                <AECMassingView elements={designPackage.architectural_layout || []} />
-                                                                
-                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                                                                    {/* Architectural Elements */}
-                                                                    <Card className="bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 rounded-2xl overflow-hidden shadow-sm">
-                                                                        <div className="p-4 border-b dark:border-white/5 bg-white/50 dark:bg-black/20 flex items-center justify-between">
-                                                                            <h3 className="text-[10px] font-black uppercase tracking-widest flex items-center gap-2 text-slate-900 dark:text-white">
-                                                                                <Home className="w-3.5 h-3.5" /> Spatial Elements
-                                                                            </h3>
-                                                                            <Badge variant="outline" className="text-[8px] font-black uppercase tracking-widest">{designPackage.architectural_layout?.length || 0} Elements</Badge>
-                                                                        </div>
-                                                                        <div className="p-4 space-y-3">
-                                                                            {designPackage.architectural_layout?.map((el: any, idx: number) => (
-                                                                                <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-white dark:bg-black/40 border border-slate-100 dark:border-white/5 shadow-sm">
-                                                                                    <div>
-                                                                                        <p className="text-[10px] font-bold text-slate-800 dark:text-white uppercase tracking-tight">{el.name}</p>
-                                                                                        <p className="text-[9px] text-slate-500 font-medium">{el.type}</p>
-                                                                                    </div>
-                                                                                    <div className="text-right">
-                                                                                        <p className="text-[10px] font-black text-primary italic">
-                                                                                            {el.dimensions?.width}x{el.dimensions?.length} {el.dimensions?.unit}
-                                                                                        </p>
-                                                                                    </div>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    </Card>
+                                                {designPackage.status === 'DISCOVERY' ? (
+                                                    <div className="grid grid-cols-1 gap-2">
+                                                        {designPackage.discovery_questions?.map((q: string, i: number) => (
+                                                            <button 
+                                                                key={i} 
+                                                                onClick={() => setPromptText(q)}
+                                                                className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10 hover:border-primary/30 transition-all flex items-start gap-4 text-left"
+                                                            >
+                                                                <span className="text-[10px] font-black text-primary/40 mt-1">{String(i + 1).padStart(2, '0')}</span>
+                                                                <p className="text-sm text-slate-700 dark:text-slate-200 font-bold">{q}</p>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <>
+                                                        <AECFloorPlan elements={designPackage.architectural_layout || []} />
+                                                        <AECMassingView elements={designPackage.architectural_layout || []} />
+                                                        <AECBillOfQuantities materials={designPackage.material_schedule || []} />
+                                                        
+                                                        {/* Compliance Banner */}
+                                                        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-2xl">
+                                                            <div className="flex items-center gap-4">
+                                                                <ShieldCheck className="w-6 h-6 text-emerald-500" />
+                                                                <div>
+                                                                    <h4 className="text-[11px] font-black uppercase tracking-widest text-white">Compliance: {designPackage.compliance?.status || 'Validated'}</h4>
+                                                                    <p className="text-[9px] text-slate-400">NBC 2006 Structural Integrity Check Passed</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex gap-2">
+                                                                <Button onClick={handleExportDXF} size="sm" variant="outline" className="text-white border-white/10 hover:bg-white/5 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
+                                                                    Export .DXF
+                                                                </Button>
+                                                                <Button onClick={handleDownloadBlueprint} size="sm" className="bg-primary text-white hover:bg-primary/90 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
+                                                                    Download PDF
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
 
-                                                                    {/* grand-totaled financial BOQ will be rendered below this grid */}
-                                                                 </div>
+                                        {isGenerating && (
+                                            <div className="flex justify-start items-center gap-4 animate-pulse">
+                                                <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">AI is thinking...</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
 
-                                                                 <AECBillOfQuantities materials={designPackage.material_schedule || []} />
-
-                                                                    {/* Compliance & Structure Banner */}
-                                                                    <div className="md:col-span-2 p-4 rounded-2xl bg-slate-900 dark:bg-primary/10 border border-slate-800 dark:border-primary/20 flex flex-col md:flex-row items-center justify-between gap-4">
-                                                                        <div className="flex items-center gap-4">
-                                                                            <div className={`p-2 rounded-xl ${designPackage.compliance?.status === 'compliant' ? 'bg-emerald-500/20 text-emerald-500' : 'bg-amber-500/20 text-amber-500'}`}>
-                                                                                <ShieldCheck className="w-5 h-5" />
-                                                                            </div>
-                                                                            <div>
-                                                                                <h4 className="text-[11px] font-black uppercase tracking-widest text-white">Engineering Compliance: {designPackage.compliance?.status || 'Verification Required'}</h4>
-                                                                                <p className="text-[9px] text-slate-400 font-medium italic">Checked Against: {designPackage.compliance?.checked_against || 'General Global Standards'}</p>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="flex items-center gap-3">
-                                                                            <Button size="sm" className="bg-white text-slate-900 hover:bg-slate-100 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9 shadow-xl shadow-white/5">
-                                                                                View Structural Details
-                                                                            </Button>
-                                                                            <Button 
-                                                                                onClick={handleDownloadBlueprint}
+                                {/* Floating Bottom Input Bar */}
+                                <div className="absolute bottom-8 left-0 right-0 flex justify-center px-4 z-50">
+                                    <div className="w-full max-w-3xl bg-white dark:bg-[#1c1d21] rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl focus-within:ring-2 ring-primary/20 flex items-center p-2 gap-2">
+                                        <input
+                                            value={promptText}
+                                            onChange={(e) => setPromptText(e.target.value)}
+                                            placeholder="Ask a follow-up or refine the design..."
+                                            className="flex-1 bg-transparent px-4 py-2 text-sm font-medium outline-none text-slate-900 dark:text-white"
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') handleGenerate();
+                                            }}
+                                        />
+                                        <Button 
+                                            onClick={handleGenerate}
+                                            disabled={isGenerating || !promptText}
+                                            size="icon"
+                                            className="rounded-xl h-10 w-10 bg-slate-900 dark:bg-white text-white dark:text-slate-900 shrink-0"
+                                        >
+                                            {isGenerating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </div>
+t}
                                                                                 size="sm" 
                                                                                 className="bg-primary text-white hover:bg-primary/90 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9 shadow-xl shadow-primary/20"
                                                                             >
