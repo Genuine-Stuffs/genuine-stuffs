@@ -68,24 +68,34 @@ import AECMassingView from '@/components/aec/AECMassingView';
 const sanitizeResultText = (raw: string | null): string | null => {
     if (!raw) return null;
     let clean = raw;
-    // Purge tag-wrapped AEC data blocks
+    
+    // 1. Purge tag-wrapped AEC data blocks (Standard Protocol)
     clean = clean.replace(/<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/gi, "");
-    // Purge any stray start/end tags
+    
+    // 2. Purge any stray start/end tags that might have leaked
     clean = clean.replace(/<<<DESIGN_DATA_(START|END)>>>/gi, "");
     
-    // Purge any raw JSON blocks that look like AEC data (Greedy Scrub)
-    // Look for common AEC keys to avoid over-scrubbing normal conversational JSON
-    const aecJsonRegex = /\{[\s\S]*?"(status|project_id|architectural_layout|material_schedule)"[\s\S]*?\}/gi;
+    // 3. Greedy Scrub: Purge any raw JSON blocks that look like AEC data
+    // We look for patterns like {"status": ...} or {"architectural_layout": ...}
+    // and even handle cases with leading commas or malformed starts
+    const aecJsonRegex = /(?:^|,)?\s*\{[\s\S]*?"(?:status|project_id|architectural_layout|material_schedule)"[\s\S]*?\}/gi;
     clean = clean.replace(aecJsonRegex, "");
 
-    // Purge markdown code blocks containing AEC data
+    // 4. Purge markdown code blocks containing AEC data
     clean = clean.replace(/```json[\s\S]*?```/gi, (match) => {
         try {
-            const parsed = JSON.parse(match.replace(/```json|```/g, "").trim());
+            const content = match.replace(/```json|```/g, "").trim();
+            const parsed = JSON.parse(content);
             if (parsed.status || parsed.architectural_layout || parsed.project_id) return "";
-        } catch { /* not valid json, leave it */ }
+        } catch { 
+            // If it's malformed JSON but looks like AEC data, purge it anyway to be safe
+            if (match.toLowerCase().includes("architectural_layout") || match.toLowerCase().includes("status")) return "";
+        }
         return match;
     });
+
+    // 5. Final Polish: Remove trailing commas or artifacts left by the scrubbing
+    clean = clean.replace(/^[,\s]+|[,\s]+$/g, "");
     
     return clean.trim();
 };
@@ -537,19 +547,26 @@ const AIStudio = () => {
             }
 
 
-            // --- GREEDY PARSER FALLBACK: Recovery logic if AI misses tags ---
+            // --- GREEDY PARSER FALLBACK: Robust recovery logic ---
             let finalDesignData = data.data;
             if (!finalDesignData && data.result) {
                 try {
-                    const jsonMatch = data.result.match(/\{[\s\S]*?"status"[\s\S]*?"architectural_layout"[\s\S]*?\}/i);
-                    if (jsonMatch) {
-                        const parsed = JSON.parse(jsonMatch[0]);
-                        if (parsed.status && parsed.architectural_layout) {
+                    // Look for JSON-like structure even if it has a leading comma or lacks tags
+                    const jsonMatch = data.result.match(/(?:^|,)?\s*(\{[\s\S]*?"(?:status|architectural_layout)"[\s\S]*?\})/i);
+                    if (jsonMatch && jsonMatch[1]) {
+                        let jsonToParse = jsonMatch[1].trim();
+                        // Fix common AI errors: Ensure it starts with { and ends with }
+                        if (jsonToParse.startsWith(',')) jsonToParse = jsonToParse.substring(1).trim();
+                        
+                        const parsed = JSON.parse(jsonToParse);
+                        if (parsed.status || parsed.architectural_layout) {
                             finalDesignData = parsed;
-                            console.log("Greedy parser successfully recovered AEC data from raw result.");
+                            console.log("Greedy parser successfully recovered and repaired AEC data.");
                         }
                     }
-                } catch (e) { /* Fallback failed, no structured data found */ }
+                } catch (e) { 
+                    console.warn("Greedy recovery failed:", e);
+                }
             }
 
             // Store text and structured data
