@@ -64,6 +64,32 @@ import AECFloorPlan from '@/components/aec/AECFloorPlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
 
+// --- CLIENT-SIDE SANITIZER: Guarantee no JSON leaks in chat bubble ---
+const sanitizeResultText = (raw: string | null): string | null => {
+    if (!raw) return null;
+    let clean = raw;
+    // Purge tag-wrapped AEC data blocks
+    clean = clean.replace(/<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/gi, "");
+    // Purge any stray start/end tags
+    clean = clean.replace(/<<<DESIGN_DATA_(START|END)>>>/gi, "");
+    
+    // Purge any raw JSON blocks that look like AEC data (Greedy Scrub)
+    // Look for common AEC keys to avoid over-scrubbing normal conversational JSON
+    const aecJsonRegex = /\{[\s\S]*?"(status|project_id|architectural_layout|material_schedule)"[\s\S]*?\}/gi;
+    clean = clean.replace(aecJsonRegex, "");
+
+    // Purge markdown code blocks containing AEC data
+    clean = clean.replace(/```json[\s\S]*?```/gi, (match) => {
+        try {
+            const parsed = JSON.parse(match.replace(/```json|```/g, "").trim());
+            if (parsed.status || parsed.architectural_layout || parsed.project_id) return "";
+        } catch { /* not valid json, leave it */ }
+        return match;
+    });
+    
+    return clean.trim();
+};
+
 const AIStudio = () => {
     const { user, role, updateRole } = useAuth();
     const isPro = role === "professional";
@@ -510,31 +536,6 @@ const AIStudio = () => {
                 setCredits(prev => (prev !== null ? prev - 2 : prev));
             }
 
-            // --- CLIENT-SIDE SANITIZER: Guarantee no JSON leaks in chat bubble ---
-            const sanitizeResultText = (raw: string | null): string | null => {
-                if (!raw) return null;
-                let clean = raw;
-                // Purge tag-wrapped AEC data blocks
-                clean = clean.replace(/<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/gi, "");
-                // Purge any stray start/end tags
-                clean = clean.replace(/<<<DESIGN_DATA_(START|END)>>>/gi, "");
-                
-                // Purge any raw JSON blocks that look like AEC data (Greedy Scrub)
-                // Look for common AEC keys to avoid over-scrubbing normal conversational JSON
-                const aecJsonRegex = /\{[\s\S]*?"(status|project_id|architectural_layout|material_schedule)"[\s\S]*?\}/gi;
-                clean = clean.replace(aecJsonRegex, "");
-
-                // Purge markdown code blocks containing AEC data
-                clean = clean.replace(/```json[\s\S]*?```/gi, (match) => {
-                    try {
-                        const parsed = JSON.parse(match.replace(/```json|```/g, "").trim());
-                        if (parsed.status || parsed.architectural_layout || parsed.project_id) return "";
-                    } catch { /* not valid json, leave it */ }
-                    return match;
-                });
-                
-                return clean.trim();
-            };
 
             // --- GREEDY PARSER FALLBACK: Recovery logic if AI misses tags ---
             let finalDesignData = data.data;
