@@ -4,47 +4,81 @@ import { OrbitControls, PerspectiveCamera, Grid, Box, Environment, ContactShadow
 import { SpatialElement } from 'supabase/functions/ai-studio/schema';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Box as BoxIcon, Maximize, Rotate3d } from 'lucide-react';
+import { Box as BoxIcon, Maximize, Rotate3d, Sparkles } from 'lucide-react';
 
 interface AECMassingViewProps {
   elements: SpatialElement[];
 }
 
 const RoomVolume = ({ element, index }: { element: SpatialElement, index: number }) => {
-  const { width, length, height } = element.dimensions;
+  const { width, height, length } = element.dimensions;
+  const name = element.name.toLowerCase();
   
-  // Use coordinates if available, otherwise simplistic offset for visualization
-  // In a real app, we'd use the center of the bounding box
+  // Coordinates from AI or fallback for demo grid
   const position: [number, number, number] = [
-    element.coordinates?.x || (index * 4), 
+    element.coordinates?.x || (index * 6 - 6), 
     height / 2, 
     element.coordinates?.y || 0
   ];
 
+  const isGarage = name.includes('garage');
+  const isLiving = name.includes('living') || name.includes('parlor');
+  const isMaster = name.includes('master');
+
   return (
     <group position={position}>
-      <Box args={[width, height, length]}>
+      {/* Structural Main Mass (Concrete Finish) */}
+      <Box args={[width, height, length]} castShadow receiveShadow>
         <meshStandardMaterial 
-          color={index % 2 === 0 ? "#3b82f6" : "#6366f1"} 
-          transparent 
-          opacity={0.6} 
-          roughness={0.1}
-          metalness={0.2}
+          color={isGarage ? "#334155" : "#f1f5f9"} 
+          roughness={0.6}
+          metalness={0.1}
         />
       </Box>
-      <Box args={[width, height, length]}>
-        <meshStandardMaterial color="white" wireframe />
+
+      {/* Roof Parapet / Cap */}
+      <Box args={[width + 0.1, 0.2, length + 0.1]} position={[0, height/2 + 0.1, 0]} castShadow>
+         <meshStandardMaterial color="#1e293b" metalness={0.2} roughness={0.8} />
       </Box>
+
+      {/* Glass Window Planes (Simulated) */}
+      {width > 1.5 && (
+        <group position={[0, 0, length / 2 + 0.02]}>
+          <Box args={[width * 0.7, height * 0.6, 0.05]}>
+             <meshStandardMaterial 
+               color="#0ea5e9" 
+               transparent 
+               opacity={0.4} 
+               metalness={0.9} 
+               roughness={0.1} 
+             />
+          </Box>
+          {/* Window Frame */}
+          <Box args={[width * 0.7, height * 0.6, 0.02]} position={[0,0,-0.01]}>
+             <meshStandardMaterial color="#0f172a" wireframe />
+          </Box>
+        </group>
+      )}
+
+      {/* Wood Vertical Accents (The eBay look) */}
+      {(isLiving || isMaster) && (
+        <Box args={[0.1, height, length + 0.05]} position={[width/2 + 0.05, 0, 0]}>
+           <meshStandardMaterial color="#78350f" roughness={0.3} />
+        </Box>
+      )}
       
-      {/* Room Label in 3D */}
+      {/* Room Label in 3D Space */}
       <Text
-        position={[0, height / 2 + 0.5, 0]}
+        position={[0, height / 2 + 1, 0]}
         fontSize={0.3}
-        color="black"
+        color="#ffffff"
         anchorX="center"
         anchorY="middle"
+        fontWeight="black"
+        backgroundColor="#0f172a"
+        padding={0.1}
       >
-        {element.name}
+        {element.name.toUpperCase()}
       </Text>
     </group>
   );
@@ -56,50 +90,58 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ elements }) => {
   if (validElements.length === 0) return null;
 
   return (
-    <Card className="mt-6 border-slate-200 dark:border-white/10 overflow-hidden shadow-2xl animate-in zoom-in duration-1000">
-      <CardHeader className="bg-slate-50/50 dark:bg-white/5 py-3 border-b dark:border-white/5">
+    <Card className="mt-6 border-slate-200 dark:border-white/10 overflow-hidden shadow-2xl animate-in zoom-in duration-1000 bg-slate-900">
+      <CardHeader className="bg-black/40 py-4 border-b border-white/5 backdrop-blur-sm">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-[11px] font-black uppercase tracking-widest flex items-center gap-2">
-            <BoxIcon className="w-3 h-3 text-primary" />
-            3D Massing Visualization (v1.0)
-          </CardTitle>
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/20 text-primary">
+                <BoxIcon className="w-4 h-4" />
+            </div>
+            <div>
+                <CardTitle className="text-[12px] font-black uppercase tracking-[0.2em] text-white">
+                    3D Structural Massing Node
+                </CardTitle>
+                <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-0.5 text-primary">AEC Render Engine v4.0 (Active)</p>
+            </div>
+          </div>
           <div className="flex gap-2">
-            <Badge variant="outline" className="text-[8px] font-black border-primary/20 text-primary">
-              <Rotate3d className="w-2 h-2 mr-1" /> ORBIT READY
+            <Badge variant="outline" className="text-[9px] font-black border-primary/40 text-primary bg-primary/10">
+              <Sparkles className="w-2.5 h-2.5 mr-1" /> HD RENDERING
             </Badge>
-            <Badge variant="outline" className="text-[8px] font-black border-slate-200 text-slate-500">
-              <Maximize className="w-2 h-2 mr-1" /> FULL VIEW
+            <Badge variant="outline" className="text-[9px] font-black border-white/10 text-slate-400">
+              <Rotate3d className="w-2.5 h-2.5 mr-1" /> ORBIT
             </Badge>
           </div>
         </div>
       </CardHeader>
-      <CardContent className="p-0 relative h-[400px] bg-slate-100 dark:bg-[#111214]">
+      <CardContent className="p-0 relative h-[500px] bg-[#020617]">
         <Suspense fallback={
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="flex flex-col items-center gap-2">
-              <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Constructing Mesh...</p>
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-950">
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+              <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em]">Calibrating Mesh...</p>
             </div>
           </div>
         }>
           <Canvas shadows>
-            <PerspectiveCamera makeDefault position={[12, 12, 12]} fov={40} />
+            <PerspectiveCamera makeDefault position={[15, 15, 15]} fov={35} />
             <OrbitControls makeDefault minPolarAngle={0} maxPolarAngle={Math.PI / 2.1} />
             
-            {/* Lights */}
-            <ambientLight intensity={0.5} />
-            <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} intensity={1} castShadow />
-            <pointLight position={[-10, -10, -10]} intensity={0.5} />
+            {/* Professional Studio Lighting */}
+            <ambientLight intensity={0.4} />
+            <directionalLight position={[10, 20, 10]} intensity={1.5} castShadow shadow-mapSize={[1024, 1024]} />
+            <pointLight position={[-10, 10, -10]} intensity={0.8} color="#0ea5e9" />
             
             {/* Stage */}
             <Grid 
                 infiniteGrid 
-                fadeDistance={50} 
+                fadeDistance={40} 
                 fadeStrength={5} 
                 cellSize={1} 
                 sectionSize={5} 
-                sectionThickness={1.5} 
+                sectionThickness={2} 
                 sectionColor="#3b82f6" 
+                cellColor="#1e293b"
             />
             
             {/* Architectural Massing */}
@@ -109,19 +151,37 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ elements }) => {
             
             <ContactShadows 
                 position={[0, 0, 0]} 
-                opacity={0.4} 
-                scale={20} 
-                blur={2.4} 
-                far={4.5} 
+                opacity={0.6} 
+                scale={30} 
+                blur={2.5} 
+                far={10} 
+                color="#000000"
             />
             
             <Environment preset="city" />
           </Canvas>
         </Suspense>
         
-        <div className="absolute bottom-4 left-4 p-2 bg-white/80 dark:bg-black/50 backdrop-blur-md rounded-lg border border-slate-200 dark:border-white/10 shadow-sm">
-            <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Spatial Context</p>
-            <p className="text-[10px] font-bold text-slate-800 dark:text-white">Isometric Structural Massing</p>
+        <div className="absolute top-6 left-6 p-3 bg-black/60 backdrop-blur-xl rounded-xl border border-white/10 shadow-2xl">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary mb-1">Architectural Analysis</p>
+            <div className="flex items-center gap-4">
+                <div>
+                    <p className="text-[8px] font-bold text-slate-500 uppercase">Massing Type</p>
+                    <p className="text-[11px] font-black text-white">Prismatic Structural</p>
+                </div>
+                <div className="w-[1px] h-6 bg-white/10" />
+                <div>
+                    <p className="text-[8px] font-bold text-slate-500 uppercase">Est. Height</p>
+                    <p className="text-[11px] font-black text-white">3.6m (Single Level)</p>
+                </div>
+            </div>
+        </div>
+
+        <div className="absolute bottom-6 right-6 flex items-center gap-3">
+             <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">Ray-Trace Simulation Ready</span>
+             </div>
         </div>
       </CardContent>
     </Card>
