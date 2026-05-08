@@ -929,7 +929,7 @@ const AIStudio = () => {
                                     ))}
                                 </div>
                             </div>
-                        ) :                             /* --- ACTIVE STATE: Conversational Stream --- */
+                                                ) : (                            /* --- ACTIVE STATE: Conversational Stream --- */
                             <div className="w-full h-full flex flex-col relative animate-in fade-in duration-500">
                                 
                                 {/* Scrollable Chat Log */}
@@ -1062,85 +1062,6 @@ const AIStudio = () => {
                                     </div>
                                 </div>
                             </div>
-t}
-                                                                                size="sm" 
-                                                                                className="bg-primary text-white hover:bg-primary/90 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9 shadow-xl shadow-primary/20"
-                                                                            >
-                                                                                <FileText className="w-3 h-3 mr-2" /> Download Blueprint
-                                                                            </Button>
-                                                                            <Button 
-                                                                                onClick={handleExportDXF}
-                                                                                size="sm" 
-                                                                                className="bg-slate-800 text-white hover:bg-slate-700 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9 shadow-xl"
-                                                                            >
-                                                                                <DraftingCompass className="w-3 h-3 mr-2" /> Export to CAD
-                                                                            </Button>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                        )}
-                                                        
-                                                        {/* Actions append at the bottom of the response */}
-                                                        <div className="flex flex-wrap gap-4 mt-8 pt-6 border-t border-slate-200 dark:border-white/10">
-                                                            <Button variant="outline" className="text-slate-700 dark:text-white border-slate-300 dark:border-white/20 hover:bg-slate-50 dark:hover:bg-white/10 rounded-xl font-bold uppercase tracking-widest text-[9px] h-10 px-5 shadow-sm bg-white dark:bg-transparent">
-                                                                <Share2 className="w-3.5 h-3.5 mr-2" /> Dispatch Node
-                                                            </Button>
-                                                            <Button 
-                                                                onClick={handleDownloadBlueprint}
-                                                                className="bg-emerald-600 text-white hover:bg-emerald-700 rounded-xl font-bold uppercase tracking-widest text-[9px] h-10 px-5 shadow-lg"
-                                                            >
-                                                                <FileText className="w-3.5 h-3.5 mr-2" /> Download Blueprint
-                                                            </Button>
-                                                            <Button 
-                                                                onClick={handleExportDXF}
-                                                                className="bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-slate-800 rounded-xl font-bold uppercase tracking-widest text-[9px] h-10 px-5 shadow-lg"
-                                                            >
-                                                                <DraftingCompass className="w-3.5 h-3.5 mr-2" /> Export to CAD (.DXF)
-                                                            </Button>
-                                                            <Button className="bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:bg-primary dark:hover:bg-primary hover:text-white rounded-xl font-bold uppercase tracking-widest text-[9px] h-10 px-5 shadow-lg">Save Architecture</Button>
-                                                        </div>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Floating Dock Text Input */}
-                                <div className="absolute bottom-6 left-0 right-0 px-4 md:px-0 flex justify-center z-[50]">
-                                    <div className="w-full max-w-3xl bg-white dark:bg-[#1c1d21] rounded-full border border-slate-200 dark:border-white/10 shadow-[0_10px_40px_-10px_rgba(0,0,0,0.1)] md:shadow-2xl flex items-center p-1.5 md:p-2 transition-all focus-within:ring-2 ring-primary/20 bg-opacity-95 dark:bg-opacity-95 backdrop-blur-md">
-                                        <Button variant="ghost" size="icon" className="shrink-0 text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-full h-10 w-10 md:h-12 md:w-12 mx-1 hidden sm:flex">
-                                            <Plus className="w-5 h-5 md:w-6 md:h-6" />
-                                        </Button>
-                                        <Button variant="ghost" className="text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-full h-10 md:h-12 px-3 md:px-4 hidden sm:flex font-semibold text-[10px] md:text-[11px] uppercase tracking-widest">
-                                            <Sparkles className="w-3.5 h-3.5 mr-2" /> Ultra
-                                        </Button>
-                                        <div className="h-6 w-[1px] bg-slate-200 dark:bg-white/10 mx-2 hidden sm:block"></div>
-                                        <textarea
-                                            value={promptText}
-                                            onChange={(e) => setPromptText(e.target.value)}
-                                            placeholder="Ask anything, follow up..."
-                                            rows={1}
-                                            className="flex-1 bg-transparent resize-none py-3 md:py-4 px-4 min-h-[48px] md:min-h-[56px] text-slate-800 dark:text-white font-medium outline-none placeholder:text-slate-400 text-sm md:text-base whitespace-nowrap overflow-hidden"
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' && !e.shiftKey) {
-                                                    e.preventDefault();
-                                                    handleGenerate();
-                                                }
-                                            }}
-                                        />
-                                        <div className="flex items-center shrink-0 gap-1 md:gap-2">
-                                            <Button variant="ghost" size="icon" className="text-slate-400 hover:text-slate-700 dark:hover:text-white rounded-full h-10 w-10 md:h-12 md:w-12">
-                                                <Mic className="w-4 h-4 md:w-5 md:h-5" />
-                                            </Button>
-                                            <Button onClick={handleGenerate} disabled={isGenerating || !promptText} className="h-10 w-10 md:h-12 md:w-12 rounded-full bg-slate-900 text-white dark:bg-white dark:text-slate-900 hover:scale-105 active:scale-95 shadow-lg flex items-center justify-center p-0 shrink-0">
-                                                {isGenerating ? <Loader2 className="w-4 h-4 md:w-5 md:h-5 animate-spin" /> : <Send className="w-4 h-4 md:w-5 md:h-5 ml-0.5" />}
-                                            </Button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                            </div>
                         )}
                     </div>
                 </main>
@@ -1197,7 +1118,7 @@ t}
                     </DialogContent>
                 </Dialog>
             </div>
-        </div >
+        </div>
     );
 };
 
