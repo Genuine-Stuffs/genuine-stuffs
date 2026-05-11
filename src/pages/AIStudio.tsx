@@ -65,39 +65,40 @@ import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
 
 // --- CLIENT-SIDE SANITIZER: Guarantee no JSON leaks in chat bubble ---
-const sanitizeResultText = (raw: string | null): string | null => {
-    if (!raw) return null;
+const sanitizeResultText = (raw: any): string | null => {
+    if (!raw || typeof raw !== 'string') return null;
     let clean = raw;
     
-    // 1. Purge tag-wrapped AEC data blocks (Standard Protocol)
-    clean = clean.replace(/<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/gi, "");
-    
-    // 2. Purge any stray start/end tags that might have leaked
-    clean = clean.replace(/<<<DESIGN_DATA_(START|END)>>>/gi, "");
-    
-    // 3. Greedy Scrub: Purge any raw JSON blocks that look like AEC data
-    // We look for patterns like {"status": ...} or {"architectural_layout": ...}
-    // and even handle cases with leading commas or malformed starts
-    const aecJsonRegex = /(?:^|,)?\s*\{[\s\S]*?"(?:status|project_id|architectural_layout|material_schedule)"[\s\S]*?\}/gi;
-    clean = clean.replace(aecJsonRegex, "");
+    try {
+        // 1. Purge tag-wrapped AEC data blocks (Standard Protocol)
+        clean = clean.replace(/<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/gi, "");
+        
+        // 2. Purge any stray start/end tags that might have leaked
+        clean = clean.replace(/<<<DESIGN_DATA_(START|END)>>>/gi, "");
+        
+        // 3. Greedy Scrub: Purge any raw JSON blocks that look like AEC data
+        const aecJsonRegex = /(?:^|,)?\s*\{[\s\S]*?"(?:status|project_id|architectural_layout|material_schedule)"[\s\S]*?\}/gi;
+        clean = clean.replace(aecJsonRegex, "");
 
-    // 4. Purge markdown code blocks containing AEC data
-    clean = clean.replace(/```json[\s\S]*?```/gi, (match) => {
-        try {
-            const content = match.replace(/```json|```/g, "").trim();
-            const parsed = JSON.parse(content);
-            if (parsed.status || parsed.architectural_layout || parsed.project_id) return "";
-        } catch { 
-            // If it's malformed JSON but looks like AEC data, purge it anyway to be safe
-            if (match.toLowerCase().includes("architectural_layout") || match.toLowerCase().includes("status")) return "";
-        }
-        return match;
-    });
+        // 4. Purge markdown code blocks containing AEC data
+        clean = clean.replace(/```json[\s\S]*?```/gi, (match) => {
+            try {
+                const content = match.replace(/```json|```/g, "").trim();
+                const parsed = JSON.parse(content);
+                if (parsed.status || parsed.architectural_layout || parsed.project_id) return "";
+            } catch { 
+                if (match.toLowerCase().includes("architectural_layout") || match.toLowerCase().includes("status")) return "";
+            }
+            return match;
+        });
 
-    // 5. Final Polish: Remove trailing commas or artifacts left by the scrubbing
-    clean = clean.replace(/^[,\s]+|[,\s]+$/g, "");
+        // 5. Final Polish: Remove trailing commas or artifacts
+        clean = clean.replace(/^[,\s]+|[,\s]+$/g, "");
+    } catch (err) {
+        console.warn("Sanitizer warning:", err);
+    }
     
-    return clean.trim();
+    return clean.trim() || null;
 };
 
 const AIStudio = () => {
