@@ -549,25 +549,40 @@ const AIStudio = () => {
             }
 
 
-            // --- GREEDY PARSER FALLBACK: Robust recovery logic ---
+            // --- ULTIMATE GREEDY PARSER: Fail-safe recovery logic ---
             let finalDesignData = data.data;
-            if (!finalDesignData && data.result) {
+            
+            // If the backend didn't parse it, or if it looks empty, we hunt the text manually
+            if (!finalDesignData || !finalDesignData.architectural_layout) {
+                const rawResult = data.result || "";
                 try {
-                    // Look for JSON-like structure even if it has a leading comma or lacks tags
-                    const jsonMatch = data.result.match(/(?:^|,)?\s*(\{[\s\S]*?"(?:status|architectural_layout)"[\s\S]*?\})/i);
-                    if (jsonMatch && jsonMatch[1]) {
-                        let jsonToParse = jsonMatch[1].trim();
-                        // Fix common AI errors: Ensure it starts with { and ends with }
-                        if (jsonToParse.startsWith(',')) jsonToParse = jsonToParse.substring(1).trim();
-                        
-                        const parsed = JSON.parse(jsonToParse);
-                        if (parsed.status || parsed.architectural_layout) {
-                            finalDesignData = parsed;
-                            console.log("Greedy parser successfully recovered and repaired AEC data.");
+                    // 1. Look for explicit tags first
+                    const tagMatch = rawResult.match(/<<<DESIGN_DATA_START>>>([\s\S]*?)<<<DESIGN_DATA_END>>>/i);
+                    const jsonToTry = tagMatch ? tagMatch[1] : rawResult;
+
+                    // 2. Extract anything that looks like a JSON object containing AEC keys
+                    const jsonRegex = /\{[\s\S]*?"(?:status|architectural_layout|project_id)"[\s\S]*?\}/gi;
+                    const possibleBlocks = jsonToTry.match(jsonRegex);
+
+                    if (possibleBlocks) {
+                        for (const block of possibleBlocks) {
+                            try {
+                                let cleanedBlock = block.trim();
+                                // Repair common AI errors
+                                if (cleanedBlock.startsWith(',')) cleanedBlock = cleanedBlock.substring(1).trim();
+                                cleanedBlock = cleanedBlock.replace(/^```json\s*|```$/g, "").trim();
+                                
+                                const parsed = JSON.parse(cleanedBlock);
+                                if (parsed.architectural_layout || parsed.status) {
+                                    finalDesignData = parsed;
+                                    console.log("Ultimate Parser recovered AEC data from raw text.");
+                                    break;
+                                }
+                            } catch (e) { /* continue to next block */ }
                         }
                     }
-                } catch (e) { 
-                    console.warn("Greedy recovery failed:", e);
+                } catch (e) {
+                    console.warn("Ultimate Parser failed to find valid blocks:", e);
                 }
             }
 
@@ -580,7 +595,11 @@ const AIStudio = () => {
             // Add assistant response to history
             setMessages(prev => [...prev, { role: 'assistant', content: data.result }]);
             
-            toast.success("Design Analysis Ready!");
+            if (finalDesignData) {
+                toast.success("AEC Model Synchronized Successfully.");
+            } else {
+                toast.info("Design Analysis Ready.");
+            }
 
             // --- PATH 3: Decoupled High-Priority Rendering ---
             // Only fire if the AI deciphered that an image is appropriate
