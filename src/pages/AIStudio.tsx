@@ -107,6 +107,7 @@ const AIStudio = () => {
     const [searchParams] = useSearchParams();
     const [selectedRole, setSelectedRole] = useState("Architect");
     const [credits, setCredits] = useState<number | null>(null);
+    const [subscriptionStatus, setSubscriptionStatus] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isGenerating, setIsGenerating] = useState(false);
     const [isVisualizing, setIsVisualizing] = useState(false);
@@ -162,13 +163,14 @@ const AIStudio = () => {
             try {
                 const { data, error } = await supabase
                     .from('professionals')
-                    .select('credits')
+                    .select('credits, subscription_status')
                     .eq('id', user.id)
                     .single();
 
                 if (error) throw error;
 
                 setCredits(data?.credits ?? 0);
+                setSubscriptionStatus(data?.subscription_status ?? null);
             } catch (err) {
                 console.error("Error fetching credits:", err);
             } finally {
@@ -294,6 +296,15 @@ const AIStudio = () => {
 
     const handleDownloadBlueprint = async () => {
         if (!designPackage) return;
+
+        // SaaS Gating: Unlock only for premium or active packages (admins bypass)
+        const isPremium = subscriptionStatus === 'active' || (credits !== null && credits > 10) || role === 'admin' || role === 'pm';
+        if (!isPremium) {
+            toast.error("Download blocked. Please purchase a credit package to unlock document exports.");
+            if (isPro) setShowRefillModal(true);
+            return;
+        }
+
         toast.info("Preparing high-resolution blueprint...");
 
         const doc = new jsPDF();
@@ -462,6 +473,14 @@ const AIStudio = () => {
     const handleExportDXF = () => {
         if (!designPackage || !designPackage.architectural_layout) {
             toast.error("No design data available for CAD export.");
+            return;
+        }
+
+        // SaaS Gating: Unlock only for premium or active packages (admins bypass)
+        const isPremium = subscriptionStatus === 'active' || (credits !== null && credits > 10) || role === 'admin' || role === 'pm';
+        if (!isPremium) {
+            toast.error("Export blocked. Please purchase a credit package to unlock CAD downloads.");
+            if (isPro) setShowRefillModal(true);
             return;
         }
 
