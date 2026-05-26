@@ -27,6 +27,8 @@ export type Database = {
           rating: number | null
           views_count: number
           created_at: string
+          is_sponsored: boolean
+          sponsored_until: string | null
         }
         Insert: {
           id?: string
@@ -228,6 +230,96 @@ export type Database = {
           material_id?: string
           reporter_id?: string
           reason?: string
+          created_at?: string
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          id: string
+          client_id: string | null
+          subtotal: number
+          delivery_fee: number
+          platform_fee: number
+          total_amount: number
+          payment_status: 'pending' | 'paid' | 'failed'
+          payment_reference: string | null
+          delivery_address: string | null
+          delivery_city: string | null
+          delivery_state: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          client_id?: string | null
+          subtotal: number
+          delivery_fee?: number
+          platform_fee?: number
+          total_amount: number
+          payment_status?: 'pending' | 'paid' | 'failed'
+          payment_reference?: string | null
+          delivery_address?: string | null
+          delivery_city?: string | null
+          delivery_state?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          client_id?: string | null
+          subtotal?: number
+          delivery_fee?: number
+          platform_fee?: number
+          total_amount?: number
+          payment_status?: 'pending' | 'paid' | 'failed'
+          payment_reference?: string | null
+          delivery_address?: string | null
+          delivery_city?: string | null
+          delivery_state?: string | null
+          created_at?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          id: string
+          order_id: string | null
+          material_id: string | null
+          quantity: number
+          unit_price: number
+          total_price: number
+          vendor_id: string | null
+          commission_rate: number
+          commission_amount: number
+          escrow_status: 'held' | 'released' | 'refunded'
+          fulfillment_status: 'processing' | 'shipped' | 'delivered' | 'canceled'
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          order_id?: string | null
+          material_id?: string | null
+          quantity: number
+          unit_price: number
+          total_price: number
+          vendor_id?: string | null
+          commission_rate?: number
+          commission_amount: number
+          escrow_status?: 'held' | 'released' | 'refunded'
+          fulfillment_status?: 'processing' | 'shipped' | 'delivered' | 'canceled'
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          order_id?: string | null
+          material_id?: string | null
+          quantity?: number
+          unit_price?: number
+          total_price?: number
+          vendor_id?: string | null
+          commission_rate?: number
+          commission_amount?: number
+          escrow_status?: 'held' | 'released' | 'refunded'
+          fulfillment_status?: 'processing' | 'shipped' | 'delivered' | 'canceled'
           created_at?: string
         }
         Relationships: []
