@@ -425,7 +425,8 @@ const Marketplace = () => {
                                                         price: Number(m.price),
                                                         image_url: m.image_url,
                                                         unit: m.unit,
-                                                        vendor_name: m.vendor_name
+                                                        vendor_name: m.vendor_name,
+                                                        vendor_id: m.vendor_id
                                                     });
                                                 }}
                                             >
@@ -562,7 +563,8 @@ const Marketplace = () => {
                                                     price: Number(selectedMaterial.price),
                                                     image_url: selectedMaterial.image_url,
                                                     unit: selectedMaterial.unit,
-                                                    vendor_name: (selectedMaterial as any).vendor?.name || selectedMaterial.vendor_name
+                                                    vendor_name: (selectedMaterial as any).vendor?.name || selectedMaterial.vendor_name,
+                                                    vendor_id: selectedMaterial.vendor_id
                                                 });
                                             }}
                                         >

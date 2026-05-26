@@ -6,14 +6,96 @@ import { ShoppingCart, ShoppingBag, ArrowLeft, Trash2, Plus, Minus, ShieldCheck,
 import { Card } from "@/components/ui/card";
 import { useCart } from "@/context/CartContext";
 import { Separator } from "@/components/ui/separator";
+import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import { supabase } from "backend/supabaseClient";
+import { toast } from "sonner";
 
 const Cart = () => {
     const navigate = useNavigate();
-    const { items: cartItems, removeFromCart, updateQuantity, totalPrice, totalItems } = useCart();
+    const { items: cartItems, removeFromCart, updateQuantity, totalPrice, totalItems, clearCart } = useCart();
+    const { user } = useAuth();
+    const [isCheckingOut, setIsCheckingOut] = useState(false);
 
     const deliveryFee = cartItems.length > 0 ? 5000 : 0;
     const platformFee = cartItems.length > 0 ? 1000 : 0; // Flat service/handling fee
     const finalTotal = totalPrice + deliveryFee + platformFee;
+
+    const handleCheckout = () => {
+        if (!user) {
+            toast.error("Please login to complete your order.");
+            navigate("/login");
+            return;
+        }
+
+        setIsCheckingOut(true);
+
+        const handler = (window as any).PaystackPop.setup({
+            key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || 'pk_test_mock_key',
+            email: user.email || '',
+            amount: finalTotal * 100,
+            currency: 'NGN',
+            callback: async (response: any) => {
+                try {
+                    // 1. Create order record
+                    const { data: orderData, error: orderError } = await supabase
+                        .from('orders')
+                        .insert({
+                            client_id: user.id,
+                            subtotal: totalPrice,
+                            delivery_fee: deliveryFee,
+                            platform_fee: platformFee,
+                            total_amount: finalTotal,
+                            payment_status: 'paid',
+                            payment_reference: response.reference,
+                            delivery_address: 'Verification pending',
+                            delivery_city: 'Lagos',
+                            delivery_state: 'Ikeja'
+                        })
+                        .select()
+                        .single();
+
+                    if (orderError) throw orderError;
+
+                    // 2. Create order items record with 5% platform commission cut
+                    const orderItemsData = cartItems.map(item => ({
+                        order_id: orderData.id,
+                        material_id: item.id,
+                        quantity: item.quantity,
+                        unit_price: item.price,
+                        total_price: item.price * item.quantity,
+                        vendor_id: item.vendor_id || null,
+                        commission_rate: 0.05,
+                        commission_amount: item.price * item.quantity * 0.05,
+                        escrow_status: 'held',
+                        fulfillment_status: 'processing'
+                    }));
+
+                    const { error: itemsError } = await supabase
+                        .from('order_items')
+                        .insert(orderItemsData);
+
+                    if (itemsError) throw itemsError;
+
+                    // 3. Clear cart and redirect
+                    clearCart();
+                    toast.success("Order placed successfully! Transaction is protected in escrow.");
+                    navigate("/profile");
+                } catch (err: any) {
+                    console.error("Order logging failed:", err);
+                    toast.error(`Checkout succeeded but order logging failed: ${err.message}`);
+                } finally {
+                    setIsCheckingOut(false);
+                }
+            },
+            onClose: () => {
+                setIsCheckingOut(false);
+                toast.info("Transaction cancelled.");
+            }
+        });
+
+        handler.openIframe();
+    };
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-background">
@@ -158,9 +240,17 @@ const Cart = () => {
                                         </div>
                                     </div>
                                     
-                                    <Button className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-widest transition-all gap-3 shadow-xl shadow-primary/20">
-                                        <CreditCard className="w-5 h-5" /> Checkout Now
-                                    </Button>
+                                    <Button 
+                                         className="w-full h-14 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-sm uppercase tracking-widest transition-all gap-3 shadow-xl shadow-primary/20"
+                                         onClick={handleCheckout}
+                                         disabled={isCheckingOut}
+                                     >
+                                         {isCheckingOut ? (
+                                             <>Loading checkout...</>
+                                         ) : (
+                                             <><CreditCard className="w-5 h-5" /> Checkout Now</>
+                                         )}
+                                     </Button>
                                     
                                     <div className="mt-6 flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500">
                                         <Lock className="w-3 h-3" /> Secure Transaction
