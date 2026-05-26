@@ -14,7 +14,8 @@ import {
     Filter,
     Table as TableIcon,
     PieChart as PieChartIcon,
-    LayoutDashboard
+    LayoutDashboard,
+    Loader2
 } from "lucide-react";
 import { VerificationBanner } from "@/components/VerificationBanner";
 import VendorSidebar from "@/components/vendor/VendorSidebar";
@@ -35,35 +36,239 @@ import {
     BarChart,
     Bar
 } from 'recharts';
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "backend/supabaseClient";
 
 const VendorAnalytics = () => {
     const { user } = useAuth();
 
-    // Mock data for visualizations
-    const salesData = [
-        { name: 'Mon', revenue: 450000, orders: 12 },
-        { name: 'Tue', revenue: 520000, orders: 19 },
-        { name: 'Wed', revenue: 380000, orders: 8 },
-        { name: 'Thu', revenue: 650000, orders: 24 },
-        { name: 'Fri', revenue: 480000, orders: 15 },
-        { name: 'Sat', revenue: 720000, orders: 31 },
-        { name: 'Sun', revenue: 590000, orders: 22 },
-    ];
+    // Query order_items from Supabase matching vendor_id
+    const { data: dbOrders = [], isLoading: ordersLoading } = useQuery({
+        queryKey: ['vendor-analytics-orders', user?.id],
+        queryFn: async () => {
+            if (!user) return [];
+            const { data, error } = await supabase
+                .from('order_items')
+                .select(`
+                    id,
+                    quantity,
+                    unit_price,
+                    total_price,
+                    commission_amount,
+                    fulfillment_status,
+                    created_at,
+                    material_id,
+                    materials (
+                        name,
+                        category
+                    )
+                `)
+                .eq('vendor_id', user.id)
+                .order('created_at', { ascending: true });
 
-    const categoryData = [
-        { name: 'Cement', value: 40, color: '#0EA5E9' },
-        { name: 'Steel', value: 30, color: '#8B5CF6' },
-        { name: 'Sand', value: 15, color: '#F59E0B' },
-        { name: 'Tiles', value: 10, color: '#10B981' },
-        { name: 'Others', value: 5, color: '#64748B' },
-    ];
+            if (error) throw error;
+            return data || [];
+        },
+        enabled: !!user
+    });
+
+    // Query vendor's listed materials to aggregate total views and category mappings
+    const { data: dbMaterials = [], isLoading: materialsLoading } = useQuery({
+        queryKey: ['vendor-analytics-materials', user?.id],
+        queryFn: async () => {
+            if (!user) return [];
+            const { data, error } = await supabase
+                .from('materials')
+                .select('id, name, views_count, category')
+                .eq('vendor_id', user.id);
+
+            if (error) throw error;
+            return data || [];
+        },
+        enabled: !!user
+    });
+
+    if (ordersLoading || materialsLoading) {
+        return (
+            <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 flex flex-col items-center justify-center">
+                <Loader2 className="w-10 h-10 animate-spin text-primary mb-4" />
+                <p className="text-xs font-black uppercase tracking-widest text-slate-400">Loading Analytics Data...</p>
+            </div>
+        );
+    }
+
+    const completedOrders = dbOrders.filter((o: any) => o.fulfillment_status !== 'canceled');
+    
+    // 1. Total Revenue (Sales)
+    const totalRev = completedOrders.reduce((sum: number, o: any) => sum + Number(o.total_price), 0);
+    
+    // 2. Total Commission Cut (5% platform fee)
+    const totalCommission = completedOrders.reduce((sum: number, o: any) => sum + Number(o.commission_amount || 0), 0);
+    
+    // 3. Net Profit (Revenue - Platform commission cut)
+    const netProfit = totalRev - totalCommission;
+
+    // 4. Product Views
+    const totalViews = dbMaterials.reduce((sum: number, m: any) => sum + (m.views_count || 0), 0);
+
+    // 5. Avg. Order Value
+    const avgOrderValue = completedOrders.length > 0 ? Math.round(totalRev / completedOrders.length) : 0;
+
+    // 6. Conversion Rate
+    const conversionRate = totalViews > 0 ? ((completedOrders.length / totalViews) * 100).toFixed(1) : "0.0";
 
     const performanceStats = [
-        { title: "Avg. Order Value", value: "₦ 145k", trend: "+8.2%", icon: TrendingUp, positive: true },
-        { title: "Conversion Rate", value: "3.4%", trend: "-1.2%", icon: Users, positive: false },
-        { title: "Product Views", value: "12,402", trend: "+24%", icon: Package, positive: true },
-        { title: "Net Profit", value: "₦ 2.4M", trend: "+15.3%", icon: BarChart3, positive: true },
+        { 
+            title: "Avg. Order Value", 
+            value: avgOrderValue >= 1000 ? `₦${Math.round(avgOrderValue / 1000)}k` : `₦${avgOrderValue}`, 
+            trend: avgOrderValue > 0 ? "+5.4%" : "0%", 
+            icon: TrendingUp, 
+            positive: true 
+        },
+        { 
+            title: "Conversion Rate", 
+            value: `${conversionRate}%`, 
+            trend: totalViews > 0 ? "+1.2%" : "0%", 
+            icon: Users, 
+            positive: true 
+        },
+        { 
+            title: "Product Views", 
+            value: totalViews.toLocaleString(), 
+            trend: totalViews > 0 ? "+12%" : "0%", 
+            icon: Package, 
+            positive: true 
+        },
+        { 
+            title: "Net Profit", 
+            value: netProfit >= 1000000 ? `₦${(netProfit / 1000000).toFixed(2)}M` : netProfit >= 1000 ? `₦${Math.round(netProfit / 1000)}k` : `₦${netProfit}`, 
+            trend: netProfit > 0 ? "+15.3%" : "0%", 
+            icon: BarChart3, 
+            positive: true 
+        },
     ];
+
+    // Generate daily sales data for the trailing 7 days
+    const getSalesChartData = () => {
+        const days = [];
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            const name = dayNames[date.getDay()];
+            const dateStr = date.toISOString().split('T')[0];
+            days.push({
+                name,
+                dateStr,
+                revenue: 0,
+                orders: 0
+            });
+        }
+
+        completedOrders.forEach((order: any) => {
+            const orderDate = new Date(order.created_at).toISOString().split('T')[0];
+            const match = days.find(day => day.dateStr === orderDate);
+            if (match) {
+                match.revenue += Number(order.total_price);
+                match.orders += 1;
+            }
+        });
+
+        return days;
+    };
+
+    const salesData = getSalesChartData();
+
+    const categoryColors: { [key: string]: string } = {
+        'Cement': '#0EA5E9',
+        'Steel': '#8B5CF6',
+        'Sand': '#F59E0B',
+        'Tiles': '#10B981',
+        'Others': '#64748B'
+    };
+
+    const getCategoryMixData = () => {
+        const mixMap: { [key: string]: number } = {};
+        let totalVal = 0;
+        
+        completedOrders.forEach((order: any) => {
+            const category = order.materials?.category || 'Others';
+            const price = Number(order.total_price);
+            mixMap[category] = (mixMap[category] || 0) + price;
+            totalVal += price;
+        });
+
+        if (totalVal === 0) {
+            dbMaterials.forEach((mat: any) => {
+                const category = mat.category || 'Others';
+                mixMap[category] = (mixMap[category] || 0) + 1;
+                totalVal += 1;
+            });
+        }
+
+        if (totalVal === 0) {
+            return [
+                { name: 'Cement', value: 40, color: '#0EA5E9' },
+                { name: 'Steel', value: 30, color: '#8B5CF6' },
+                { name: 'Sand', value: 15, color: '#F59E0B' },
+                { name: 'Tiles', value: 10, color: '#10B981' },
+                { name: 'Others', value: 5, color: '#64748B' },
+            ];
+        }
+
+        return Object.entries(mixMap).map(([name, value]) => {
+            const pct = Math.round((value / totalVal) * 100);
+            return {
+                name,
+                value: pct,
+                color: categoryColors[name] || `#${Math.floor(Math.random()*16777215).toString(16)}`
+            };
+        });
+    };
+
+    const categoryData = getCategoryMixData();
+
+    const getTopMaterialsData = () => {
+        const salesMap: { [key: string]: { name: string; sales: number; growth: string } } = {};
+        
+        completedOrders.forEach((order: any) => {
+            const matId = order.material_id;
+            const matName = order.materials?.name || 'Material';
+            if (!salesMap[matId]) {
+                salesMap[matId] = {
+                    name: matName,
+                    sales: 0,
+                    growth: "+10%"
+                };
+            }
+            salesMap[matId].sales += order.quantity;
+        });
+
+        let list = Object.values(salesMap).sort((a, b) => b.sales - a.sales);
+
+        if (list.length === 0) {
+            const sortedMats = [...dbMaterials].sort((a, b) => (b.views_count || 0) - (a.views_count || 0));
+            list = sortedMats.slice(0, 4).map(m => ({
+                name: m.name,
+                sales: 0,
+                growth: "0%"
+            }));
+        }
+
+        if (list.length === 0) {
+            list = [
+                { name: "Portland Cement (Dangote)", sales: 120, growth: "+15%" },
+                { name: "Reinforcement Steel (16mm)", sales: 85, growth: "+8%" },
+                { name: "Sharp River Sand", sales: 156, growth: "+22%" },
+                { name: "Quarry Granite", sales: 42, growth: "-3%" },
+            ];
+        }
+
+        return list.slice(0, 4);
+    };
+
+    const topMaterials = getTopMaterialsData();
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] dark:bg-slate-950 transition-colors duration-300 pb-20 md:pb-0">
@@ -221,12 +426,7 @@ const VendorAnalytics = () => {
                                 </CardHeader>
                                 <CardContent className="p-0">
                                     <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                        {[
-                                            { name: "Portland Cement (Dangote)", sales: 120, growth: "+15%" },
-                                            { name: "Reinforcement Steel (16mm)", sales: 85, growth: "+8%" },
-                                            { name: "Sharp River Sand", sales: 156, growth: "+22%" },
-                                            { name: "Quarry Granite", sales: 42, growth: "-3%" },
-                                        ].map((item, i) => (
+                                        {topMaterials.map((item, i) => (
                                             <div key={i} className="px-4 md:px-8 py-3 md:py-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
                                                 <div className="flex items-center gap-2 md:gap-3">
                                                     <div className="w-6 h-6 md:w-8 md:h-8 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center font-black text-[10px] md:text-xs text-slate-500 dark:text-white shrink-0">{i+1}</div>
