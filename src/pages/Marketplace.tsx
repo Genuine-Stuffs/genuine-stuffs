@@ -176,6 +176,10 @@ const Marketplace = () => {
 
             return matchesSearch && matchesCategory && matchesPrice;
         }).sort((a, b) => {
+            // Sponsored priority first
+            if (a.is_sponsored && !b.is_sponsored) return -1;
+            if (!a.is_sponsored && b.is_sponsored) return 1;
+
             if (sortBy === "price-asc") return Number(a.price) - Number(b.price);
             if (sortBy === "price-desc") return Number(b.price) - Number(a.price);
             if (sortBy === "newest") return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
@@ -366,6 +370,13 @@ const Marketplace = () => {
                                             alt={m.name}
                                             className="object-cover w-full h-full group-hover:scale-110 transition-transform duration-700"
                                         />
+                                        {m.is_sponsored && (
+                                            <div className="absolute top-2 left-2 z-10">
+                                                <Badge className="bg-orange-500 hover:bg-orange-600 text-white border-none font-black text-[8px] uppercase shadow-md px-1.5 py-1">
+                                                    PROMOTED
+                                                </Badge>
+                                            </div>
+                                        )}
                                         <div className="absolute top-2 right-2 z-10 text-white">
                                             {!isList && (
                                                 <Badge className="bg-white/95 dark:bg-background/95 text-slate-900 dark:text-white border-none font-bold text-[8px] uppercase shadow-md px-1.5 py-1">
