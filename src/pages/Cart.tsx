@@ -12,7 +12,8 @@ const Cart = () => {
     const { items: cartItems, removeFromCart, updateQuantity, totalPrice, totalItems } = useCart();
 
     const deliveryFee = cartItems.length > 0 ? 5000 : 0;
-    const finalTotal = totalPrice + deliveryFee;
+    const platformFee = cartItems.length > 0 ? 1000 : 0; // Flat service/handling fee
+    const finalTotal = totalPrice + deliveryFee + platformFee;
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-background">
@@ -145,6 +146,10 @@ const Cart = () => {
                                         <div className="flex justify-between text-slate-400 font-bold text-sm">
                                             <span>Delivery Fee</span>
                                             <span className="text-white">₦{deliveryFee.toLocaleString()}</span>
+                                        </div>
+                                        <div className="flex justify-between text-slate-400 font-bold text-sm">
+                                            <span>Platform Service Fee</span>
+                                            <span className="text-white">₦{platformFee.toLocaleString()}</span>
                                         </div>
                                         <Separator className="bg-white/10" />
                                         <div className="flex justify-between items-center pt-2">
