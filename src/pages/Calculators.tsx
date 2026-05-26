@@ -16,48 +16,294 @@ import { Badge } from "@/components/ui/badge";
 const LegacyModule = ({ title, icon: Icon }: { title: string; icon: any }) => {
     const [isOpen, setIsOpen] = useState(false);
     
-    // Simple calculator state (placeholders)
+    // States for Concrete Volume
+    const [concreteL, setConcreteL] = useState("");
+    const [concreteW, setConcreteW] = useState("");
+    const [concreteD, setConcreteD] = useState("");
+    const [concreteRes, setConcreteRes] = useState<{ volume: number; cement: number; sand: number; gravel: number } | null>(null);
+
+    // States for Roofing Shingles
+    const [roofArea, setRoofArea] = useState("");
+    const [roofPitch, setRoofPitch] = useState("");
+    const [roofRes, setRoofRes] = useState<{ actualArea: number; bundles: number; squares: number } | null>(null);
+
+    // States for Block & Mortar
+    const [blockL, setBlockL] = useState("");
+    const [blockH, setBlockH] = useState("");
+    const [blockRes, setBlockRes] = useState<{ area: number; blocks: number; cement: number; sand: number } | null>(null);
+
+    // States for Tile Spacer
+    const [tileArea, setTileArea] = useState("");
+    const [tileSize, setTileSize] = useState("60x60");
+    const [tileSpacerGap, setTileSpacerGap] = useState("3");
+    const [tileRes, setTileRes] = useState<{ tiles: number; spacers: number; packs: number } | null>(null);
+
+    // Calculation Handlers
+    const handleConcreteCalc = () => {
+        const l = parseFloat(concreteL) || 0;
+        const w = parseFloat(concreteW) || 0;
+        const d = parseFloat(concreteD) || 0;
+        if (l <= 0 || w <= 0 || d <= 0) return;
+        const volume = l * w * d;
+        // Standard 1:2:4 concrete mix estimation
+        const cement = Math.ceil(volume * 8.4);
+        const sand = parseFloat((volume * 0.45).toFixed(2));
+        const gravel = parseFloat((volume * 0.9).toFixed(2));
+        setConcreteRes({ volume, cement, sand, gravel });
+    };
+
+    const handleRoofCalc = () => {
+        const area = parseFloat(roofArea) || 0;
+        const pitchDeg = parseFloat(roofPitch) || 0;
+        if (area <= 0) return;
+        const pitchRad = (pitchDeg * Math.PI) / 180;
+        const cosPitch = Math.cos(pitchRad);
+        const actualArea = cosPitch > 0 ? area / cosPitch : area;
+        const bundles = Math.ceil(actualArea / 3.0);
+        const squares = parseFloat((actualArea / 9.3).toFixed(1));
+        setRoofRes({ actualArea, bundles, squares });
+    };
+
+    const handleBlockCalc = () => {
+        const l = parseFloat(blockL) || 0;
+        const h = parseFloat(blockH) || 0;
+        if (l <= 0 || h <= 0) return;
+        const area = l * h;
+        // Standard 9" blocks (10 blocks per m2)
+        const blocks = Math.ceil(area * 10);
+        const cement = Math.ceil(area * 0.6);
+        const sand = parseFloat((area * 0.05).toFixed(2));
+        setBlockRes({ area, blocks, cement, sand });
+    };
+
+    const handleTileCalc = () => {
+        const area = parseFloat(tileArea) || 0;
+        if (area <= 0) return;
+        const parts = tileSize.toLowerCase().split('x');
+        const w = parseFloat(parts[0]) || 60;
+        const h = parseFloat(parts[1]) || 60;
+        
+        const tileAreaM2 = (w / 100) * (h / 100);
+        const tiles = Math.ceil((area / tileAreaM2) * 1.10); // 10% wastage
+        const spacers = tiles * 4;
+        const packs = Math.ceil(spacers / 250);
+        setTileRes({ tiles, spacers, packs });
+    };
+
     const renderContent = () => {
         switch (title) {
             case "Concrete Volume":
                 return (
                     <div className="space-y-3">
                         <div className="grid grid-cols-3 gap-2">
-                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">L (m)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
-                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">W (m)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
-                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">D (m)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-black uppercase text-slate-400">L (m)</p>
+                                <Input 
+                                    className="h-8 rounded-lg text-xs" 
+                                    placeholder="0.00" 
+                                    value={concreteL}
+                                    onChange={(e) => setConcreteL(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-black uppercase text-slate-400">W (m)</p>
+                                <Input 
+                                    className="h-8 rounded-lg text-xs" 
+                                    placeholder="0.00" 
+                                    value={concreteW}
+                                    onChange={(e) => setConcreteW(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-black uppercase text-slate-400">D (m)</p>
+                                <Input 
+                                    className="h-8 rounded-lg text-xs" 
+                                    placeholder="0.00" 
+                                    value={concreteD}
+                                    onChange={(e) => setConcreteD(e.target.value)}
+                                />
+                            </div>
                         </div>
-                        <Button className="w-full h-8 text-[9px] font-black uppercase bg-slate-900">Calculate Volume</Button>
+                        <Button 
+                            className="w-full h-8 text-[9px] font-black uppercase bg-slate-900 text-white rounded-lg hover:bg-slate-800"
+                            onClick={handleConcreteCalc}
+                        >
+                            Calculate Volume
+                        </Button>
+                        {concreteRes && (
+                            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5 text-[10px] animate-in slide-in-from-top-1 text-slate-900 dark:text-slate-200">
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Total Volume:</span>
+                                    <span className="text-slate-950 dark:text-white">{concreteRes.volume.toFixed(2)} m³</span>
+                                </div>
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Cement (50kg):</span>
+                                    <span className="text-primary">{concreteRes.cement} bags</span>
+                                </div>
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Sand:</span>
+                                    <span className="text-slate-950 dark:text-white">{concreteRes.sand} m³</span>
+                                </div>
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Gravel:</span>
+                                    <span className="text-slate-950 dark:text-white">{concreteRes.gravel} m³</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 );
             case "Roofing Shingles":
                 return (
                     <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-2">
-                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">Area (m²)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
-                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">Pitch (deg)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-black uppercase text-slate-400">Area (m²)</p>
+                                <Input 
+                                    className="h-8 rounded-lg text-xs" 
+                                    placeholder="0.00" 
+                                    value={roofArea}
+                                    onChange={(e) => setRoofArea(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-black uppercase text-slate-400">Pitch (deg)</p>
+                                <Input 
+                                    className="h-8 rounded-lg text-xs" 
+                                    placeholder="0.00" 
+                                    value={roofPitch}
+                                    onChange={(e) => setRoofPitch(e.target.value)}
+                                />
+                            </div>
                         </div>
-                        <Button className="w-full h-8 text-[9px] font-black uppercase bg-slate-900">Bundles Estimate</Button>
+                        <Button 
+                            className="w-full h-8 text-[9px] font-black uppercase bg-slate-900 text-white rounded-lg hover:bg-slate-800"
+                            onClick={handleRoofCalc}
+                        >
+                            Bundles Estimate
+                        </Button>
+                        {roofRes && (
+                            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5 text-[10px] animate-in slide-in-from-top-1 text-slate-900 dark:text-slate-200">
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Actual Area:</span>
+                                    <span className="text-slate-950 dark:text-white">{roofRes.actualArea.toFixed(1)} m²</span>
+                                </div>
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Bundles Required:</span>
+                                    <span className="text-primary">{roofRes.bundles} bundles</span>
+                                </div>
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Squares Cover:</span>
+                                    <span className="text-slate-950 dark:text-white">{roofRes.squares} SQ</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 );
             case "Block & Mortar":
                 return (
                     <div className="space-y-3">
                         <div className="grid grid-cols-2 gap-2">
-                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">Length (m)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
-                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">Height (m)</p><Input className="h-8 rounded-lg text-xs" placeholder="0.00" /></div>
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-black uppercase text-slate-400">Length (m)</p>
+                                <Input 
+                                    className="h-8 rounded-lg text-xs" 
+                                    placeholder="0.00" 
+                                    value={blockL}
+                                    onChange={(e) => setBlockL(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-black uppercase text-slate-400">Height (m)</p>
+                                <Input 
+                                    className="h-8 rounded-lg text-xs" 
+                                    placeholder="0.00" 
+                                    value={blockH}
+                                    onChange={(e) => setBlockH(e.target.value)}
+                                />
+                            </div>
                         </div>
-                        <Button className="w-full h-8 text-[9px] font-black uppercase bg-slate-900">Units Required</Button>
+                        <Button 
+                            className="w-full h-8 text-[9px] font-black uppercase bg-slate-900 text-white rounded-lg hover:bg-slate-800"
+                            onClick={handleBlockCalc}
+                        >
+                            Units Required
+                        </Button>
+                        {blockRes && (
+                            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5 text-[10px] animate-in slide-in-from-top-1 text-slate-900 dark:text-slate-200">
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Wall Area:</span>
+                                    <span className="text-slate-950 dark:text-white">{blockRes.area.toFixed(1)} m²</span>
+                                </div>
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Blocks (9"):</span>
+                                    <span className="text-primary">{blockRes.blocks} units</span>
+                                </div>
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Cement (Mortar):</span>
+                                    <span className="text-slate-950 dark:text-white">{blockRes.cement} bags</span>
+                                </div>
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Sand (Mortar):</span>
+                                    <span className="text-slate-950 dark:text-white">{blockRes.sand} Tons</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 );
             case "Tile Spacer":
                 return (
                     <div className="space-y-3">
-                        <div className="grid grid-cols-2 gap-2">
-                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">Tile Size (cm)</p><Input className="h-8 rounded-lg text-xs" placeholder="60x60" /></div>
-                            <div className="space-y-1"><p className="text-[8px] font-black uppercase text-slate-400">Gap (mm)</p><Input className="h-8 rounded-lg text-xs" placeholder="3" /></div>
+                        <div className="space-y-1">
+                            <p className="text-[8px] font-black uppercase text-slate-400">Floor Area (m²)</p>
+                            <Input 
+                                className="h-8 rounded-lg text-xs" 
+                                placeholder="0.00" 
+                                value={tileArea}
+                                onChange={(e) => setTileArea(e.target.value)}
+                            />
                         </div>
-                        <Button className="w-full h-8 text-[9px] font-black uppercase bg-slate-900">Pack Count</Button>
+                        <div className="grid grid-cols-2 gap-2">
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-black uppercase text-slate-400">Tile Size (cm)</p>
+                                <Input 
+                                    className="h-8 rounded-lg text-xs" 
+                                    placeholder="60x60" 
+                                    value={tileSize}
+                                    onChange={(e) => setTileSize(e.target.value)}
+                                />
+                            </div>
+                            <div className="space-y-1">
+                                <p className="text-[8px] font-black uppercase text-slate-400">Gap (mm)</p>
+                                <Input 
+                                    className="h-8 rounded-lg text-xs" 
+                                    placeholder="3" 
+                                    value={tileSpacerGap}
+                                    onChange={(e) => setTileSpacerGap(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <Button 
+                            className="w-full h-8 text-[9px] font-black uppercase bg-slate-900 text-white rounded-lg hover:bg-slate-800"
+                            onClick={handleTileCalc}
+                        >
+                            Pack Count
+                        </Button>
+                        {tileRes && (
+                            <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-850 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-1.5 text-[10px] animate-in slide-in-from-top-1 text-slate-900 dark:text-slate-200">
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Tiles Needed:</span>
+                                    <span className="text-slate-950 dark:text-white">{tileRes.tiles} (+10% waste)</span>
+                                </div>
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Total Spacers:</span>
+                                    <span className="text-slate-950 dark:text-white">{tileRes.spacers} spacers</span>
+                                </div>
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-500 uppercase text-[9px]">Packs (250/pk):</span>
+                                    <span className="text-primary">{tileRes.packs} pack(s)</span>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 );
             default: return null;
