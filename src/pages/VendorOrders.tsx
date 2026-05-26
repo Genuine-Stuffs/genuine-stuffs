@@ -24,6 +24,9 @@ import { VerificationBanner } from "@/components/VerificationBanner";
 import VendorSidebar from "@/components/vendor/VendorSidebar";
 import BottomNav from "@/components/vendor/BottomNav";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "backend/supabaseClient";
+import { toast } from "sonner";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -35,29 +38,93 @@ import { Badge } from "@/components/ui/badge";
 const VendorOrders = () => {
     const { user } = useAuth();
     const [searchQuery, setSearchQuery] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
     const [touchStart, setTouchStart] = useState<{ x: number, y: number } | null>(null);
 
-    // Mock data for now since backend doesn't have orders table yet
-    const orders = [
-        { id: "ORD-5421", client: "David Okonkwo", item: "Portland Cement x200", status: "Processing", date: "2026-03-24", total: 2500000, location: "Lagos, NG" },
-        { id: "ORD-5420", client: "Amina Bello", item: "Steel Rebars (16mm) x50", status: "Shipped", date: "2026-03-24", total: 32500000, location: "Abuja, NG" },
-        { id: "ORD-5419", client: "Premium Dev", item: "Sharp Sand (10 Tons)", status: "Delivered", date: "2026-03-23", total: 4500000, location: "Lekki, NG" },
-        { id: "ORD-5418", client: "Structural Pros", item: "Quarry Granite x15 Tons", status: "Delivered", date: "2026-03-22", total: 2250000, location: "Ibadan, NG" },
-        { id: "ORD-5417", client: "Chidi Azeez", item: "Aluminum Roofing x500sqm", status: "Canceled", date: "2026-03-21", total: 2250000, location: "Enugu, NG" },
-    ];
+    // Query order_items from Supabase joined with parent order and materials
+    const { data: dbOrders = [], isLoading, refetch } = useQuery({
+        queryKey: ['vendor-orders', user?.id],
+        queryFn: async () => {
+            if (!user) return [];
+            const { data, error } = await supabase
+                .from('order_items')
+                .select(`
+                    id,
+                    quantity,
+                    unit_price,
+                    total_price,
+                    fulfillment_status,
+                    created_at,
+                    material_id,
+                    orders (
+                        id,
+                        client_id,
+                        delivery_address,
+                        delivery_city,
+                        delivery_state
+                    ),
+                    materials (
+                        name
+                    )
+                `)
+                .eq('vendor_id', user.id)
+                .order('created_at', { ascending: false });
+
+            if (error) throw error;
+            return data || [];
+        },
+        enabled: !!user
+    });
+
+    // Transform database records into existing UI structure
+    const orders = dbOrders.map((item: any) => ({
+        id: `ORD-${item.id.slice(0, 4).toUpperCase()}`,
+        rawId: item.id,
+        client: `Client (${item.orders?.client_id?.slice(0, 4) || 'Anon'})`,
+        item: `${item.materials?.name || 'Material'} x${item.quantity}`,
+        status: item.fulfillment_status === 'processing' ? 'Processing' : 
+                item.fulfillment_status === 'shipped' ? 'Shipped' : 
+                item.fulfillment_status === 'delivered' ? 'Delivered' : 
+                item.fulfillment_status === 'canceled' ? 'Canceled' : 'Processing',
+        date: new Date(item.created_at).toISOString().split('T')[0],
+        total: Number(item.total_price),
+        location: `${item.orders?.delivery_city || 'Lagos'}, NG`
+    }));
+
+    // Dynamic stats compilation
+    const totalRev = orders.filter(o => o.status !== 'Canceled').reduce((sum, o) => sum + o.total, 0);
+    const activeCount = orders.filter(o => o.status === 'Processing' || o.status === 'Shipped').length;
+    const pendingDelivery = orders.filter(o => o.status === 'Shipped').length;
+    const totalCompleted = orders.filter(o => o.status === 'Delivered').length;
+    const totalFinishedOrFailed = orders.filter(o => o.status === 'Delivered' || o.status === 'Canceled').length;
+    const completionRate = totalFinishedOrFailed > 0 ? Math.round((totalCompleted / totalFinishedOrFailed) * 100) : 100;
 
     const stats = [
-        { title: "Total Revenue", value: "₦ 41.5M", icon: DollarSign, trend: "+12.5%", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/30" },
-        { title: "Active Orders", value: "2", icon: ShoppingCart, trend: "Stable", color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-950/30" },
-        { title: "Pending Delivery", value: "1", icon: Truck, trend: "Urgent", color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-950/30" },
-        { title: "Completion Rate", value: "94%", icon: CheckCircle2, trend: "High", color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-950/30" },
+        { title: "Total Revenue", value: `₦ ${(totalRev / 1000000).toFixed(1)}M`, icon: DollarSign, trend: "Stable", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/30" },
+        { title: "Active Orders", value: String(activeCount), icon: ShoppingCart, trend: "Active", color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-950/30" },
+        { title: "Pending Delivery", value: String(pendingDelivery), icon: Truck, trend: "Dispatch", color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-950/30" },
+        { title: "Completion Rate", value: `${completionRate}%`, icon: CheckCircle2, trend: "Fulfillment", color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-950/30" },
     ];
 
     const filteredOrders = orders.filter(o => 
         o.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
         o.id.toLowerCase().includes(searchQuery.toLowerCase())
     );
+
+    const handleUpdateStatus = async (itemId: string, nextStatus: 'processing' | 'shipped' | 'delivered' | 'canceled') => {
+        try {
+            const { error } = await supabase
+                .from('order_items')
+                .update({ fulfillment_status: nextStatus })
+                .eq('id', itemId);
+
+            if (error) throw error;
+            toast.success(`Fulfillment updated to ${nextStatus.toUpperCase()}`);
+            refetch();
+        } catch (err: any) {
+            console.error("Fulfillment update failed:", err);
+            toast.error("Failed to update status.");
+        }
+    };
 
     const getStatusColor = (status: string) => {
         switch (status) {
@@ -211,11 +278,29 @@ const VendorOrders = () => {
                                                                     <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-2 cursor-pointer">
                                                                         <Eye className="w-3.5 h-3.5" /> View Details
                                                                     </DropdownMenuItem>
-                                                                    <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-2 cursor-pointer">
+                                                                    <DropdownMenuItem 
+                                                                        className="text-[10px] uppercase tracking-widest gap-2 cursor-pointer"
+                                                                        onClick={() => handleUpdateStatus(order.rawId, 'processing')}
+                                                                    >
                                                                         <Clock className="w-3.5 h-3.5" /> Mark Processing
                                                                     </DropdownMenuItem>
-                                                                    <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-2 cursor-pointer">
+                                                                    <DropdownMenuItem 
+                                                                        className="text-[10px] uppercase tracking-widest gap-2 cursor-pointer"
+                                                                        onClick={() => handleUpdateStatus(order.rawId, 'shipped')}
+                                                                    >
                                                                         <Truck className="w-3.5 h-3.5" /> Mark Shipped
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem 
+                                                                        className="text-[10px] uppercase tracking-widest gap-2 cursor-pointer"
+                                                                        onClick={() => handleUpdateStatus(order.rawId, 'delivered')}
+                                                                    >
+                                                                        <CheckCircle2 className="w-3.5 h-3.5" /> Mark Delivered
+                                                                    </DropdownMenuItem>
+                                                                    <DropdownMenuItem 
+                                                                        className="text-[10px] uppercase tracking-widest gap-2 text-red-500 cursor-pointer"
+                                                                        onClick={() => handleUpdateStatus(order.rawId, 'canceled')}
+                                                                    >
+                                                                        <XCircle className="w-3.5 h-3.5" /> Cancel Order
                                                                     </DropdownMenuItem>
                                                                     <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-2 text-primary cursor-pointer border-t mt-1 pt-2">
                                                                         <Download className="w-3.5 h-3.5" /> Invoice PDF
@@ -284,11 +369,29 @@ const VendorOrders = () => {
                                                         <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl">
                                                             <Eye className="w-4 h-4 text-primary" /> View Details
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl">
+                                                        <DropdownMenuItem 
+                                                            className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl"
+                                                            onClick={() => handleUpdateStatus(order.rawId, 'processing')}
+                                                        >
                                                             <Clock className="w-4 h-4 text-slate-400" /> Mark Processing
                                                         </DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl">
+                                                        <DropdownMenuItem 
+                                                            className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl"
+                                                            onClick={() => handleUpdateStatus(order.rawId, 'shipped')}
+                                                        >
                                                             <Truck className="w-4 h-4 text-slate-400" /> Mark Shipped
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem 
+                                                            className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 cursor-pointer rounded-xl"
+                                                            onClick={() => handleUpdateStatus(order.rawId, 'delivered')}
+                                                        >
+                                                            <CheckCircle2 className="w-4 h-4 text-emerald-500" /> Mark Delivered
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem 
+                                                            className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 text-red-500 cursor-pointer rounded-xl"
+                                                            onClick={() => handleUpdateStatus(order.rawId, 'canceled')}
+                                                        >
+                                                            <XCircle className="w-4 h-4 text-red-500" /> Cancel Order
                                                         </DropdownMenuItem>
                                                         <div className="my-1 border-t border-slate-100 dark:border-slate-800" />
                                                         <DropdownMenuItem className="text-[10px] uppercase tracking-widest gap-3 py-3 px-4 text-primary cursor-pointer rounded-xl">
