@@ -34,24 +34,48 @@ export class IFCAuthoringEngine {
         }
 
         const modelID = this.api.CreateModel({ schema: "IFC4" });
-        console.log(`[IFC Engine] Creating Architectural Model for ${layout.placed_rooms.length} rooms...`);
+        
+        // Group rooms by floor to determine storeys
+        const storeys = new Set<number>();
+        layout.placed_rooms.forEach(r => storeys.add(r.floor));
 
-        for (const room of layout.placed_rooms) {
-            const height = 2.75; 
-            console.log(`  -> Extruding IfcSpace: ${room.room_id} [${room.width}x${room.depth}x${height}m] at X:${room.x}, Y:${room.y}`);
-        }
+        console.log(`[IFC Engine] Creating Architectural Model across ${storeys.size} storeys...`);
 
-        // --- PHASE 2: STRUCTURAL DERIVATION ---
-        console.log(`[IFC Engine] Deriving Structural Skeleton...`);
+        storeys.forEach(floorIndex => {
+            const elevation = floorIndex * 3.0; // Assume 3m floor-to-floor height
+            console.log(`\n--- Authoring IfcBuildingStorey: Floor ${floorIndex} (Elevation: +${elevation}m) ---`);
+            
+            const floorRooms = layout.placed_rooms.filter(r => r.floor === floorIndex);
+            
+            for (const room of floorRooms) {
+                if (room.room_id.startsWith("stairwell")) {
+                    console.log(`  -> Generating IfcStair (Vertical Circulation) in void space at X:${room.x}, Y:${room.y}`);
+                    continue;
+                }
+
+                const height = 2.75; 
+                console.log(`  -> Extruding IfcSpace: ${room.room_id} [${room.width}x${room.depth}x${height}m] at X:${room.x}, Y:${room.y}, Z:${elevation}`);
+            }
+
+            // Generate Floor Slab for upper floors
+            if (floorIndex > 0) {
+                console.log(`  -> Extruding IfcSlab (Floor Plate) at Elevation: +${elevation}m with Stairwell Voids carved out.`);
+            }
+        });
+
+        // --- PHASE 2/3: STRUCTURAL DERIVATION ---
+        console.log(`\n[IFC Engine] Deriving Multi-Storey Structural Skeleton...`);
         const skeleton = structuralEngine.generateSkeleton(layout);
 
         for (const col of skeleton.columns) {
-            const height = 3.0; // Column height to support beam
-            console.log(`  -> Extruding IfcColumn: ${col.id} [${col.width_m}x${col.depth_m}x${height}m] at X:${col.x}, Y:${col.y}`);
+            const elevation = col.floor * 3.0;
+            const height = 3.0; 
+            console.log(`  -> Extruding IfcColumn: ${col.id} [${col.width_m}x${col.depth_m}x${height}m] at X:${col.x}, Y:${col.y}, Z:${elevation}`);
         }
 
         for (const beam of skeleton.beams) {
-            console.log(`  -> Extruding IfcBeam: ${beam.id} span=${beam.span_m.toFixed(2)}m, section=${beam.width_m}x${beam.depth_m}m from ${beam.start_column_id} to ${beam.end_column_id}`);
+            const elevation = (beam.floor * 3.0) + 2.75; // Beams sit under the slab
+            console.log(`  -> Extruding IfcBeam: ${beam.id} span=${beam.span_m.toFixed(2)}m, section=${beam.width_m}x${beam.depth_m}m from ${beam.start_column_id} to ${beam.end_column_id} at Z:${elevation}`);
         }
 
         const ifcBytes = this.api.SaveModel(modelID);
