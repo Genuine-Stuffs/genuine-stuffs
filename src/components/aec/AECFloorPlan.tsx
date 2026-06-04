@@ -11,10 +11,15 @@ interface AECFloorPlanProps {
 
 const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   const [showStructure, setShowStructure] = useState(false);
+  const [activeFloor, setActiveFloor] = useState(0);
 
   if (!layout || !layout.placed_rooms || layout.placed_rooms.length === 0) return null;
 
   const { plot_width, plot_depth, placed_rooms } = layout;
+  const isDuplex = layout.program_reference.brief_reference.storeys > 1;
+
+  // Filter rooms by active floor
+  const activeRooms = placed_rooms.filter(r => r.floor === activeFloor);
 
   const padding = 2; // meters
   const viewWidth = plot_width + padding * 2;
@@ -26,6 +31,8 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
 
   // Generate structural skeleton
   const skeleton = structuralEngine.generateSkeleton(layout);
+  const activeBeams = skeleton.beams.filter(b => b.floor === activeFloor);
+  const activeCols = skeleton.columns.filter(c => c.floor === activeFloor);
 
   const renderRoom = (room: any, idx: number) => {
     const rx = xOffset + (room.x * scale);
@@ -34,7 +41,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     const rh = room.depth * scale;
     
     const intent = layout.program_reference.rooms.find(r => r.id === room.room_id);
-    const name = intent?.name || room.room_id;
+    const name = intent?.name || (room.room_id === 'stairwell_void' ? 'STAIR VOID' : room.room_id);
 
     return (
       <g key={`room-${idx}`} filter="url(#blueprint-shadow)" className={showStructure ? "opacity-30 transition-opacity" : "transition-opacity"}>
@@ -62,12 +69,11 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     return (
       <g className="animate-in fade-in duration-500">
         {/* Render Beams */}
-        {skeleton.beams.map(beam => {
+        {activeBeams.map(beam => {
            const x = xOffset + (beam.start_x * scale);
            const y = yOffset + (beam.start_y * scale);
            const w = beam.end_x === beam.start_x ? beam.width_m * scale : beam.span_m * scale;
            const h = beam.end_y === beam.start_y ? beam.width_m * scale : beam.span_m * scale;
-           // Offset slightly to center on column
            const halfCol = (beam.width_m * scale) / 2;
            return (
              <rect 
@@ -81,7 +87,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
            )
         })}
         {/* Render Columns */}
-        {skeleton.columns.map(col => {
+        {activeCols.map(col => {
            const cx = xOffset + (col.x * scale);
            const cy = yOffset + (col.y * scale);
            const size = col.width_m * scale;
@@ -110,6 +116,22 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
           <div>
             <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white flex items-center gap-3">
               Derived Floor Plan (Solver Output)
+              {isDuplex && (
+                <div className="flex bg-white/10 rounded-full p-0.5 ml-2">
+                   <button 
+                     onClick={() => setActiveFloor(0)}
+                     className={`px-3 py-1 rounded-full text-[9px] font-bold tracking-widest transition-all ${activeFloor === 0 ? 'bg-white text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
+                   >
+                     GROUND FL.
+                   </button>
+                   <button 
+                     onClick={() => setActiveFloor(1)}
+                     className={`px-3 py-1 rounded-full text-[9px] font-bold tracking-widest transition-all ${activeFloor === 1 ? 'bg-white text-black shadow-sm' : 'text-slate-400 hover:text-white'}`}
+                   >
+                     UPPER FL.
+                   </button>
+                </div>
+              )}
               <button 
                 onClick={() => setShowStructure(!showStructure)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] transition-all ${
@@ -123,7 +145,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
               </button>
             </CardTitle>
             <div className="flex items-center gap-2 mt-1">
-                <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Procedurally Generated</span>
+                <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Procedurally Generated • Elev +{activeFloor * 3.0}m</span>
             </div>
           </div>
         </div>
@@ -172,7 +194,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
             />
 
             {/* Render Solved Rooms */}
-            {placed_rooms.map((room, idx) => renderRoom(room, idx))}
+            {activeRooms.map((room, idx) => renderRoom(room, idx))}
 
             {/* Render Structure Overlay */}
             {renderStructure()}
@@ -189,12 +211,12 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
         {/* Footer Info */}
         <div className="p-8 border-t dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/40 grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="col-span-1 md:col-span-2 grid grid-cols-2 gap-4">
-                {placed_rooms.slice(0, 6).map(room => {
+                {activeRooms.slice(0, 6).map(room => {
                     const intent = layout.program_reference.rooms.find(r => r.id === room.room_id);
                     return (
                         <div key={room.room_id} className="flex items-center justify-between p-3 rounded-xl bg-white dark:bg-white/5 border border-slate-100 dark:border-white/5 shadow-sm">
                             <div className="flex flex-col">
-                                <span className="text-[11px] font-black text-slate-900 dark:text-white uppercase leading-none">{intent?.name || room.room_id}</span>
+                                <span className="text-[11px] font-black text-slate-900 dark:text-white uppercase leading-none">{intent?.name || (room.room_id === 'stairwell_void' ? 'STAIR VOID' : room.room_id)}</span>
                             </div>
                             <div className="text-right">
                                 <span className="text-xs font-black text-primary">{(room.width * room.depth).toFixed(1)}m²</span>
@@ -220,7 +242,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
                 <div className="mb-4">
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Floor Area</p>
                     <p className="text-3xl font-black text-slate-900 dark:text-white italic tracking-tighter leading-none">
-                        {placed_rooms.reduce((acc, r) => acc + (r.width * r.depth), 0).toFixed(2)} <span className="text-sm font-bold uppercase not-italic opacity-40">m²</span>
+                        {activeRooms.reduce((acc, r) => acc + (r.width * r.depth), 0).toFixed(2)} <span className="text-sm font-bold uppercase not-italic opacity-40">m²</span>
                     </p>
                 </div>
             </div>
