@@ -11,7 +11,7 @@
 export interface DesignBrief {
     plot_size_sqm: number;
     plot_orientation?: 'N' | 'S' | 'E' | 'W';
-    storeys: number; // Phase 1 is locked to 1 (Bungalow)
+    storeys: number; // Phase 3 now supports up to 2 (Duplex)
     budget_band: 'low' | 'mid' | 'high' | 'luxury';
     style_preference: string;
     target_occupancy: number;
@@ -23,11 +23,12 @@ export interface DesignBrief {
 // ---------------------------------------------------------------------------
 export interface RoomRequirement {
     id: string; // e.g., "bed_master", "kitchen"
-    type: 'living' | 'bedroom' | 'kitchen' | 'bathroom' | 'circulation' | 'service';
+    type: 'living' | 'bedroom' | 'kitchen' | 'bathroom' | 'circulation' | 'service' | 'vertical';
     name: string;
     min_area_sqm: number; // Must respect NBC minimums
     requires_plumbing: boolean;
     required_adjacencies: string[]; // List of room IDs this room must touch
+    target_floor?: number; // 0 = Ground, 1 = Upper
 }
 
 export interface SpatialProgram {
@@ -42,6 +43,7 @@ export interface SpatialProgram {
 // ---------------------------------------------------------------------------
 export interface PlacedRoom {
     room_id: string;
+    floor: number; // Z-index grouping
     x: number; // Bottom-left X coordinate in meters
     y: number; // Bottom-left Y coordinate in meters
     width: number; // Width in meters

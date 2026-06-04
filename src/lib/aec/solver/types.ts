@@ -27,4 +27,5 @@ export interface InternalRoomNode {
     y: number;
     w: number;
     d: number;
+    target_floor?: number;
 }

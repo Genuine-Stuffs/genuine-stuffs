@@ -40,6 +40,14 @@
         "hoarding_height_min_m": 2.4,
         "hoarding_required_within_m": 1.5
       }
+    },
+    "vertical_circulation": {
+      "staircase": {
+        "min_tread_depth_mm": 250,
+        "max_riser_height_mm": 175,
+        "min_clear_width_m": 1.2,
+        "min_headroom_m": 2.1
+      }
     }
   },
   "material_constants": {
