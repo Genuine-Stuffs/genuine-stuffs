@@ -48,6 +48,10 @@ const AECBillOfQuantities: React.FC<AECBillOfQuantitiesProps> = ({ materials }) 
               const unitPrice = mat.unit_price || 0;
               const lineTotal = mat.total_price || (mat.quantity_estimate * unitPrice);
               
+              // Fallback Logic: In Phase 1, if the marketplace doesn't have a real vendor,
+              // we rely on the System Default price (simulated here if marketplace_type is missing/system)
+              const isFallback = !mat.suggested_marketplace_type || mat.suggested_marketplace_type === 'system';
+              
               return (
                 <TableRow key={idx} className="group hover:bg-slate-50 dark:hover:bg-white/5 transition-colors border-b dark:border-white/5 border-slate-100">
                   <TableCell className="pl-6">
@@ -59,7 +63,9 @@ const AECBillOfQuantities: React.FC<AECBillOfQuantitiesProps> = ({ materials }) 
                     <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200 leading-tight">{mat.specification}</p>
                     <div className="flex items-center gap-2 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <ShoppingCart className="w-2.5 h-2.5 text-primary" />
-                        <span className="text-[8px] font-black text-primary uppercase tracking-widest">Buy on GS Marketplace</span>
+                        <span className="text-[8px] font-black text-primary uppercase tracking-widest">
+                            {isFallback ? 'Find local supplier' : 'Buy on GS Marketplace'}
+                        </span>
                     </div>
                   </TableCell>
                   <TableCell className="text-right">
@@ -67,10 +73,22 @@ const AECBillOfQuantities: React.FC<AECBillOfQuantitiesProps> = ({ materials }) 
                     <span className="text-[9px] font-bold text-slate-400 ml-1 uppercase">{mat.unit}</span>
                   </TableCell>
                   <TableCell className="text-right text-[11px] font-bold text-slate-600 dark:text-slate-400 font-mono">
-                    {unitPrice > 0 ? `₦${unitPrice.toLocaleString()}` : 'Market Price'}
+                    <div className="flex flex-col items-end">
+                        <span>{unitPrice > 0 ? `₦${unitPrice.toLocaleString()}` : 'Market Price'}</span>
+                        {isFallback && <span className="text-[7px] text-amber-500 font-black uppercase tracking-widest">Estimated Market Rate</span>}
+                    </div>
                   </TableCell>
-                  <TableCell className="text-right pr-6">
+                  <TableCell className="text-right pr-6 flex flex-col items-end gap-2 py-3">
                     <span className="text-[11px] font-black text-slate-900 dark:text-white font-mono">₦{lineTotal.toLocaleString()}</span>
+                    {isFallback ? (
+                        <button className="px-3 py-1 bg-amber-500/10 text-amber-600 dark:text-amber-400 text-[8px] font-black uppercase tracking-widest rounded border border-amber-500/20 hover:bg-amber-500/20 transition-colors">
+                            Request Supplier
+                        </button>
+                    ) : (
+                        <button className="px-3 py-1 bg-primary text-white text-[8px] font-black uppercase tracking-widest rounded hover:bg-primary/90 shadow-md shadow-primary/20 transition-colors">
+                            Buy Now
+                        </button>
+                    )}
                   </TableCell>
                 </TableRow>
               );
