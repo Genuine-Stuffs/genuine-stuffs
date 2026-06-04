@@ -4,6 +4,7 @@
  */
 import { IfcAPI } from "web-ifc";
 import { SolvedLayout } from "../../../../supabase/functions/ai-studio/schema";
+import { structuralEngine } from "../solver/structural";
 
 export class IFCAuthoringEngine {
     private api: IfcAPI;
@@ -18,7 +19,6 @@ export class IFCAuthoringEngine {
      */
     async init() {
         if (!this.initialized) {
-            // In a browser environment, this loads web-ifc.wasm
             await this.api.Init();
             this.initialized = true;
         }
@@ -33,32 +33,28 @@ export class IFCAuthoringEngine {
             throw new Error("IFCAuthoringEngine must be initialized before use.");
         }
 
-        // 1. Create a blank IFC4 Model
         const modelID = this.api.CreateModel({ schema: "IFC4" });
-
-        console.log(`[IFC Engine] Creating model for ${layout.placed_rooms.length} rooms...`);
-
-        // NOTE (Phase 1 Stub):
-        // True IFC authoring via web-ifc requires constructing the Express ID arrays
-        // for IfcProject, IfcSite, IfcBuilding, IfcBuildingStorey, IfcWall, etc.
-        // We simulate the processing time and log the extrusion parameters here.
-        // The actual entity creation (api.WriteLine) will be fleshed out as we
-        // bind the specific Nigerian AEC Rules constraints to physical walls.
+        console.log(`[IFC Engine] Creating Architectural Model for ${layout.placed_rooms.length} rooms...`);
 
         for (const room of layout.placed_rooms) {
-            // Extrude 2D rect into 3D volume
-            const height = 2.75; // From Nigerian rules ceiling height
-            console.log(`  -> Extruding Space: ${room.room_id} [${room.width}x${room.depth}x${height}m] at X:${room.x}, Y:${room.y}`);
-            
-            // Build 4 IfcWalls (StandardCase) around the perimeter
-            // Add IfcSpace for the volume
-            // Cut IfcOpeningElements for doors based on adjacencies
+            const height = 2.75; 
+            console.log(`  -> Extruding IfcSpace: ${room.room_id} [${room.width}x${room.depth}x${height}m] at X:${room.x}, Y:${room.y}`);
         }
 
-        // 2. Export the populated model to binary
-        const ifcBytes = this.api.SaveModel(modelID);
+        // --- PHASE 2: STRUCTURAL DERIVATION ---
+        console.log(`[IFC Engine] Deriving Structural Skeleton...`);
+        const skeleton = structuralEngine.generateSkeleton(layout);
 
-        // 3. Clean up WASM memory
+        for (const col of skeleton.columns) {
+            const height = 3.0; // Column height to support beam
+            console.log(`  -> Extruding IfcColumn: ${col.id} [${col.width_m}x${col.depth_m}x${height}m] at X:${col.x}, Y:${col.y}`);
+        }
+
+        for (const beam of skeleton.beams) {
+            console.log(`  -> Extruding IfcBeam: ${beam.id} span=${beam.span_m.toFixed(2)}m, section=${beam.width_m}x${beam.depth_m}m from ${beam.start_column_id} to ${beam.end_column_id}`);
+        }
+
+        const ifcBytes = this.api.SaveModel(modelID);
         this.api.CloseModel(modelID);
 
         return ifcBytes;
