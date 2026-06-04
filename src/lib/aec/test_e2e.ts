@@ -17,19 +17,21 @@ async function runIntegrationTest() {
         brief_reference: {
             plot_size_sqm: 450,
             plot_orientation: "N",
-            storeys: 1,
+            storeys: 2, // Phase 3: Testing Duplex
             budget_band: "mid",
             style_preference: "contemporary",
             target_occupancy: 5
         },
         total_target_area_sqm: 120,
         rooms: [
-            { id: "living_1", type: "living", name: "Main Lounge", min_area_sqm: 16, requires_plumbing: false, required_adjacencies: ["kitchen_1", "bed_master"] },
-            { id: "kitchen_1", type: "kitchen", name: "Kitchen", min_area_sqm: 8, requires_plumbing: true, required_adjacencies: ["living_1"] },
-            { id: "bed_master", type: "bedroom", name: "Master Suite", min_area_sqm: 14, requires_plumbing: false, required_adjacencies: ["bath_master"] },
-            { id: "bath_master", type: "bathroom", name: "Master Bath", min_area_sqm: 4, requires_plumbing: true, required_adjacencies: ["bed_master"] },
-            { id: "bed_2", type: "bedroom", name: "Bedroom 2", min_area_sqm: 10, requires_plumbing: false, required_adjacencies: [] },
-            { id: "bed_3", type: "bedroom", name: "Bedroom 3", min_area_sqm: 10, requires_plumbing: false, required_adjacencies: [] }
+            // Ground Floor
+            { id: "living_1", type: "living", name: "Main Lounge", min_area_sqm: 16, requires_plumbing: false, required_adjacencies: ["kitchen_1"], target_floor: 0 },
+            { id: "kitchen_1", type: "kitchen", name: "Kitchen", min_area_sqm: 8, requires_plumbing: true, required_adjacencies: ["living_1"], target_floor: 0 },
+            { id: "guest_bed", type: "bedroom", name: "Guest Bedroom", min_area_sqm: 10, requires_plumbing: false, required_adjacencies: [], target_floor: 0 },
+            // Upper Floor
+            { id: "bed_master", type: "bedroom", name: "Master Suite", min_area_sqm: 14, requires_plumbing: false, required_adjacencies: ["bath_master"], target_floor: 1 },
+            { id: "bath_master", type: "bathroom", name: "Master Bath", min_area_sqm: 4, requires_plumbing: true, required_adjacencies: ["bed_master"], target_floor: 1 },
+            { id: "bed_2", type: "bedroom", name: "Bedroom 2", min_area_sqm: 10, requires_plumbing: false, required_adjacencies: [], target_floor: 1 }
         ]
     };
 
@@ -43,7 +45,7 @@ async function runIntegrationTest() {
         const end = performance.now();
         
         console.log(`✓ Solver completed in ${(end - start).toFixed(2)}ms`);
-        console.log(`  Rooms Placed: ${layout.placed_rooms.length} / ${mockProgram.rooms.length}`);
+        console.log(`  Rooms Placed: ${layout.placed_rooms.length} (including Stairwell Voids)`);
 
         // 3. Pass to Validation Gate
         console.log("\\n[Step 3] Passing to Validation Gate (NBC 2006 Rules)...");
@@ -59,8 +61,8 @@ async function runIntegrationTest() {
         console.log("\\n[Step 4] Handoff to web-ifc and @thatopen/components...");
         console.log("✓ Pipeline integration successful. The layout object is ready for the Viewer components.");
 
-        // 5. Structural Derivation Test (Phase 2)
-        console.log("\\n[Step 5] Deriving Structural Grid & Asserting Beam Spans...");
+        // 5. Structural Derivation Test (Phase 2/3)
+        console.log("\\n[Step 5] Deriving Multi-Storey Structural Grid & Asserting Beam Spans...");
         const { structuralEngine } = await import("./solver/structural");
         const skeleton = structuralEngine.generateSkeleton(layout);
         
@@ -80,6 +82,24 @@ async function runIntegrationTest() {
             console.error(`X Structural Failure: A beam span exceeded the 4.5m NBC limit! Found span: ${maxFoundSpan}m`);
         } else {
             console.log(`✓ Structural Compliance passed. Maximum beam span is ${maxFoundSpan.toFixed(2)}m (≤ 4.5m limit).`);
+        }
+
+        // 6. Duplex Stairwell Alignment Test (Phase 3)
+        console.log("\\n[Step 6] Asserting Z-Axis Stairwell Alignment...");
+        const groundStair = layout.placed_rooms.find(r => r.floor === 0 && r.room_id === "stairwell");
+        const upperStairVoid = layout.placed_rooms.find(r => r.floor === 1 && r.room_id === "stairwell_void");
+
+        if (!groundStair || !upperStairVoid) {
+            console.error("X Duplex Failure: Solver failed to place a stairwell or upper floor void.");
+        } else if (
+            groundStair.x === upperStairVoid.x && 
+            groundStair.y === upperStairVoid.y && 
+            groundStair.width === upperStairVoid.width &&
+            groundStair.depth === upperStairVoid.depth
+        ) {
+            console.log(`✓ Vertical Circulation passed. Stairwell perfectly aligned at X:${groundStair.x}, Y:${groundStair.y} through both storeys.`);
+        } else {
+            console.error("X Duplex Failure: Stairwell void misalignment detected between Ground and Upper floors!");
         }
 
         console.log("\\n=== Test Completed Successfully ===");
