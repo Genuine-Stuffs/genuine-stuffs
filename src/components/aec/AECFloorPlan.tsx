@@ -1,27 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { SolvedLayout } from 'supabase/functions/ai-studio/schema';
+import { structuralEngine } from '@/lib/aec/solver/structural';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Ruler, Compass, ShieldAlert, FileText } from 'lucide-react';
+import { CheckCircle2, Ruler, Compass, ShieldAlert, Layers } from 'lucide-react';
 
 interface AECFloorPlanProps {
   layout?: SolvedLayout;
 }
 
 const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
+  const [showStructure, setShowStructure] = useState(false);
+
   if (!layout || !layout.placed_rooms || layout.placed_rooms.length === 0) return null;
 
   const { plot_width, plot_depth, placed_rooms } = layout;
 
-  // We want to scale the SVG to fit a 720x520 viewport
   const padding = 2; // meters
   const viewWidth = plot_width + padding * 2;
   const viewHeight = plot_depth + padding * 2;
   const scale = Math.min(720 / viewWidth, 520 / viewHeight);
   
-  // Center it
   const xOffset = (720 - (plot_width * scale)) / 2;
   const yOffset = (520 - (plot_depth * scale)) / 2;
+
+  // Generate structural skeleton
+  const skeleton = structuralEngine.generateSkeleton(layout);
 
   const renderRoom = (room: any, idx: number) => {
     const rx = xOffset + (room.x * scale);
@@ -29,18 +33,15 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     const rw = room.width * scale;
     const rh = room.depth * scale;
     
-    // Find the original intent for the name
     const intent = layout.program_reference.rooms.find(r => r.id === room.room_id);
     const name = intent?.name || room.room_id;
 
     return (
-      <g key={`room-${idx}`} filter="url(#blueprint-shadow)">
-        {/* Wall Outline */}
+      <g key={`room-${idx}`} filter="url(#blueprint-shadow)" className={showStructure ? "opacity-30 transition-opacity" : "transition-opacity"}>
         <rect 
           x={rx} y={ry} width={rw} height={rh}
           className="fill-white dark:fill-[#0d0f14] stroke-slate-800 dark:stroke-slate-200 stroke-[4]"
         />
-        {/* Label */}
         <text
           x={rx + rw/2} y={ry + rh/2}
           textAnchor="middle"
@@ -56,6 +57,49 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     );
   };
 
+  const renderStructure = () => {
+    if (!showStructure) return null;
+    return (
+      <g className="animate-in fade-in duration-500">
+        {/* Render Beams */}
+        {skeleton.beams.map(beam => {
+           const x = xOffset + (beam.start_x * scale);
+           const y = yOffset + (beam.start_y * scale);
+           const w = beam.end_x === beam.start_x ? beam.width_m * scale : beam.span_m * scale;
+           const h = beam.end_y === beam.start_y ? beam.width_m * scale : beam.span_m * scale;
+           // Offset slightly to center on column
+           const halfCol = (beam.width_m * scale) / 2;
+           return (
+             <rect 
+               key={beam.id}
+               x={x - (beam.end_x === beam.start_x ? halfCol : 0)}
+               y={y - (beam.end_y === beam.start_y ? halfCol : 0)}
+               width={w}
+               height={h}
+               className="fill-blue-500/20 stroke-blue-600 stroke-[2] stroke-dasharray-4"
+             />
+           )
+        })}
+        {/* Render Columns */}
+        {skeleton.columns.map(col => {
+           const cx = xOffset + (col.x * scale);
+           const cy = yOffset + (col.y * scale);
+           const size = col.width_m * scale;
+           return (
+             <rect 
+               key={col.id}
+               x={cx - size/2}
+               y={cy - size/2}
+               width={size}
+               height={size}
+               className="fill-red-500 stroke-red-700 stroke-[1]"
+             />
+           )
+        })}
+      </g>
+    );
+  };
+
   return (
     <Card className="mt-8 border-slate-200 dark:border-white/10 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] group bg-[#f8fafc] dark:bg-[#0a0c10]">
       <CardHeader className="bg-slate-900 dark:bg-black py-5 border-b dark:border-white/5 flex flex-row items-center justify-between px-8">
@@ -64,8 +108,19 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
             <Ruler className="w-5 h-5" />
           </div>
           <div>
-            <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white">
+            <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white flex items-center gap-3">
               Derived Floor Plan (Solver Output)
+              <button 
+                onClick={() => setShowStructure(!showStructure)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] transition-all ${
+                  showStructure 
+                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' 
+                    : 'bg-white/10 text-slate-400 hover:bg-white/20'
+                }`}
+              >
+                <Layers className="w-3 h-3" />
+                {showStructure ? 'STRUCTURAL GRID ON' : 'STRUCTURAL GRID OFF'}
+              </button>
             </CardTitle>
             <div className="flex items-center gap-2 mt-1">
                 <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Procedurally Generated</span>
@@ -118,6 +173,9 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
 
             {/* Render Solved Rooms */}
             {placed_rooms.map((room, idx) => renderRoom(room, idx))}
+
+            {/* Render Structure Overlay */}
+            {renderStructure()}
 
           </svg>
           

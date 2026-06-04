@@ -1,5 +1,6 @@
-import React from 'react';
-import { MaterialRequirement } from 'supabase/functions/ai-studio/schema';
+import React, { useMemo } from 'react';
+import { MaterialRequirement, SolvedLayout } from 'supabase/functions/ai-studio/schema';
+import { structuralEngine } from '@/lib/aec/solver/structural';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from '@/components/ui/badge';
@@ -7,12 +8,53 @@ import { Calculator, ShoppingCart, TrendingUp } from 'lucide-react';
 
 interface AECBillOfQuantitiesProps {
   materials: MaterialRequirement[];
+  layout?: SolvedLayout;
 }
 
-const AECBillOfQuantities: React.FC<AECBillOfQuantitiesProps> = ({ materials }) => {
-  const totalProjectCost = materials.reduce((sum, mat) => sum + (mat.total_price || (mat.quantity_estimate * (mat.unit_price || 0))), 0);
+const AECBillOfQuantities: React.FC<AECBillOfQuantitiesProps> = ({ materials, layout }) => {
+  const displayMaterials = useMemo(() => {
+      let finalMats = [...materials];
+      
+      if (layout) {
+          const skeleton = structuralEngine.generateSkeleton(layout);
+          
+          // Calculate Concrete Volume
+          let concreteVol = 0;
+          skeleton.columns.forEach(c => concreteVol += (c.width_m * c.depth_m * 3.0));
+          skeleton.beams.forEach(b => concreteVol += (b.width_m * b.depth_m * b.span_m));
+          
+          if (concreteVol > 0) {
+              finalMats.push({
+                  category: "Structural",
+                  specification: "C20 Grade Concrete (Columns & Beams)",
+                  quantity_estimate: Math.ceil(concreteVol),
+                  unit: "m3",
+                  unit_price: 65000,
+                  total_price: Math.ceil(concreteVol) * 65000,
+                  suggested_marketplace_type: "system"
+              });
 
-  if (!materials || materials.length === 0) return null;
+              // Heuristic: ~120kg of steel per m3 of concrete
+              const steelKg = concreteVol * 120;
+              const steelTons = steelKg / 1000;
+              finalMats.push({
+                  category: "Structural",
+                  specification: "High Yield Reinforcement Steel (12mm/16mm)",
+                  quantity_estimate: Number(steelTons.toFixed(2)),
+                  unit: "Tons",
+                  unit_price: 1200000,
+                  total_price: Number(steelTons.toFixed(2)) * 1200000,
+                  suggested_marketplace_type: "system"
+              });
+          }
+      }
+      
+      return finalMats;
+  }, [materials, layout]);
+
+  const totalProjectCost = displayMaterials.reduce((sum, mat) => sum + (mat.total_price || (mat.quantity_estimate * (mat.unit_price || 0))), 0);
+
+  if (!displayMaterials || displayMaterials.length === 0) return null;
 
   return (
     <Card className="mt-6 border-slate-200 dark:border-white/10 overflow-hidden shadow-xl animate-in fade-in slide-in-from-bottom-4 duration-1000">
@@ -44,7 +86,7 @@ const AECBillOfQuantities: React.FC<AECBillOfQuantitiesProps> = ({ materials }) 
             </TableRow>
           </TableHeader>
           <TableBody>
-            {materials.map((mat, idx) => {
+            {displayMaterials.map((mat, idx) => {
               const unitPrice = mat.unit_price || 0;
               const lineTotal = mat.total_price || (mat.quantity_estimate * unitPrice);
               
