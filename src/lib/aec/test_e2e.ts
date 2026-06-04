@@ -58,6 +58,30 @@ async function runIntegrationTest() {
         // 4. Ready for IFC & Viewer
         console.log("\\n[Step 4] Handoff to web-ifc and @thatopen/components...");
         console.log("✓ Pipeline integration successful. The layout object is ready for the Viewer components.");
+
+        // 5. Structural Derivation Test (Phase 2)
+        console.log("\\n[Step 5] Deriving Structural Grid & Asserting Beam Spans...");
+        const { structuralEngine } = await import("./solver/structural");
+        const skeleton = structuralEngine.generateSkeleton(layout);
+        
+        console.log(`✓ Structural Engine generated ${skeleton.columns.length} columns and ${skeleton.beams.length} beams.`);
+        
+        let maxFoundSpan = 0;
+        let concreteVol = 0;
+        skeleton.columns.forEach(c => concreteVol += (c.width_m * c.depth_m * 3.0));
+        skeleton.beams.forEach(b => {
+            concreteVol += (b.width_m * b.depth_m * b.span_m);
+            if (b.span_m > maxFoundSpan) maxFoundSpan = b.span_m;
+        });
+
+        console.log(`✓ Concrete Volume generated: ${concreteVol.toFixed(2)} m3`);
+
+        if (maxFoundSpan > 4.5) {
+            console.error(`X Structural Failure: A beam span exceeded the 4.5m NBC limit! Found span: ${maxFoundSpan}m`);
+        } else {
+            console.log(`✓ Structural Compliance passed. Maximum beam span is ${maxFoundSpan.toFixed(2)}m (≤ 4.5m limit).`);
+        }
+
         console.log("\\n=== Test Completed Successfully ===");
         
     } catch (e: any) {
