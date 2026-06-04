@@ -1,67 +1,78 @@
 /**
- * AEC (Architecture, Engineering, Construction) Data Schema
- * Defines the structured output for the orchestrated AI Studio agents.
+ * Genuine Stuffs AI Studio - Phase 1 Core Contracts
+ * Defines the strict interfaces passed between the LLM, the Constraint Solver,
+ * the IFC Authoring Engine, and the Validation Gate.
  */
 
-export interface SpatialElement {
-    id: string;
-    type: 'room' | 'wall' | 'window' | 'door' | 'stair';
+// ---------------------------------------------------------------------------
+// 1. DESIGN BRIEF (LLM Orchestration Layer)
+// The structured output from the conversation state machine.
+// ---------------------------------------------------------------------------
+export interface DesignBrief {
+    plot_size_sqm: number;
+    plot_orientation?: 'N' | 'S' | 'E' | 'W';
+    storeys: number; // Phase 1 is locked to 1 (Bungalow)
+    budget_band: 'low' | 'mid' | 'high' | 'luxury';
+    style_preference: string;
+    target_occupancy: number;
+}
+
+// ---------------------------------------------------------------------------
+// 2. SPATIAL PROGRAM (LLM Orchestration Layer -> Solver)
+// The LLM emits this. It is intent, NOT geometry.
+// ---------------------------------------------------------------------------
+export interface RoomRequirement {
+    id: string; // e.g., "bed_master", "kitchen"
+    type: 'living' | 'bedroom' | 'kitchen' | 'bathroom' | 'circulation' | 'service';
     name: string;
-    dimensions: {
-        width: number;
-        length: number;
-        height: number;
-        unit: 'm' | 'mm' | 'ft';
+    min_area_sqm: number; // Must respect NBC minimums
+    requires_plumbing: boolean;
+    required_adjacencies: string[]; // List of room IDs this room must touch
+}
+
+export interface SpatialProgram {
+    brief_reference: DesignBrief;
+    rooms: RoomRequirement[];
+    total_target_area_sqm: number;
+}
+
+// ---------------------------------------------------------------------------
+// 3. SOLVED LAYOUT (Constraint Solver -> IFC Authoring)
+// The deterministic output of the TS solver. This IS geometry (2D).
+// ---------------------------------------------------------------------------
+export interface PlacedRoom {
+    room_id: string;
+    x: number; // Bottom-left X coordinate in meters
+    y: number; // Bottom-left Y coordinate in meters
+    width: number; // Width in meters
+    depth: number; // Depth (Y-axis length) in meters
+}
+
+export interface SolvedLayout {
+    program_reference: SpatialProgram;
+    plot_width: number;
+    plot_depth: number;
+    placed_rooms: PlacedRoom[];
+    solver_iterations_used: number;
+    is_fully_connected: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// 4. VALIDATION REPORT (Validation Gate)
+// The result of checking the SolvedLayout against compliance_rules.json
+// ---------------------------------------------------------------------------
+export interface ValidationViolation {
+    type: 'overlap' | 'area_too_small' | 'adjacency_failed' | 'setback_violation' | 'unreachable';
+    room_ids: string[];
+    description: string;
+    severity: 'fatal' | 'warning';
+}
+
+export interface ValidationReport {
+    is_valid: boolean;
+    violations: ValidationViolation[];
+    derived_metrics: {
+        total_floor_area_sqm: number;
+        circulation_percentage: number;
     };
-    coordinates?: {
-        x: number;
-        y: number;
-        z: number;
-    };
-    svg_path?: string; // SVG path data (e.g. "M0,0 L10,0 L10,10 L0,10 Z") for floor plan rendering
-    notes?: string;
-}
-
-export interface MaterialRequirement {
-    id: string;
-    category: 'foundation' | 'wall' | 'roof' | 'finishing' | 'electrical' | 'plumbing';
-    specification: string;
-    quantity_estimate: number;
-    unit: string;
-    unit_price?: number; // Estimated price in NGN
-    total_price?: number; // Calculated total (quantity * unit_price)
-    suggested_marketplace_type?: string; 
-}
-
-export interface StructuralConstraint {
-    load_bearing_points: string[];
-    beam_span_max: number;
-    footing_type: string;
-    risk_factors: string[];
-}
-
-export interface ComplianceReport {
-    status: 'compliant' | 'warning' | 'non-compliant';
-    checked_against: string; // e.g., "NBC 2024", "Regional Zoning Law"
-    findings: string[];
-    recommendations: string[];
-}
-
-export interface DesignPackage {
-    project_id: string;
-    version: string;
-    architectural_layout: SpatialElement[];
-    material_schedule: MaterialRequirement[];
-    structural_skeleton: StructuralConstraint;
-    compliance: ComplianceReport;
-    summary: string;
-}
-
-/**
- * Orchestration State 
- */
-export interface AgentResponse {
-    role: 'Architect' | 'StructuralEngineer' | 'QuantitySurveyor' | 'ComplianceOfficer';
-    content: string;
-    data_fragment?: Partial<DesignPackage>;
 }
