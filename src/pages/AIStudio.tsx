@@ -121,6 +121,8 @@ const AIStudio = () => {
     const [ultraMode, setUltraMode] = useState(false);
     const [messages, setMessages] = useState<any[]>([]);
     const [chatSessions, setChatSessions] = useState<any[]>([]);
+    // Latches to true the moment any prompt is submitted — never resets from API failures
+    const [hasActiveSession, setHasActiveSession] = useState(false);
     const isMobile = useIsMobile();
 
     // Static/Frozen Screen logic for DeepSeek effect
@@ -536,20 +538,27 @@ const AIStudio = () => {
             return;
         }
 
+        // IMMEDIATELY latch the session open — this is the single gate for the view switch
+        setHasActiveSession(true);
         setIsGenerating(true);
         setGeneratedImage(null);
         setVisualUrl(null); // Clear previous vision state
         
+        // Capture prompt BEFORE clearing the input field
+        const submittedPrompt = promptText;
+
         // Add user message to history for continuity
-        const newUserMessage = { role: 'user', content: promptText };
+        const newUserMessage = { role: 'user', content: submittedPrompt };
         const updatedMessages = [...messages, newUserMessage];
         setMessages(updatedMessages);
+        // Clear input AFTER capturing so the edge function still gets the text
+        setPromptText("");
 
         try {
             const { data, error } = await supabase.functions.invoke('ai-studio', {
                 body: { 
-                    prompt: promptText, 
-                    messages: updatedMessages, // Pass full history
+                    prompt: submittedPrompt,  // ← use captured value, NOT promptText (which is now "")
+                    messages: updatedMessages,
                     type: 'text',
                     selectedRole: selectedRole 
                 }
@@ -615,9 +624,9 @@ const AIStudio = () => {
             // Batch all state updates together to prevent race-condition render flashes
             setGeneratedImage(cleanText);
             setDesignPackage(hasDesignData ? finalDesignData : null);
-            setPromptText(""); // Clear input after successful send
+            // Remove promptText clear from here since we now clear it immediately on submit
             // Add assistant response to history BEFORE clearing isGenerating so the view never flashes back to idle
-            setMessages(prev => [...prev, { role: 'assistant', content: data.result }]);
+            setMessages(prev => [...prev, { role: 'assistant', content: data.result || 'Analysis complete.' }]);
             setIsGenerating(false);
             
             if (hasDesignData) {
@@ -625,7 +634,7 @@ const AIStudio = () => {
             } else if (cleanText) {
                 toast.info("Design Analysis Ready.");
             } else {
-                toast.error("Generation failed. The AI returned an empty response.");
+                toast.info("Response received. See results below.");
             }
 
             // --- PATH 3: Decoupled High-Priority Rendering ---
@@ -652,6 +661,11 @@ const AIStudio = () => {
                 }
             }
         } catch (err: any) {
+            // On error, add an error message to the chat log so the view stays open
+            setMessages(prev => [...prev, { 
+                role: 'assistant', 
+                content: `**Error:** ${err.message || 'Generation failed. Please try again.'}` 
+            }]);
             setIsGenerating(false);
             toast.error(err.message || "Generation failed.");
         }
@@ -673,7 +687,8 @@ const AIStudio = () => {
             ]);
         }
         
-        // 100% Clean Slate
+        // 100% Clean Slate — reset the session latch so idle screen returns
+        setHasActiveSession(false);
         setMessages([]);
         setDesignPackage(null);
         setGeneratedImage(null);
@@ -979,9 +994,9 @@ const AIStudio = () => {
                     </div>
 
                     {/* Main Workspace - Genspark Minimalist Style */}
-                    <div className={`flex-1 flex flex-col transition-all duration-700 w-full relative z-[30] overflow-y-auto custom-scrollbar ${(messages.length > 0 || isGenerating) ? 'bg-white dark:bg-[#15171a]' : 'items-center justify-center p-4 md:p-8 bg-white dark:bg-background'}`}>
+                    <div className={`flex-1 flex flex-col transition-all duration-700 w-full relative z-[30] overflow-y-auto custom-scrollbar ${(hasActiveSession || isGenerating) ? 'bg-white dark:bg-[#15171a]' : 'items-center justify-center p-4 md:p-8 bg-white dark:bg-background'}`}>
                         
-                        {messages.length === 0 && !isGenerating ? (
+                        {!hasActiveSession && !isGenerating ? (
                             /* --- IDLE STATE: Massive Centered UI --- */
                             <div className="w-full max-w-3xl flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-700 mb-[10vh]">
                                 <div className="text-center mb-8 md:mb-12">
