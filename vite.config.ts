@@ -16,4 +16,16 @@ export default defineConfig(({ mode }) => ({
       "backend": path.resolve(__dirname, "./backend"),
     },
   },
+  optimizeDeps: {
+    // These packages use WebGL/WASM and must not be pre-bundled by Vite
+    exclude: ["@thatopen/components", "web-ifc"],
+  },
+  build: {
+    rollupOptions: {
+      // Treat as external so Rollup never tries to statically analyse it
+      // The dynamic import() in AECMassingView handles the runtime load
+      external: [],
+    },
+  },
 }));
+

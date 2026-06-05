@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import * as OBC from "@thatopen/components";
 import { SolvedLayout } from 'supabase/functions/ai-studio/schema';
 import { ifcEngine } from '@/lib/aec/ifc/authoring';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Box as BoxIcon, Sparkles } from 'lucide-react';
+// @thatopen/components is loaded dynamically at runtime to avoid Rollup
+// failing to resolve the WebGL/WASM package during static build analysis.
 
 interface AECMassingViewProps {
   layout?: SolvedLayout;
@@ -17,19 +18,22 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
   useEffect(() => {
     if (!containerRef.current || !layout) return;
 
-    let components: OBC.Components;
+    let components: any;
 
     const setupViewer = async () => {
       setIsLoading(true);
       try {
+        // Dynamically import at runtime — keeps the build clean on Netlify
+        const OBC = await import("@thatopen/components");
+
         // 1. Initialize That Open Components
         components = new OBC.Components();
         const worlds = components.get(OBC.Worlds);
         
         const world = worlds.create<
-          OBC.SimpleScene,
-          OBC.SimpleCamera,
-          OBC.SimpleRenderer
+          typeof OBC.SimpleScene,
+          typeof OBC.SimpleCamera,
+          typeof OBC.SimpleRenderer
         >();
 
         world.scene = new OBC.SimpleScene(components);
