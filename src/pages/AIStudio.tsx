@@ -571,8 +571,11 @@ const AIStudio = () => {
             // --- ULTIMATE GREEDY PARSER: Fail-safe recovery logic ---
             let finalDesignData = data.data;
             
+            // Accepts BOTH the old architectural_layout schema AND new SpatialProgram (rooms[]) schema
+            const hasValidDesignData = (d: any) => d && (d.architectural_layout || d.rooms || d.status);
+
             // If the backend didn't parse it, or if it looks empty, we hunt the text manually
-            if (!finalDesignData || !finalDesignData.architectural_layout) {
+            if (!hasValidDesignData(finalDesignData)) {
                 const rawResult = data.result || "";
                 try {
                     // 1. Look for explicit tags first
@@ -580,7 +583,7 @@ const AIStudio = () => {
                     const jsonToTry = tagMatch ? tagMatch[1] : rawResult;
 
                     // 2. Extract anything that looks like a JSON object containing AEC keys
-                    const jsonRegex = /\{[\s\S]*?"(?:status|architectural_layout|project_id)"[\s\S]*?\}/gi;
+                    const jsonRegex = /\{[\s\S]*?"(?:status|architectural_layout|project_id|rooms|brief_reference)"[\s\S]*?\}/gi;
                     const possibleBlocks = jsonToTry.match(jsonRegex);
 
                     if (possibleBlocks) {
@@ -592,7 +595,7 @@ const AIStudio = () => {
                                 cleanedBlock = cleanedBlock.replace(/^```json\s*|```$/g, "").trim();
                                 
                                 const parsed = JSON.parse(cleanedBlock);
-                                if (parsed.architectural_layout || parsed.status) {
+                                if (hasValidDesignData(parsed)) {
                                     finalDesignData = parsed;
                                     console.log("Ultimate Parser recovered AEC data from raw text.");
                                     break;
@@ -607,20 +610,22 @@ const AIStudio = () => {
 
             // Store text and structured data
             const cleanText = sanitizeResultText(data.result);
+            const hasDesignData = !!(finalDesignData && (finalDesignData.rooms || finalDesignData.architectural_layout || finalDesignData.status));
+
+            // Batch all state updates together to prevent race-condition render flashes
             setGeneratedImage(cleanText);
-            setDesignPackage(finalDesignData);
-            setIsGenerating(false);
+            setDesignPackage(hasDesignData ? finalDesignData : null);
             setPromptText(""); // Clear input after successful send
-            
-            // Add assistant response to history
+            // Add assistant response to history BEFORE clearing isGenerating so the view never flashes back to idle
             setMessages(prev => [...prev, { role: 'assistant', content: data.result }]);
+            setIsGenerating(false);
             
-            if (finalDesignData) {
-                toast.success("AEC Model Synchronized Successfully.");
+            if (hasDesignData) {
+                toast.success("AEC Spatial Program Synchronized.");
             } else if (cleanText) {
                 toast.info("Design Analysis Ready.");
             } else {
-                toast.error("Generation failed. The AI returned an empty or unparseable response.");
+                toast.error("Generation failed. The AI returned an empty response.");
             }
 
             // --- PATH 3: Decoupled High-Priority Rendering ---

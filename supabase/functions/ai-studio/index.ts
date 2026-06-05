@@ -236,7 +236,18 @@ You must output a "SpatialProgram" defining the intent (NOT geometry). The clien
                         "model": textModel,
                         "messages": [
                             { "role": "system", "content": systemPrompt },
-                            ...(history && history.length > 0 ? history : [{ "role": "user", "content": prompt }])
+                            ...(history && history.length > 0
+                                ? history.map((m: any) => ({
+                                    role: m.role,
+                                    // Strip raw AEC data blocks from history so the AI never mirrors raw JSON back
+                                    content: typeof m.content === 'string'
+                                        ? m.content
+                                            .replace(/<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/gi, '[AEC_DATA_BLOCK_OMITTED]')
+                                            .replace(/<<<DESIGN_DATA_(START|END)>>>/gi, '')
+                                            .trim()
+                                        : m.content
+                                  }))
+                                : [{ "role": "user", "content": prompt }])
                         ],
                         "temperature": 0.2, // Very low for strict protocol adherence
                         "max_tokens": 3000
@@ -313,8 +324,17 @@ You must output a "SpatialProgram" defining the intent (NOT geometry). The clien
             console.log('Successfully generated response, credits deducted.');
         }
 
+        // Safety net: if the result is empty after all scrubbing, synthesize a fallback message
+        if (!result || result.trim() === '') {
+            if (designData) {
+                result = `Your design brief has been registered and the spatial program is locked in. The solver has mapped ${designData.rooms?.length || 'the'} rooms across ${designData.brief_reference?.storeys || 1} storey(s) against a ${designData.brief_reference?.plot_size_sqm || ''}sqm plot. The floor plan geometry will now be generated.`;
+            } else {
+                result = "Your brief has been received and is under analysis. The AI Studio is processing your design intent — please review the spatial summary below.";
+            }
+        }
+
         return new Response(JSON.stringify({ 
-            result: result || "Conceptual model generated. Please see the visual dashboard for structural details.", 
+            result: result, 
             data: designData,
             imageUrl: null,
             type: 'text' 
