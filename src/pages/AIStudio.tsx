@@ -606,7 +606,8 @@ const AIStudio = () => {
             }
 
             // Store text and structured data
-            setGeneratedImage(sanitizeResultText(data.result));
+            const cleanText = sanitizeResultText(data.result);
+            setGeneratedImage(cleanText);
             setDesignPackage(finalDesignData);
             setIsGenerating(false);
             setPromptText(""); // Clear input after successful send
@@ -616,8 +617,10 @@ const AIStudio = () => {
             
             if (finalDesignData) {
                 toast.success("AEC Model Synchronized Successfully.");
-            } else {
+            } else if (cleanText) {
                 toast.info("Design Analysis Ready.");
+            } else {
+                toast.error("Generation failed. The AI returned an empty or unparseable response.");
             }
 
             // --- PATH 3: Decoupled High-Priority Rendering ---
@@ -971,9 +974,9 @@ const AIStudio = () => {
                     </div>
 
                     {/* Main Workspace - Genspark Minimalist Style */}
-                    <div className={`flex-1 flex flex-col transition-all duration-700 w-full relative z-[30] overflow-y-auto custom-scrollbar ${(generatedImage || isGenerating) ? 'bg-white dark:bg-[#15171a]' : 'items-center justify-center p-4 md:p-8 bg-white dark:bg-background'}`}>
+                    <div className={`flex-1 flex flex-col transition-all duration-700 w-full relative z-[30] overflow-y-auto custom-scrollbar ${(messages.length > 0 || isGenerating) ? 'bg-white dark:bg-[#15171a]' : 'items-center justify-center p-4 md:p-8 bg-white dark:bg-background'}`}>
                         
-                        {!generatedImage && !isGenerating ? (
+                        {messages.length === 0 && !isGenerating ? (
                             /* --- IDLE STATE: Massive Centered UI --- */
                             <div className="w-full max-w-3xl flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-700 mb-[10vh]">
                                 <div className="text-center mb-8 md:mb-12">
