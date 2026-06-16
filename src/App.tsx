@@ -32,6 +32,7 @@ import ProfessionalProfile from "./pages/ProfessionalProfile";
 import HireExperts from "./pages/HireExperts";
 import BlogList from "./pages/BlogList";
 import BlogPost from "./pages/BlogPost";
+import BlogAdmin from "./pages/BlogAdmin";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { ThemeProvider } from "./components/ThemeProvider";
@@ -86,6 +87,7 @@ const App = () => (
                     {/* Blog Routes */}
                     <Route path="/blog" element={<BlogList />} />
                     <Route path="/blog/:slug" element={<BlogPost />} />
+                    <Route path="/admin/blog" element={<BlogAdmin />} />
 
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
