@@ -63,6 +63,7 @@ import autoTable from 'jspdf-autotable';
 import AECFloorPlan from '@/components/aec/AECFloorPlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
+import { solveLayout } from '@/lib/aec/solver/engine';
 
 // --- CLIENT-SIDE SANITIZER: Guarantee no JSON leaks in chat bubble ---
 const sanitizeResultText = (raw: any): string | null => {
@@ -621,6 +622,25 @@ const AIStudio = () => {
             const cleanText = sanitizeResultText(data.result);
             const hasDesignData = !!(finalDesignData && (finalDesignData.rooms || finalDesignData.architectural_layout || finalDesignData.status));
 
+            // Run deterministic client-side solver if spatial program intent is provided
+            if (hasDesignData && finalDesignData.rooms) {
+                try {
+                    // Assume standard 15x30m plot if unspecified
+                    const plotWidth = finalDesignData.brief_reference?.plot_size_sqm ? Math.sqrt(finalDesignData.brief_reference.plot_size_sqm) : 15;
+                    const plotDepth = finalDesignData.brief_reference?.plot_size_sqm ? (finalDesignData.brief_reference.plot_size_sqm / plotWidth) : 30;
+                    
+                    const solved = solveLayout(finalDesignData, {
+                        width: plotWidth,
+                        depth: plotDepth,
+                        setbacks: { front: 6, rear: 3, left: 3, right: 3 }
+                    });
+                    finalDesignData.solvedLayout = solved;
+                    console.log("Client-side TS Solver generated geometry successfully.", solved);
+                } catch (solverErr) {
+                    console.error("Client-side TS Solver failed to generate layout:", solverErr);
+                }
+            }
+
             // Batch all state updates together to prevent race-condition render flashes
             setGeneratedImage(cleanText);
             setDesignPackage(hasDesignData ? finalDesignData : null);
@@ -1138,9 +1158,9 @@ const AIStudio = () => {
                                                     </div>
                                                 ) : (
                                                     <>
-                                                        <AECFloorPlan elements={designPackage.architectural_layout || []} />
-                                                        <AECMassingView elements={designPackage.architectural_layout || []} />
-                                                        <AECBillOfQuantities materials={designPackage.material_schedule || []} />
+                                                        <AECFloorPlan layout={designPackage.solvedLayout} />
+                                                        <AECMassingView layout={designPackage.solvedLayout} />
+                                                        <AECBillOfQuantities layout={designPackage.solvedLayout} materials={designPackage.material_schedule || []} />
                                                         
                                                         {/* Compliance Banner */}
                                                         <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-2xl">
