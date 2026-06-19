@@ -10,12 +10,13 @@ interface AuthContextType {
     user: User | null;
     session: Session | null;
     role: Role;
+    serverClaims: { is_admin: boolean; is_pm: boolean };
     isLoading: boolean;
     signInWithGoogle: () => Promise<void>;
     signInWithEmail: (email: string, password: string) => Promise<void>;
     signInWithOtp: (email: string) => Promise<void>;
     logout: () => Promise<void>;
-    updateRole: (newRole: Role) => void;
+    switchEnvironmentView: (newRole: Role) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,6 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [role, setRole] = useState<Role>('guest');
+    const [serverClaims, setServerClaims] = useState({ is_admin: false, is_pm: false });
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
@@ -35,8 +37,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(session?.user ?? null);
             
             // Priority: Manual override (Dev role) > Metadata role > Guest
+            // Note: MI_DEV_ROLE now ONLY controls the UI view, not server capabilities.
             const devRole = localStorage.getItem('MI_DEV_ROLE') as Role;
             const userRole = devRole || (session?.user?.user_metadata?.role as Role) || 'guest';
+            
+            // Extract server-side claims from app_metadata (cannot be forged by client)
+            const appMeta = session?.user?.app_metadata || {};
+            setServerClaims({
+                is_admin: appMeta.is_admin === true,
+                is_pm: appMeta.is_pm === true
+            });
             
             setRole(userRole);
             setIsLoading(false);
@@ -50,6 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(null);
                 setSession(null);
                 setRole('guest');
+                setServerClaims({ is_admin: false, is_pm: false });
                 localStorage.removeItem('MI_DEV_ROLE'); // Clear dev role on real logout
                 setIsLoading(false);
                 navigate("/");
@@ -60,6 +71,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 // Keep dev role if it exists, otherwise use metadata
                 const devRole = localStorage.getItem('MI_DEV_ROLE') as Role;
                 const userRole = devRole || (session?.user?.user_metadata?.role as Role) || 'guest';
+                
+                // Extract server-side claims from app_metadata
+                const appMeta = session?.user?.app_metadata || {};
+                setServerClaims({
+                    is_admin: appMeta.is_admin === true,
+                    is_pm: appMeta.is_pm === true
+                });
+                
                 setRole(userRole);
                 setIsLoading(false);
             }
@@ -79,22 +98,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     const signInWithEmail = async (email: string, password: string) => {
-        // Specialized Admin Bypass Login logic
-        const trimmedEmail = email.trim();
-        const isAdminEmail = trimmedEmail.toLowerCase().endsWith('.admin');
-        const isAuthorizedAdmin = trimmedEmail.toLowerCase() === 'samuel.edu@aktok.com';
-        const realEmail = isAdminEmail ? trimmedEmail.toLowerCase().replace('.admin', '') : trimmedEmail;
-
+        // Standard email sign in - no secret suffix bypasses
         const { error } = await supabase.auth.signInWithPassword({
-            email: realEmail,
+            email: email.trim(),
             password: password,
         });
-
-        if (!error && (isAdminEmail || isAuthorizedAdmin)) {
-            localStorage.setItem('MI_DEV_ROLE', 'admin');
-            setRole('admin');
-            return;
-        }
 
         if (error) throw error;
     };
@@ -114,6 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
         setSession(null);
         setRole('guest');
+        setServerClaims({ is_admin: false, is_pm: false });
         localStorage.removeItem('MI_DEV_ROLE');
 
         // Attempt deletion of the server session (scope: 'local' avoids the 403 on stale sessions)
@@ -124,14 +133,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         navigate("/");
     };
 
-    const updateRole = (newRole: Role) => {
+    const switchEnvironmentView = (newRole: Role) => {
         setRole(newRole);
         localStorage.setItem('MI_DEV_ROLE', newRole);
-        toast.info(`Session role switched to ${newRole.toUpperCase()}`);
+        toast.info(`Environment view switched to ${newRole.toUpperCase()}`);
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, role, isLoading, signInWithGoogle, signInWithEmail, signInWithOtp, logout, updateRole }}>
+        <AuthContext.Provider value={{ user, session, role, serverClaims, isLoading, signInWithGoogle, signInWithEmail, signInWithOtp, logout, switchEnvironmentView }}>
             {children}
         </AuthContext.Provider>
     );
