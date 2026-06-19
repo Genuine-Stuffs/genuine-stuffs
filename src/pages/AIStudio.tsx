@@ -103,7 +103,7 @@ const sanitizeResultText = (raw: any): string | null => {
 };
 
 const AIStudio = () => {
-    const { user, role, updateRole } = useAuth();
+    const { user, role, serverClaims, switchEnvironmentView } = useAuth();
     const isPro = role === "professional";
     const [searchParams] = useSearchParams();
     const [selectedRole, setSelectedRole] = useState("Architect");
@@ -543,8 +543,8 @@ const AIStudio = () => {
     };
 
     const handleGenerate = async () => {
-        // Bypass credit check for admin/pm users to allow unobstructed testing
-        if (role !== 'admin' && role !== 'pm' && (credits === null || credits < 2)) {
+        // Bypass credit check for admin/pm users based on server-verified claims
+        if (!serverClaims.is_admin && !serverClaims.is_pm && (credits === null || credits < 2)) {
             toast.error("Insufficient credits.");
             if (isPro) setShowRefillModal(true);
             return;
@@ -584,7 +584,7 @@ const AIStudio = () => {
             if (data?.error) throw new Error(data.error);
 
             // Backend handles credit deduction; reflect it locally
-            if (role !== 'admin' && role !== 'pm') {
+            if (!serverClaims.is_admin && !serverClaims.is_pm) {
                 setCredits(prev => (prev !== null ? prev - 2 : prev));
             }
 
@@ -989,17 +989,17 @@ const AIStudio = () => {
                                 <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#e11d48] mt-0.5 opacity-80">Active AI Node</p>
                             </div>
                             
-                            {(role === 'admin' || localStorage.getItem('MI_DEV_ROLE') === 'admin') && (
+                            {serverClaims.is_admin && (
                                 <div className="flex items-center gap-2 ml-4 p-1 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                                    <span className="text-[9px] font-black uppercase text-amber-600 px-2 tracking-widest">Impersonate:</span>
+                                    <span className="text-[9px] font-black uppercase text-amber-600 px-2 tracking-widest">Environment:</span>
                                     <button 
-                                        onClick={() => updateRole('professional')}
+                                        onClick={() => switchEnvironmentView('professional')}
                                         className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${role === 'professional' ? 'bg-amber-600 text-white' : 'text-amber-600 hover:bg-amber-600/10'}`}
                                     >
                                         Pro User
                                     </button>
                                     <button 
-                                        onClick={() => updateRole('admin')}
+                                        onClick={() => switchEnvironmentView('admin')}
                                         className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${role === 'admin' ? 'bg-amber-600 text-white' : 'text-amber-600 hover:bg-amber-600/10'}`}
                                     >
                                         Admin

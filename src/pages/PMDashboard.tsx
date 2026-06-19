@@ -59,7 +59,7 @@ import { useTheme } from "@/components/ThemeProvider";
 
 const PMDashboard = () => {
     const navigate = useNavigate();
-    const { user, role, logout, isLoading: authLoading } = useAuth();
+    const { user, serverClaims, switchEnvironmentView, logout, isLoading: authLoading } = useAuth();
     const { theme, setTheme } = useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("overview");
@@ -124,7 +124,7 @@ const PMDashboard = () => {
         );
     }
 
-    if (role !== 'pm' && role !== 'admin') {
+    if (!serverClaims.is_pm && !serverClaims.is_admin) {
         return <Navigate to="/" replace />;
     }
 
@@ -376,9 +376,16 @@ const PMDashboard = () => {
                                 </div>
                             )}
                         <div className="flex items-center gap-3 pl-6 border-l border-slate-200 dark:border-l-blue-500/30">
+                            {serverClaims.is_admin && (
+                                <div className="flex items-center gap-2 pr-4 border-r border-slate-200 dark:border-white/10 mr-2">
+                                    <span className="text-[9px] font-black uppercase text-amber-600 px-2 tracking-widest hidden lg:inline">Admin Mode:</span>
+                                    <button onClick={() => { switchEnvironmentView('professional'); navigate('/pro-portal'); }} className="px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest text-amber-600 hover:bg-amber-600/10 transition-all">Pro</button>
+                                    <button onClick={() => { switchEnvironmentView('vendor'); navigate('/vendor-dashboard'); }} className="px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest text-amber-600 hover:bg-amber-600/10 transition-all">Vendor</button>
+                                </div>
+                            )}
                             <div className="text-right hidden sm:block">
                                 <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">{user?.email?.split('@')[0]}</p>
-                                <Badge className="bg-red-600/10 dark:bg-red-600/20 text-red-600 border-none text-[8px] font-black tracking-widest uppercase">SUPER ADMIN</Badge>
+                                <Badge className="bg-red-600/10 dark:bg-red-600/20 text-red-600 border-none text-[8px] font-black tracking-widest uppercase">{serverClaims.is_admin ? 'SUPER ADMIN' : 'PRODUCT MANAGER'}</Badge>
                             </div>
                             <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-600 to-red-400 flex items-center justify-center font-black text-white border-2 border-white/50 dark:border-red-500/50 shadow-lg dark:shadow-[0_0_20px_-5px_rgba(239,68,68,0.5)]">
                                 {user?.email?.[0].toUpperCase()}
