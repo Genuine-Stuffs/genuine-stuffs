@@ -71,7 +71,12 @@ serve(async (req: Request) => {
         }
 
         console.log('Authenticated user:', user.id);
-        const isAdmin = user.email?.toLowerCase() === 'samuel.edu@aktok.com' || user.user_metadata?.role === 'admin';
+        // SECURITY: Admin and PM status are determined exclusively from server-side
+        // app_metadata claims set by the set-admin-claims Edge Function.
+        // These claims live in the JWT and cannot be forged by the client.
+        // DO NOT use user.email, localStorage roles, or user_metadata for capability gating.
+        const isAdmin: boolean = user.app_metadata?.is_admin === true;
+        const isPM: boolean    = isAdmin || user.app_metadata?.is_pm === true;
 
         const openRouterKey = Deno.env.get('OPENROUTER_API_KEY')
         if (!openRouterKey) {
