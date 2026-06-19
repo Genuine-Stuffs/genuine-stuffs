@@ -166,15 +166,27 @@ const AIStudio = () => {
             try {
                 const { data, error } = await supabase
                     .from('professionals')
-                    .select('credits')
+                    .select('credits, subscription_status')
                     .eq('id', user.id)
                     .single();
 
                 if (error) throw error;
 
                 setCredits(data?.credits ?? 0);
-            } catch (err) {
+                setSubscriptionStatus(data?.subscription_status ?? 'trial');
+            } catch (err: any) {
                 console.error("Error fetching credits:", err);
+                // Graceful fallback — if subscription_status column is missing (schema drift),
+                // do NOT crash the app. Fall back to credits-only query.
+                if (err?.code === '42703') {
+                    const { data: fallback } = await supabase
+                        .from('professionals')
+                        .select('credits')
+                        .eq('id', user.id)
+                        .single();
+                    if (fallback) setCredits(fallback.credits ?? 0);
+                    console.warn("subscription_status column missing from DB — run migration: add_subscription_status_to_professionals.sql");
+                }
             } finally {
                 setIsLoading(false);
             }
