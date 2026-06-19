@@ -166,14 +166,13 @@ const AIStudio = () => {
             try {
                 const { data, error } = await supabase
                     .from('professionals')
-                    .select('credits, subscription_status')
+                    .select('credits')
                     .eq('id', user.id)
                     .single();
 
                 if (error) throw error;
 
                 setCredits(data?.credits ?? 0);
-                setSubscriptionStatus(data?.subscription_status ?? null);
             } catch (err) {
                 console.error("Error fetching credits:", err);
             } finally {
@@ -590,27 +589,38 @@ const AIStudio = () => {
                 try {
                     // 1. Look for explicit tags first
                     const tagMatch = rawResult.match(/<<<DESIGN_DATA_START>>>([\s\S]*?)<<<DESIGN_DATA_END>>>/i);
-                    const jsonToTry = tagMatch ? tagMatch[1] : rawResult;
+                    let jsonToTry = tagMatch ? tagMatch[1] : rawResult;
 
-                    // 2. Extract anything that looks like a JSON object containing AEC keys
-                    const jsonRegex = /\{[\s\S]*?"(?:status|architectural_layout|project_id|rooms|brief_reference)"[\s\S]*?\}/gi;
-                    const possibleBlocks = jsonToTry.match(jsonRegex);
+                    // Clean markdown fences
+                    jsonToTry = jsonToTry.replace(/```json/gi, "").replace(/```/g, "").trim();
 
-                    if (possibleBlocks) {
-                        for (const block of possibleBlocks) {
-                            try {
-                                let cleanedBlock = block.trim();
-                                // Repair common AI errors
-                                if (cleanedBlock.startsWith(',')) cleanedBlock = cleanedBlock.substring(1).trim();
-                                cleanedBlock = cleanedBlock.replace(/^```json\s*|```$/g, "").trim();
-                                
-                                const parsed = JSON.parse(cleanedBlock);
-                                if (hasValidDesignData(parsed)) {
-                                    finalDesignData = parsed;
-                                    console.log("Ultimate Parser recovered AEC data from raw text.");
-                                    break;
-                                }
-                            } catch (e) { /* continue to next block */ }
+                    // 1.5 Try parsing the entire block first
+                    try {
+                        const parsed = JSON.parse(jsonToTry);
+                        if (hasValidDesignData(parsed)) {
+                            finalDesignData = parsed;
+                            console.log("Ultimate Parser recovered full block.");
+                        }
+                    } catch (e) {
+                        // 2. Extract anything that looks like a JSON object containing AEC keys
+                        // Using greedy match at the end to capture nested braces
+                        const jsonRegex = /\{[\s\S]*?"(?:status|architectural_layout|project_id|rooms|brief_reference)"[\s\S]*\}/gi;
+                        const possibleBlocks = jsonToTry.match(jsonRegex);
+
+                        if (possibleBlocks) {
+                            for (const block of possibleBlocks) {
+                                try {
+                                    let cleanedBlock = block.trim();
+                                    if (cleanedBlock.startsWith(',')) cleanedBlock = cleanedBlock.substring(1).trim();
+                                    
+                                    const parsed = JSON.parse(cleanedBlock);
+                                    if (hasValidDesignData(parsed)) {
+                                        finalDesignData = parsed;
+                                        console.log("Ultimate Parser recovered AEC data from raw text.");
+                                        break;
+                                    }
+                                } catch (err) { /* continue to next block */ }
+                            }
                         }
                     }
                 } catch (e) {
