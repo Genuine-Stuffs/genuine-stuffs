@@ -22,6 +22,7 @@ import VendorOrders from "./pages/VendorOrders";
 import VendorAnalytics from "./pages/VendorAnalytics";
 import VendorSettings from "./pages/VendorSettings";
 import PMDashboard from "./pages/PMDashboard";
+import AdminHome from "./pages/AdminHome";
 import SystemMaintenance from "./pages/SystemMaintenance";
 import ProDashboard from "./pages/ProDashboard";
 import Settings from "./pages/Settings";
@@ -55,6 +56,7 @@ const App = () => (
                 <main className="flex-grow pb-20 md:pb-0">
                   <Routes>
                     <Route path="/" element={<Index />} />
+                    <Route path="/admin-home" element={<AdminHome />} />
                     <Route path="/services" element={<Services />} />
                     <Route path="/resources" element={<Resources />} />
                     <Route path="/about" element={<About />} />

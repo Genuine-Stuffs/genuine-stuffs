@@ -54,8 +54,30 @@ const Login = () => {
         setIsLoading(true);
 
         try {
-            await signInWithEmail(formData.email, formData.password);
-            navigate("/");
+            const authData = await signInWithEmail(formData.email, formData.password);
+            
+            if (authData?.user) {
+                // Claim-based routing branches into three paths:
+                const appMeta = authData.user.app_metadata || {};
+                const is_admin = appMeta.is_admin === true;
+                const is_pm = appMeta.is_pm === true;
+
+                if (is_admin) {
+                    // CTO/Co-Founder: full environment switcher overlay
+                    navigate("/admin-home");
+                } else if (is_pm) {
+                    // Non-technical Owner: straight into PM dashboard, no overlay
+                    navigate("/pm-dashboard");
+                } else {
+                    // Everyone else: route by user_metadata role as today
+                    const roleFromMeta = authData.user.user_metadata?.role;
+                    if (roleFromMeta === 'vendor') navigate('/vendor-dashboard');
+                    else if (roleFromMeta === 'professional') navigate('/pro-portal');
+                    else navigate('/');
+                }
+            } else {
+                navigate("/"); // Fallback
+            }
         } catch (err: any) {
             toast.error(err.message || "Invalid credentials. Please try again.");
             console.error(err);
