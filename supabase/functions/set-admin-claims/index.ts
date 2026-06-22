@@ -46,11 +46,11 @@ serve(async (req: Request) => {
             });
         }
 
-        const supabaseUrl  = Deno.env.get('SUPABASE_URL') ?? '';
-        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+        const supabaseUrl  = Deno.env.get('SUPABASE_URL') ?? ''; // Auto-injected by Supabase
+        const serviceRoleKey = Deno.env.get('ADMIN_SERVICE_ROLE_KEY') ?? '';
 
         if (!serviceRoleKey) {
-            return new Response(JSON.stringify({ error: 'Server config error: SUPABASE_SERVICE_ROLE_KEY missing.' }), {
+            return new Response(JSON.stringify({ error: 'Server config error: ADMIN_SERVICE_ROLE_KEY missing.' }), {
                 status: 500,
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             });
