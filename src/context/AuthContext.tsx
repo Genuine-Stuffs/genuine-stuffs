@@ -36,17 +36,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setSession(session);
             setUser(session?.user ?? null);
             
-            // Priority: Manual override (Dev role) > Metadata role > Guest
-            // Note: MI_DEV_ROLE now ONLY controls the UI view, not server capabilities.
-            const devRole = localStorage.getItem('MI_DEV_ROLE') as Role;
-            const userRole = devRole || (session?.user?.user_metadata?.role as Role) || 'guest';
-            
-            // Extract server-side claims from app_metadata (cannot be forged by client)
+            // Server claims (from app_metadata) ALWAYS take priority over localStorage
             const appMeta = session?.user?.app_metadata || {};
-            setServerClaims({
-                is_admin: appMeta.is_admin === true,
-                is_pm: appMeta.is_pm === true
-            });
+            const is_admin = appMeta.is_admin === true;
+            const is_pm = appMeta.is_pm === true;
+            setServerClaims({ is_admin, is_pm });
+
+            // Role resolution: server claims beat everything
+            let userRole: Role;
+            if (is_admin) userRole = 'admin';
+            else if (is_pm) userRole = 'pm';
+            else {
+                const devRole = localStorage.getItem('MI_DEV_ROLE') as Role;
+                userRole = devRole || (session?.user?.user_metadata?.role as Role) || 'guest';
+            }
             
             setRole(userRole);
             setIsLoading(false);
@@ -68,16 +71,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setSession(session);
                 setUser(session?.user ?? null);
                 
-                // Keep dev role if it exists, otherwise use metadata
-                const devRole = localStorage.getItem('MI_DEV_ROLE') as Role;
-                const userRole = devRole || (session?.user?.user_metadata?.role as Role) || 'guest';
-                
-                // Extract server-side claims from app_metadata
+                // Server claims ALWAYS take priority
                 const appMeta = session?.user?.app_metadata || {};
-                setServerClaims({
-                    is_admin: appMeta.is_admin === true,
-                    is_pm: appMeta.is_pm === true
-                });
+                const is_admin = appMeta.is_admin === true;
+                const is_pm = appMeta.is_pm === true;
+                setServerClaims({ is_admin, is_pm });
+
+                let userRole: Role;
+                if (is_admin) userRole = 'admin';
+                else if (is_pm) userRole = 'pm';
+                else {
+                    const devRole = localStorage.getItem('MI_DEV_ROLE') as Role;
+                    userRole = devRole || (session?.user?.user_metadata?.role as Role) || 'guest';
+                }
                 
                 setRole(userRole);
                 setIsLoading(false);

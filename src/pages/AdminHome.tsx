@@ -11,30 +11,36 @@ const AdminHome = () => {
     const navigate = useNavigate();
 
     // Guard: Only admins should see this page.
-    // If a PM somehow lands here, they are bounced to the PM dashboard.
-    // If anyone else lands here, they are bounced home.
+    // We wait until auth has fully loaded before making any redirect decisions.
+    // This prevents a race condition where the guard fires before app_metadata
+    // has been extracted from the new session token.
     useEffect(() => {
-        if (!isLoading) {
-            if (!serverClaims.is_admin) {
-                if (serverClaims.is_pm) {
-                    navigate("/pm-dashboard", { replace: true });
-                } else {
-                    navigate("/", { replace: true });
-                }
+        if (isLoading) return; // Still loading — do nothing yet
+        
+        if (!serverClaims.is_admin) {
+            // Auth finished loading and user is NOT an admin — redirect.
+            if (serverClaims.is_pm) {
+                navigate("/pm-dashboard", { replace: true });
+            } else {
+                navigate("/", { replace: true });
             }
         }
-    }, [serverClaims, isLoading, navigate]);
+    }, [serverClaims.is_admin, serverClaims.is_pm, isLoading, navigate]);
 
+    // Always show a spinner while loading — never flash the guard redirect
     if (isLoading) {
         return (
             <div className="min-h-screen bg-slate-50 dark:bg-[#0F172A] flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600"></div>
+                <div className="text-center space-y-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto"></div>
+                    <p className="text-slate-400 text-sm font-medium">Verifying admin credentials…</p>
+                </div>
             </div>
         );
     }
 
     if (!serverClaims.is_admin) {
-        return null; // Will navigate away via useEffect
+        return null; // useEffect will handle the redirect
     }
 
     const logEnvironmentEntry = async (env: string) => {
