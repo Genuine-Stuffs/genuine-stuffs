@@ -1,55 +1,155 @@
 .
+├── Genuine_Stuffs_Product_Description.txt
+├── IMPLEMENTATION_PLAN.txt
+├── OpenRouter_Integration_Guide.txt
 ├── README.md
+├── _headers
+├── backend
+│   ├── check_images.sql
+│   ├── fix_broken_images.sql
+│   ├── fix_professionals_rls.sql
+│   ├── fix_rls_and_location.sql
+│   ├── migration_fix.sql
+│   ├── orders_and_promotions.sql
+│   ├── professional_engagement.sql
+│   ├── professional_profiles.sql
+│   ├── reassign_products.sql
+│   ├── schema.sql
+│   ├── seed.sql
+│   ├── seed_engagement.sql
+│   ├── seed_more_materials.sql
+│   ├── seed_professionals.sql
+│   ├── supabaseClient.ts
+│   ├── types.ts
+│   ├── universal_sync.sql
+│   └── update_all_prices.sql
 ├── bun.lockb
+├── check_materials.mjs
 ├── components.json
+├── docs
+│   ├── PLATFORM_USER_MODEL.md
+│   ├── compliance
+│   │   └── professional_design_standards.md
+│   ├── development
+│   │   └── aec_production_guidelines.md
+│   ├── research
+│   │   └── dashboard_research_report.md
+│   ├── roadmaps
+│   │   └── ai_studio_roadmap.md
+│   └── updates
+│       └── aec_engine_v2_release_notes.md
 ├── eslint.config.js
+├── get_icons.py
 ├── index.html
+├── netlify.toml
 ├── package-lock.json
 ├── package.json
 ├── postcss.config.js
 ├── project-structure.txt
 ├── public
-│   ├── favicon.ico
-│   ├── favicon.png
-│   ├── logo-192.png
-│   ├── logo-512.png
-│   ├── placeholder.svg
-│   └── robots.txt
+│   ├── _headers
+│   ├── _redirects
+│   ├── favicon.ico
+│   ├── favicon.png
+│   ├── images
+│   │   ├── blog
+│   │   ├── cats
+│   │   ├── materials
+│   │   └── pros
+│   ├── logo-192.png
+│   ├── logo-512.png
+│   ├── logo-gs.png
+│   ├── placeholder.svg
+│   └── robots.txt
 ├── src
-│   ├── App.css
-│   ├── App.tsx
-│   ├── assets
-│   │   ├── consultation-meeting.jpg
-│   │   ├── hero-construction.jpg
-│   │   ├── logo-full.svg
-│   │   ├── logo-icon.png
-│   │   ├── logo-icon.svg
-│   │   └── materials-quality.jpg
-│   ├── components
-│   │   ├── Footer.tsx
-│   │   ├── NavLink.tsx
-│   │   ├── Navbar.tsx
-│   │   └── ui
-│   ├── hooks
-│   │   ├── use-mobile.tsx
-│   │   └── use-toast.ts
-│   ├── index.css
-│   ├── integrations
-│   ├── lib
-│   │   └── utils.ts
-│   ├── main.tsx
-│   ├── pages
-│   │   ├── About.tsx
-│   │   ├── Contact.tsx
-│   │   ├── Index.tsx
-│   │   ├── NotFound.tsx
-│   │   ├── Resources.tsx
-│   │   └── Services.tsx
-│   └── vite-env.d.ts
+│   ├── App.css
+│   ├── App.tsx
+│   ├── assets
+│   │   ├── consultation-meeting.jpg
+│   │   ├── hero
+│   │   ├── hero-construction.jpg
+│   │   ├── logo-full-dark-with-text.png
+│   │   ├── logo-full-light-with-text.png
+│   │   ├── materials-quality.jpg
+│   │   └── thematic
+│   ├── components
+│   │   ├── BottomNav.tsx
+│   │   ├── CreditInfo.tsx
+│   │   ├── Footer.tsx
+│   │   ├── Logo.tsx
+│   │   ├── ModeToggle.tsx
+│   │   ├── NavLink.tsx
+│   │   ├── Navbar.tsx
+│   │   ├── ScrollToTop.tsx
+│   │   ├── ThemeProvider.tsx
+│   │   ├── VerificationBanner.tsx
+│   │   ├── admin
+│   │   ├── aec
+│   │   ├── blog
+│   │   ├── pro
+│   │   ├── ui
+│   │   └── vendor
+│   ├── context
+│   │   ├── AuthContext.tsx
+│   │   └── CartContext.tsx
+│   ├── data
+│   │   └── materials.ts
+│   ├── hooks
+│   │   ├── use-mobile.tsx
+│   │   ├── use-toast.ts
+│   │   └── useAdminData.ts
+│   ├── index.css
+│   ├── lib
+│   │   ├── aec
+│   │   └── utils.ts
+│   ├── main.tsx
+│   ├── pages
+│   │   ├── AIDocumentation.tsx
+│   │   ├── AIStudio.tsx
+│   │   ├── About.tsx
+│   │   ├── AdminHome.tsx
+│   │   ├── BlogAdmin.tsx
+│   │   ├── BlogList.tsx
+│   │   ├── BlogPost.tsx
+│   │   ├── Calculators.tsx
+│   │   ├── Cart.tsx
+│   │   ├── ClientProfile.tsx
+│   │   ├── Contact.tsx
+│   │   ├── EditProProfile.tsx
+│   │   ├── HelpSupport.tsx
+│   │   ├── HireExperts.tsx
+│   │   ├── Index.tsx
+│   │   ├── Login.tsx
+│   │   ├── Marketplace.tsx
+│   │   ├── NotFound.tsx
+│   │   ├── PMDashboard.tsx
+│   │   ├── ProDashboard.tsx
+│   │   ├── ProfessionalProfile.tsx
+│   │   ├── Pros.tsx
+│   │   ├── Register.tsx
+│   │   ├── Resources.tsx
+│   │   ├── Services.tsx
+│   │   ├── Settings.tsx
+│   │   ├── SystemMaintenance.tsx
+│   │   ├── VendorAnalytics.tsx
+│   │   ├── VendorDashboard.tsx
+│   │   ├── VendorInventory.tsx
+│   │   ├── VendorOrders.tsx
+│   │   └── VendorSettings.tsx
+│   └── vite-env.d.ts
+├── supabase
+│   ├── config.toml
+│   ├── functions
+│   │   ├── ai-studio
+│   │   └── set-admin-claims
+│   └── migrations
+│       ├── add_subscription_status_to_professionals.sql
+│       ├── create_audit_log_table.sql
+│       └── create_blog_posts_table.sql
 ├── tailwind.config.ts
+├── test_solver.ts
 ├── tsconfig.app.json
 ├── tsconfig.json
 ├── tsconfig.node.json
+├── update_images.py
 └── vite.config.ts
-
-10 directories, 43 files
