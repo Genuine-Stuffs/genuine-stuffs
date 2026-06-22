@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, User, ChevronDown, Rocket, ShieldCheck, ShoppingBag, LayoutDashboard, Search, Settings, BookOpen, Sparkles, Calculator } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, User, ChevronDown, Rocket, ShieldCheck, ShoppingBag, LayoutDashboard, Search, Settings, BookOpen, Sparkles, Calculator, LayoutGrid, LogOut } from "lucide-react";
 import { ModeToggle } from "./ModeToggle";
 import { Button } from "@/components/ui/button";
 import Logo from "./Logo";
@@ -17,8 +17,20 @@ import { Plus } from "lucide-react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const location = useLocation();
-  const { user, role, logout } = useAuth();
+  const navigate = useNavigate();
+  const { user, role, logout, serverClaims } = useAuth();
+
+  // For admins: show a dialog asking if they want to go back to the
+  // environment selector or fully sign out. For everyone else: logout immediately.
+  const handleLogoutClick = () => {
+    if (serverClaims?.is_admin) {
+      setShowLogoutDialog(true);
+    } else {
+      logout();
+    }
+  };
 
   const filteredLinks = [
     { path: "/", label: "Home" },
@@ -145,7 +157,10 @@ const Navbar = () => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="my-2 bg-slate-100 dark:bg-white/5" />
-                  <DropdownMenuItem onClick={logout} className="rounded-xl gap-3 py-3 px-4 text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-500/10 cursor-pointer font-bold">
+                  <DropdownMenuItem
+                    onClick={handleLogoutClick}
+                    className="rounded-xl gap-3 py-3 px-4 text-red-500 focus:text-red-500 focus:bg-red-50 dark:focus:bg-red-500/10 cursor-pointer font-bold"
+                  >
                     Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -207,10 +222,48 @@ const Navbar = () => {
                     </Button>
                   </div>
                 ) : (
-                  <Button variant="outline" className="w-full h-9 rounded-xl font-bold text-[11px] text-red-400 border-red-400/20 bg-red-500/10 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/20" onClick={() => { logout(); setIsOpen(false); }}>LOGOUT</Button>
+                  <Button variant="outline" className="w-full h-9 rounded-xl font-bold text-[11px] text-red-400 border-red-400/20 bg-red-500/10 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/20" onClick={() => { handleLogoutClick(); setIsOpen(false); }}>LOGOUT</Button>
                 )}
               </div>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Admin Logout Dialog */}
+      {showLogoutDialog && (
+        <div
+          className="fixed inset-0 z-[99999] flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(8px)' }}
+          onClick={() => setShowLogoutDialog(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl p-8 w-full max-w-sm border border-slate-100 dark:border-white/10 animate-in fade-in zoom-in-95 duration-200"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 rounded-2xl bg-red-50 dark:bg-red-500/10 flex items-center justify-center mx-auto mb-4">
+                <LogOut className="w-7 h-7 text-red-500" />
+              </div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white mb-1">Leaving this environment?</h2>
+              <p className="text-sm text-slate-400 font-medium">Choose where you'd like to go next.</p>
+            </div>
+            <div className="space-y-3">
+              <button
+                onClick={() => { setShowLogoutDialog(false); navigate('/admin-home'); }}
+                className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold text-sm hover:opacity-90 transition-opacity"
+              >
+                <LayoutGrid className="w-5 h-5 flex-shrink-0" />
+                <span>Return to Environment Selector</span>
+              </button>
+              <button
+                onClick={() => { setShowLogoutDialog(false); logout(); }}
+                className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl border-2 border-red-200 dark:border-red-500/30 text-red-500 font-bold text-sm hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+              >
+                <LogOut className="w-5 h-5 flex-shrink-0" />
+                <span>Sign Out Completely</span>
+              </button>
+            </div>
+            <p className="text-center text-xs text-slate-400 mt-4 font-medium">Click outside to cancel</p>
           </div>
         </div>
       )}
