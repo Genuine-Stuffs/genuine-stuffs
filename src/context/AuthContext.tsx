@@ -13,7 +13,7 @@ interface AuthContextType {
     serverClaims: { is_admin: boolean; is_pm: boolean };
     isLoading: boolean;
     signInWithGoogle: () => Promise<void>;
-    signInWithEmail: (email: string, password: string) => Promise<void>;
+    signInWithEmail: (email: string, password: string) => Promise<{ user: User | null; session: Session | null }>;
     signInWithOtp: (email: string) => Promise<void>;
     logout: () => Promise<void>;
     switchEnvironmentView: (newRole: Role) => void;
@@ -99,12 +99,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const signInWithEmail = async (email: string, password: string) => {
         // Standard email sign in - no secret suffix bypasses
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
             email: email.trim(),
             password: password,
         });
 
         if (error) throw error;
+        
+        // Synchronously update local state to prevent route-guard race conditions
+        if (data?.session && data?.user) {
+            setSession(data.session);
+            setUser(data.user);
+            const appMeta = data.user.app_metadata || {};
+            setServerClaims({
+                is_admin: appMeta.is_admin === true,
+                is_pm: appMeta.is_pm === true
+            });
+        }
+        
+        return data;
     };
 
     const signInWithOtp = async (email: string) => {
