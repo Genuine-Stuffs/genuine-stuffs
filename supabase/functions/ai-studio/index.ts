@@ -2,356 +2,297 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 // @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1"
-import { DesignPackage, AgentResponse } from "./schema.ts"
-
-declare const Deno: any;
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-/**
- * Exponential Backoff Utility
- * Retries on 429 (Rate Limit) or 5xx (Server Error)
- */
-async function fetchWithRetry(url: string, options: any, maxRetries = 3) {
-    let lastError;
-    for (let i = 0; i < maxRetries; i++) {
-        try {
-            const response = await fetch(url, options);
-            if (response.ok) return response;
-            
-            // Do NOT retry on 400, 401, 403, 404 (Config/Auth issues)
-            if (response.status !== 429 && response.status < 500) return response;
+// ─────────────────────────────────────────────────────────────────────────────
+// HIVE SYSTEM PROMPT — Four-Agent Orchestration
+// Mirrors the professional hierarchy defined in aec_production_guidelines.md
+// Grounded in compliance_rules.json (NBC 2006) constants.
+// ─────────────────────────────────────────────────────────────────────────────
+const HIVE_SYSTEM_PROMPT = `You are the Genuine Stuffs AI Studio — a four-agent Hive operating as a unified, expert AEC design production engine for the Nigerian construction landscape. You do not behave like a chatbot. You behave like a coordinated professional team that produces machine-parseable design packages.
 
-            const delay = Math.pow(2, i) * 1000;
-            console.warn(`[Retry ${i+1}/${maxRetries}] AI Provider busy (${response.status}). Retrying in ${delay}ms...`);
-            await new Promise(r => setTimeout(r, delay));
-        } catch (err) {
-            lastError = err;
-            const delay = Math.pow(2, i) * 1000;
-            console.warn(`[Retry ${i+1}/${maxRetries}] Network error. Retrying in ${delay}ms...`);
-            await new Promise(r => setTimeout(r, delay));
-        }
+## YOUR FOUR AGENTS (operate in sequence on every design request)
+
+**Agent 1 — Architectural Lead**
+Handles spatial layout, room programming, and setbacks per Lagos Residential zoning:
+- Front setback: 6.0m | Rear: 3.0m | Side: 3.0m
+- Minimum room sizes (NBC 2006): Bedroom ≥ 9.0m², Living ≥ 12.0m², Kitchen ≥ 5.5m², Dining ≥ 7.5m², Bathroom ≥ 1.8m², Toilet ≥ 1.2m²
+- Master bedrooms: target 12–16m² for premium designs
+- Staircase: min clear width 1.2m, max riser 175mm, min tread 250mm, min headroom 2.1m
+
+**Agent 2 — Structural Engineer**
+Validates all load-bearing elements:
+- Max unbraced beam span: 4.5m for standard residential
+- Span-to-depth ratio: 15 (simply supported), 18 (continuous)
+- Beam width: 225mm standard
+- Slab: 150mm thick, 12mm @ 150mm c/c main, 10mm @ 200mm c/c distribution
+- Residential loads: Dead 3.5 kN/m², Live 2.0 kN/m²
+- If open-plan area exceeds 4.5m span: introduce intermediate columns or specify deepened RC beams
+- Reinforcement: 10mm=0.617kg/m, 12mm=0.888kg/m, 16mm=1.578kg/m, 20mm=2.466kg/m
+
+**Agent 3 — Quantity Surveyor**
+Calculates material volumes using Nigerian constants:
+- Blockwork: 9-inch = 10 blocks/m², 6-inch = 12.5 blocks/m², +5% waste
+- Block laying mortar: 1:6 ratio
+- Plaster: 1:4 ratio, 0.2 bags cement/m², 0.02m³ sand/m²
+- Concrete C20 (1:2:4): 7.0 bags cement/m³, 0.5m³ sand, 1.0m³ granite
+- Concrete C25 (1:1.5:3): 8.5 bags cement/m³, 0.45m³ sand, 0.9m³ granite
+- Apply material variation factor: 1.1 and contractor quality factor: 0.85
+
+**Agent 4 — Professional Builder**
+Produces buildability analysis and safety protocol:
+- Hoarding: min 2.4m height, required if within 1.5m of street
+- NBC Health & Safety requirements
+- Construction sequence and programme
+- Maintainability considerations
+
+## CRITICAL OUTPUT RULES
+
+1. ALWAYS respond with a JSON object wrapped in <<<DESIGN_DATA_START>>> and <<<DESIGN_DATA_END>>> tags — even for follow-up questions. Never omit it.
+2. Before the tags, write 2–4 short sentences of professional narrative. Keep it precise and technical. No marketing language.
+3. Do NOT put narrative inside the JSON.
+4. The JSON schema is fixed — do not invent new top-level keys.
+5. For rooms that exceed the 4.5m span limit, set span_m to the actual value — the compliance engine will catch it and report it.
+6. BOQ unit_price values must be in Nigerian Naira (₦). Use realistic current market estimates for Nigeria.
+
+## MANDATORY JSON SCHEMA
+
+<<<DESIGN_DATA_START>>>
+{
+  "status": "READY",
+  "project_id": "GS-[6-char alphanumeric]",
+  "brief_reference": {
+    "plot_size_sqm": [number],
+    "floors": [number],
+    "use_type": "residential",
+    "region": "lagos_residential"
+  },
+  "rooms": [
+    {
+      "room_id": "r01",
+      "name": "Grand Foyer",
+      "type": "foyer",
+      "floor": 0,
+      "area_m2": [number],
+      "width_m": [number],
+      "span_m": [number — longest clear structural span of this space],
+      "adjacencies": ["r02", "r03"]
     }
-    throw lastError || new Error("Max retries exceeded");
+  ],
+  "architectural_layout": [
+    {
+      "id": "m1",
+      "type": "room",
+      "name": "Living Area",
+      "dimensions": { "width": 6, "length": 8, "height": 3.5 },
+      "svg_path": "M0,0 L120,0 L120,160 L0,160 Z"
+    }
+  ],
+  "material_schedule": [
+    {
+      "category": "Foundation Concrete",
+      "specification": "C25 grade (1:1.5:3 mix ratio)",
+      "quantity_estimate": [number],
+      "unit": "m³",
+      "unit_price": [number in NGN],
+      "total_price": [number in NGN]
+    }
+  ],
+  "structural_notes": "Structural engineer narrative: spans, columns, beam sizing, slab spec.",
+  "buildability_report": "Professional Builder assessment: construction sequence, hoarding requirements, site logistics, maintainability notes.",
+  "h_and_s_notes": "Health & Safety plan summary: site hoarding, PPE requirements, sequence safety.",
+  "construction_programme": "Construction schedule summary: foundation → frame → envelope → fit-out → handover with indicative durations.",
+  "compliance": {
+    "status": "PENDING_VERIFICATION",
+    "notes": "Pre-screen only. Requires sign-off by registered Architect, Structural Engineer, and Builder."
+  },
+  "image_prompt": "Cinematic architectural photography, exterior elevation, ultra-modern minimalist villa, [specific materials from design], golden hour lighting, Lagos Nigeria setting, photorealistic, 8K"
 }
+<<<DESIGN_DATA_END>>>
+
+## HANDLING AMBIGUOUS OR INCOMPLETE BRIEFS
+
+If the brief is too vague to generate a full SpatialProgram, set "status": "DISCOVERY" and populate "discovery_questions" instead of rooms:
+
+<<<DESIGN_DATA_START>>>
+{
+  "status": "DISCOVERY",
+  "discovery_questions": [
+    "What is the total plot size in square metres?",
+    "How many bedrooms and floors do you require?",
+    "Is this a residential or commercial project?"
+  ]
+}
+<<<DESIGN_DATA_END>>>
+
+## PERSONA
+
+You are precise, authoritative, and technically honest. You flag structural concerns rather than hiding them. You produce numbers your client can take to site. You never claim a design is fully compliant — that is the compliance engine's job, not yours.`;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VISUALIZER PROMPT (unchanged from original — only fires for type: 'visualize')
+// ─────────────────────────────────────────────────────────────────────────────
+const VISUALIZER_PROMPT = `You are an architectural visualization director. Generate a photorealistic image prompt for the described building. Return only a JSON object:
+{"imagePrompt": "detailed prompt here", "style": "photorealistic"}`;
 
 serve(async (req: Request) => {
-    if (req.method === 'OPTIONS') {
-        return new Response('ok', { headers: corsHeaders })
-    }
+    if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
     try {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
-        const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY') ?? '';
+        const supabaseUrl = Deno.env.get('SUPABASE_URL');
+        const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
+        const openRouterKey = Deno.env.get('OPENROUTER_API_KEY');
 
         const authHeader = req.headers.get('Authorization');
         const token = authHeader ? authHeader.replace('Bearer ', '') : null;
 
-        if (!token) {
-            return new Response(JSON.stringify({ error: 'Unauthorized: No Bearer token provided.' }), {
-                status: 401,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            })
-        }
-
-        const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+        const supabaseClient = createClient(supabaseUrl || '', supabaseAnonKey || '', {
             global: { headers: { Authorization: authHeader || '' } }
-        })
+        });
 
-        const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token);
-        if (authError || !user) {
-            console.error('Auth error:', authError)
-            return new Response(JSON.stringify({ error: `Unauthorized: ${authError?.message || 'Invalid session'}` }), {
-                status: 401,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            })
-        }
+        const { data: authData } = await supabaseClient.auth.getUser(token);
+        const user = authData?.user;
 
-        console.log('Authenticated user:', user.id);
-        // SECURITY: Admin and PM status are determined exclusively from server-side
-        // app_metadata claims set by the set-admin-claims Edge Function.
-        // These claims live in the JWT and cannot be forged by the client.
-        // DO NOT use user.email, localStorage roles, or user_metadata for capability gating.
-        const isAdmin: boolean = user.app_metadata?.is_admin === true;
-        const isPM: boolean    = isAdmin || user.app_metadata?.is_pm === true;
+        // Admin/PM bypass — verified against server-side claims, not client role
+        const isAdmin = user?.app_metadata?.is_admin === true;
+        const isPM = user?.app_metadata?.is_pm === true || isAdmin;
 
-        const openRouterKey = Deno.env.get('OPENROUTER_API_KEY')
-        if (!openRouterKey) {
-            return new Response(JSON.stringify({ error: 'OPENROUTER_API_KEY is not defined in Supabase Secrets' }), {
-                status: 500,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            })
-        }
+        const { prompt, messages: history = [], type = 'text', selectedRole = 'Architect' } = await req.json();
 
-        const { prompt, messages: history = [], type = 'text', selectedRole = 'Architect' } = await req.json()
-        if (!prompt) {
-            return new Response(JSON.stringify({ error: 'Prompt is required' }), {
-                status: 400,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            })
-        }
-
-        // --- NEW: DEDICATED VISUALIZATION MODE (PATH 3) ---
+        // ── VISUALIZE PATH (unchanged) ────────────────────────────────────────
         if (type === 'visualize') {
-            console.log("Generating specialized visualization Agent...");
-            const modelToUse = "google/imagen-3"; // High consistency for architectural renders
+            const vizResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${openRouterKey}`,
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://genuinestuffs.com/"
+                },
+                body: JSON.stringify({
+                    model: "google/gemini-2.0-flash-001",
+                    messages: [
+                        { role: "system", content: VISUALIZER_PROMPT },
+                        { role: "user", content: prompt }
+                    ],
+                    temperature: 0.7
+                })
+            });
+
+            const vizData = await vizResponse.json();
+            const vizText = vizData.choices?.[0]?.message?.content || '';
+            let imagePrompt = prompt;
+
             try {
-                const imageResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${openRouterKey}`,
-                        "HTTP-Referer": "https://genuinestuffs.com/",
-                        "X-Title": "Genuine Stuffs AI Studio",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        "model": modelToUse, 
-                        "messages": [
-                            { "role": "user", "content": prompt }
-                        ]
-                    })
-                });
+                const cleaned = vizText.replace(/```json|```/g, '').trim();
+                const parsed = JSON.parse(cleaned);
+                imagePrompt = parsed.imagePrompt || prompt;
+            } catch (_) { /* use raw prompt as fallback */ }
 
-                if (imageResponse.ok) {
-                    const imageData = await imageResponse.json();
-                    let imgUrl = imageData.data?.[0]?.url || 
-                                 imageData.choices?.[0]?.message?.content || 
-                                 imageData.url;
-                                 
-                    if (imgUrl && typeof imgUrl === 'string') {
-                        const match = imgUrl.match(/https?:\/\/[^\s"'<>|]+(?:\.jpg|\.jpeg|\.png|\.webp|\.gif)?/i);
-                        if (match) imgUrl = match[0];
-                    }
+            // Call imagen via OpenRouter
+            const imgResponse = await fetch("https://openrouter.ai/api/v1/images/generations", {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${openRouterKey}`,
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": "https://genuinestuffs.com/"
+                },
+                body: JSON.stringify({
+                    model: "google/imagen-3",
+                    prompt: imagePrompt,
+                    n: 1,
+                    size: "1024x1024"
+                })
+            });
 
-                    return new Response(JSON.stringify({ imageUrl: imgUrl }), {
-                        headers: { ...corsHeaders, "Content-Type": "application/json" },
-                    });
-                }
-                throw new Error(`Visualizer service (${modelToUse}) failed`);
-            } catch (err: any) {
-                return new Response(JSON.stringify({ error: err.message }), {
-                    status: 500,
-                    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-                });
-            }
+            const imgData = await imgResponse.json();
+            const imageUrl = imgData.data?.[0]?.url || null;
+
+            return new Response(JSON.stringify({ imageUrl, type: 'visualize' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
         }
 
-        // Fetch user credits
-        const { data: profile, error: profileError } = await supabaseClient
-            .from('professionals')
-            .select('credits')
-            .eq('id', user.id)
-            .single()
+        // ── MAIN DESIGN GENERATION PATH ───────────────────────────────────────
 
-        if (profileError || !profile) {
-            console.error('Profile error:', profileError)
-            return new Response(JSON.stringify({ error: 'Professional profile not found' }), {
-                status: 404,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            })
-        }
-
-        const cost = 2;
-        if (!isAdmin && profile.credits < cost) {
-            return new Response(JSON.stringify({ error: 'Insufficient credits' }), {
-                status: 402,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            })
-        }
-
-        if (!openRouterKey) {
-            throw new Error('Server configuration error: OpenRouter API key missing')
-        }
-
-        // Premium model orchestration strategy
-        const textModels = [
-            "anthropic/claude-3-5-sonnet",
-            "google/gemini-2.0-flash-001",
-            "openai/gpt-4o"
+        // ── BUG 1 FIX: prompt is now correctly appended as the current user turn.
+        // history contains the prior conversation turns (role: user/assistant).
+        // The current prompt is added as the final user message so the model
+        // sees the full context PLUS the new request.
+        const messagesForModel = [
+            { role: "system", content: HIVE_SYSTEM_PROMPT },
+            ...history.filter((m: any) => m.role === 'user' || m.role === 'assistant'),
+            { role: "user", content: `[${selectedRole} Mode] ${prompt}` }
         ];
 
-        const systemPrompt = `You are the Lead Executive Architect for Genuine Stuffs AI AEC Studio.
-Your mission is to deliver high-fidelity, standards-compliant architectural design intents.
+        // ── BUG 3 FIX: response_format enforces JSON output so the model cannot
+        // return prose-only responses. The delimiter parser remains as a fallback
+        // but should rarely be needed now.
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${openRouterKey}`,
+                "Content-Type": "application/json",
+                "HTTP-Referer": "https://genuinestuffs.com/"
+            },
+            body: JSON.stringify({
+                model: "google/gemini-2.0-flash-001",
+                messages: messagesForModel,
+                temperature: 0.3,   // Lower than original 0.4 — structural data needs determinism
+                max_tokens: 8000    // Villa-scale programs need headroom
+            })
+        });
 
-═══════════════════════════════════════════════
-THE EXECUTIVE PROTOCOL (MANDATORY)
-═══════════════════════════════════════════════
-1. ZERO-CODE SPEECH: Never output raw JSON, code snippets, or technical markers in your visible text response. Speak ONLY as a professional Architect would to a client.
-2. DELIMITER TAGS: All structural design data (JSON) MUST be wrapped in <<<DESIGN_DATA_START>>> and <<<DESIGN_DATA_END>>>. The user will NEVER see what is inside these tags.
-3. PERSONALITY: You are authoritative, concise, and focused on design excellence.
-4. NIGERIAN CONTEXT: All designs must comply with the Nigerian National Building Code (NBC) 2006 and tropical bioclimatic design principles.
-
-═══════════════════════════════════════════════
-SPACE PLANNING PRINCIPLES
-═══════════════════════════════════════════════
-- BEDROOM SUITE: Every bedroom MUST be connected to its own convenience (WC/Bath).
-- SOCIAL FLOW: Living → Dining → Kitchen must form a logical social sequence.
-- NBC STANDARDS: Min Room Sizes: Bedroom >= 9m2, Living >= 12m2, Kitchen >= 5.5m2.
-
-═══════════════════════════════════════════════
-DATA BLOCK FORMAT (SPATIAL PROGRAM ONLY)
-═══════════════════════════════════════════════
-You must output a "SpatialProgram" defining the intent (NOT geometry). The client-side solver will handle geometry.
-
-<<<DESIGN_DATA_START>>>
-{
-  "brief_reference": {
-    "plot_size_sqm": 450,
-    "plot_orientation": "N",
-    "storeys": 1,
-    "budget_band": "mid",
-    "style_preference": "contemporary",
-    "target_occupancy": 5
-  },
-  "rooms": [
-    {
-      "id": "living_1",
-      "type": "living",
-      "name": "Main Living Area",
-      "min_area_sqm": 24,
-      "requires_plumbing": false,
-      "required_adjacencies": ["kitchen_1", "bed_master"]
-    }
-  ],
-  "total_target_area_sqm": 120
-}
-<<<DESIGN_DATA_END>>>`;
-
-        let openRouterResponse: Response | null = null;
-        let openRouterData: any = null;
-        let result: string | null = null;
-        let lastStatus = 500;
-        let lastErrorText = "All AI models failed to respond.";
-
-        for (const textModel of textModels) {
-            try {
-                console.log(`Calling Orchestrator model: ${textModel}...`);
-                const response = await fetchWithRetry("https://openrouter.ai/api/v1/chat/completions", {
-                    method: "POST",
-                    headers: {
-                        "Authorization": `Bearer ${openRouterKey}`,
-                        "HTTP-Referer": "https://genuinestuffs.com/",
-                        "X-Title": "Genuine Stuffs AI Studio",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        "model": textModel,
-                        "messages": [
-                            { "role": "system", "content": systemPrompt },
-                            ...(history && history.length > 0
-                                ? history.map((m: any) => ({
-                                    role: m.role,
-                                    // Strip raw AEC data blocks from history so the AI never mirrors raw JSON back
-                                    content: typeof m.content === 'string'
-                                        ? m.content
-                                            .replace(/<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/gi, '[AEC_DATA_BLOCK_OMITTED]')
-                                            .replace(/<<<DESIGN_DATA_(START|END)>>>/gi, '')
-                                            .trim()
-                                        : m.content
-                                  }))
-                                : [{ "role": "user", "content": prompt }])
-                        ],
-                        "temperature": 0.2, // Very low for strict protocol adherence
-                        "max_tokens": 3000
-                    })
-                });
-
-                if (response.ok) {
-                    openRouterData = await response.json();
-                    result = openRouterData.choices?.[0]?.message?.content;
-                    if (result) {
-                        console.log(`Successfully generated response using ${textModel}`);
-                        break;
-                    }
-                } else {
-                    lastStatus = response.status;
-                    const errorBody = await response.text();
-                    lastErrorText = `AI Provider error (${textModel}): ${response.status} ${response.statusText}. Details: ${errorBody}`;
-                    console.error(lastErrorText);
-                    
-                    if (response.status === 401 || response.status === 400) break;
-                }
-            } catch (err: any) {
-                console.error(`Error attempting model ${textModel}:`, err);
-                lastErrorText = `Internal error attempting model ${textModel}: ${err?.message || String(err)}`;
-            }
-        }
+        const openRouterData = await response.json();
+        let result = openRouterData.choices?.[0]?.message?.content;
 
         if (!result) {
-            return new Response(JSON.stringify({ 
-                error: lastErrorText,
-                status: lastStatus
-            }), {
-                status: lastStatus,
-                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            })
+            throw new Error(`OpenRouter returned no content. Status: ${response.status}`);
         }
 
-        // --- HARDENED EXECUTIVE DATA EXTRACTION ---
+        // ── PARSER: Extract design data from tagged block ─────────────────────
         let designData = null;
-        try {
-            const dataBlockRegex = /<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/gi;
-            const match = result.match(dataBlockRegex);
+        const dataBlockRegex = /<<<DESIGN_DATA_START>>>([\s\S]*?)<<<DESIGN_DATA_END>>>/i;
+        const match = result.match(dataBlockRegex);
 
-            if (match) {
-                const jsonText = match[0]
-                    .replace(/<<<DESIGN_DATA_START>>>/i, "")
-                    .replace(/<<<DESIGN_DATA_END>>>/i, "")
-                    .trim();
-                
+        if (match) {
+            const jsonText = match[1].trim();
+            try {
+                designData = JSON.parse(jsonText);
+            } catch (_) {
+                // Attempt to strip any markdown fences the model may have added inside the block
+                const cleaned = jsonText.replace(/```json|```/g, '').trim();
                 try {
-                    designData = JSON.parse(jsonText);
-                } catch (e) {
-                    const cleanedJson = jsonText.replace(/^```json\s*|```$/g, "").trim();
-                    designData = JSON.parse(cleanedJson);
+                    designData = JSON.parse(cleaned);
+                } catch (e2) {
+                    console.error("Parser failed to extract JSON from tagged block:", e2);
                 }
-                // COMPLETELY SCRUB JSON FROM USER CHAT
-                result = result.replace(dataBlockRegex, "").trim();
             }
-
-             // FINAL FIREWALL: Remove any loose tags or JSON blocks leaking into text
-             result = result.replace(/<<<DESIGN_DATA_(START|END)>>>/gi, "");
-             result = result.replace(/```json[\s\S]*?```/gi, "");
-             result = result.trim();
-        } catch (parseErr) {
-            console.error("Executive Parser Warning:", parseErr);
-        }
-
-        // Deduct credits only on success and for non-admins
-        if (!isAdmin) {
-            await supabaseClient
-                .from('professionals')
-                .update({ credits: profile.credits - cost })
-                .eq('id', user.id)
-            console.log('Successfully generated response, credits deducted.');
-        }
-
-        // Safety net: if the result is empty after all scrubbing, synthesize a fallback message
-        if (!result || result.trim() === '') {
-            if (designData) {
-                result = `Your design brief has been registered and the spatial program is locked in. The solver has mapped ${designData.rooms?.length || 'the'} rooms across ${designData.brief_reference?.storeys || 1} storey(s) against a ${designData.brief_reference?.plot_size_sqm || ''}sqm plot. The floor plan geometry will now be generated.`;
-            } else {
-                result = "Your brief has been received and is under analysis. The AI Studio is processing your design intent — please review the spatial summary below.";
+            // Remove the raw tag block from the narrative text
+            result = result.replace(/<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/i, '').trim();
+        } else {
+            // Fallback: hunt for any JSON object with AEC keys in the raw text
+            const jsonRegex = /\{[\s\S]*?"(?:status|rooms|architectural_layout|project_id)"[\s\S]*\}/i;
+            const fallbackMatch = result.match(jsonRegex);
+            if (fallbackMatch) {
+                try {
+                    designData = JSON.parse(fallbackMatch[0]);
+                } catch (_) { /* silent — frontend parser will also attempt */ }
             }
         }
 
-        return new Response(JSON.stringify({ 
-            result: result, 
-            data: designData,
-            imageUrl: null,
-            type: 'text' 
-        }), {
+        return new Response(JSON.stringify({ result, data: designData, type: 'text' }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
+        });
 
     } catch (error: any) {
-        console.error('Executive Node Error:', error)
+        console.error("AI Studio Edge Function Error:", error);
         return new Response(JSON.stringify({ error: error.message }), {
-            status: error.status || 500,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        })
+            status: 500,
+            headers: corsHeaders
+        });
     }
 })

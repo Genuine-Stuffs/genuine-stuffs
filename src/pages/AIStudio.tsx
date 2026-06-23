@@ -64,6 +64,7 @@ import AECFloorPlan from '@/components/aec/AECFloorPlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { solveLayout } from '@/lib/aec/solver/engine';
+import { runComplianceCheck, ComplianceReport } from '@/lib/aec/compliance_engine';
 
 // --- CLIENT-SIDE SANITIZER: Guarantee no JSON leaks in chat bubble ---
 const sanitizeResultText = (raw: any): string | null => {
@@ -116,6 +117,7 @@ const AIStudio = () => {
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
     const [visualUrl, setVisualUrl] = useState<string | null>(null);
     const [designPackage, setDesignPackage] = useState<any | null>(null);
+    const [complianceReport, setComplianceReport] = useState<ComplianceReport | null>(null);
     const [promptText, setPromptText] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -658,6 +660,20 @@ const AIStudio = () => {
                     });
                     finalDesignData.solvedLayout = solved;
                     console.log("Client-side TS Solver generated geometry successfully.", solved);
+
+                    // Run deterministic compliance check against NBC 2006 rules
+                    try {
+                        const report = runComplianceCheck({
+                            rooms: finalDesignData.rooms,
+                            plot_size_sqm: finalDesignData.brief_reference?.plot_size_sqm,
+                            region: finalDesignData.brief_reference?.region || 'lagos_residential',
+                            use_type: finalDesignData.brief_reference?.use_type || 'residential',
+                        });
+                        setComplianceReport(report);
+                    } catch (complianceErr) {
+                        console.error("Compliance engine error:", complianceErr);
+                        setComplianceReport(null);
+                    }
                 } catch (solverErr) {
                     console.error("Client-side TS Solver failed to generate layout:", solverErr);
                 }
@@ -733,6 +749,7 @@ const AIStudio = () => {
         setHasActiveSession(false);
         setMessages([]);
         setDesignPackage(null);
+        setComplianceReport(null);
         setGeneratedImage(null);
         setVisualUrl(null);
         setPromptText("");
@@ -1184,23 +1201,162 @@ const AIStudio = () => {
                                                         <AECMassingView layout={designPackage.solvedLayout} />
                                                         <AECBillOfQuantities layout={designPackage.solvedLayout} materials={designPackage.material_schedule || []} />
                                                         
-                                                        {/* Compliance Banner */}
-                                                        <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-2xl">
-                                                            <div className="flex items-center gap-4">
-                                                                <ShieldCheck className="w-6 h-6 text-emerald-500" />
-                                                                <div>
-                                                                    <h4 className="text-[11px] font-black uppercase tracking-widest text-white">Compliance: {designPackage.compliance?.status || 'Validated'}</h4>
-                                                                    <p className="text-[9px] text-slate-400">NBC 2006 Structural Integrity Check Passed</p>
+                                                        {/* ── REAL COMPLIANCE BANNER — driven by compliance_engine.ts ── */}
+                                                        {complianceReport && (
+                                                            <div className={`p-6 rounded-2xl border flex flex-col gap-4 shadow-2xl ${
+                                                                complianceReport.overall_status === 'COMPLIANT'
+                                                                    ? 'bg-emerald-950 border-emerald-800'
+                                                                    : complianceReport.overall_status === 'REQUIRES_REVIEW'
+                                                                    ? 'bg-amber-950 border-amber-800'
+                                                                    : 'bg-red-950 border-red-900'
+                                                            }`}>
+                                                                {/* Status row */}
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <ShieldCheck className={`w-6 h-6 ${
+                                                                            complianceReport.overall_status === 'COMPLIANT' ? 'text-emerald-400'
+                                                                            : complianceReport.overall_status === 'REQUIRES_REVIEW' ? 'text-amber-400'
+                                                                            : 'text-red-400'
+                                                                        }`} />
+                                                                        <div>
+                                                                            <h4 className="text-[11px] font-black uppercase tracking-widest text-white">
+                                                                                NBC 2006 Pre-Screen: {complianceReport.overall_status.replace('_', ' ')}
+                                                                            </h4>
+                                                                            <p className="text-[9px] text-slate-400">
+                                                                                {complianceReport.pass_count} passed · {complianceReport.fail_count} failed · {complianceReport.warn_count} warnings · {complianceReport.checked_against}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="flex gap-2">
+                                                                        <Button onClick={handleExportDXF} size="sm" variant="outline" className="text-white border-white/10 hover:bg-white/5 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
+                                                                            Export .DXF
+                                                                        </Button>
+                                                                        <Button onClick={handleDownloadBlueprint} size="sm" className="bg-primary text-white hover:bg-primary/90 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
+                                                                            Download PDF
+                                                                        </Button>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Rule results — show failures and warnings only */}
+                                                                {(complianceReport.fail_count > 0 || complianceReport.warn_count > 0) && (
+                                                                    <div className="space-y-1.5 mt-1">
+                                                                        {complianceReport.results
+                                                                            .filter(r => r.status !== 'PASS')
+                                                                            .map((r, i) => (
+                                                                            <div key={i} className={`flex items-start gap-3 px-3 py-2 rounded-lg text-[10px] ${
+                                                                                r.status === 'FAIL' ? 'bg-red-900/40 text-red-200' : 'bg-amber-900/40 text-amber-200'
+                                                                            }`}>
+                                                                                <span className="font-black mt-0.5 shrink-0">{r.status}</span>
+                                                                                <span>{r.message}</span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Setback summary */}
+                                                                <div className="flex gap-4 text-[9px] text-slate-400 font-bold uppercase tracking-wider border-t border-white/5 pt-3">
+                                                                    <span>Front setback: {complianceReport.setback_summary.front_m}m</span>
+                                                                    <span>Rear: {complianceReport.setback_summary.rear_m}m</span>
+                                                                    <span>Side: {complianceReport.setback_summary.side_m}m</span>
+                                                                    <span>Slab: {complianceReport.structural_summary.slab_thickness_mm}mm</span>
+                                                                    <span>Live load: {complianceReport.structural_summary.live_load_kN_per_m2} kN/m²</span>
+                                                                </div>
+
+                                                                {/* Disclaimer */}
+                                                                <p className="text-[8px] text-slate-500 leading-relaxed border-t border-white/5 pt-3">
+                                                                    {complianceReport.disclaimer}
+                                                                </p>
+                                                            </div>
+                                                        )}
+
+                                                        {/* Fallback banner when compliance engine hasn't run (no rooms in output) */}
+                                                        {!complianceReport && designPackage && (
+                                                            <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between shadow-2xl">
+                                                                <div className="flex items-center gap-4">
+                                                                    <ShieldCheck className="w-6 h-6 text-slate-500" />
+                                                                    <div>
+                                                                        <h4 className="text-[11px] font-black uppercase tracking-widest text-white">Compliance Pre-Screen Pending</h4>
+                                                                        <p className="text-[9px] text-slate-400">Room geometry required for NBC 2006 validation. Refine your brief to include room specifications.</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex gap-2">
+                                                                    <Button onClick={handleExportDXF} size="sm" variant="outline" className="text-white border-white/10 hover:bg-white/5 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
+                                                                        Export .DXF
+                                                                    </Button>
+                                                                    <Button onClick={handleDownloadBlueprint} size="sm" className="bg-primary text-white hover:bg-primary/90 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
+                                                                        Download PDF
+                                                                    </Button>
                                                                 </div>
                                                             </div>
-                                                            <div className="flex gap-2">
-                                                                <Button onClick={handleExportDXF} size="sm" variant="outline" className="text-white border-white/10 hover:bg-white/5 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
-                                                                    Export .DXF
-                                                                </Button>
-                                                                <Button onClick={handleDownloadBlueprint} size="sm" className="bg-primary text-white hover:bg-primary/90 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
-                                                                    Download PDF
-                                                                </Button>
-                                                            </div>
+                                                        )}
+
+                                                        {/* ── MANDATORY DOCUMENT PACKAGE (NBC 2006 / aec_production_guidelines.md) ── */}
+                                                        {/* These panels surface the four additional outputs the Hive now returns.    */}
+                                                        {/* They appear only when the relevant data is present in designPackage.      */}
+                                                        <div className="space-y-3">
+                                                            {/* Structural Notes */}
+                                                            {designPackage.structural_notes && (
+                                                                <details className="group rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+                                                                    <summary className="flex items-center justify-between px-6 py-4 bg-slate-50 dark:bg-white/5 cursor-pointer list-none">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <DraftingCompass className="w-4 h-4 text-primary" />
+                                                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white">Structural Engineering Notes</span>
+                                                                        </div>
+                                                                        <ChevronRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" />
+                                                                    </summary>
+                                                                    <div className="px-6 py-4 bg-white dark:bg-black/20 text-[12px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                                                                        {designPackage.structural_notes}
+                                                                    </div>
+                                                                </details>
+                                                            )}
+
+                                                            {/* Buildability Report */}
+                                                            {designPackage.buildability_report && (
+                                                                <details className="group rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+                                                                    <summary className="flex items-center justify-between px-6 py-4 bg-slate-50 dark:bg-white/5 cursor-pointer list-none">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <HardHat className="w-4 h-4 text-primary" />
+                                                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white">Buildability & Maintainability Report</span>
+                                                                        </div>
+                                                                        <ChevronRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" />
+                                                                    </summary>
+                                                                    <div className="px-6 py-4 bg-white dark:bg-black/20 text-[12px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                                                                        {designPackage.buildability_report}
+                                                                    </div>
+                                                                </details>
+                                                            )}
+
+                                                            {/* H&S Plan */}
+                                                            {designPackage.h_and_s_notes && (
+                                                                <details className="group rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+                                                                    <summary className="flex items-center justify-between px-6 py-4 bg-slate-50 dark:bg-white/5 cursor-pointer list-none">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <ShieldCheck className="w-4 h-4 text-primary" />
+                                                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white">Health & Safety Plan</span>
+                                                                        </div>
+                                                                        <ChevronRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" />
+                                                                    </summary>
+                                                                    <div className="px-6 py-4 bg-white dark:bg-black/20 text-[12px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                                                                        {designPackage.h_and_s_notes}
+                                                                    </div>
+                                                                </details>
+                                                            )}
+
+                                                            {/* Construction Programme */}
+                                                            {designPackage.construction_programme && (
+                                                                <details className="group rounded-2xl border border-slate-200 dark:border-white/10 overflow-hidden">
+                                                                    <summary className="flex items-center justify-between px-6 py-4 bg-slate-50 dark:bg-white/5 cursor-pointer list-none">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <History className="w-4 h-4 text-primary" />
+                                                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white">Construction Programme</span>
+                                                                        </div>
+                                                                        <ChevronRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" />
+                                                                    </summary>
+                                                                    <div className="px-6 py-4 bg-white dark:bg-black/20 text-[12px] text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                                                                        {designPackage.construction_programme}
+                                                                    </div>
+                                                                </details>
+                                                            )}
                                                         </div>
                                                     </>
                                                 )}
