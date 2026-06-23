@@ -173,7 +173,7 @@ serve(async (req: Request) => {
                     "HTTP-Referer": "https://genuinestuffs.com/"
                 },
                 body: JSON.stringify({
-                    model: "google/gemini-2.0-flash-001",
+                    model: "google/gemini-2.5-flash",
                     messages: [
                         { role: "system", content: VISUALIZER_PROMPT },
                         { role: "user", content: prompt }
@@ -239,7 +239,7 @@ serve(async (req: Request) => {
                 "HTTP-Referer": "https://genuinestuffs.com/"
             },
             body: JSON.stringify({
-                model: "google/gemini-2.0-flash-001",
+                model: "google/gemini-2.5-flash",
                 messages: messagesForModel,
                 temperature: 0.3,   // Lower than original 0.4 — structural data needs determinism
                 max_tokens: 8000    // Villa-scale programs need headroom
