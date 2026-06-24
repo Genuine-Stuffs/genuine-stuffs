@@ -92,7 +92,7 @@ const ROOM_TYPE_MAP: Record<string, string> = {
 };
 
 function resolveRoomType(raw: string): string {
-  const key = raw.toLowerCase().replace(/[\s-]/g, '_');
+  const key = (raw || '').toLowerCase().replace(/[\s-]/g, '_');
   return ROOM_TYPE_MAP[key] || key;
 }
 
