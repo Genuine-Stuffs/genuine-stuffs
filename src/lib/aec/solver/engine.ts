@@ -75,9 +75,13 @@ export function solveLayout(
         floorIndex: number,
         forceStairwell?: { x: number, y: number, w: number, d: number }
     ) => {
-        let currentX = 0;
-        let currentY = 0;
-        let rowDepth = 0;
+        // Minimum two-column corridor grid layout
+        const corridorWidth = 1.8;
+        const leftColWidth = Math.floor((buildableW - corridorWidth) / 2 / grid) * grid;
+        const rightColWidth = buildableW - leftColWidth - corridorWidth;
+        
+        let leftY = 0;
+        let rightY = 0;
 
         // Upper floor: place stairwell void at same coordinates as ground floor.
         if (floorIndex > 0 && forceStairwell) {
@@ -89,36 +93,40 @@ export function solveLayout(
                 width: forceStairwell.w,
                 depth: forceStairwell.d
             });
-            currentX = forceStairwell.x + forceStairwell.w;
-            currentY = forceStairwell.y;
-            rowDepth = forceStairwell.d;
+            
+            // Assume stairwell is placed centrally or on right
+            if (forceStairwell.x >= leftColWidth) {
+                rightY = forceStairwell.y + forceStairwell.d;
+            } else {
+                leftY = forceStairwell.y + forceStairwell.d;
+            }
         }
+
+        // Place corridor 
+        const totalNodesDepth = floorNodes.reduce((sum, n) => sum + Math.sqrt((typeof n.target_area === 'number' && isFinite(n.target_area) && n.target_area > 0) ? n.target_area : 9.0), 0);
+        const estimatedCorridorLength = (totalNodesDepth / 2) + 2.0;
+
+        placedRooms.push({
+            room_id: `corridor_fl_${floorIndex}`,
+            floor: floorIndex,
+            x: leftColWidth,
+            y: 0,
+            width: corridorWidth,
+            depth: Math.min(estimatedCorridorLength, buildableD)
+        });
 
         for (const node of floorNodes) {
             iterations++;
+            const safeArea = (typeof node.target_area === 'number' && isFinite(node.target_area) && node.target_area > 0) ? node.target_area : 9.0;
 
-            // Guard: target_area must be a positive finite number.
-            // If the Hive returned undefined/null/NaN for area, fall back to
-            // the NBC 2006 minimum of 9m² (bedroom minimum) so the room
-            // still gets placed rather than producing NaN geometry.
-            const safeArea = (
-                typeof node.target_area === 'number' &&
-                isFinite(node.target_area) &&
-                node.target_area > 0
-            ) ? node.target_area : 9.0;
+            // Choose column with less depth used
+            const isLeft = leftY <= rightY;
+            
+            let roomW = isLeft ? leftColWidth : rightColWidth;
+            let roomD = Math.ceil((safeArea / roomW) / grid) * grid;
 
-            let roomW = Math.ceil(Math.sqrt(safeArea) / grid) * grid;
-            let roomD = Math.ceil(Math.sqrt(safeArea) / grid) * grid;
-
-            // Row-wrapping: if room doesn't fit on current row, start a new one.
-            if (currentX + roomW > buildableW) {
-                currentX = 0;
-                currentY += rowDepth;
-                rowDepth = 0;
-            }
-
-            node.x = currentX;
-            node.y = currentY;
+            node.x = isLeft ? 0 : leftColWidth + corridorWidth;
+            node.y = isLeft ? leftY : rightY;
             node.w = roomW;
             node.d = roomD;
             node.placed = true;
@@ -132,21 +140,27 @@ export function solveLayout(
                 depth: node.d
             });
 
-            currentX += roomW;
-            rowDepth = Math.max(rowDepth, roomD);
+            if (isLeft) leftY += roomD;
+            else rightY += roomD;
         }
 
-        // Ground floor of a duplex: add staircase at end of packed row.
+        // Ground floor staircase
         if (floorIndex === 0 && isDuplex) {
-            const stairW = 2.4; // 1.2m clear width × 2 flights
+            const stairW = 2.4; 
             const stairD = 3.6;
 
-            if (currentX + stairW > buildableW) {
-                currentX = 0;
-                currentY += rowDepth;
+            stairwellCoords = { 
+                x: leftColWidth + corridorWidth, 
+                y: rightY, 
+                w: stairW, 
+                d: stairD 
+            };
+            
+            // Re-adjust if it spills out
+            if (stairwellCoords.x + stairW > buildableW) {
+                 stairwellCoords.x = buildableW - stairW;
             }
 
-            stairwellCoords = { x: currentX, y: currentY, w: stairW, d: stairD };
             placedRooms.push({
                 room_id: "stairwell",
                 floor: floorIndex,
@@ -155,9 +169,7 @@ export function solveLayout(
                 width: stairwellCoords.w,
                 depth: stairwellCoords.d
             });
-            console.log(
-                `[Solver] Placed Ground Floor Stairwell at X:${stairwellCoords.x}, Y:${stairwellCoords.y}`
-            );
+            console.log(`[Solver] Placed Ground Floor Stairwell at X:${stairwellCoords.x}, Y:${stairwellCoords.y}`);
         }
     };
 

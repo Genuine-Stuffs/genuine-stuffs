@@ -96,14 +96,18 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
         <text
           x={rx + rw / 2} y={ry + rh / 2}
           textAnchor="middle"
-          className="fill-slate-900 dark:fill-white font-black uppercase tracking-[0.15em]"
-          style={{ fontSize: '10px', pointerEvents: 'none' }}
+          className="fill-slate-900 dark:fill-white font-black uppercase"
+          style={{ 
+             fontSize: `${Math.max(10, Math.min(rw, rh) * 0.15)}px`, 
+             pointerEvents: 'none',
+             letterSpacing: '0.1em' 
+          }}
         >
           <tspan x={rx + rw / 2} dy="0">{name}</tspan>
           <tspan
-            x={rx + rw / 2} dy="12"
+            x={rx + rw / 2} dy={`${Math.max(12, Math.min(rw, rh) * 0.2)}px`}
             className="fill-primary font-bold tracking-normal"
-            style={{ fontSize: '8px' }}
+            style={{ fontSize: `${Math.max(8, Math.min(rw, rh) * 0.1)}px` }}
           >
             {room.width.toFixed(1)}m × {room.depth.toFixed(1)}m
           </tspan>

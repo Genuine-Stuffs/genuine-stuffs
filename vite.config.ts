@@ -15,8 +15,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     viteStaticCopy({
       targets: [
-        { src: 'node_modules/web-ifc/web-ifc.wasm', dest: '.' },
-        { src: 'node_modules/web-ifc/web-ifc-mt.wasm', dest: '.' }
+        { src: 'node_modules/web-ifc/web-ifc.wasm', dest: '.' }
       ]
     })
   ].filter(Boolean),
@@ -27,15 +26,10 @@ export default defineConfig(({ mode }) => ({
     },
   },
   optimizeDeps: {
-    // These packages use WebGL/WASM and must not be pre-bundled by Vite
-    exclude: ["@thatopen/components", "web-ifc"],
+    exclude: ["web-ifc"],
   },
   build: {
-    rollupOptions: {
-      // Treat as external so Rollup never tries to statically analyse it
-      // The dynamic import() in AECMassingView handles the runtime load
-      external: [],
-    },
+    rollupOptions: {},
   },
 }));
 

@@ -58,10 +58,11 @@ async function mountThreeViewer(
   const H = container.clientHeight || 650;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x020617);
-  scene.fog = new THREE.FogExp2(0x020617, 0.006);
+  // Beautiful architectural sky gradient alternative: solid light architectural blue
+  scene.background = new THREE.Color(0xf1f5f9);
+  scene.fog = new THREE.FogExp2(0xf1f5f9, 0.008);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(W, H);
   renderer.shadowMap.enabled = true;
@@ -86,29 +87,33 @@ async function mountThreeViewer(
   controls.target.set(0, 0, 0);
   controls.update();
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+  scene.add(new THREE.AmbientLight(0xffffff, 0.7));
 
-  const sun = new THREE.DirectionalLight(0xfff4e0, 1.8);
-  sun.position.set(maxDim, maxDim * 1.5, maxDim * 0.8);
+  const sun = new THREE.DirectionalLight(0xffffff, 1.2);
+  sun.position.set(maxDim, maxDim * 2, maxDim);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
-  const sc = maxDim;
-  Object.assign(sun.shadow.camera, { left: -sc, right: sc, top: sc, bottom: -sc, near: 0.5, far: camDist * 4 });
+  sun.shadow.mapSize.set(4096, 4096);
+  sun.shadow.bias = -0.0005;
+  const sc = maxDim * 1.5;
+  Object.assign(sun.shadow.camera, { left: -sc, right: sc, top: sc, bottom: -sc, near: 0.1, far: camDist * 4 });
   scene.add(sun);
 
-  const fill = new THREE.DirectionalLight(0x8ab4f8, 0.4);
-  fill.position.set(-maxDim * 0.5, maxDim * 0.3, -maxDim * 0.5);
+  const fill = new THREE.DirectionalLight(0xe0f2fe, 0.6);
+  fill.position.set(-maxDim, maxDim * 0.5, -maxDim);
   scene.add(fill);
 
   const ground = new THREE.Mesh(
-    new THREE.PlaneGeometry(maxDim * 4, maxDim * 4),
-    new THREE.MeshLambertMaterial({ color: 0x0a0f1e })
+    new THREE.PlaneGeometry(maxDim * 10, maxDim * 10),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.05;
   ground.receiveShadow = true;
   scene.add(ground);
-  scene.add(new THREE.GridHelper(maxDim * 3, Math.floor(maxDim * 1.5), 0x1e293b, 0x1e293b));
+  
+  const gridHelper = new THREE.GridHelper(maxDim * 4, Math.floor(maxDim * 4), 0xe2e8f0, 0xf1f5f9);
+  gridHelper.position.y = -0.04;
+  scene.add(gridHelper);
 
   const { placed_rooms } = layout;
   const sourceRooms: any[] = layout.program_reference?.rooms ?? [];
@@ -185,38 +190,9 @@ async function mountThreeViewer(
   };
 }
 
-async function mountIfcViewer(container: HTMLDivElement, layout: SolvedLayout): Promise<() => void> {
-  const OBC = await import('@thatopen/components');
-  const { ifcEngine } = await import('@/lib/aec/ifc/authoring');
-  const webIfc = await import('web-ifc');
 
-  const ifcApi = new webIfc.IfcAPI();
-  ifcApi.SetWasmPath('/');          
-  await ifcApi.Init();
 
-  const components = new OBC.Components();
-  const worlds = components.get(OBC.Worlds);
-  const world = worlds.create<typeof OBC.SimpleScene, typeof OBC.SimpleCamera, typeof OBC.SimpleRenderer>();
-  world.scene    = new OBC.SimpleScene(components);
-  world.renderer = new OBC.SimpleRenderer(components, container);
-  world.camera   = new OBC.SimpleCamera(components);
-  components.init();
-  world.scene.setup();
-
-  const maxDim = Math.max(layout.plot_width ?? 20, layout.plot_depth ?? 20);
-  world.camera.controls.setLookAt(maxDim, maxDim * 0.6, maxDim, 0, 0, 0);
-
-  await ifcEngine.init();
-  const ifcBuffer = await ifcEngine.generateModel(layout);
-  const fragmentIfcLoader = components.get(OBC.IfcLoader);
-  await fragmentIfcLoader.setup();
-  const model = await fragmentIfcLoader.load(ifcBuffer);
-  world.scene.three.add(model);
-  console.log('[AECMassingView] IFC model loaded via That Open Engine.');
-  return () => { components.dispose(); };
-}
-
-type RenderMode = 'loading' | 'ifc' | 'three' | 'error';
+type RenderMode = 'loading' | 'three' | 'error';
 
 const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -237,35 +213,17 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
 
     const mount = async () => {
       setMode('loading');
-      let finalMode: RenderMode = 'loading';
-      let cleanup: (() => void) | undefined;
-
-      const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined';
-
-      if (hasSharedArrayBuffer) {
-        try {
-          cleanup = await mountIfcViewer(containerRef.current!, layout);
-          finalMode = 'ifc';
-        } catch (err) {
-          console.warn('[AECMassingView] That Open Engine unavailable, falling back to Three.js:', err);
+      try {
+        const cleanup = await mountThreeViewer(containerRef.current!, layout);
+        if (!cancelled) {
+          cleanupRef.current = cleanup;
+          setMode('three');
+        } else {
+          cleanup();
         }
-      }
-
-      if (finalMode === 'loading') {
-        try {
-          cleanup = await mountThreeViewer(containerRef.current!, layout);
-          finalMode = 'three';
-        } catch (err) {
-          console.error('[AECMassingView] Three.js fallback also failed:', err);
-          finalMode = 'error';
-        }
-      }
-
-      if (!cancelled) {
-        if (cleanup) cleanupRef.current = cleanup;
-        setMode(finalMode);
-      } else {
-        if (cleanup) cleanup();
+      } catch (err) {
+        console.error('[AECMassingView] Three.js render failed:', err);
+        if (!cancelled) setMode('error');
       }
     };
 
@@ -287,21 +245,21 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
               <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white">Structural Massing View</CardTitle>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[9px] font-black text-primary uppercase tracking-widest">
-                  {mode === 'ifc' ? 'IFC Mode — That Open Engine' : mode === 'three' ? '3D Massing — Three.js Renderer' : 'Compiling Mesh...'}
+                  {mode === 'three' ? '3D MASSING VIEW' : 'Compiling Mesh...'}
                 </span>
               </div>
             </div>
           </div>
           <Badge variant="outline" className="text-[9px] font-black border-primary/40 text-primary bg-primary/10 px-4 py-1.5">
             <Sparkles className="w-3 h-3 mr-1.5" />
-            {mode === 'ifc' ? 'DYNAMIC IFC MODE' : mode === 'three' ? '3D MASSING MODE' : 'INITIALISING'}
+            {mode === 'three' ? '3D MASSING MODE' : 'INITIALISING'}
           </Badge>
         </div>
       </CardHeader>
 
-      <CardContent className="p-0 relative h-[650px] bg-[#020617]">
+      <CardContent className="p-0 relative h-[650px] bg-[#f1f5f9]">
         {mode === 'loading' && (
-          <div className="absolute inset-0 flex items-center justify-center bg-[#020617] z-10">
+          <div className="absolute inset-0 flex items-center justify-center bg-[#f1f5f9] z-10">
             <div className="flex flex-col items-center gap-6">
               <div className="w-14 h-14 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
               <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] animate-pulse">Compiling Massing Model...</p>
