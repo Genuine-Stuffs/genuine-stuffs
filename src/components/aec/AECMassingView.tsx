@@ -222,9 +222,19 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<RenderMode>('loading');
   const cleanupRef = useRef<(() => void) | null>(null);
+  const mountedForRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!containerRef.current || !layout) return;
+    
+    // Guard: don't remount if same layout (use JSON.stringify if it's an object)
+    const layoutKey = typeof layout.program_reference === 'string' 
+      ? layout.program_reference 
+      : JSON.stringify(layout.program_reference || {});
+      
+    if (mountedForRef.current === layoutKey) return;
+    mountedForRef.current = layoutKey;
+
     let cancelled = false;
 
     const mount = async () => {

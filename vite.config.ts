@@ -35,11 +35,6 @@ export default defineConfig(({ mode }) => ({
       // Treat as external so Rollup never tries to statically analyse it
       // The dynamic import() in AECMassingView handles the runtime load
       external: [],
-      output: {
-        manualChunks: {
-          'thatopen': ['@thatopen/components'],
-        }
-      }
     },
   },
 }));
