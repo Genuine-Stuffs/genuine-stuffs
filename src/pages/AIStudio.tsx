@@ -36,7 +36,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from "@/context/AuthContext";
 import { Link, useSearchParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "backend/supabaseClient";
 import CreditInfo from "@/components/CreditInfo";
 import Navbar from "@/components/Navbar";
@@ -758,6 +758,8 @@ const AIStudio = () => {
         toast.success("New Project Session Initiated (Memory Cleared).");
     };
 
+    const stableLayout = useMemo(() => designPackage?.solvedLayout, [designPackage?.solvedLayout?.program_reference]);
+
     return (
         <div className="flex flex-col h-screen md:h-[100dvh] md:relative fixed inset-0 overflow-hidden bg-white dark:bg-black z-10">
             {/* Mobile Header (Fixed) */}
@@ -1197,8 +1199,8 @@ const AIStudio = () => {
                                                     </div>
                                                 ) : (
                                                     <>
-                                                        <AECFloorPlan layout={designPackage.solvedLayout} />
-                                                        <AECMassingView layout={designPackage.solvedLayout} />
+                                                        <AECFloorPlan layout={stableLayout} />
+                                                        <AECMassingView layout={stableLayout} />
                                                         <AECBillOfQuantities layout={designPackage.solvedLayout} materials={designPackage.material_schedule || []} />
                                                         
                                                         {/* ── REAL COMPLIANCE BANNER — driven by compliance_engine.ts ── */}

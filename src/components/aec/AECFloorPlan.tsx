@@ -224,7 +224,17 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
 
       <CardContent className="p-0">
         <div className="relative bg-[#ffffff] dark:bg-[#0d0f14] p-12 md:p-20 flex items-center justify-center overflow-hidden min-h-[650px]">
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/pinstriped-suit.png')]" />
+          <div 
+            className="absolute inset-0 opacity-[0.03] pointer-events-none"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(200,210,220,0.15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200,210,220,0.15) 1px, transparent 1px)
+              `,
+              backgroundSize: '20px 20px',
+              backgroundColor: '#f8f9fa'
+            }}
+          />
 
           <svg
             viewBox="0 0 720 520"
