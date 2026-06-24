@@ -103,8 +103,13 @@ export function solveLayout(
         }
 
         // Place corridor 
-        const totalNodesDepth = floorNodes.reduce((sum, n) => sum + Math.sqrt((typeof n.target_area === 'number' && isFinite(n.target_area) && n.target_area > 0) ? n.target_area : 9.0), 0);
-        const estimatedCorridorLength = (totalNodesDepth / 2) + 2.0;
+        const totalRoomDepth = floorNodes.reduce((sum, n) => {
+            const safeArea = (typeof n.target_area === 'number' && isFinite(n.target_area) && n.target_area > 0) ? n.target_area : 9.0;
+            const approxD = Math.sqrt(safeArea / 1.5); // balanced depth estimate
+            return sum + approxD;
+        }, 0);
+        const estimatedCorridorLength = Math.min((totalRoomDepth / floorNodes.length) * 
+            Math.ceil(floorNodes.length / 2) + 2.0, buildableD);
 
         placedRooms.push({
             room_id: `corridor_fl_${floorIndex}`,
@@ -117,13 +122,31 @@ export function solveLayout(
 
         for (const node of floorNodes) {
             iterations++;
-            const safeArea = (typeof node.target_area === 'number' && isFinite(node.target_area) && node.target_area > 0) ? node.target_area : 9.0;
+            const safeArea = (typeof node.target_area === 'number' && 
+                              isFinite(node.target_area) && 
+                              node.target_area > 0) ? node.target_area : 9.0;
 
-            // Choose column with less depth used
             const isLeft = leftY <= rightY;
-            
-            let roomW = isLeft ? leftColWidth : rightColWidth;
+            const colWidth = isLeft ? leftColWidth : rightColWidth;
+
+            // KEY FIX: derive balanced dimensions, not area/fullWidth
+            // Target aspect ratio between 1:1 and 1:2.5
+            let roomW = Math.min(colWidth, Math.sqrt(safeArea * 1.8));
+            roomW = Math.max(roomW, Math.sqrt(safeArea / 2.5)); // min width guard
+            roomW = Math.min(roomW, colWidth);                  // cap at column width
+            roomW = Math.round(roomW / grid) * grid;
+
             let roomD = Math.ceil((safeArea / roomW) / grid) * grid;
+
+            // Enforce NBC minimum room dimensions (2.4m minimum)
+            if (roomW < 2.4) { roomW = 2.4; roomD = Math.ceil((safeArea / roomW) / grid) * grid; }
+            if (roomD < 2.4) { roomD = 2.4; roomW = Math.ceil((safeArea / roomD) / grid) * grid; }
+
+            // Enforce maximum aspect ratio 1:3
+            if (roomD > roomW * 3) { 
+                roomD = roomW * 3; 
+                roomW = Math.ceil((safeArea / roomD) / grid) * grid;
+            }
 
             node.x = isLeft ? 0 : leftColWidth + corridorWidth;
             node.y = isLeft ? leftY : rightY;

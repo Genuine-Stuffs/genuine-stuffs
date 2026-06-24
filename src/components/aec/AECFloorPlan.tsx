@@ -68,51 +68,63 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   };
 
   const renderRoom = (room: any, idx: number) => {
-    // Guard individual room values — if solver produced NaN, skip render
-    if (
-      isNaN(room.x) || isNaN(room.y) ||
-      isNaN(room.width) || isNaN(room.depth) ||
-      room.width <= 0 || room.depth <= 0
-    ) return null;
+    if (isNaN(room.x) || isNaN(room.y) || isNaN(room.width) || isNaN(room.depth) ||
+        room.width <= 0 || room.depth <= 0) return null;
 
-    const rx = xOffset + (room.x      * scale);
-    const ry = yOffset + (room.y      * scale);
+    const rx = xOffset + (room.x * scale);
+    const ry = yOffset + (room.y * scale);
     const rw = room.width * scale;
     const rh = room.depth * scale;
 
     const name = resolveRoomName(room.room_id);
-    const areaSqm = (room.width * room.depth).toFixed(1);
+    const minDim = Math.min(rw, rh);
+    
+    // Dynamic font: scales with room, hard floors to stay readable
+    const nameFontSize = Math.max(8, Math.min(14, minDim * 0.12));
+    const dimFontSize  = Math.max(7, Math.min(11, minDim * 0.09));
+    const lineHeight   = nameFontSize * 1.4;
+
+    // Only show label if room is large enough to hold it
+    const showLabel = rw > 40 && rh > 30;
 
     return (
-      <g
-        key={`room-${idx}`}
-        filter="url(#blueprint-shadow)"
-        className={showStructure ? 'opacity-30 transition-opacity' : 'transition-opacity'}
-      >
-        <rect
-          x={rx} y={ry} width={rw} height={rh}
-          className="fill-white dark:fill-[#0d0f14] stroke-slate-800 dark:stroke-slate-200 stroke-[4]"
-        />
-        <text
-          x={rx + rw / 2} y={ry + rh / 2}
-          textAnchor="middle"
-          className="fill-slate-900 dark:fill-white font-black uppercase"
-          style={{ 
-             fontSize: `${Math.max(10, Math.min(rw, rh) * 0.15)}px`, 
-             pointerEvents: 'none',
-             letterSpacing: '0.1em' 
-          }}
-        >
-          <tspan x={rx + rw / 2} dy="0">{name}</tspan>
-          <tspan
-            x={rx + rw / 2} dy={`${Math.max(12, Math.min(rw, rh) * 0.2)}px`}
-            className="fill-primary font-bold tracking-normal"
-            style={{ fontSize: `${Math.max(8, Math.min(rw, rh) * 0.1)}px` }}
-          >
-            {room.width.toFixed(1)}m × {room.depth.toFixed(1)}m
-          </tspan>
-        </text>
-      </g>
+        <g key={`room-${idx}`} filter="url(#blueprint-shadow)">
+            <rect
+                x={rx} y={ry} width={rw} height={rh}
+                className={showStructure 
+                    ? 'fill-white/30 dark:fill-white/5 stroke-slate-800 dark:stroke-slate-200 stroke-[2]'
+                    : 'fill-white dark:fill-[#0d0f14] stroke-slate-800 dark:stroke-slate-200 stroke-[3]'
+                }
+            />
+            {showLabel && (
+                <text textAnchor="middle" style={{ pointerEvents: 'none' }}>
+                    <tspan
+                        x={rx + rw / 2}
+                        y={ry + rh / 2 - lineHeight / 2}
+                        style={{ 
+                            fontSize: `${nameFontSize}px`,
+                            fontWeight: 900,
+                            letterSpacing: '0.08em',
+                            fill: 'currentColor'
+                        }}
+                        className="fill-slate-900 dark:fill-white uppercase"
+                    >
+                        {name.length > 14 ? name.substring(0, 13) + '…' : name}
+                    </tspan>
+                    <tspan
+                        x={rx + rw / 2}
+                        y={ry + rh / 2 + lineHeight / 2}
+                        style={{ 
+                            fontSize: `${dimFontSize}px`,
+                            fontWeight: 700,
+                        }}
+                        className="fill-primary"
+                    >
+                        {room.width.toFixed(1)}M × {room.depth.toFixed(1)}M
+                    </tspan>
+                </text>
+            )}
+        </g>
     );
   };
 
