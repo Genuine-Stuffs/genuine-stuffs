@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { SolvedLayout } from 'supabase/functions/ai-studio/schema';
 import { structuralEngine } from '@/lib/aec/solver/structural';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -48,7 +48,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   const yOffset = (520 - (plot_depth * scale)) / 2;
 
   // Generate structural skeleton
-  const skeleton = structuralEngine.generateSkeleton(layout);
+  const skeleton = useMemo(() => structuralEngine.generateSkeleton(layout), [layout]);
   const activeBeams = skeleton.beams.filter(b => b.floor === activeFloor);
   const activeCols  = skeleton.columns.filter(c => c.floor === activeFloor);
 

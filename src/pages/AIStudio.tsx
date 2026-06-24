@@ -1201,7 +1201,7 @@ const AIStudio = () => {
                                                     <>
                                                         <AECFloorPlan layout={stableLayout} />
                                                         <AECMassingView layout={stableLayout} />
-                                                        <AECBillOfQuantities layout={designPackage.solvedLayout} materials={designPackage.material_schedule || []} />
+                                                        <AECBillOfQuantities layout={stableLayout} materials={designPackage.material_schedule || []} />
                                                         
                                                         {/* ── REAL COMPLIANCE BANNER — driven by compliance_engine.ts ── */}
                                                         {complianceReport && (

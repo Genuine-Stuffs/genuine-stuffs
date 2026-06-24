@@ -229,24 +229,35 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
 
     const mount = async () => {
       setMode('loading');
+      let finalMode: RenderMode = 'loading';
+      let cleanup: (() => void) | undefined;
+
       const hasSharedArrayBuffer = typeof SharedArrayBuffer !== 'undefined';
 
       if (hasSharedArrayBuffer) {
         try {
-          const cleanup = await mountIfcViewer(containerRef.current!, layout);
-          if (!cancelled) { cleanupRef.current = cleanup; setMode('ifc'); } else cleanup();
-          return;
+          cleanup = await mountIfcViewer(containerRef.current!, layout);
+          finalMode = 'ifc';
         } catch (err) {
           console.warn('[AECMassingView] That Open Engine unavailable, falling back to Three.js:', err);
         }
       }
 
-      try {
-        const cleanup = await mountThreeViewer(containerRef.current!, layout);
-        if (!cancelled) { cleanupRef.current = cleanup; setMode('three'); } else cleanup();
-      } catch (err) {
-        console.error('[AECMassingView] Three.js fallback also failed:', err);
-        if (!cancelled) setMode('error');
+      if (finalMode === 'loading') {
+        try {
+          cleanup = await mountThreeViewer(containerRef.current!, layout);
+          finalMode = 'three';
+        } catch (err) {
+          console.error('[AECMassingView] Three.js fallback also failed:', err);
+          finalMode = 'error';
+        }
+      }
+
+      if (!cancelled) {
+        if (cleanup) cleanupRef.current = cleanup;
+        setMode(finalMode);
+      } else {
+        if (cleanup) cleanup();
       }
     };
 
