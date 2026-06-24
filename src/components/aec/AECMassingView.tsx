@@ -227,10 +227,8 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
   useEffect(() => {
     if (!containerRef.current || !layout) return;
     
-    // Guard: don't remount if same layout (use JSON.stringify if it's an object)
-    const layoutKey = typeof layout.program_reference === 'string' 
-      ? layout.program_reference 
-      : JSON.stringify(layout.program_reference || {});
+    // Guard: don't remount if same layout
+    const layoutKey = layout ? `${layout.plot_width}-${layout.plot_depth}-${layout.placed_rooms?.length}` : null;
       
     if (mountedForRef.current === layoutKey) return;
     mountedForRef.current = layoutKey;

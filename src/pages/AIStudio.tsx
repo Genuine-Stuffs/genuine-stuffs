@@ -758,7 +758,11 @@ const AIStudio = () => {
         toast.success("New Project Session Initiated (Memory Cleared).");
     };
 
-    const stableLayout = useMemo(() => designPackage?.solvedLayout, [designPackage?.solvedLayout?.program_reference]);
+    const layoutKey = designPackage?.solvedLayout 
+      ? `${designPackage.solvedLayout.plot_width}-${designPackage.solvedLayout.plot_depth}-${designPackage.solvedLayout.placed_rooms?.length}`
+      : null;
+
+    const stableLayout = useMemo(() => designPackage?.solvedLayout, [layoutKey]);
 
     return (
         <div className="flex flex-col h-screen md:h-[100dvh] md:relative fixed inset-0 overflow-hidden bg-white dark:bg-black z-10">
