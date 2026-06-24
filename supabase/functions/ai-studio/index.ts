@@ -165,53 +165,31 @@ serve(async (req: Request) => {
 
         // ── VISUALIZE PATH (unchanged) ────────────────────────────────────────
         if (type === 'visualize') {
-            const vizResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-                method: "POST",
+            const vizResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
                 headers: {
-                    "Authorization": `Bearer ${openRouterKey}`,
-                    "Content-Type": "application/json",
-                    "HTTP-Referer": "https://genuinestuffs.com/"
+                    'Authorization': `Bearer ${openRouterKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': 'https://genuinestuffs.com',
                 },
                 body: JSON.stringify({
-                    model: "google/gemini-2.5-flash",
+                    model: 'google/gemini-2.5-flash',
                     messages: [
-                        { role: "system", content: VISUALIZER_PROMPT },
-                        { role: "user", content: prompt }
+                        {
+                            role: 'user',
+                            content: `Generate a detailed architectural visualization description for: ${prompt}. 
+                            Describe it as a photorealistic render of a Nigerian residential building, 
+                            including materials, lighting, landscaping, and context.`
+                        }
                     ],
-                    temperature: 0.7
+                    max_tokens: 1000,
                 })
             });
 
             const vizData = await vizResponse.json();
-            const vizText = vizData.choices?.[0]?.message?.content || '';
-            let imagePrompt = prompt;
-
-            try {
-                const cleaned = vizText.replace(/```json|```/g, '').trim();
-                const parsed = JSON.parse(cleaned);
-                imagePrompt = parsed.imagePrompt || prompt;
-            } catch (_) { /* use raw prompt as fallback */ }
-
-            // Call imagen via OpenRouter
-            const imgResponse = await fetch("https://openrouter.ai/api/v1/images/generations", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${openRouterKey}`,
-                    "Content-Type": "application/json",
-                    "HTTP-Referer": "https://genuinestuffs.com/"
-                },
-                body: JSON.stringify({
-                    model: "google/imagen-3",
-                    prompt: imagePrompt,
-                    n: 1,
-                    size: "1024x1024"
-                })
-            });
-
-            const imgData = await imgResponse.json();
-            const imageUrl = imgData.data?.[0]?.url || null;
-
-            return new Response(JSON.stringify({ imageUrl, type: 'visualize' }), {
+            const visualizationText = vizData.choices?.[0]?.message?.content ?? '';
+            
+            return new Response(JSON.stringify({ visualization: visualizationText, type: 'visualize' }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             });
         }

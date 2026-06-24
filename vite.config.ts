@@ -15,10 +15,8 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     viteStaticCopy({
       targets: [
-        {
-          src: 'node_modules/web-ifc/web-ifc.wasm',
-          dest: '.'
-        }
+        { src: 'node_modules/web-ifc/web-ifc.wasm', dest: '.' },
+        { src: 'node_modules/web-ifc/web-ifc-mt.wasm', dest: '.' }
       ]
     })
   ].filter(Boolean),

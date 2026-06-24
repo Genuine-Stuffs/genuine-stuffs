@@ -189,7 +189,10 @@ async function mountIfcViewer(container: HTMLDivElement, layout: SolvedLayout): 
   const OBC = await import('@thatopen/components');
   const { ifcEngine } = await import('@/lib/aec/ifc/authoring');
   const webIfc = await import('web-ifc');
-  (webIfc as any).SetWasmPath?.('/');
+
+  const ifcApi = new webIfc.IfcAPI();
+  ifcApi.SetWasmPath('/');          
+  await ifcApi.Init();
 
   const components = new OBC.Components();
   const worlds = components.get(OBC.Worlds);
