@@ -353,36 +353,24 @@ export function solveLayout(
         return curY;
     };
 
+    // ── STRATEGY SELECTION ─────────────────────────────────────────────────────
+    const plotSqm      = envelope.width * envelope.depth;
+    const bedroomCount = nodes.filter(n =>
+        n.id.toLowerCase().includes('bedroom') ||
+        n.id.toLowerCase().includes('master')
+    ).length;
+    const seed = Math.floor(Date.now() / 1000);
+
+    // Hoist selectedStrategy so it is in scope inside packFloor closure
+    const selectedStrategy = selectStrategy(plotSqm, bedroomCount, isDuplex, seed);
+    console.log(`[Solver] Using strategy: ${selectedStrategy.id}`);
+
     const packFloor = (
         floorNodes: InternalRoomNode[],
         floorIndex: number,
         forceStairwell?: { x: number, y: number, w: number, d: number }
     ) => {
-        // ── ZONE-BASED TWO-BLOCK PACKER ───────────────────────────────────────
-        // Total building width = 70% of buildable, capped at 22m.
-        // Stairwell (2.4m wide) sits at the boundary between PUBLIC and PRIVATE.
-        // PUBLIC zone occupies the LEFT block; PRIVATE zone the RIGHT block.
-        // The stairwell column is placed inside the building mass, not appended below.
-
         const totalBuildW = Math.min(buildableW * 0.70, 22.0);
-        const stairW = 2.4;
-        const stairD = 3.6;
-
-        // Upper floor mirrors stairwell from ground floor exactly
-        if (floorIndex > 0 && forceStairwell) {
-            placedRooms.push({
-                room_id: "stairwell_void",
-                floor: floorIndex,
-                x: forceStairwell.x,
-                y: forceStairwell.y,
-                width: forceStairwell.w,
-                depth: forceStairwell.d
-            });
-        }
-
-        // ── CORRIDOR SPINE INJECTION ──────────────────────────────────────────
-        // If the Hive did not generate a corridor room but there are 2+ bedrooms
-        // on this floor, inject a synthetic corridor node into the private zone.
         const buildEnvelope: BuildableEnvelope = {
             width: totalBuildW,
             depth: buildableD,
@@ -421,7 +409,7 @@ export function solveLayout(
         };
 
         // Run the selected strategy
-        const newRooms = strategy.pack(
+        const newRooms = selectedStrategy.pack(
             publicNodes,
             privateNodes,
             buildEnvelope,
@@ -463,18 +451,16 @@ export function solveLayout(
                 x: Math.max(0, totalBuildW - 2.4),
                 y: 0,
                 w: 2.4,
-                d: 3.6
+                d: 3.6,
             };
-            // Add synthetic stairwell to ground floor placed rooms
             placedRooms.push({
                 room_id: 'stairwell',
                 floor: 0,
                 x: stairwellCoords.x,
                 y: stairwellCoords.y,
                 width: stairwellCoords.w,
-                depth: stairwellCoords.d
+                depth: stairwellCoords.d,
             });
-            console.log('[Solver] Synthetic stairwell injected at X:', stairwellCoords.x);
         }
         packFloor(upperFloorNodes, 1, stairwellCoords);
     }
@@ -486,6 +472,6 @@ export function solveLayout(
         placed_rooms:             placedRooms,
         solver_iterations_used:   iterations,
         is_fully_connected:       true,
-        layout_strategy:          strategy.id,
+        layout_strategy:          selectedStrategy.id,
     };
 }
