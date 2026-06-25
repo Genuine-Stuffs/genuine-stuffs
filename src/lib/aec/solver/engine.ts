@@ -122,10 +122,32 @@ export function solveLayout(
             }
         }
 
-        // Append any remaining service rooms not yet paired
-        for (const svc of services) {
-            if (!appended.has(svc.id)) paired.push(svc);
-        }
+        // Fallback pairing: if service rooms have no adjacency data,
+        // pair them to the nearest bedroom anchor by index order.
+        // This handles the case where the Hive omits adjacencies entirely.
+        const unpairedServices = services.filter(s => !appended.has(s.id));
+        const unpairedAnchors  = anchors.filter(a =>
+            a.id.toLowerCase().includes('bedroom') ||
+            a.id.toLowerCase().includes('master')
+        );
+
+        unpairedServices.forEach((svc, idx) => {
+            // Insert after the bedroom at the same index (wraps if more services than bedrooms)
+            const targetAnchor = unpairedAnchors[idx % Math.max(unpairedAnchors.length, 1)];
+            if (targetAnchor) {
+                const insertPos = paired.indexOf(targetAnchor) + 1;
+                // Skip past any already-inserted services after this anchor
+                let finalPos = insertPos;
+                while (finalPos < paired.length &&
+                       SERVICE_KEYWORDS.some(k => paired[finalPos].id.toLowerCase().includes(k))) {
+                    finalPos++;
+                }
+                paired.splice(finalPos, 0, svc);
+            } else {
+                paired.push(svc);
+            }
+            appended.add(svc.id);
+        });
 
         return paired;
     };
@@ -162,6 +184,32 @@ export function solveLayout(
             let rowX = zoneX;
             let rowH = 0;
             const rowStart = i;
+
+            // ── MINIMUM ROW OCCUPANCY GUARD ───────────────────────────────────
+            // If the remaining rooms are ALL service rooms (bath/wc/stair/wet kitchen)
+            // and there are already placed rooms on the previous row, attempt to
+            // append them horizontally to the last row rather than starting a new one.
+            // This prevents a disconnected strip of tiny rooms at the bottom.
+            const remainingNodes = sorted.slice(i);
+            const SERVICE_ROW_KEYWORDS = ['bath', 'wc', 'toilet', 'stair', 'wet', 'wardrobe'];
+            const allRemainingAreService = remainingNodes.length > 0 &&
+                remainingNodes.every(n =>
+                    SERVICE_ROW_KEYWORDS.some(k => n.id.toLowerCase().includes(k))
+                );
+
+            if (allRemainingAreService && curY > 0 && placedRooms.length > 0) {
+                // Find the last placed room on this floor and this zone
+                const lastOnFloor = [...placedRooms]
+                    .reverse()
+                    .find(r => r.floor === floorIndex &&
+                               r.x >= zoneX && r.x < zoneX + zoneW);
+                if (lastOnFloor) {
+                    // Rewind curY to the last row's Y and append service rooms there
+                    curY = lastOnFloor.y;
+                    rowX = lastOnFloor.x + lastOnFloor.width;
+                    rowH = lastOnFloor.depth;
+                }
+            }
 
             while (i < sorted.length && (rowX - zoneX) < zoneW) {
                 const node = sorted[i];
