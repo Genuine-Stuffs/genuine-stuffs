@@ -176,7 +176,49 @@ export function solveLayout(
         zoneX: number,
         zoneW: number
     ): number => {
-        const sorted = [...zoneNodes].sort((a, b) => b.target_area - a.target_area);
+        // ── SUITE-AWARE SORT ──────────────────────────────────────────────────
+        // Rather than a flat area sort, build an ordered list where each bedroom
+        // is immediately followed by its paired service rooms (bathroom, wardrobe).
+        // This guarantees en-suite rooms are offered to the same row as their
+        // parent bedroom before the packer moves to the next bedroom.
+        const SERVICE_KEYWORDS = ['bath', 'wc', 'toilet', 'shower', 'wardrobe', 'dressing', 'ensuite', 'en-suite'];
+        const isService = (id: string) => SERVICE_KEYWORDS.some(k => id.toLowerCase().includes(k));
+
+        const anchors = zoneNodes.filter(n => !isService(n.id))
+            .sort((a, b) => b.target_area - a.target_area);
+        const services = zoneNodes.filter(n => isService(n.id));
+        const usedServices = new Set<string>();
+
+        // Build suite groups: [bedroom, bath, wardrobe, ...] as atomic units
+        const suiteGroups: InternalRoomNode[][] = anchors.map(anchor => {
+            const group: InternalRoomNode[] = [anchor];
+            // Attach services that share a name-pattern with this anchor
+            // e.g. "master_bedroom" pairs with "master_bath", "master_wardrobe"
+            const anchorBase = anchor.id.toLowerCase()
+                .replace(/bedroom|master|suite/g, '').replace(/_+/g, '_').trim();
+            for (const svc of services) {
+                if (usedServices.has(svc.id)) continue;
+                const svcBase = svc.id.toLowerCase();
+                // Match by shared prefix or sequential numbering
+                const matches = anchorBase.length > 2 && svcBase.includes(anchorBase.slice(0, 4));
+                if (matches) {
+                    group.push(svc);
+                    usedServices.add(svc.id);
+                }
+            }
+            return group;
+        });
+
+        // Fallback: assign remaining unpaired services to suite groups by index
+        const remainingServices = services.filter(s => !usedServices.has(s.id));
+        remainingServices.forEach((svc, idx) => {
+            const targetGroup = suiteGroups[idx % Math.max(suiteGroups.length, 1)];
+            if (targetGroup) targetGroup.push(svc);
+        });
+
+        // Flatten suite groups back into ordered node list
+        const sorted = suiteGroups.flat();
+
         let curY = 0;
         let i = 0;
 
@@ -186,31 +228,30 @@ export function solveLayout(
             const rowStart = i;
 
             // ── MINIMUM ROW OCCUPANCY GUARD ───────────────────────────────────
-            // If the remaining rooms are ALL service rooms (bath/wc/stair/wet kitchen)
-            // and there are already placed rooms on the previous row, attempt to
-            // append them horizontally to the last row rather than starting a new one.
-            // This prevents a disconnected strip of tiny rooms at the bottom.
-            const remainingNodes = sorted.slice(i);
+            // If all remaining rooms are service rooms and previous rows exist,
+            // append to the last row instead of starting a disconnected strip.
             const SERVICE_ROW_KEYWORDS = ['bath', 'wc', 'toilet', 'stair', 'wet', 'wardrobe'];
+            const remainingNodes = sorted.slice(i);
             const allRemainingAreService = remainingNodes.length > 0 &&
                 remainingNodes.every(n =>
                     SERVICE_ROW_KEYWORDS.some(k => n.id.toLowerCase().includes(k))
                 );
 
             if (allRemainingAreService && curY > 0 && placedRooms.length > 0) {
-                // Find the last placed room on this floor and this zone
                 const lastOnFloor = [...placedRooms]
                     .reverse()
                     .find(r => r.floor === floorIndex &&
                                r.x >= zoneX && r.x < zoneX + zoneW);
                 if (lastOnFloor) {
-                    // Rewind curY to the last row's Y and append service rooms there
                     curY = lastOnFloor.y;
                     rowX = lastOnFloor.x + lastOnFloor.width;
                     rowH = lastOnFloor.depth;
                 }
             }
 
+            // ── ROW FILL — suite-aware ────────────────────────────────────────
+            // When a bedroom is placed, immediately attempt to place its suite
+            // service rooms in the same row before advancing to the next bedroom.
             while (i < sorted.length && (rowX - zoneX) < zoneW) {
                 const node = sorted[i];
                 iterations++;
@@ -220,6 +261,21 @@ export function solveLayout(
                                   node.target_area > 0) ? node.target_area : 9.0;
 
                 const remainW = zoneW - (rowX - zoneX);
+
+                // If this is a service room and there's not enough space, break to
+                // next row — but only if it's not immediately following its anchor
+                // (i.e. the previous node was not its bedroom partner).
+                const prevNode = i > 0 ? sorted[i - 1] : null;
+                const prevWasBedroom = prevNode && (
+                    prevNode.id.toLowerCase().includes('bedroom') ||
+                    prevNode.id.toLowerCase().includes('master')
+                );
+                const thisIsService = isService(node.id);
+
+                if (thisIsService && !prevWasBedroom && remainW < 2.4 && i > rowStart) {
+                    break;
+                }
+
                 let roomW = Math.min(remainW, Math.sqrt(safeArea * 1.6));
                 roomW = Math.max(roomW, 2.4);
                 roomW = Math.min(roomW, remainW);
@@ -237,17 +293,12 @@ export function solveLayout(
                 }
 
                 // ── ROOM TYPE CONSTRAINT CLAMP ────────────────────────────────
-                // Prevents the row-stretch from producing absurd dimensions.
-                // A bathroom must never be 14m wide regardless of row space.
                 const constraint = getConstraintForRoom(node.id);
-                // Hard cap on width
                 if (roomW > constraint.maxWidth) {
                     roomW = Math.round(Math.min(roomW, constraint.maxWidth) / grid) * grid;
-                    // Recalculate depth to preserve area after width cap
                     roomD = Math.ceil((safeArea / Math.max(roomW, 0.1)) / grid) * grid;
                     roomD = Math.max(roomD, 2.4);
                 }
-                // Hard cap on aspect ratio
                 if (roomW > roomD * constraint.maxAspect) {
                     roomW = Math.round((roomD * constraint.maxAspect) / grid) * grid;
                     roomW = Math.max(roomW, 2.4);
@@ -273,8 +324,7 @@ export function solveLayout(
                 i++;
             }
 
-            // Stretch last room in row to fill zone width —
-            // ONLY if the room type constraint permits the extra width.
+            // Stretch last room in row — constraint-guarded
             if ((rowX - zoneX) < zoneW && i > rowStart) {
                 const lastPlaced = placedRooms[placedRooms.length - 1];
                 if (lastPlaced && lastPlaced.floor === floorIndex &&
@@ -284,8 +334,6 @@ export function solveLayout(
                     if (gap > 0) {
                         const stretchConstraint = getConstraintForRoom(lastPlaced.room_id);
                         const stretchedW = Math.round((lastPlaced.width + gap) / grid) * grid;
-                        // Only stretch if the result stays within the room type's max width
-                        // AND the resulting aspect ratio stays within bounds.
                         const stretchedAspect = stretchedW / Math.max(lastPlaced.depth, 0.1);
                         const canStretch = stretchedW <= stretchConstraint.maxWidth &&
                                            stretchedAspect <= stretchConstraint.maxAspect;
@@ -295,8 +343,6 @@ export function solveLayout(
                                 width: stretchedW
                             };
                         }
-                        // If stretch is blocked by constraint, the gap remains empty —
-                        // which is correct: a bathroom should not fill a 14m row gap.
                     }
                 }
             }
