@@ -70,6 +70,59 @@ export function solveLayout(
 
     let stairwellCoords: { x: number, y: number, w: number, d: number } | null = null;
 
+    // ── ADJACENCY PAIRING ─────────────────────────────────────────────────────
+    // Pairs each bathroom/wardrobe to its parent bedroom so they pack as a unit.
+    // A paired room is placed immediately after its parent in the sorted order,
+    // preventing bathrooms from floating into unrelated rows.
+    // Pairing is detected from the Hive adjacencies field.
+    const buildPairedOrder = (floorNodes: InternalRoomNode[]): InternalRoomNode[] => {
+        // Get adjacency map from source rooms
+        const sourceRooms: any[] = (program as any).rooms ?? [];
+        const adjacencyMap = new Map<string, string[]>();
+        for (const r of sourceRooms) {
+            const id = r.room_id ?? r.id ?? '';
+            const adj: string[] = r.adjacencies ?? [];
+            adjacencyMap.set(id, adj);
+        }
+
+        // Identify service rooms that should follow a parent
+        const SERVICE_KEYWORDS = ['bath', 'wc', 'toilet', 'shower', 'wardrobe', 'dressing', 'ensuite', 'en-suite'];
+        const isServiceRoom = (id: string) => SERVICE_KEYWORDS.some(k => id.toLowerCase().includes(k));
+
+        // Build paired order: for each non-service room, append its service adjacencies immediately after
+        const paired: InternalRoomNode[] = [];
+        const appended = new Set<string>();
+
+        // Sort: large non-service rooms first
+        const anchors = floorNodes
+            .filter(n => !isServiceRoom(n.id))
+            .sort((a, b) => b.target_area - a.target_area);
+        const services = floorNodes.filter(n => isServiceRoom(n.id));
+
+        for (const anchor of anchors) {
+            if (appended.has(anchor.id)) continue;
+            paired.push(anchor);
+            appended.add(anchor.id);
+
+            // Find service rooms adjacent to this anchor
+            const adjs = adjacencyMap.get(anchor.id) ?? [];
+            for (const adjId of adjs) {
+                const svcNode = services.find(s => s.id === adjId && !appended.has(s.id));
+                if (svcNode) {
+                    paired.push(svcNode);
+                    appended.add(svcNode.id);
+                }
+            }
+        }
+
+        // Append any remaining service rooms not yet paired
+        for (const svc of services) {
+            if (!appended.has(svc.id)) paired.push(svc);
+        }
+
+        return paired;
+    };
+
     // ── ZONE CLASSIFIER ────────────────────────────────────────────────────────
     // Splits rooms into PUBLIC (living/dining/kitchen/foyer/study/office/garage)
     // and PRIVATE (bedroom/master/bath/wc/toilet/corridor) zones.
@@ -226,9 +279,36 @@ export function solveLayout(
             });
         }
 
-        // Split nodes into zones
-        const publicNodes  = floorNodes.filter(n => classifyZone(n.id) === 'public');
-        const privateNodes = floorNodes.filter(n => classifyZone(n.id) === 'private');
+        // ── CORRIDOR SPINE INJECTION ──────────────────────────────────────────
+        // If the Hive did not generate a corridor room but there are 2+ bedrooms
+        // on this floor, inject a synthetic corridor node into the private zone.
+        // The corridor is 1.5m wide × the private zone depth, placed at the
+        // left edge of the private zone as a circulation spine.
+        const bedroomCount = floorNodes.filter(n =>
+            n.id.toLowerCase().includes('bedroom') ||
+            n.id.toLowerCase().includes('master')
+        ).length;
+        const hasCorridorAlready = floorNodes.some(n =>
+            n.id.toLowerCase().includes('corridor') ||
+            n.id.toLowerCase().includes('hall')
+        );
+        if (bedroomCount >= 2 && !hasCorridorAlready) {
+            const corridorArea = Math.min(bedroomCount * 2.5, 12.0);
+            floorNodes.push({
+                id: `corridor_floor${floorIndex}`,
+                target_area: corridorArea,
+                placed: false,
+                x: 0, y: 0, w: 0, d: 0,
+                target_floor: floorIndex
+            });
+        }
+
+        // Apply adjacency pairing to get bedroom+bathroom pairs in correct order
+        const pairedFloorNodes = buildPairedOrder(floorNodes);
+
+        // Split nodes into zones using paired order
+        const publicNodes  = pairedFloorNodes.filter(n => classifyZone(n.id) === 'public');
+        const privateNodes = pairedFloorNodes.filter(n => classifyZone(n.id) === 'private');
 
         // If one zone is empty, fall back to full-width single-zone pack
         if (publicNodes.length === 0 || privateNodes.length === 0) {

@@ -43,7 +43,14 @@ Handles spatial layout, room programming, and setbacks per Lagos Residential zon
 - A guest bathroom MUST have area_m2 between 2.5 and 6.0. Never generate a bathroom above 6m².
 - A wet kitchen MUST be smaller than the main kitchen. Wet kitchen max = 12m², main kitchen min = 8m².
 - Stairwell dimensions are FIXED: 2.4m × 2.4m to 2.5m × 3.6m. Never generate stairwell area_m2 > 9.5.
+- PREMIUM OVERRIDE: If the brief explicitly states a minimum area larger than the reference table max (e.g. "Master Suite min 50m²"), honour the brief. The brief always overrides the reference table for that specific room. All other rooms stay within reference table bounds.
 - Master bedrooms: target 12–16m² standard, 50m²+ for premium specification
+- FLOOR ASSIGNMENT RULES — MANDATORY:
+  - "floor": 0 = GROUND FLOOR only. Assign: living, dining, kitchen, wet kitchen, foyer, garage, guest bedroom, guest bathroom, home office, stairwell, store, utility, boys quarters.
+  - "floor": 1 = UPPER FLOOR only. Assign: master bedroom, master bathroom, master wardrobe, all upper bedrooms, upper bathrooms, family lounge, stairwell void, balcony, gym.
+  - NEVER assign a master bedroom to floor 0 unless the brief explicitly says "single storey".
+  - NEVER assign a garage or wet kitchen to floor 1.
+  - For duplex briefs, "floors": 2 in brief_reference. Every room must have the correct floor value.
 - Staircase: min clear width 1.2m, max riser 175mm, min tread 250mm, min headroom 2.1m
 
 STRUCTURAL COMPOSITION RULE — MANDATORY FOR ALL DESIGNS:
@@ -62,6 +69,13 @@ ROOM DIMENSION RULES — MANDATORY:
 - Derive width_m = sqrt(area_m2 / 1.5) as a starting point, then adjust for adjacencies
 - All dimensions on a 0.1m grid
 - Garage bays: minimum 2.7m width × 6.0m depth per car
+- ADJACENCY PAIRING RULES — MANDATORY:
+  - Every bedroom MUST list its en-suite bathroom in its adjacencies array. e.g. master bedroom adjacencies: ["master_bath", "master_wardrobe"].
+  - Every en-suite bathroom MUST list its parent bedroom in its adjacencies array.
+  - Wet kitchen MUST list main kitchen in adjacencies.
+  - Guest bedroom MUST list guest bathroom in adjacencies.
+  - Use these adjacencies in the room_id naming: if master bedroom is "r01", its bathroom should be "r02" and wardrobe "r03" — sequential IDs for paired rooms.
+  - Include a "corridor" room on each floor with 2+ bedrooms. Corridor area_m2 = number_of_bedrooms × 2.5m², max width 1.8m. Corridor adjacencies must list all bedrooms it connects.
 
 **Agent 2 — Structural Engineer**
 Validates all load-bearing elements:
