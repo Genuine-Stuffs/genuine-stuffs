@@ -104,15 +104,19 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     return match?.name ?? room_id.replace(/_/g, ' ').toUpperCase();
   };
 
-  // ── External wall detection — checks if a room touches the plot boundary
-  // Used to render perimeter walls thicker (4px) than internal partitions (2px)
+  // ── External edge detection ───────────────────────────────────────────────
+  // Returns which specific edges of a room touch the building boundary.
+  // Used to render perimeter wall bands and place window symbols.
   const EDGE_TOLERANCE = 0.5; // metres
+  const getExternalEdges = (room: any) => ({
+    left:   room.x <= EDGE_TOLERANCE,
+    top:    room.y <= EDGE_TOLERANCE,
+    right:  (room.x + room.width) >= (buildingW - EDGE_TOLERANCE),
+    bottom: (room.y + room.depth) >= (buildingH - EDGE_TOLERANCE),
+  });
   const isExternalWall = (room: any) => {
-    const touchesLeft   = room.x <= EDGE_TOLERANCE;
-    const touchesTop    = room.y <= EDGE_TOLERANCE;
-    const touchesRight  = (room.x + room.width)  >= (plot_width  - EDGE_TOLERANCE);
-    const touchesBottom = (room.y + room.depth)  >= (plot_depth - EDGE_TOLERANCE);
-    return touchesLeft || touchesTop || touchesRight || touchesBottom;
+    const e = getExternalEdges(room);
+    return e.left || e.top || e.right || e.bottom;
   };
 
   const renderFurniture = (room: any, rx: number, ry: number, rw: number, rh: number) => {
@@ -249,50 +253,190 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     const { fill, stroke, textColor } = getRoomFill(room.room_id);
     const isCorridorOrVoid = room.room_id.toLowerCase().includes('corridor') ||
                              room.room_id.toLowerCase().includes('void');
-    // External walls render thicker (4) than internal partitions (2.5)
-    const isExt = isExternalWall(room);
-    const wallStroke = isCorridorOrVoid ? 1 : (isExt ? 4 : 2);
+
+    const edges = getExternalEdges(room);
+    // Wall band thickness in px: external=5, internal=2
+    const EXT_W = 5;
+    const INT_W = 1.5;
+    // Window symbol constants
+    const WIN_INSET = 8;   // px inset from room corner
+    const WIN_LEN   = Math.min(rw * 0.45, 40); // window length along wall
+    const WIN_DEPTH = 5;   // px depth of window recess symbol
+    // Door arc radius in px
+    const DOOR_R = Math.min(rw * 0.18, 16);
+
+    // Door placement: open toward building interior (bottom or right edge of room)
+    // If room touches bottom of building, door opens upward from top internal edge
+    // Otherwise door opens from bottom internal edge
+    const doorOnTop    = edges.bottom && !edges.top;
+    const doorOnLeft   = edges.right  && !edges.left;
+    const doorX = doorOnLeft ? rx + INT_W : rx + INT_W;
+    const doorY = doorOnTop  ? ry + INT_W : ry + rh - DOOR_R - INT_W;
 
     return (
       <g key={`room-${idx}`} filter="url(#blueprint-shadow)">
-        {/* Room fill */}
+
+        {/* ── Room fill (no stroke — walls drawn as explicit bands below) ── */}
         <rect
           x={rx} y={ry} width={rw} height={rh}
           fill={showStructure ? `${fill}55` : fill}
-          stroke={stroke}
-          strokeWidth={wallStroke}
+          stroke="none"
           strokeDasharray={isCorridorOrVoid ? '4 2' : undefined}
         />
-        {/* Material hatching overlay — visible only when rooms are large enough on screen */}
+
+        {/* ── Material hatching overlay ── */}
         {!showStructure && scale >= 6 && (() => {
           const id = room.room_id.toLowerCase();
           let patternId: string | null = null;
-          if (id.includes('garage'))                            patternId = 'hatch-concrete';
-          else if (id.includes('bath') || id.includes('wc') || id.includes('toilet')) patternId = 'hatch-tile';
-          else if (id.includes('living') || id.includes('lounge') || id.includes('bedroom') || id.includes('master')) patternId = 'hatch-wood';
+          if (id.includes('garage'))
+            patternId = 'hatch-concrete';
+          else if (id.includes('bath') || id.includes('wc') || id.includes('toilet'))
+            patternId = 'hatch-tile';
+          else if (id.includes('living') || id.includes('lounge') ||
+                   id.includes('bedroom') || id.includes('master'))
+            patternId = 'hatch-wood';
           if (!patternId) return null;
           return (
             <rect x={rx} y={ry} width={rw} height={rh}
               fill={`url(#${patternId})`} opacity={0.35} />
           );
         })()}
-        {/* Furniture footprints — only when not in structure mode and room is large enough */}
+
+        {/* ── Furniture ── */}
         {!showStructure && rw > 35 && rh > 28 && renderFurniture(room, rx, ry, rw, rh)}
-        {/* Door symbol — short line + arc at bottom-left of room entry */}
-        {!isCorridorOrVoid && rw > 30 && rh > 24 && (
-          <g opacity={0.6}>
-            <line
-              x1={rx + 1} y1={ry + rh - 12}
-              x2={rx + 1} y2={ry + rh - 1}
-              stroke={stroke} strokeWidth={1.5}
-            />
-            <path
-              d={`M ${rx + 1} ${ry + rh - 12} A 11 11 0 0 1 ${rx + 12} ${ry + rh - 1}`}
-              fill="none" stroke={stroke} strokeWidth={0.8}
-            />
-          </g>
-        )}
-        {/* Label */}
+
+        {/* ── Wall bands — drawn as filled rectangles per edge ── */}
+        {!isCorridorOrVoid && (() => {
+          const tw = edges.top    ? EXT_W : INT_W;
+          const bw = edges.bottom ? EXT_W : INT_W;
+          const lw = edges.left   ? EXT_W : INT_W;
+          const rw2 = edges.right  ? EXT_W : INT_W;
+          const wallColor = '#1e293b';
+          return (
+            <g opacity={showStructure ? 0.4 : 1}>
+              {/* Top wall */}
+              <rect x={rx} y={ry} width={rw} height={tw} fill={wallColor} />
+              {/* Bottom wall */}
+              <rect x={rx} y={ry + rh - bw} width={rw} height={bw} fill={wallColor} />
+              {/* Left wall */}
+              <rect x={rx} y={ry} width={lw} height={rh} fill={wallColor} />
+              {/* Right wall */}
+              <rect x={rx + rw - rw2} y={ry} width={rw2} height={rh} fill={wallColor} />
+            </g>
+          );
+        })()}
+
+        {/* ── Window symbols on external walls ── */}
+        {!isCorridorOrVoid && !showStructure && rw > 40 && rh > 30 && (() => {
+          const wins: React.ReactNode[] = [];
+          const wc = '#0EA5E9'; // window colour
+          // Top external wall window
+          if (edges.top && rw > WIN_INSET * 2 + WIN_LEN) {
+            const wx = rx + (rw - WIN_LEN) / 2;
+            wins.push(
+              <g key="win-top">
+                <rect x={wx} y={ry} width={WIN_LEN} height={WIN_DEPTH}
+                  fill="white" stroke={wc} strokeWidth={0.8} />
+                <line x1={wx} y1={ry} x2={wx} y2={ry + WIN_DEPTH}
+                  stroke={wc} strokeWidth={0.6} />
+                <line x1={wx + WIN_LEN / 2} y1={ry} x2={wx + WIN_LEN / 2} y2={ry + WIN_DEPTH}
+                  stroke={wc} strokeWidth={0.6} />
+                <line x1={wx + WIN_LEN} y1={ry} x2={wx + WIN_LEN} y2={ry + WIN_DEPTH}
+                  stroke={wc} strokeWidth={0.6} />
+              </g>
+            );
+          }
+          // Bottom external wall window
+          if (edges.bottom && rw > WIN_INSET * 2 + WIN_LEN) {
+            const wx = rx + (rw - WIN_LEN) / 2;
+            wins.push(
+              <g key="win-bot">
+                <rect x={wx} y={ry + rh - WIN_DEPTH} width={WIN_LEN} height={WIN_DEPTH}
+                  fill="white" stroke={wc} strokeWidth={0.8} />
+                <line x1={wx} y1={ry + rh - WIN_DEPTH} x2={wx} y2={ry + rh}
+                  stroke={wc} strokeWidth={0.6} />
+                <line x1={wx + WIN_LEN / 2} y1={ry + rh - WIN_DEPTH} x2={wx + WIN_LEN / 2} y2={ry + rh}
+                  stroke={wc} strokeWidth={0.6} />
+                <line x1={wx + WIN_LEN} y1={ry + rh - WIN_DEPTH} x2={wx + WIN_LEN} y2={ry + rh}
+                  stroke={wc} strokeWidth={0.6} />
+              </g>
+            );
+          }
+          // Left external wall window
+          if (edges.left && rh > WIN_INSET * 2 + WIN_LEN) {
+            const wy = ry + (rh - WIN_LEN) / 2;
+            wins.push(
+              <g key="win-left">
+                <rect x={rx} y={wy} width={WIN_DEPTH} height={WIN_LEN}
+                  fill="white" stroke={wc} strokeWidth={0.8} />
+                <line x1={rx} y1={wy} x2={rx + WIN_DEPTH} y2={wy}
+                  stroke={wc} strokeWidth={0.6} />
+                <line x1={rx} y1={wy + WIN_LEN / 2} x2={rx + WIN_DEPTH} y2={wy + WIN_LEN / 2}
+                  stroke={wc} strokeWidth={0.6} />
+                <line x1={rx} y1={wy + WIN_LEN} x2={rx + WIN_DEPTH} y2={wy + WIN_LEN}
+                  stroke={wc} strokeWidth={0.6} />
+              </g>
+            );
+          }
+          // Right external wall window
+          if (edges.right && rh > WIN_INSET * 2 + WIN_LEN) {
+            const wy = ry + (rh - WIN_LEN) / 2;
+            wins.push(
+              <g key="win-right">
+                <rect x={rx + rw - WIN_DEPTH} y={wy} width={WIN_DEPTH} height={WIN_LEN}
+                  fill="white" stroke={wc} strokeWidth={0.8} />
+                <line x1={rx + rw - WIN_DEPTH} y1={wy} x2={rx + rw} y2={wy}
+                  stroke={wc} strokeWidth={0.6} />
+                <line x1={rx + rw - WIN_DEPTH} y1={wy + WIN_LEN / 2} x2={rx + rw} y2={wy + WIN_LEN / 2}
+                  stroke={wc} strokeWidth={0.6} />
+                <line x1={rx + rw - WIN_DEPTH} y1={wy + WIN_LEN} x2={rx + rw} y2={wy + WIN_LEN}
+                  stroke={wc} strokeWidth={0.6} />
+              </g>
+            );
+          }
+          return wins.length > 0 ? <g opacity={0.9}>{wins}</g> : null;
+        })()}
+
+        {/* ── Door symbol — placed on interior-facing wall ── */}
+        {!isCorridorOrVoid && rw > 30 && rh > 24 && (() => {
+          // Door swings from the interior edge (non-external wall side)
+          // Prefer bottom wall if not external, else top wall
+          const useBottom = !edges.bottom;
+          const useRight  = !edges.right;
+          const dR = DOOR_R;
+
+          if (useBottom) {
+            // Door on bottom wall, opens downward-right
+            const dx = rx + (useRight ? rw * 0.25 : rw * 0.65);
+            const dy = ry + rh;
+            return (
+              <g opacity={0.7}>
+                <line x1={dx} y1={dy} x2={dx} y2={dy - dR}
+                  stroke="#475569" strokeWidth={1.5} />
+                <path
+                  d={`M ${dx} ${dy - dR} A ${dR} ${dR} 0 0 1 ${dx + dR} ${dy}`}
+                  fill="none" stroke="#475569" strokeWidth={0.8}
+                />
+              </g>
+            );
+          } else {
+            // Door on right wall, opens rightward-down
+            const dx = rx + rw;
+            const dy = ry + rh * 0.3;
+            return (
+              <g opacity={0.7}>
+                <line x1={dx} y1={dy} x2={dx - dR} y2={dy}
+                  stroke="#475569" strokeWidth={1.5} />
+                <path
+                  d={`M ${dx - dR} ${dy} A ${dR} ${dR} 0 0 1 ${dx} ${dy + dR}`}
+                  fill="none" stroke="#475569" strokeWidth={0.8}
+                />
+              </g>
+            );
+          }
+        })()}
+
+        {/* ── Label ── */}
         {showLabel && (
           <text textAnchor="middle" style={{ pointerEvents: 'none' }}>
             <tspan
