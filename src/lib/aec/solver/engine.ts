@@ -199,7 +199,10 @@ export function solveLayout(
                    lo.includes('hall') || lo.includes('void');
         };
 
-        const eligibleNodes = floorNodes.filter(n => !isStairOrCorridor(n.id) && !isService_C(n.id));
+        const eligibleNodes = floorNodes.filter(n =>
+            !isStairOrCorridor(n.id) &&
+            (!isService_C(n.id) || isBedroom_C(n.id))
+        );
         const publicNodes  = eligibleNodes.filter(n => isPublic_C(n.id))
             .sort((a, b) => b.target_area - a.target_area);
         const privateBedrooms = eligibleNodes.filter(n => isBedroom_C(n.id))
@@ -291,7 +294,7 @@ export function solveLayout(
         // bathroom + wardrobe stacked below (against external wall).
         const privateY = snap_C(corridorY + CORRIDOR_D, grid);
 
-        if (privateBedrooms.length === 0) {
+        if (suites.length === 0) {
             return; // No bedrooms on this floor (e.g. ground floor with only guest bedroom)
         }
 
