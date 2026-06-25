@@ -22,8 +22,8 @@ const ROOM_FILLS: Record<string, { fill: string; stroke: string; textColor: stri
   study:     { fill: '#F1F5F9', stroke: '#475569', textColor: '#1E293B' },
   garage:    { fill: '#F3F4F6', stroke: '#6B7280', textColor: '#1F2937' },
   corridor:  { fill: '#F8FAFC', stroke: '#CBD5E1', textColor: '#475569' },
-  stairwell: { fill: '#FEE2E2', stroke: '#DC2626', textColor: '#7F1D1D' },
-  void:      { fill: '#FEE2E2', stroke: '#DC2626', textColor: '#7F1D1D' },
+  stairwell: { fill: '#E2E8F0', stroke: '#64748B', textColor: '#334155' },
+  void:      { fill: '#E2E8F0', stroke: '#64748B', textColor: '#334155' },
   default:   { fill: '#F8FAFC', stroke: '#94A3B8', textColor: '#334155' },
 };
 
@@ -73,7 +73,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   const scale = Math.min(720 / viewWidth, 520 / viewHeight);
 
   const xOffset = (720 - (plot_width  * scale)) / 2;
-  const yOffset = (520 - (plot_depth * scale)) / 2;
+  const yOffset = (480 - (plot_depth * scale)) / 2;
 
   // Generate structural skeleton
   const skeleton = useMemo(() => structuralEngine.generateSkeleton(layout), [layout]);
@@ -173,6 +173,36 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
       );
     }
 
+    if (id.includes('bath') || id.includes('wc') || id.includes('toilet')) {
+      // WC: toilet bowl + tank
+      const tw = Math.min(rw * 0.35, 18), th = Math.min(rh * 0.42, 22);
+      const tx = rx + (rw - tw) / 2, ty2 = ry + rh - th - pad;
+      furniture.push(
+        <rect key="tank"  x={tx}       y={ty2}        width={tw}      height={th * 0.35} fill="#BAE6FD" stroke="#0284C7" strokeWidth={0.8} rx={1} />,
+        <ellipse key="bowl" cx={tx + tw / 2} cy={ty2 + th * 0.72} rx={tw * 0.48} ry={th * 0.3} fill="#E0F2FE" stroke="#0284C7" strokeWidth={0.8} />
+      );
+      // Sink: small rectangle with circle drain
+      if (rw > 30) {
+        furniture.push(
+          <rect key="sink" x={rx + pad} y={ry + pad} width={Math.min(rw * 0.4, 16)} height={Math.min(rh * 0.3, 14)}
+            fill="#BAE6FD" stroke="#0284C7" strokeWidth={0.8} rx={2} />,
+          <circle key="drain" cx={rx + pad + Math.min(rw * 0.2, 8)} cy={ry + pad + Math.min(rh * 0.15, 7)} r={2}
+            fill="none" stroke="#0284C7" strokeWidth={0.6} />
+        );
+      }
+    }
+
+    if (id.includes('master') || (id.includes('bedroom') && !id.includes('bath'))) {
+      // Wardrobe: slim rect along the top wall
+      const wdW = Math.min(rw * 0.55, 44), wdH = 6;
+      furniture.push(
+        <rect key="wardrobe" x={rx + (rw - wdW) / 2} y={ry + pad}
+          width={wdW} height={wdH} fill="#DDD6FE" stroke="#7C3AED" strokeWidth={0.8} rx={1} />,
+        <line key="wd-div" x1={rx + rw / 2} y1={ry + pad} x2={rx + rw / 2} y2={ry + pad + wdH}
+          stroke="#7C3AED" strokeWidth={0.5} />
+      );
+    }
+
     if (id.includes('kitchen') && !id.includes('pantry') && !id.includes('wet')) {
       // Counter L-shape along two walls
       const kw = rw - pad * 2;
@@ -224,6 +254,19 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
           strokeWidth={wallStroke}
           strokeDasharray={isCorridorOrVoid ? '4 2' : undefined}
         />
+        {/* Material hatching overlay — visible only when rooms are large enough on screen */}
+        {!showStructure && scale >= 6 && (() => {
+          const id = room.room_id.toLowerCase();
+          let patternId: string | null = null;
+          if (id.includes('garage'))                            patternId = 'hatch-concrete';
+          else if (id.includes('bath') || id.includes('wc') || id.includes('toilet')) patternId = 'hatch-tile';
+          else if (id.includes('living') || id.includes('lounge') || id.includes('bedroom') || id.includes('master')) patternId = 'hatch-wood';
+          if (!patternId) return null;
+          return (
+            <rect x={rx} y={ry} width={rw} height={rh}
+              fill={`url(#${patternId})`} opacity={0.35} />
+          );
+        })()}
         {/* Furniture footprints — only when not in structure mode and room is large enough */}
         {!showStructure && rw > 35 && rh > 28 && renderFurniture(room, rx, ry, rw, rh)}
         {/* Door symbol — short line + arc at bottom-left of room entry */}
@@ -397,7 +440,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
           />
 
           <svg
-            viewBox="0 0 720 520"
+            viewBox="0 0 720 580"
             className="w-full h-auto max-w-[900px] drop-shadow-[0_40px_80px_rgba(0,0,0,0.2)] relative z-10"
             xmlns="http://www.w3.org/2000/svg"
           >
@@ -420,6 +463,16 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
                   <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
+              {/* Material hatching patterns */}
+              <pattern id="hatch-concrete" width={6} height={6} patternUnits="userSpaceOnUse">
+                <circle cx={3} cy={3} r={0.8} fill="#94a3b8" opacity={0.5} />
+              </pattern>
+              <pattern id="hatch-tile" width={8} height={8} patternUnits="userSpaceOnUse">
+                <rect x={0} y={0} width={8} height={8} fill="none" stroke="#7dd3fc" strokeWidth={0.5} />
+              </pattern>
+              <pattern id="hatch-wood" width={6} height={3} patternUnits="userSpaceOnUse">
+                <line x1={0} y1={1.5} x2={6} y2={1.5} stroke="#d97706" strokeWidth={0.4} opacity={0.4} />
+              </pattern>
             </defs>
 
             {/* Background 1m grid */}
@@ -491,6 +544,63 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
                 {plot_depth.toFixed(2)} M
               </text>
             </g>
+
+            {/* North arrow — bottom-left */}
+            <g transform={`translate(${xOffset + 12}, ${yOffset + plot_depth * scale + 36})`}>
+              <circle cx={0} cy={0} r={14} fill="white" stroke="#475569" strokeWidth={1} opacity={0.9} />
+              {/* Arrow shaft */}
+              <line x1={0} y1={-10} x2={0} y2={10} stroke="#1e293b" strokeWidth={1.5} />
+              {/* Arrow north head (filled) */}
+              <polygon points="0,-10 -4,-2 4,-2" fill="#1e293b" />
+              {/* Arrow south head (open) */}
+              <polygon points="0,10 -4,2 4,2" fill="white" stroke="#1e293b" strokeWidth={0.8} />
+              <text x={0} y={-14} textAnchor="middle"
+                style={{ fontSize: '7px', fontWeight: 900, fill: '#1e293b', letterSpacing: '0.1em' }}>
+                N
+              </text>
+            </g>
+
+            {/* Scale bar — bottom-right, shows 0–5m */}
+            {(() => {
+              const barM = 5; // metres represented
+              const barPx = barM * scale;
+              const barX = xOffset + plot_width * scale - barPx - 4;
+              const barY = yOffset + plot_depth * scale + 36;
+              return (
+                <g transform={`translate(${barX}, ${barY})`}>
+                  {/* Alternating segments */}
+                  <rect x={0}           y={-4} width={barPx / 2} height={6} fill="#1e293b" />
+                  <rect x={barPx / 2}   y={-4} width={barPx / 2} height={6} fill="white" stroke="#1e293b" strokeWidth={0.8} />
+                  {/* End ticks */}
+                  <line x1={0}     y1={-6} x2={0}     y2={4} stroke="#1e293b" strokeWidth={1} />
+                  <line x1={barPx} y1={-6} x2={barPx} y2={4} stroke="#1e293b" strokeWidth={1} />
+                  {/* Labels */}
+                  <text x={0}     y={-8} textAnchor="middle"
+                    style={{ fontSize: '7px', fontWeight: 700, fill: '#1e293b' }}>0</text>
+                  <text x={barPx} y={-8} textAnchor="middle"
+                    style={{ fontSize: '7px', fontWeight: 700, fill: '#1e293b' }}>5m</text>
+                </g>
+              );
+            })()}
+
+            {/* Title block — below scale bar */}
+            {(() => {
+              const tbX = xOffset + plot_width * scale / 2;
+              const tbY = yOffset + plot_depth * scale + 52;
+              const projectId = (layout as any).program_reference?.brief_reference?.project_id
+                ?? (layout as any).program_reference?.brief_reference?.id
+                ?? 'GS-PROJ';
+              const floorLabel = activeFloor === 0 ? 'GROUND FLOOR' : 'UPPER FLOOR';
+              const dateStr = new Date().toISOString().slice(0, 10);
+              return (
+                <g>
+                  <text x={tbX} y={tbY} textAnchor="middle"
+                    style={{ fontSize: '8px', fontWeight: 900, fill: '#1e293b', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                    {projectId} · {plot_width.toFixed(1)}M × {plot_depth.toFixed(1)}M · {floorLabel} · {dateStr}
+                  </text>
+                </g>
+              );
+            })()}
 
             {/* Rooms */}
             {activeRooms.map((room, idx) => renderRoom(room, idx))}

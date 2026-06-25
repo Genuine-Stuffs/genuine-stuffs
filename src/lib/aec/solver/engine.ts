@@ -70,43 +70,40 @@ export function solveLayout(
 
     let stairwellCoords: { x: number, y: number, w: number, d: number } | null = null;
 
-    const packFloor = (
-        floorNodes: InternalRoomNode[],
+    // ── ZONE CLASSIFIER ────────────────────────────────────────────────────────
+    // Splits rooms into PUBLIC (living/dining/kitchen/foyer/study/office/garage)
+    // and PRIVATE (bedroom/master/bath/wc/toilet/corridor) zones.
+    // PUBLIC zone packs the left block; PRIVATE zone packs the right block.
+    // Stairwell sits at the boundary between zones, inside the building mass.
+    const PUBLIC_KEYWORDS  = ['living','lounge','dining','kitchen','pantry','foyer','study','office','garage','entry','store','laundry','utility'];
+    const PRIVATE_KEYWORDS = ['bedroom','master','bath','wc','toilet','shower','corridor','hall','wardrobe','dressing'];
+
+    const classifyZone = (id: string): 'public' | 'private' => {
+        const lower = id.toLowerCase();
+        if (PRIVATE_KEYWORDS.some(k => lower.includes(k))) return 'private';
+        if (PUBLIC_KEYWORDS.some(k => lower.includes(k))) return 'public';
+        // Default: odd-indexed rooms alternate; keeps unknown rooms from all piling into one zone
+        return 'private';
+    };
+
+    // Pack a single zone as a column of rows within a given x-offset and width budget.
+    // Returns the maximum depth reached (so the other zone can match it if needed).
+    const packZone = (
+        zoneNodes: InternalRoomNode[],
         floorIndex: number,
-        forceStairwell?: { x: number, y: number, w: number, d: number }
-    ) => {
-        // ── GRID-BASED ROW PACKER ─────────────────────────────────────────────
-        // Rooms fill rows across a target building width so walls are shared.
-        // No floating isolated boxes — adjacent rooms touch each other.
-        // Target building width = 70% of buildable, capped at 22m (5 bays).
-
-        const targetBuildW = Math.min(buildableW * 0.70, 22.0);
-
-        // Sort largest-first so big rooms anchor the row layout
-        const sorted = [...floorNodes].sort((a, b) => b.target_area - a.target_area);
-
-        // Upper floor: mirror stairwell position from ground floor
-        if (floorIndex > 0 && forceStairwell) {
-            placedRooms.push({
-                room_id: "stairwell_void",
-                floor: floorIndex,
-                x: forceStairwell.x,
-                y: forceStairwell.y,
-                width: forceStairwell.w,
-                depth: forceStairwell.d
-            });
-        }
-
+        zoneX: number,
+        zoneW: number
+    ): number => {
+        const sorted = [...zoneNodes].sort((a, b) => b.target_area - a.target_area);
         let curY = 0;
         let i = 0;
 
         while (i < sorted.length) {
-            let rowX = 0;
+            let rowX = zoneX;
             let rowH = 0;
             const rowStart = i;
 
-            // Fill one row left-to-right across targetBuildW
-            while (i < sorted.length && rowX < targetBuildW) {
+            while (i < sorted.length && (rowX - zoneX) < zoneW) {
                 const node = sorted[i];
                 iterations++;
 
@@ -114,21 +111,17 @@ export function solveLayout(
                                   isFinite(node.target_area) &&
                                   node.target_area > 0) ? node.target_area : 9.0;
 
-                const remainW = targetBuildW - rowX;
-
-                // Width: balanced aspect ratio, capped to remaining row space
+                const remainW = zoneW - (rowX - zoneX);
                 let roomW = Math.min(remainW, Math.sqrt(safeArea * 1.6));
                 roomW = Math.max(roomW, 2.4);
                 roomW = Math.min(roomW, remainW);
                 roomW = Math.round(roomW / grid) * grid;
 
-                // If the room would be too narrow, start a new row
                 if (roomW < 2.4 && i > rowStart) break;
 
                 let roomD = Math.ceil((safeArea / roomW) / grid) * grid;
                 roomD = Math.max(roomD, 2.4);
 
-                // Enforce max aspect ratio 1:3
                 if (roomD > roomW * 3) {
                     roomD = Math.round((roomW * 3) / grid) * grid;
                     roomW = Math.ceil((safeArea / roomD) / grid) * grid;
@@ -155,12 +148,13 @@ export function solveLayout(
                 i++;
             }
 
-            // Stretch the last room in the row to close any gap at the right edge
-            if (rowX < targetBuildW && i > rowStart) {
+            // Stretch last room in row to fill zone width
+            if ((rowX - zoneX) < zoneW && i > rowStart) {
                 const lastPlaced = placedRooms[placedRooms.length - 1];
                 if (lastPlaced && lastPlaced.floor === floorIndex &&
-                    lastPlaced.room_id !== 'stairwell_void') {
-                    const gap = targetBuildW - (lastPlaced.x + lastPlaced.width);
+                    lastPlaced.room_id !== 'stairwell_void' &&
+                    lastPlaced.room_id !== 'stairwell') {
+                    const gap = zoneW - (lastPlaced.x - zoneX + lastPlaced.width);
                     if (gap > 0) {
                         placedRooms[placedRooms.length - 1] = {
                             ...lastPlaced,
@@ -173,29 +167,76 @@ export function solveLayout(
             curY += rowH;
         }
 
-        // Ground floor stairwell — appended after all rooms
+        return curY;
+    };
+
+    const packFloor = (
+        floorNodes: InternalRoomNode[],
+        floorIndex: number,
+        forceStairwell?: { x: number, y: number, w: number, d: number }
+    ) => {
+        // ── ZONE-BASED TWO-BLOCK PACKER ───────────────────────────────────────
+        // Total building width = 70% of buildable, capped at 22m.
+        // Stairwell (2.4m wide) sits at the boundary between PUBLIC and PRIVATE.
+        // PUBLIC zone occupies the LEFT block; PRIVATE zone the RIGHT block.
+        // The stairwell column is placed inside the building mass, not appended below.
+
+        const totalBuildW = Math.min(buildableW * 0.70, 22.0);
+        const stairW = 2.4;
+        const stairD = 3.6;
+
+        // Upper floor mirrors stairwell from ground floor exactly
+        if (floorIndex > 0 && forceStairwell) {
+            placedRooms.push({
+                room_id: "stairwell_void",
+                floor: floorIndex,
+                x: forceStairwell.x,
+                y: forceStairwell.y,
+                width: forceStairwell.w,
+                depth: forceStairwell.d
+            });
+        }
+
+        // Split nodes into zones
+        const publicNodes  = floorNodes.filter(n => classifyZone(n.id) === 'public');
+        const privateNodes = floorNodes.filter(n => classifyZone(n.id) === 'private');
+
+        // If one zone is empty, fall back to full-width single-zone pack
+        if (publicNodes.length === 0 || privateNodes.length === 0) {
+            packZone(floorNodes, floorIndex, 0, totalBuildW);
+            return;
+        }
+
+        // Allocate widths proportional to total area of each zone
+        const publicArea  = publicNodes.reduce((s, n)  => s + (n.target_area || 9), 0);
+        const privateArea = privateNodes.reduce((s, n) => s + (n.target_area || 9), 0);
+        const usableW     = totalBuildW - (isDuplex ? stairW : 0);
+        const publicW  = Math.round((usableW * publicArea  / (publicArea + privateArea)) / grid) * grid;
+        const privateW = Math.round((usableW - publicW) / grid) * grid;
+
+        // Stairwell x-position: at the boundary between public and private zones
+        const stairX = publicW;
+
+        // Pack PUBLIC zone (x: 0 → publicW)
+        packZone(publicNodes, floorIndex, 0, publicW);
+
+        // Place stairwell at boundary (ground floor only; upper floor mirrors via forceStairwell)
         if (floorIndex === 0 && isDuplex) {
-            const stairW = 2.4;
-            const stairD = 3.6;
-            const stairX = Math.min(targetBuildW - stairW, buildableW - stairW);
-
-            stairwellCoords = {
-                x: Math.max(0, stairX),
-                y: curY,
-                w: stairW,
-                d: stairD
-            };
-
+            stairwellCoords = { x: stairX, y: 0, w: stairW, d: stairD };
             placedRooms.push({
                 room_id: "stairwell",
                 floor: floorIndex,
-                x: stairwellCoords.x,
-                y: stairwellCoords.y,
-                width: stairwellCoords.w,
-                depth: stairwellCoords.d
+                x: stairX,
+                y: 0,
+                width: stairW,
+                depth: stairD
             });
-            console.log(`[Solver] Placed Ground Floor Stairwell at X:${stairwellCoords.x}, Y:${stairwellCoords.y}`);
+            console.log(`[Solver] Zone stairwell at X:${stairX}, Y:0 (boundary between public/private)`);
         }
+
+        // Pack PRIVATE zone (x: stairX + stairW → end)
+        const privateStartX = isDuplex ? stairX + stairW : stairX;
+        packZone(privateNodes, floorIndex, privateStartX, privateW);
     };
 
     // Pack Ground Floor
