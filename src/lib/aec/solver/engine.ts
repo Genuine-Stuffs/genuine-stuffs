@@ -16,7 +16,7 @@
 import { SpatialProgram, SolvedLayout, PlacedRoom } from "../../../../supabase/functions/ai-studio/schema";
 import { PlotEnvelope, SolverOptions, InternalRoomNode } from "./types";
 import { NIGERIAN_AEC_RULES, getConstraintForRoom } from "./nigerian_rules";
-
+import { selectStrategy, StrategyOptions, BuildableEnvelope } from "./strategies/index";
 export function solveLayout(
     program: SpatialProgram,
     envelope: PlotEnvelope,
@@ -383,9 +383,14 @@ export function solveLayout(
         // ── CORRIDOR SPINE INJECTION ──────────────────────────────────────────
         // If the Hive did not generate a corridor room but there are 2+ bedrooms
         // on this floor, inject a synthetic corridor node into the private zone.
-        // The corridor is 1.5m wide × the private zone depth, placed at the
-        // left edge of the private zone as a circulation spine.
-        const bedroomCount = floorNodes.filter(n =>
+        const buildEnvelope: BuildableEnvelope = {
+            width: totalBuildW,
+            depth: buildableD,
+            grid,
+        };
+
+        // Inject synthetic corridor if Hive omitted it and floor has 2+ bedrooms
+        const bedroomsOnFloor = floorNodes.filter(n =>
             n.id.toLowerCase().includes('bedroom') ||
             n.id.toLowerCase().includes('master')
         ).length;
@@ -393,8 +398,8 @@ export function solveLayout(
             n.id.toLowerCase().includes('corridor') ||
             n.id.toLowerCase().includes('hall')
         );
-        if (bedroomCount >= 2 && !hasCorridorAlready) {
-            const corridorArea = Math.min(bedroomCount * 2.5, 12.0);
+        if (bedroomsOnFloor >= 2 && !hasCorridorAlready) {
+            const corridorArea = Math.min(bedroomsOnFloor * 2.5, 12.0);
             floorNodes.push({
                 id: `corridor_floor${floorIndex}`,
                 target_area: corridorArea,
@@ -404,98 +409,58 @@ export function solveLayout(
             });
         }
 
-        // Apply adjacency pairing to get bedroom+bathroom pairs in correct order
-        const pairedFloorNodes = buildPairedOrder(floorNodes);
+        // Classify nodes into zones for the strategy
+        const publicNodes  = floorNodes.filter(n => classifyZone(n.id) === 'public');
+        const privateNodes = floorNodes.filter(n => classifyZone(n.id) === 'private');
 
-        // Split nodes into zones using paired order
-        const publicNodes  = pairedFloorNodes.filter(n => classifyZone(n.id) === 'public');
-        const privateNodes = pairedFloorNodes.filter(n => classifyZone(n.id) === 'private');
+        const strategyOptions: StrategyOptions = {
+            floorIndex,
+            isDuplex,
+            stairwellCoords,
+            forceStairwell: forceStairwell ?? null,
+        };
 
-        // If one zone is empty, fall back to full-width single-zone pack
-        if (publicNodes.length === 0 || privateNodes.length === 0) {
-            packZone(floorNodes, floorIndex, 0, totalBuildW);
-            return;
+        // Run the selected strategy
+        const newRooms = strategy.pack(
+            publicNodes,
+            privateNodes,
+            buildEnvelope,
+            strategyOptions
+        );
+
+        // Merge into placedRooms
+        placedRooms.push(...newRooms);
+
+        // Capture stairwell coords from strategy for upper floor
+        const resolved = (strategyOptions as any).resolvedStairwellCoords;
+        if (resolved && !stairwellCoords) {
+            stairwellCoords = resolved;
         }
 
-        // Allocate widths proportional to total area of each zone.
-        // Private zone gets a minimum width floor when it contains 3+ bedrooms —
-        // bathrooms and wardrobes inflate private area_m2 but need floor WIDTH
-        // allocated to bedrooms, not to service rooms. Without this floor,
-        // Bedroom 3 / Bedroom 4 get squeezed to 2.6m wide.
-        const publicArea  = publicNodes.reduce((s, n)  => s + (n.target_area || 9), 0);
-        const privateArea = privateNodes.reduce((s, n) => s + (n.target_area || 9), 0);
-        const usableW     = totalBuildW - (isDuplex ? stairW : 0);
-
-        const bedroomsInPrivate = privateNodes.filter(n =>
-            n.id.toLowerCase().includes('bedroom') ||
-            n.id.toLowerCase().includes('master')
-        ).length;
-
-        // Raw proportional split
-        let publicW  = Math.round((usableW * publicArea  / (publicArea + privateArea)) / grid) * grid;
-        let privateW = Math.round((usableW - publicW) / grid) * grid;
-
-        // Enforce minimum private zone width when 3+ bedrooms are present.
-        // Each bedroom needs at least 3.6m of width — use that as the floor.
-        const minPrivateW = bedroomsInPrivate >= 3
-            ? Math.round((bedroomsInPrivate * 3.6) / grid) * grid
-            : 0;
-
-        if (privateW < minPrivateW && minPrivateW < usableW * 0.75) {
-            privateW = Math.min(minPrivateW, Math.round(usableW * 0.65 / grid) * grid);
-            publicW  = Math.round((usableW - privateW) / grid) * grid;
-        }
-
-        // Stairwell x-position: at the boundary between public and private zones
-        const stairX = publicW;
-
-        // Pack PUBLIC zone (x: 0 → publicW)
-        packZone(publicNodes, floorIndex, 0, publicW);
-
-        // Place stairwell at boundary (ground floor only; upper floor mirrors via forceStairwell)
-        if (floorIndex === 0 && isDuplex) {
-            stairwellCoords = { x: stairX, y: 0, w: stairW, d: stairD };
+        // If no stairwell was placed by strategy on ground floor, add synthetic
+        if (floorIndex === 0 && isDuplex && !stairwellCoords) {
+            const stairX = Math.max(0, totalBuildW - 2.4);
+            stairwellCoords = { x: stairX, y: 0, w: 2.4, d: 3.6 };
             placedRooms.push({
-                room_id: "stairwell",
-                floor: floorIndex,
+                room_id: 'stairwell',
+                floor: 0,
                 x: stairX,
                 y: 0,
-                width: stairW,
-                depth: stairD
+                width: 2.4,
+                depth: 3.6,
             });
-            console.log(`[Solver] Zone stairwell at X:${stairX}, Y:0 (boundary between public/private)`);
         }
-
-        // Pack PRIVATE zone (x: stairX + stairW → end)
-        const privateStartX = isDuplex ? stairX + stairW : stairX;
-        packZone(privateNodes, floorIndex, privateStartX, privateW);
     };
 
     // Pack Ground Floor
     packFloor(groundFloorNodes, 0);
 
     // Pack Upper Floor (Duplex only)
-    // stairwellCoords may be null if the Hive did not generate a stairwell room.
-    // In that case, synthesise a default stairwell at the zone boundary so the
-    // upper floor still packs. The synthetic stairwell renders on both floors.
     if (isDuplex && upperFloorNodes.length > 0) {
         if (!stairwellCoords) {
-            // Derive zone boundary from ground floor public area ratio
             const totalBuildW = Math.min(buildableW * 0.70, 22.0);
-            const groundPublicArea = groundFloorNodes
-                .filter(n => ['living','lounge','dining','kitchen','foyer','garage','office']
-                    .some(k => n.id.toLowerCase().includes(k)))
-                .reduce((s, n) => s + (n.target_area || 9), 0);
-            const groundPrivateArea = groundFloorNodes
-                .filter(n => ['bedroom','bath','wc','corridor']
-                    .some(k => n.id.toLowerCase().includes(k)))
-                .reduce((s, n) => s + (n.target_area || 9), 0);
-            const totalZoneArea = groundPublicArea + groundPrivateArea || 1;
-            const syntheticStairX = Math.round(
-                (totalBuildW * groundPublicArea / totalZoneArea) / grid
-            ) * grid;
             stairwellCoords = {
-                x: Math.max(0, Math.min(syntheticStairX, totalBuildW - 2.4)),
+                x: Math.max(0, totalBuildW - 2.4),
                 y: 0,
                 w: 2.4,
                 d: 3.6
@@ -515,11 +480,12 @@ export function solveLayout(
     }
 
     return {
-        program_reference: program,
-        plot_width:  envelope.width,
-        plot_depth:  envelope.depth,
-        placed_rooms: placedRooms,
-        solver_iterations_used: iterations,
-        is_fully_connected: true
+        program_reference:       program,
+        plot_width:               envelope.width,
+        plot_depth:               envelope.depth,
+        placed_rooms:             placedRooms,
+        solver_iterations_used:   iterations,
+        is_fully_connected:       true,
+        layout_strategy:          strategy.id,
     };
 }
