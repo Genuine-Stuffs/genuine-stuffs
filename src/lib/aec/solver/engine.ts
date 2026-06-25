@@ -77,291 +77,104 @@ export function solveLayout(
 
     let stairwellCoords: { x: number, y: number, w: number, d: number } | null = null;
 
-    // ── ADJACENCY PAIRING ─────────────────────────────────────────────────────
-    // Pairs each bathroom/wardrobe to its parent bedroom so they pack as a unit.
-    // A paired room is placed immediately after its parent in the sorted order,
-    // preventing bathrooms from floating into unrelated rows.
-    // Pairing is detected from the Hive adjacencies field.
-    const buildPairedOrder = (floorNodes: InternalRoomNode[]): InternalRoomNode[] => {
-        // Get adjacency map from source rooms
+    // ──────────────────────────────────────────────────────────────────────────
+    // CIRCULATION-FIRST SOLVER
+    // ──────────────────────────────────────────────────────────────────────────
+    // Architectural principle: the corridor is allocated FIRST as a real
+    // T-shaped circulation spine. Every room is then placed touching the
+    // corridor with exactly one wall, so every door opens onto circulation
+    // space rather than into another room.
+    //
+    // Layout:
+    //   ┌──────────────────────────────────────────────────────────┐
+    //   │  PUBLIC ROW (living, dining, kitchen, garage, foyer)     │
+    //   ├──────────────────────────────────────────────────────────┤
+    //   │═══════════════ HORIZONTAL CORRIDOR ══════════════════════│  ← 1.5m
+    //   ├──────────────────────────────────────────────────────────┤
+    //   │  PRIVATE ROW (bedroom suites, each with internal bath)   │
+    //   └──────────────────────────────────────────────────────────┘
+    //
+    // Each bedroom suite is a single rectangle. Inside that rectangle:
+    //   - bedroom occupies ~70% of the depth (top portion, against corridor)
+    //   - bathroom + wardrobe occupy ~30% (bottom portion, against external wall)
+    // No separate door for bathroom — it is accessed via the bedroom interior.
+    // ──────────────────────────────────────────────────────────────────────────
+
+    const SERVICE_KEYWORDS_C = ['bath','wc','toilet','shower','wardrobe','dressing','ensuite','en-suite'];
+    const isService_C = (id: string) => SERVICE_KEYWORDS_C.some(k => id.toLowerCase().includes(k));
+    const isBedroom_C = (id: string) => {
+        const lo = id.toLowerCase();
+        return lo.includes('bedroom') || lo.includes('master');
+    };
+
+    // Pair each bedroom with its service rooms using Hive adjacencies or name match
+    const pairSuites = (
+        floorNodes: InternalRoomNode[]
+    ): Array<{ bedroom: InternalRoomNode; services: InternalRoomNode[] }> => {
         const sourceRooms: any[] = (program as any).rooms ?? [];
         const adjacencyMap = new Map<string, string[]>();
         for (const r of sourceRooms) {
             const id = r.room_id ?? r.id ?? '';
-            const adj: string[] = r.adjacencies ?? [];
-            adjacencyMap.set(id, adj);
+            adjacencyMap.set(id, r.adjacencies ?? []);
         }
 
-        // Identify service rooms that should follow a parent
-        const SERVICE_KEYWORDS = ['bath', 'wc', 'toilet', 'shower', 'wardrobe', 'dressing', 'ensuite', 'en-suite'];
-        const isServiceRoom = (id: string) => SERVICE_KEYWORDS.some(k => id.toLowerCase().includes(k));
+        const bedrooms = floorNodes.filter(n => isBedroom_C(n.id));
+        const services = floorNodes.filter(n => isService_C(n.id));
+        const used = new Set<string>();
 
-        // Build paired order: for each non-service room, append its service adjacencies immediately after
-        const paired: InternalRoomNode[] = [];
-        const appended = new Set<string>();
+        const suites = bedrooms.map(bed => {
+            const linked: InternalRoomNode[] = [];
 
-        // Sort: large non-service rooms first
-        const anchors = floorNodes
-            .filter(n => !isServiceRoom(n.id))
-            .sort((a, b) => b.target_area - a.target_area);
-        const services = floorNodes.filter(n => isServiceRoom(n.id));
-
-        for (const anchor of anchors) {
-            if (appended.has(anchor.id)) continue;
-            paired.push(anchor);
-            appended.add(anchor.id);
-
-            // Find service rooms adjacent to this anchor
-            const adjs = adjacencyMap.get(anchor.id) ?? [];
-            for (const adjId of adjs) {
-                const svcNode = services.find(s => s.id === adjId && !appended.has(s.id));
-                if (svcNode) {
-                    paired.push(svcNode);
-                    appended.add(svcNode.id);
-                }
-            }
-        }
-
-        // Fallback pairing: if service rooms have no adjacency data,
-        // pair them to the nearest bedroom anchor by index order.
-        // This handles the case where the Hive omits adjacencies entirely.
-        const unpairedServices = services.filter(s => !appended.has(s.id));
-        const unpairedAnchors  = anchors.filter(a =>
-            a.id.toLowerCase().includes('bedroom') ||
-            a.id.toLowerCase().includes('master')
-        );
-
-        unpairedServices.forEach((svc, idx) => {
-            // Insert after the bedroom at the same index (wraps if more services than bedrooms)
-            const targetAnchor = unpairedAnchors[idx % Math.max(unpairedAnchors.length, 1)];
-            if (targetAnchor) {
-                const insertPos = paired.indexOf(targetAnchor) + 1;
-                // Skip past any already-inserted services after this anchor
-                let finalPos = insertPos;
-                while (finalPos < paired.length &&
-                       SERVICE_KEYWORDS.some(k => paired[finalPos].id.toLowerCase().includes(k))) {
-                    finalPos++;
-                }
-                paired.splice(finalPos, 0, svc);
-            } else {
-                paired.push(svc);
-            }
-            appended.add(svc.id);
-        });
-
-        return paired;
-    };
-
-    // ── ZONE CLASSIFIER ────────────────────────────────────────────────────────
-    // Splits rooms into PUBLIC (living/dining/kitchen/foyer/study/office/garage)
-    // and PRIVATE (bedroom/master/bath/wc/toilet/corridor) zones.
-    // PUBLIC zone packs the left block; PRIVATE zone packs the right block.
-    // Stairwell sits at the boundary between zones, inside the building mass.
-    const PUBLIC_KEYWORDS  = ['living','lounge','dining','kitchen','pantry','foyer','study','office','garage','entry','store','laundry','utility'];
-    const PRIVATE_KEYWORDS = ['bedroom','master','bath','wc','toilet','shower','corridor','hall','wardrobe','dressing'];
-
-    const classifyZone = (id: string): 'public' | 'private' => {
-        const lower = id.toLowerCase();
-        if (PRIVATE_KEYWORDS.some(k => lower.includes(k))) return 'private';
-        if (PUBLIC_KEYWORDS.some(k => lower.includes(k))) return 'public';
-        // Default: odd-indexed rooms alternate; keeps unknown rooms from all piling into one zone
-        return 'private';
-    };
-
-    // Pack a single zone as a column of rows within a given x-offset and width budget.
-    // Returns the maximum depth reached (so the other zone can match it if needed).
-    const packZone = (
-        zoneNodes: InternalRoomNode[],
-        floorIndex: number,
-        zoneX: number,
-        zoneW: number
-    ): number => {
-        // ── SUITE-AWARE SORT ──────────────────────────────────────────────────
-        // Rather than a flat area sort, build an ordered list where each bedroom
-        // is immediately followed by its paired service rooms (bathroom, wardrobe).
-        // This guarantees en-suite rooms are offered to the same row as their
-        // parent bedroom before the packer moves to the next bedroom.
-        const SERVICE_KEYWORDS = ['bath', 'wc', 'toilet', 'shower', 'wardrobe', 'dressing', 'ensuite', 'en-suite'];
-        const isService = (id: string) => SERVICE_KEYWORDS.some(k => id.toLowerCase().includes(k));
-
-        const anchors = zoneNodes.filter(n => !isService(n.id))
-            .sort((a, b) => b.target_area - a.target_area);
-        const services = zoneNodes.filter(n => isService(n.id));
-        const usedServices = new Set<string>();
-
-        // Build suite groups: [bedroom, bath, wardrobe, ...] as atomic units
-        const suiteGroups: InternalRoomNode[][] = anchors.map(anchor => {
-            const group: InternalRoomNode[] = [anchor];
-            // Attach services that share a name-pattern with this anchor
-            // e.g. "master_bedroom" pairs with "master_bath", "master_wardrobe"
-            const anchorBase = anchor.id.toLowerCase()
-                .replace(/bedroom|master|suite/g, '').replace(/_+/g, '_').trim();
-            for (const svc of services) {
-                if (usedServices.has(svc.id)) continue;
-                const svcBase = svc.id.toLowerCase();
-                // Match by shared prefix or sequential numbering
-                const matches = anchorBase.length > 2 && svcBase.includes(anchorBase.slice(0, 4));
-                if (matches) {
-                    group.push(svc);
-                    usedServices.add(svc.id);
-                }
-            }
-            return group;
-        });
-
-        // Fallback: assign remaining unpaired services to suite groups by index
-        const remainingServices = services.filter(s => !usedServices.has(s.id));
-        remainingServices.forEach((svc, idx) => {
-            const targetGroup = suiteGroups[idx % Math.max(suiteGroups.length, 1)];
-            if (targetGroup) targetGroup.push(svc);
-        });
-
-        // Flatten suite groups back into ordered node list
-        const sorted = suiteGroups.flat();
-
-        let curY = 0;
-        let i = 0;
-
-        while (i < sorted.length) {
-            let rowX = zoneX;
-            let rowH = 0;
-            const rowStart = i;
-
-            // ── MINIMUM ROW OCCUPANCY GUARD ───────────────────────────────────
-            // If all remaining rooms are service rooms and previous rows exist,
-            // append to the last row instead of starting a disconnected strip.
-            const SERVICE_ROW_KEYWORDS = ['bath', 'wc', 'toilet', 'stair', 'wet', 'wardrobe'];
-            const remainingNodes = sorted.slice(i);
-            const allRemainingAreService = remainingNodes.length > 0 &&
-                remainingNodes.every(n =>
-                    SERVICE_ROW_KEYWORDS.some(k => n.id.toLowerCase().includes(k))
-                );
-
-            if (allRemainingAreService && curY > 0 && placedRooms.length > 0) {
-                const lastOnFloor = [...placedRooms]
-                    .reverse()
-                    .find(r => r.floor === floorIndex &&
-                               r.x >= zoneX && r.x < zoneX + zoneW);
-                if (lastOnFloor) {
-                    curY = lastOnFloor.y;
-                    rowX = lastOnFloor.x + lastOnFloor.width;
-                    rowH = lastOnFloor.depth;
-                }
+            // 1. Try explicit adjacencies from Hive
+            const adjs = adjacencyMap.get(bed.id) ?? [];
+            for (const adj of adjs) {
+                const svc = services.find(s => s.id === adj && !used.has(s.id));
+                if (svc) { linked.push(svc); used.add(svc.id); }
             }
 
-            // ── ROW FILL — suite-aware ────────────────────────────────────────
-            // When a bedroom is placed, immediately attempt to place its suite
-            // service rooms in the same row before advancing to the next bedroom.
-            while (i < sorted.length && (rowX - zoneX) < zoneW) {
-                const node = sorted[i];
-                iterations++;
-
-                const safeArea = (typeof node.target_area === 'number' &&
-                                  isFinite(node.target_area) &&
-                                  node.target_area > 0) ? node.target_area : 9.0;
-
-                const remainW = zoneW - (rowX - zoneX);
-
-                // If this is a service room and there's not enough space, break to
-                // next row — but only if it's not immediately following its anchor
-                // (i.e. the previous node was not its bedroom partner).
-                const prevNode = i > 0 ? sorted[i - 1] : null;
-                const prevWasBedroom = prevNode && (
-                    prevNode.id.toLowerCase().includes('bedroom') ||
-                    prevNode.id.toLowerCase().includes('master')
-                );
-                const thisIsService = isService(node.id);
-
-                if (thisIsService && !prevWasBedroom && remainW < 2.4 && i > rowStart) {
-                    break;
-                }
-
-                let roomW = Math.min(remainW, Math.sqrt(safeArea * 1.6));
-                roomW = Math.max(roomW, 2.4);
-                roomW = Math.min(roomW, remainW);
-                roomW = Math.round(roomW / grid) * grid;
-
-                if (roomW < 2.4 && i > rowStart) break;
-
-                let roomD = Math.ceil((safeArea / roomW) / grid) * grid;
-                roomD = Math.max(roomD, 2.4);
-
-                if (roomD > roomW * 3) {
-                    roomD = Math.round((roomW * 3) / grid) * grid;
-                    roomW = Math.ceil((safeArea / roomD) / grid) * grid;
-                    roomW = Math.min(roomW, remainW);
-                }
-
-                // ── ROOM TYPE CONSTRAINT CLAMP ────────────────────────────────
-                const constraint = getConstraintForRoom(node.id);
-                if (roomW > constraint.maxWidth) {
-                    roomW = Math.round(Math.min(roomW, constraint.maxWidth) / grid) * grid;
-                    roomD = Math.ceil((safeArea / Math.max(roomW, 0.1)) / grid) * grid;
-                    roomD = Math.max(roomD, 2.4);
-                }
-                if (roomW > roomD * constraint.maxAspect) {
-                    roomW = Math.round((roomD * constraint.maxAspect) / grid) * grid;
-                    roomW = Math.max(roomW, 2.4);
-                }
-
-                node.x = rowX;
-                node.y = curY;
-                node.w = roomW;
-                node.d = roomD;
-                node.placed = true;
-
-                placedRooms.push({
-                    room_id: node.id,
-                    floor: floorIndex,
-                    x: node.x,
-                    y: node.y,
-                    width: node.w,
-                    depth: node.d
-                });
-
-                rowX += roomW;
-                rowH = Math.max(rowH, roomD);
-                i++;
-            }
-
-            // Stretch last room in row — constraint-guarded
-            if ((rowX - zoneX) < zoneW && i > rowStart) {
-                const lastPlaced = placedRooms[placedRooms.length - 1];
-                if (lastPlaced && lastPlaced.floor === floorIndex &&
-                    lastPlaced.room_id !== 'stairwell_void' &&
-                    lastPlaced.room_id !== 'stairwell') {
-                    const gap = zoneW - (lastPlaced.x - zoneX + lastPlaced.width);
-                    if (gap > 0) {
-                        const stretchConstraint = getConstraintForRoom(lastPlaced.room_id);
-                        const stretchedW = Math.round((lastPlaced.width + gap) / grid) * grid;
-                        const stretchedAspect = stretchedW / Math.max(lastPlaced.depth, 0.1);
-                        const canStretch = stretchedW <= stretchConstraint.maxWidth &&
-                                           stretchedAspect <= stretchConstraint.maxAspect;
-                        if (canStretch) {
-                            placedRooms[placedRooms.length - 1] = {
-                                ...lastPlaced,
-                                width: stretchedW
-                            };
+            // 2. Name-prefix match
+            if (linked.length === 0) {
+                const base = bed.id.toLowerCase()
+                    .replace(/(bedroom|master|suite|_)/g, '').slice(0, 5);
+                if (base.length >= 2) {
+                    for (const svc of services) {
+                        if (used.has(svc.id)) continue;
+                        if (svc.id.toLowerCase().includes(base)) {
+                            linked.push(svc); used.add(svc.id);
                         }
                     }
                 }
             }
 
-            curY += rowH;
-        }
+            return { bedroom: bed, services: linked };
+        });
 
-        return curY;
+        // 3. Round-robin remaining services to suites that have none yet
+        const remaining = services.filter(s => !used.has(s.id));
+        remaining.forEach((svc, idx) => {
+            if (suites.length === 0) return;
+            const target = suites[idx % suites.length];
+            target.services.push(svc);
+            used.add(svc.id);
+        });
+
+        return suites;
     };
+
+    const snap_C = (v: number, g: number) => Math.round(v / g) * g;
 
     const packFloor = (
         floorNodes: InternalRoomNode[],
         floorIndex: number,
         forceStairwell?: { x: number, y: number, w: number, d: number }
     ) => {
-        const totalBuildW = Math.min(buildableW * 0.70, 22.0);
-        const stairW = 2.4;
-        const stairD = 3.6;
+        // Building envelope: 75% of buildable width, capped at 22m
+        const buildW = Math.min(buildableW * 0.75, 22.0);
+        const CORRIDOR_D = 1.5;
+        const STAIR_W = 2.4;
+        const STAIR_D = 3.6;
 
+        // Upper floor: mirror stairwell void
         if (floorIndex > 0 && forceStairwell) {
             placedRooms.push({
                 room_id: "stairwell_void",
@@ -373,73 +186,198 @@ export function solveLayout(
             });
         }
 
-        const bedroomCount = floorNodes.filter(n =>
-            n.id.toLowerCase().includes('bedroom') ||
-            n.id.toLowerCase().includes('master')
-        ).length;
-        const hasCorridorAlready = floorNodes.some(n =>
-            n.id.toLowerCase().includes('corridor') ||
-            n.id.toLowerCase().includes('hall')
-        );
-        if (bedroomCount >= 2 && !hasCorridorAlready) {
-            const corridorArea = Math.min(bedroomCount * 2.5, 12.0);
-            floorNodes.push({
-                id: `corridor_floor${floorIndex}`,
-                target_area: corridorArea,
-                placed: false,
-                x: 0, y: 0, w: 0, d: 0,
-                target_floor: floorIndex
+        // ── CLASSIFY ROOMS ────────────────────────────────────────────────────
+        // PUBLIC: living, dining, kitchen, foyer, office, garage, etc.
+        // PRIVATE: bedrooms (which absorb their bathrooms/wardrobes internally)
+        // EXCLUDED: stairwell, corridor — these are handled by the solver itself
+        const PUBLIC_KW = ['living','lounge','dining','kitchen','pantry','foyer',
+                           'study','office','garage','entry','store','laundry','utility'];
+        const isPublic_C = (id: string) => PUBLIC_KW.some(k => id.toLowerCase().includes(k));
+        const isStairOrCorridor = (id: string) => {
+            const lo = id.toLowerCase();
+            return lo.includes('stair') || lo.includes('corridor') ||
+                   lo.includes('hall') || lo.includes('void');
+        };
+
+        const eligibleNodes = floorNodes.filter(n => !isStairOrCorridor(n.id) && !isService_C(n.id));
+        const publicNodes  = eligibleNodes.filter(n => isPublic_C(n.id))
+            .sort((a, b) => b.target_area - a.target_area);
+        const privateBedrooms = eligibleNodes.filter(n => isBedroom_C(n.id))
+            .sort((a, b) => b.target_area - a.target_area);
+
+        // Pair each bedroom with its services (internal sub-rooms)
+        const suites = pairSuites(floorNodes);
+
+        // ── COMPUTE ROW HEIGHTS ──────────────────────────────────────────────
+        // Public row: depth = avg of public room target dimensions
+        // Private row: depth = bedroom depth + bathroom depth (suite stack)
+        const PUBLIC_ROW_D  = Math.max(5.5, Math.min(7.0, buildW / 4));   // 5.5–7m
+        const SUITE_BATH_D  = 2.4;
+        const SUITE_BED_D   = Math.max(3.6, Math.min(5.0, buildW / 5));   // 3.6–5m
+        const PRIVATE_ROW_D = SUITE_BED_D + SUITE_BATH_D;
+
+        // ── 1. PACK PUBLIC ROW (top of building, y = 0) ──────────────────────
+        let curX = 0;
+        const publicY = 0;
+        const totalPublicArea = publicNodes.reduce((s, n) => s + (n.target_area || 12), 0);
+        const publicAvailW = isDuplex ? buildW - STAIR_W : buildW;
+
+        publicNodes.forEach((node, i) => {
+            const safeArea = Math.max(node.target_area || 12, 6);
+            const constraint = getConstraintForRoom(node.id);
+
+            // Width proportional to area share
+            let w = snap_C(publicAvailW * (safeArea / Math.max(totalPublicArea, 1)), grid);
+            w = Math.max(w, 2.4);
+            w = Math.min(w, constraint.maxWidth);
+
+            // Last room fills remaining width
+            if (i === publicNodes.length - 1) {
+                w = snap_C(publicAvailW - curX, grid);
+                w = Math.max(w, 2.4);
+            }
+
+            // Depth: fixed PUBLIC_ROW_D, but shrink if area would overflow
+            let d = PUBLIC_ROW_D;
+            if (w * d > safeArea * 1.5) {
+                d = snap_C(Math.max(safeArea / w, 3.0), grid);
+            }
+            d = Math.max(d, 3.0);
+
+            placedRooms.push({
+                room_id: node.id,
+                floor: floorIndex,
+                x: curX,
+                y: publicY,
+                width: w,
+                depth: d,
             });
-        }
+            curX += w;
+        });
 
-        const pairedFloorNodes = buildPairedOrder(floorNodes);
-        const publicNodes  = pairedFloorNodes.filter(n => classifyZone(n.id) === 'public');
-        const privateNodes = pairedFloorNodes.filter(n => classifyZone(n.id) === 'private');
+        // Determine actual public row depth from tallest placed public room
+        const actualPublicRowD = placedRooms
+            .filter(r => r.floor === floorIndex && r.y === publicY)
+            .reduce((max, r) => Math.max(max, r.depth), PUBLIC_ROW_D);
 
-        if (publicNodes.length === 0 || privateNodes.length === 0) {
-            packZone(floorNodes, floorIndex, 0, totalBuildW);
-            return;
-        }
-
-        const publicArea  = publicNodes.reduce((s, n) => s + (n.target_area || 9), 0);
-        const privateArea = privateNodes.reduce((s, n) => s + (n.target_area || 9), 0);
-        const usableW     = totalBuildW - (isDuplex ? stairW : 0);
-
-        const bedroomsInPrivate = privateNodes.filter(n =>
-            n.id.toLowerCase().includes('bedroom') ||
-            n.id.toLowerCase().includes('master')
-        ).length;
-
-        let publicW  = Math.round((usableW * publicArea  / (publicArea + privateArea)) / grid) * grid;
-        let privateW = Math.round((usableW - publicW) / grid) * grid;
-
-        const minPrivateW = bedroomsInPrivate >= 3
-            ? Math.round((bedroomsInPrivate * 3.6) / grid) * grid
-            : 0;
-
-        if (privateW < minPrivateW && minPrivateW < usableW * 0.75) {
-            privateW = Math.min(minPrivateW, Math.round(usableW * 0.65 / grid) * grid);
-            publicW  = Math.round((usableW - privateW) / grid) * grid;
-        }
-
-        const stairX = publicW;
-
-        packZone(publicNodes, floorIndex, 0, publicW);
-
-        if (floorIndex === 0 && isDuplex) {
-            stairwellCoords = { x: stairX, y: 0, w: stairW, d: stairD };
+        // ── 2. PLACE STAIRWELL (ground floor duplex only) ────────────────────
+        let stairX = buildW - STAIR_W;
+        if (isDuplex && floorIndex === 0) {
+            stairwellCoords = { x: stairX, y: publicY, w: STAIR_W, d: actualPublicRowD };
             placedRooms.push({
                 room_id: "stairwell",
                 floor: floorIndex,
                 x: stairX,
-                y: 0,
-                width: stairW,
-                depth: stairD
+                y: publicY,
+                width: STAIR_W,
+                depth: actualPublicRowD,
             });
         }
 
-        const privateStartX = isDuplex ? stairX + stairW : stairX;
-        packZone(privateNodes, floorIndex, privateStartX, privateW);
+        // ── 3. PLACE HORIZONTAL CORRIDOR SPINE ───────────────────────────────
+        // Corridor runs full width below the public row.
+        const corridorY = snap_C(publicY + actualPublicRowD, grid);
+        placedRooms.push({
+            room_id: `corridor_floor${floorIndex}`,
+            floor: floorIndex,
+            x: 0,
+            y: corridorY,
+            width: buildW,
+            depth: CORRIDOR_D,
+        });
+
+        // ── 4. PACK PRIVATE ROW (bedroom suites below corridor) ──────────────
+        // Each suite is a vertical strip: bedroom on top (against corridor),
+        // bathroom + wardrobe stacked below (against external wall).
+        const privateY = snap_C(corridorY + CORRIDOR_D, grid);
+
+        if (privateBedrooms.length === 0) {
+            return; // No bedrooms on this floor (e.g. ground floor with only guest bedroom)
+        }
+
+        const totalBedroomArea = suites.reduce((s, u) =>
+            s + Math.max(u.bedroom.target_area || 12, 10), 0);
+
+        let pX = 0;
+        suites.forEach((suite, i) => {
+            const bedArea = Math.max(suite.bedroom.target_area || 12, 10);
+            const constraint = getConstraintForRoom(suite.bedroom.id);
+
+            // Suite width proportional to bedroom area share
+            let suiteW = snap_C(buildW * (bedArea / Math.max(totalBedroomArea, 1)), grid);
+            suiteW = Math.max(suiteW, 3.0); // minimum suite width
+            suiteW = Math.min(suiteW, constraint.maxWidth);
+
+            // Last suite fills remaining width
+            if (i === suites.length - 1) {
+                suiteW = snap_C(buildW - pX, grid);
+                suiteW = Math.max(suiteW, 3.0);
+            }
+
+            // ── Place bedroom (top portion of suite, touches corridor) ───────
+            placedRooms.push({
+                room_id: suite.bedroom.id,
+                floor: floorIndex,
+                x: pX,
+                y: privateY,
+                width: suiteW,
+                depth: SUITE_BED_D,
+            });
+
+            // ── Place services INSIDE the suite footprint, below the bedroom ─
+            // Bathroom on the left half, wardrobe on the right half (or stacked)
+            const svcY = snap_C(privateY + SUITE_BED_D, grid);
+            const baths   = suite.services.filter(s => {
+                const lo = s.id.toLowerCase();
+                return lo.includes('bath') || lo.includes('wc') || lo.includes('toilet') || lo.includes('shower');
+            });
+            const wards   = suite.services.filter(s => {
+                const lo = s.id.toLowerCase();
+                return lo.includes('wardrobe') || lo.includes('dressing');
+            });
+
+            if (baths.length > 0 && wards.length > 0) {
+                // Split suite width: bath on left, wardrobe on right
+                const bathW = snap_C(suiteW * 0.55, grid);
+                const wardW = snap_C(suiteW - bathW, grid);
+                placedRooms.push({
+                    room_id: baths[0].id,
+                    floor: floorIndex,
+                    x: pX,
+                    y: svcY,
+                    width: bathW,
+                    depth: SUITE_BATH_D,
+                });
+                placedRooms.push({
+                    room_id: wards[0].id,
+                    floor: floorIndex,
+                    x: pX + bathW,
+                    y: svcY,
+                    width: wardW,
+                    depth: SUITE_BATH_D,
+                });
+            } else if (baths.length > 0) {
+                placedRooms.push({
+                    room_id: baths[0].id,
+                    floor: floorIndex,
+                    x: pX,
+                    y: svcY,
+                    width: suiteW,
+                    depth: SUITE_BATH_D,
+                });
+            } else if (wards.length > 0) {
+                placedRooms.push({
+                    room_id: wards[0].id,
+                    floor: floorIndex,
+                    x: pX,
+                    y: svcY,
+                    width: suiteW,
+                    depth: SUITE_BATH_D,
+                });
+            }
+
+            pX += suiteW;
+        });
     };
 
     // Pack Ground Floor
