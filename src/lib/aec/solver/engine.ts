@@ -359,7 +359,42 @@ export function solveLayout(
     packFloor(groundFloorNodes, 0);
 
     // Pack Upper Floor (Duplex only)
-    if (isDuplex && stairwellCoords) {
+    // stairwellCoords may be null if the Hive did not generate a stairwell room.
+    // In that case, synthesise a default stairwell at the zone boundary so the
+    // upper floor still packs. The synthetic stairwell renders on both floors.
+    if (isDuplex && upperFloorNodes.length > 0) {
+        if (!stairwellCoords) {
+            // Derive zone boundary from ground floor public area ratio
+            const totalBuildW = Math.min(buildableW * 0.70, 22.0);
+            const groundPublicArea = groundFloorNodes
+                .filter(n => ['living','lounge','dining','kitchen','foyer','garage','office']
+                    .some(k => n.id.toLowerCase().includes(k)))
+                .reduce((s, n) => s + (n.target_area || 9), 0);
+            const groundPrivateArea = groundFloorNodes
+                .filter(n => ['bedroom','bath','wc','corridor']
+                    .some(k => n.id.toLowerCase().includes(k)))
+                .reduce((s, n) => s + (n.target_area || 9), 0);
+            const totalZoneArea = groundPublicArea + groundPrivateArea || 1;
+            const syntheticStairX = Math.round(
+                (totalBuildW * groundPublicArea / totalZoneArea) / grid
+            ) * grid;
+            stairwellCoords = {
+                x: Math.max(0, Math.min(syntheticStairX, totalBuildW - 2.4)),
+                y: 0,
+                w: 2.4,
+                d: 3.6
+            };
+            // Add synthetic stairwell to ground floor placed rooms
+            placedRooms.push({
+                room_id: 'stairwell',
+                floor: 0,
+                x: stairwellCoords.x,
+                y: stairwellCoords.y,
+                width: stairwellCoords.w,
+                depth: stairwellCoords.d
+            });
+            console.log('[Solver] Synthetic stairwell injected at X:', stairwellCoords.x);
+        }
         packFloor(upperFloorNodes, 1, stairwellCoords);
     }
 
