@@ -55,9 +55,16 @@ export function solveLayout(
     // ── FIX 4: storeys vs floors ───────────────────────────────────────────────
     // Old schema: program.brief_reference.storeys
     // New Hive schema: program.brief_reference.floors
+    // floors_override from AIStudio.tsx takes priority — it reads brief_reference
+    // before calling solveLayout so we don't depend on the Hive setting it correctly.
     const briefRef = (program as any).brief_reference ?? {};
-    const storeys  = briefRef.floors ?? briefRef.storeys ?? 1;
-    const isDuplex = storeys > 1;
+    const briefStoreys = briefRef.floors ?? briefRef.storeys ?? 1;
+    const storeys = (options as any)?.floors_override ?? briefStoreys;
+
+    // Also detect duplex from room data directly — if any room has floor: 1,
+    // treat as duplex regardless of brief_reference value.
+    const hasUpperFloorRooms = nodes.some(n => n.target_floor === 1);
+    const isDuplex = storeys > 1 || hasUpperFloorRooms;
 
     // Split nodes by floor
     const groundFloorNodes = nodes

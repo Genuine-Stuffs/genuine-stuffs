@@ -136,6 +136,28 @@ Produces buildability analysis and safety protocol:
       "span_m": [number — structural BAY span only, max 4.5m],
       "uses_intermediate_columns": [boolean],
       "adjacencies": ["r02", "r03"]
+    },
+    {
+      "room_id": "r02",
+      "name": "Master Suite Bedroom",
+      "type": "bedroom",
+      "floor": 1,
+      "area_m2": [number],
+      "width_m": [number],
+      "span_m": [number — max 4.5m],
+      "uses_intermediate_columns": [boolean],
+      "adjacencies": ["r03", "r04"]
+    },
+    {
+      "room_id": "r03",
+      "name": "Master Bathroom",
+      "type": "bathroom",
+      "floor": 1,
+      "area_m2": [number — max 6.0],
+      "width_m": [number — max 3.0],
+      "span_m": [number],
+      "uses_intermediate_columns": false,
+      "adjacencies": ["r02"]
     }
   ],
   "architectural_layout": [

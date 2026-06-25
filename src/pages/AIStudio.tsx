@@ -653,10 +653,18 @@ const AIStudio = () => {
                     const plotWidth = finalDesignData.brief_reference?.plot_size_sqm ? Math.sqrt(finalDesignData.brief_reference.plot_size_sqm) : 15;
                     const plotDepth = finalDesignData.brief_reference?.plot_size_sqm ? (finalDesignData.brief_reference.plot_size_sqm / plotWidth) : 30;
                     
+                    // Pass brief_reference floors to solver so duplex upper floor packs correctly.
+                    // Guard both field names (floors / storeys) for schema compatibility.
+                    const briefFloors = finalDesignData.brief_reference?.floors
+                        ?? finalDesignData.brief_reference?.storeys
+                        ?? 1;
+
                     const solved = solveLayout(finalDesignData, {
                         width: plotWidth,
                         depth: plotDepth,
                         setbacks: { front: 6, rear: 3, left: 3, right: 3 }
+                    }, {
+                        floors_override: briefFloors
                     });
                     finalDesignData.solvedLayout = solved;
                     console.log("Client-side TS Solver generated geometry successfully.", solved);
