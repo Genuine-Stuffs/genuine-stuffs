@@ -15,7 +15,7 @@
  */
 import { SpatialProgram, SolvedLayout, PlacedRoom } from "../../../../supabase/functions/ai-studio/schema";
 import { PlotEnvelope, SolverOptions, InternalRoomNode } from "./types";
-import { NIGERIAN_AEC_RULES } from "./nigerian_rules";
+import { NIGERIAN_AEC_RULES, getConstraintForRoom } from "./nigerian_rules";
 
 export function solveLayout(
     program: SpatialProgram,
@@ -126,6 +126,23 @@ export function solveLayout(
                     roomD = Math.round((roomW * 3) / grid) * grid;
                     roomW = Math.ceil((safeArea / roomD) / grid) * grid;
                     roomW = Math.min(roomW, remainW);
+                }
+
+                // ── ROOM TYPE CONSTRAINT CLAMP ────────────────────────────────
+                // Prevents the row-stretch from producing absurd dimensions.
+                // A bathroom must never be 14m wide regardless of row space.
+                const constraint = getConstraintForRoom(node.id);
+                // Hard cap on width
+                if (roomW > constraint.maxWidth * scale / scale) {
+                    roomW = Math.round(Math.min(roomW, constraint.maxWidth) / grid) * grid;
+                    // Recalculate depth to preserve area after width cap
+                    roomD = Math.ceil((safeArea / Math.max(roomW, 0.1)) / grid) * grid;
+                    roomD = Math.max(roomD, 2.4);
+                }
+                // Hard cap on aspect ratio
+                if (roomW > roomD * constraint.maxAspect) {
+                    roomW = Math.round((roomD * constraint.maxAspect) / grid) * grid;
+                    roomW = Math.max(roomW, 2.4);
                 }
 
                 node.x = rowX;

@@ -21,6 +21,28 @@ const HIVE_SYSTEM_PROMPT = `You are the Genuine Stuffs AI Studio — a four-agen
 Handles spatial layout, room programming, and setbacks per Lagos Residential zoning:
 - Front setback: 6.0m | Rear: 3.0m | Side: 3.0m
 - Minimum room sizes (NBC 2006): Bedroom ≥ 9.0m², Living ≥ 12.0m², Kitchen ≥ 5.5m², Dining ≥ 7.5m², Bathroom ≥ 1.8m², Toilet ≥ 1.2m²
+- NIGERIAN VILLA ROOM AREA REFERENCE TABLE — you MUST stay within these bounds:
+  | Room type          | Min m² | Max m² | Max width |
+  |--------------------|--------|--------|-----------|
+  | Toilet / WC        | 1.5    | 4.0    | 2.2m      |
+  | Bathroom           | 2.5    | 6.0    | 3.0m      |
+  | Laundry / utility  | 3.0    | 8.0    | 3.5m      |
+  | Store / storeroom  | 2.0    | 8.0    | 3.5m      |
+  | Stairwell          | 5.0    | 9.5    | 3.0m      |
+  | Corridor / hall    | 3.0    | 12.0   | 2.2m      |
+  | Wet kitchen        | 4.0    | 12.0   | 4.0m      |
+  | Kitchen (main)     | 8.0    | 22.0   | 6.0m      |
+  | Master bedroom     | 16.0   | 35.0   | 7.0m      |
+  | Bedroom (standard) | 10.0   | 20.0   | 6.0m      |
+  | Boys quarters      | 8.0    | 14.0   | 4.5m      |
+  | Foyer / entry      | 4.0    | 16.0   | 5.0m      |
+  | Dining             | 10.0   | 20.0   | 6.0m      |
+  | Living / lounge    | 16.0   | 40.0   | 8.0m      |
+  | Office / study     | 8.0    | 20.0   | 6.0m      |
+  | Garage / parking   | 14.0   | 55.0   | 12.0m     |
+- A guest bathroom MUST have area_m2 between 2.5 and 6.0. Never generate a bathroom above 6m².
+- A wet kitchen MUST be smaller than the main kitchen. Wet kitchen max = 12m², main kitchen min = 8m².
+- Stairwell dimensions are FIXED: 2.4m × 2.4m to 2.5m × 3.6m. Never generate stairwell area_m2 > 9.5.
 - Master bedrooms: target 12–16m² standard, 50m²+ for premium specification
 - Staircase: min clear width 1.2m, max riser 175mm, min tread 250mm, min headroom 2.1m
 

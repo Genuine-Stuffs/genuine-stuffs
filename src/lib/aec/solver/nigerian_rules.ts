@@ -61,6 +61,59 @@ export const NIGERIAN_AEC_RULES = {
 
 export type RoomType = 'living' | 'bedroom' | 'kitchen' | 'bathroom' | 'circulation' | 'service';
 
+// ── ROOM TYPE CONSTRAINTS ─────────────────────────────────────────────────────
+// Derived from reference floor plan analysis (Nigerian/West African villa typology)
+// and NBC 2006 minimums. Used by clampRoomDimensions() in engine.ts.
+// Keywords are matched against room_id.toLowerCase() — first match wins.
+export interface RoomConstraint {
+  keywords:    string[];   // match against room_id.toLowerCase()
+  minArea:     number;     // m² — NBC 2006 / typology floor
+  maxArea:     number;     // m² — typology ceiling, prevents absurd sizes
+  maxWidth:    number;     // m — hard cap regardless of row space available
+  maxAspect:   number;     // width:depth ratio ceiling (e.g. 2.5 = width never > 2.5× depth)
+}
+
+export const ROOM_TYPE_CONSTRAINTS: RoomConstraint[] = [
+  // Wet / service areas — smallest rooms, must never stretch
+  { keywords: ['toilet', 'wc'],              minArea: 1.5,  maxArea: 4.0,  maxWidth: 2.2,  maxAspect: 1.8 },
+  { keywords: ['bath', 'shower'],            minArea: 2.5,  maxArea: 6.0,  maxWidth: 3.0,  maxAspect: 2.0 },
+  { keywords: ['laundry', 'utility'],        minArea: 3.0,  maxArea: 8.0,  maxWidth: 3.5,  maxAspect: 2.0 },
+  { keywords: ['store', 'storeroom'],        minArea: 2.0,  maxArea: 8.0,  maxWidth: 3.5,  maxAspect: 2.5 },
+  // Stairwell — fixed footprint, never stretched
+  { keywords: ['stair', 'void'],             minArea: 5.0,  maxArea: 9.5,  maxWidth: 3.0,  maxAspect: 1.5 },
+  // Circulation
+  { keywords: ['corridor', 'hall', 'passage'], minArea: 3.0, maxArea: 12.0, maxWidth: 2.2, maxAspect: 6.0 },
+  // Service / utility
+  { keywords: ['pantry', 'wet kitchen'],     minArea: 4.0,  maxArea: 12.0, maxWidth: 4.0,  maxAspect: 2.5 },
+  { keywords: ['kitchen'],                   minArea: 8.0,  maxArea: 22.0, maxWidth: 6.0,  maxAspect: 2.0 },
+  // Bedrooms
+  { keywords: ['master'],                    minArea: 16.0, maxArea: 35.0, maxWidth: 7.0,  maxAspect: 1.8 },
+  { keywords: ['bedroom', 'bed'],            minArea: 10.0, maxArea: 20.0, maxWidth: 6.0,  maxAspect: 1.8 },
+  { keywords: ['boys', 'bq', 'staff', 'quarters'], minArea: 8.0, maxArea: 14.0, maxWidth: 4.5, maxAspect: 1.8 },
+  // Living / social
+  { keywords: ['foyer', 'entry', 'entrance'], minArea: 4.0, maxArea: 16.0, maxWidth: 5.0,  maxAspect: 2.0 },
+  { keywords: ['dining'],                    minArea: 10.0, maxArea: 20.0, maxWidth: 6.0,  maxAspect: 2.0 },
+  { keywords: ['living', 'lounge', 'sitting'], minArea: 16.0, maxArea: 40.0, maxWidth: 8.0, maxAspect: 1.8 },
+  { keywords: ['office', 'study'],           minArea: 8.0,  maxArea: 20.0, maxWidth: 6.0,  maxAspect: 2.0 },
+  // Parking
+  { keywords: ['garage', 'parking', 'carport'], minArea: 14.0, maxArea: 55.0, maxWidth: 12.0, maxAspect: 2.0 },
+];
+
+/**
+ * Returns the RoomConstraint for a given room_id, or a safe default.
+ */
+export function getConstraintForRoom(room_id: string): RoomConstraint {
+  const lower = room_id.toLowerCase();
+  const match = ROOM_TYPE_CONSTRAINTS.find(c => c.keywords.some(k => lower.includes(k)));
+  return match ?? {
+    keywords: [],
+    minArea:   6.0,
+    maxArea:   40.0,
+    maxWidth:  8.0,
+    maxAspect: 2.5,
+  };
+}
+
 /**
  * Helper: Gets the absolute minimum allowed area for a given room type.
  */
