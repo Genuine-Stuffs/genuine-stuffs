@@ -417,12 +417,34 @@ export function solveLayout(
             return;
         }
 
-        // Allocate widths proportional to total area of each zone
+        // Allocate widths proportional to total area of each zone.
+        // Private zone gets a minimum width floor when it contains 3+ bedrooms —
+        // bathrooms and wardrobes inflate private area_m2 but need floor WIDTH
+        // allocated to bedrooms, not to service rooms. Without this floor,
+        // Bedroom 3 / Bedroom 4 get squeezed to 2.6m wide.
         const publicArea  = publicNodes.reduce((s, n)  => s + (n.target_area || 9), 0);
         const privateArea = privateNodes.reduce((s, n) => s + (n.target_area || 9), 0);
         const usableW     = totalBuildW - (isDuplex ? stairW : 0);
-        const publicW  = Math.round((usableW * publicArea  / (publicArea + privateArea)) / grid) * grid;
-        const privateW = Math.round((usableW - publicW) / grid) * grid;
+
+        const bedroomsInPrivate = privateNodes.filter(n =>
+            n.id.toLowerCase().includes('bedroom') ||
+            n.id.toLowerCase().includes('master')
+        ).length;
+
+        // Raw proportional split
+        let publicW  = Math.round((usableW * publicArea  / (publicArea + privateArea)) / grid) * grid;
+        let privateW = Math.round((usableW - publicW) / grid) * grid;
+
+        // Enforce minimum private zone width when 3+ bedrooms are present.
+        // Each bedroom needs at least 3.6m of width — use that as the floor.
+        const minPrivateW = bedroomsInPrivate >= 3
+            ? Math.round((bedroomsInPrivate * 3.6) / grid) * grid
+            : 0;
+
+        if (privateW < minPrivateW && minPrivateW < usableW * 0.75) {
+            privateW = Math.min(minPrivateW, Math.round(usableW * 0.65 / grid) * grid);
+            publicW  = Math.round((usableW - privateW) / grid) * grid;
+        }
 
         // Stairwell x-position: at the boundary between public and private zones
         const stairX = publicW;

@@ -129,7 +129,26 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
                          neighbour.room_id.toLowerCase().includes('landing') ||
                          neighbour.room_id.toLowerCase().includes('stair');
 
-      const score = isCorridor ? 10 : 1;
+      const isLivingNeighbour =
+        neighbour.room_id.toLowerCase().includes('living') ||
+        neighbour.room_id.toLowerCase().includes('lounge') ||
+        neighbour.room_id.toLowerCase().includes('dining') ||
+        neighbour.room_id.toLowerCase().includes('family');
+
+      const isServiceNeighbour =
+        neighbour.room_id.toLowerCase().includes('bath') ||
+        neighbour.room_id.toLowerCase().includes('wc') ||
+        neighbour.room_id.toLowerCase().includes('toilet') ||
+        neighbour.room_id.toLowerCase().includes('wet') ||
+        neighbour.room_id.toLowerCase().includes('store') ||
+        neighbour.room_id.toLowerCase().includes('garage');
+
+      // Score: corridor/circulation = 10, living zone = 8,
+      // neutral rooms = 1, service rooms = 0 (never primary door wall)
+      const score = isCorridor ? 10
+        : isLivingNeighbour ? 8
+        : isServiceNeighbour ? 0
+        : 1;
 
       // Check if neighbour shares the bottom wall
       if (Math.abs(roomBottom - neighbour.y) < TOLERANCE_PX &&
