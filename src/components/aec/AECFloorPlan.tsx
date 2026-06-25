@@ -67,13 +67,22 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   // Filter rooms by active floor
   const activeRooms = placed_rooms.filter(r => r.floor === activeFloor);
 
-  const padding = 2;
-  const viewWidth  = plot_width  + padding * 2;
-  const viewHeight = plot_depth + padding * 2;
-  const scale = Math.min(720 / viewWidth, 520 / viewHeight);
+  // ── BUILDING BOUNDING BOX ─────────────────────────────────────────────────
+  // Scale the SVG to the building footprint, not the full plot boundary.
+  // The plot boundary renders as a faint context outline behind the rooms.
+  // This keeps land parcel data intact while filling the canvas with building.
+  const buildingRight  = activeRooms.reduce((max, r) => Math.max(max, r.x + r.width), 0);
+  const buildingBottom = activeRooms.reduce((max, r) => Math.max(max, r.y + r.depth), 0);
+  const buildingW = buildingRight  > 0 ? buildingRight  : plot_width;
+  const buildingH = buildingBottom > 0 ? buildingBottom : plot_depth;
 
-  const xOffset = (720 - (plot_width  * scale)) / 2;
-  const yOffset = (480 - (plot_depth * scale)) / 2;
+  const padding = 2;
+  const viewWidth  = buildingW + padding * 2;
+  const viewHeight = buildingH + padding * 2;
+  const scale = Math.min(620 / viewWidth, 420 / viewHeight);
+
+  const xOffset = (720 - (buildingW * scale)) / 2;
+  const yOffset = (480 - (buildingH * scale)) / 2;
 
   // Generate structural skeleton
   const skeleton = useMemo(() => structuralEngine.generateSkeleton(layout), [layout]);
@@ -478,75 +487,84 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
             {/* Background 1m grid */}
             <rect x="0" y="0" width="720" height="520" fill="url(#arch-grid)" />
 
-            {/* Plot boundary */}
+            {/* Plot boundary — faint context outline; scale to plot ratio vs building */}
+            <rect
+              x={xOffset - ((plot_width  - buildingW) / 2) * scale}
+              y={yOffset - ((plot_depth - buildingH) / 2) * scale}
+              width={plot_width  * scale}
+              height={plot_depth * scale}
+              fill="none"
+              stroke="#93C5FD"
+              strokeWidth={1}
+              strokeDasharray="6 4"
+              opacity={0.3}
+            />
+            {/* Building footprint boundary */}
             <rect
               x={xOffset} y={yOffset}
-              width={plot_width * scale} height={plot_depth * scale}
-              className="fill-none stroke-blue-500 stroke-dasharray-4 stroke-[2] opacity-50"
+              width={buildingW * scale} height={buildingH * scale}
+              fill="none"
+              stroke="#475569"
+              strokeWidth={1.5}
+              opacity={0.4}
             />
 
-            {/* Dimension lines — plot width (top) and plot depth (left) */}
+            {/* Dimension lines — building width (top) and building depth (left) */}
             <g className="dimension-lines" opacity={0.7}>
-              {/* Top dimension — plot width */}
+              {/* Top dimension — building width */}
               <line
                 x1={xOffset} y1={yOffset - 20}
-                x2={xOffset + plot_width * scale} y2={yOffset - 20}
+                x2={xOffset + buildingW * scale} y2={yOffset - 20}
                 stroke="#475569" strokeWidth={0.8}
               />
-              {/* Top tick marks */}
               <line x1={xOffset} y1={yOffset - 25} x2={xOffset} y2={yOffset - 15}
                 stroke="#475569" strokeWidth={0.8} />
-              <line x1={xOffset + plot_width * scale} y1={yOffset - 25}
-                x2={xOffset + plot_width * scale} y2={yOffset - 15}
+              <line x1={xOffset + buildingW * scale} y1={yOffset - 25}
+                x2={xOffset + buildingW * scale} y2={yOffset - 15}
                 stroke="#475569" strokeWidth={0.8} />
-              {/* Top extension lines */}
               <line x1={xOffset} y1={yOffset} x2={xOffset} y2={yOffset - 28}
                 stroke="#94a3b8" strokeWidth={0.4} strokeDasharray="2 2" />
-              <line x1={xOffset + plot_width * scale} y1={yOffset}
-                x2={xOffset + plot_width * scale} y2={yOffset - 28}
+              <line x1={xOffset + buildingW * scale} y1={yOffset}
+                x2={xOffset + buildingW * scale} y2={yOffset - 28}
                 stroke="#94a3b8" strokeWidth={0.4} strokeDasharray="2 2" />
-              {/* Top dimension text */}
               <text
-                x={xOffset + (plot_width * scale) / 2}
+                x={xOffset + (buildingW * scale) / 2}
                 y={yOffset - 24}
                 textAnchor="middle"
                 style={{ fontSize: '9px', fontWeight: 700, fill: '#1e293b', letterSpacing: '0.05em' }}
               >
-                {plot_width.toFixed(2)} M
+                {buildingW.toFixed(2)} M
               </text>
 
-              {/* Left dimension — plot depth */}
+              {/* Left dimension — building depth */}
               <line
                 x1={xOffset - 20} y1={yOffset}
-                x2={xOffset - 20} y2={yOffset + plot_depth * scale}
+                x2={xOffset - 20} y2={yOffset + buildingH * scale}
                 stroke="#475569" strokeWidth={0.8}
               />
-              {/* Left tick marks */}
               <line x1={xOffset - 25} y1={yOffset} x2={xOffset - 15} y2={yOffset}
                 stroke="#475569" strokeWidth={0.8} />
-              <line x1={xOffset - 25} y1={yOffset + plot_depth * scale}
-                x2={xOffset - 15} y2={yOffset + plot_depth * scale}
+              <line x1={xOffset - 25} y1={yOffset + buildingH * scale}
+                x2={xOffset - 15} y2={yOffset + buildingH * scale}
                 stroke="#475569" strokeWidth={0.8} />
-              {/* Left extension lines */}
               <line x1={xOffset} y1={yOffset} x2={xOffset - 28} y2={yOffset}
                 stroke="#94a3b8" strokeWidth={0.4} strokeDasharray="2 2" />
-              <line x1={xOffset} y1={yOffset + plot_depth * scale}
-                x2={xOffset - 28} y2={yOffset + plot_depth * scale}
+              <line x1={xOffset} y1={yOffset + buildingH * scale}
+                x2={xOffset - 28} y2={yOffset + buildingH * scale}
                 stroke="#94a3b8" strokeWidth={0.4} strokeDasharray="2 2" />
-              {/* Left dimension text — rotated */}
               <text
                 x={xOffset - 24}
-                y={yOffset + (plot_depth * scale) / 2}
+                y={yOffset + (buildingH * scale) / 2}
                 textAnchor="middle"
-                transform={`rotate(-90, ${xOffset - 24}, ${yOffset + (plot_depth * scale) / 2})`}
+                transform={`rotate(-90, ${xOffset - 24}, ${yOffset + (buildingH * scale) / 2})`}
                 style={{ fontSize: '9px', fontWeight: 700, fill: '#1e293b', letterSpacing: '0.05em' }}
               >
-                {plot_depth.toFixed(2)} M
+                {buildingH.toFixed(2)} M
               </text>
             </g>
 
             {/* North arrow — bottom-left */}
-            <g transform={`translate(${xOffset + 12}, ${yOffset + plot_depth * scale + 36})`}>
+            <g transform={`translate(${xOffset + 12}, ${yOffset + buildingH * scale + 36})`}>
               <circle cx={0} cy={0} r={14} fill="white" stroke="#475569" strokeWidth={1} opacity={0.9} />
               {/* Arrow shaft */}
               <line x1={0} y1={-10} x2={0} y2={10} stroke="#1e293b" strokeWidth={1.5} />
@@ -564,8 +582,8 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
             {(() => {
               const barM = 5; // metres represented
               const barPx = barM * scale;
-              const barX = xOffset + plot_width * scale - barPx - 4;
-              const barY = yOffset + plot_depth * scale + 36;
+              const barX = xOffset + buildingW * scale - barPx - 4;
+              const barY = yOffset + buildingH * scale + 36;
               return (
                 <g transform={`translate(${barX}, ${barY})`}>
                   {/* Alternating segments */}
@@ -585,8 +603,8 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
 
             {/* Title block — below scale bar */}
             {(() => {
-              const tbX = xOffset + plot_width * scale / 2;
-              const tbY = yOffset + plot_depth * scale + 52;
+              const tbX = xOffset + buildingW * scale / 2;
+              const tbY = yOffset + buildingH * scale + 52;
               const projectId = (layout as any).program_reference?.brief_reference?.project_id
                 ?? (layout as any).program_reference?.brief_reference?.id
                 ?? 'GS-PROJ';
