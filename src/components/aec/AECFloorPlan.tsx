@@ -95,6 +95,17 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     return match?.name ?? room_id.replace(/_/g, ' ').toUpperCase();
   };
 
+  // ── External wall detection — checks if a room touches the plot boundary
+  // Used to render perimeter walls thicker (4px) than internal partitions (2px)
+  const EDGE_TOLERANCE = 0.5; // metres
+  const isExternalWall = (room: any) => {
+    const touchesLeft   = room.x <= EDGE_TOLERANCE;
+    const touchesTop    = room.y <= EDGE_TOLERANCE;
+    const touchesRight  = (room.x + room.width)  >= (plot_width  - EDGE_TOLERANCE);
+    const touchesBottom = (room.y + room.depth)  >= (plot_depth - EDGE_TOLERANCE);
+    return touchesLeft || touchesTop || touchesRight || touchesBottom;
+  };
+
   const renderFurniture = (room: any, rx: number, ry: number, rw: number, rh: number) => {
     const id = room.room_id.toLowerCase();
     const pad = 4;
@@ -199,6 +210,9 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     const { fill, stroke, textColor } = getRoomFill(room.room_id);
     const isCorridorOrVoid = room.room_id.toLowerCase().includes('corridor') ||
                              room.room_id.toLowerCase().includes('void');
+    // External walls render thicker (4) than internal partitions (2.5)
+    const isExt = isExternalWall(room);
+    const wallStroke = isCorridorOrVoid ? 1 : (isExt ? 4 : 2);
 
     return (
       <g key={`room-${idx}`} filter="url(#blueprint-shadow)">
@@ -207,7 +221,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
           x={rx} y={ry} width={rw} height={rh}
           fill={showStructure ? `${fill}55` : fill}
           stroke={stroke}
-          strokeWidth={isCorridorOrVoid ? 1 : 2.5}
+          strokeWidth={wallStroke}
           strokeDasharray={isCorridorOrVoid ? '4 2' : undefined}
         />
         {/* Furniture footprints — only when not in structure mode and room is large enough */}
@@ -417,6 +431,66 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
               width={plot_width * scale} height={plot_depth * scale}
               className="fill-none stroke-blue-500 stroke-dasharray-4 stroke-[2] opacity-50"
             />
+
+            {/* Dimension lines — plot width (top) and plot depth (left) */}
+            <g className="dimension-lines" opacity={0.7}>
+              {/* Top dimension — plot width */}
+              <line
+                x1={xOffset} y1={yOffset - 20}
+                x2={xOffset + plot_width * scale} y2={yOffset - 20}
+                stroke="#475569" strokeWidth={0.8}
+              />
+              {/* Top tick marks */}
+              <line x1={xOffset} y1={yOffset - 25} x2={xOffset} y2={yOffset - 15}
+                stroke="#475569" strokeWidth={0.8} />
+              <line x1={xOffset + plot_width * scale} y1={yOffset - 25}
+                x2={xOffset + plot_width * scale} y2={yOffset - 15}
+                stroke="#475569" strokeWidth={0.8} />
+              {/* Top extension lines */}
+              <line x1={xOffset} y1={yOffset} x2={xOffset} y2={yOffset - 28}
+                stroke="#94a3b8" strokeWidth={0.4} strokeDasharray="2 2" />
+              <line x1={xOffset + plot_width * scale} y1={yOffset}
+                x2={xOffset + plot_width * scale} y2={yOffset - 28}
+                stroke="#94a3b8" strokeWidth={0.4} strokeDasharray="2 2" />
+              {/* Top dimension text */}
+              <text
+                x={xOffset + (plot_width * scale) / 2}
+                y={yOffset - 24}
+                textAnchor="middle"
+                style={{ fontSize: '9px', fontWeight: 700, fill: '#1e293b', letterSpacing: '0.05em' }}
+              >
+                {plot_width.toFixed(2)} M
+              </text>
+
+              {/* Left dimension — plot depth */}
+              <line
+                x1={xOffset - 20} y1={yOffset}
+                x2={xOffset - 20} y2={yOffset + plot_depth * scale}
+                stroke="#475569" strokeWidth={0.8}
+              />
+              {/* Left tick marks */}
+              <line x1={xOffset - 25} y1={yOffset} x2={xOffset - 15} y2={yOffset}
+                stroke="#475569" strokeWidth={0.8} />
+              <line x1={xOffset - 25} y1={yOffset + plot_depth * scale}
+                x2={xOffset - 15} y2={yOffset + plot_depth * scale}
+                stroke="#475569" strokeWidth={0.8} />
+              {/* Left extension lines */}
+              <line x1={xOffset} y1={yOffset} x2={xOffset - 28} y2={yOffset}
+                stroke="#94a3b8" strokeWidth={0.4} strokeDasharray="2 2" />
+              <line x1={xOffset} y1={yOffset + plot_depth * scale}
+                x2={xOffset - 28} y2={yOffset + plot_depth * scale}
+                stroke="#94a3b8" strokeWidth={0.4} strokeDasharray="2 2" />
+              {/* Left dimension text — rotated */}
+              <text
+                x={xOffset - 24}
+                y={yOffset + (plot_depth * scale) / 2}
+                textAnchor="middle"
+                transform={`rotate(-90, ${xOffset - 24}, ${yOffset + (plot_depth * scale) / 2})`}
+                style={{ fontSize: '9px', fontWeight: 700, fill: '#1e293b', letterSpacing: '0.05em' }}
+              >
+                {plot_depth.toFixed(2)} M
+              </text>
+            </g>
 
             {/* Rooms */}
             {activeRooms.map((room, idx) => renderRoom(room, idx))}
