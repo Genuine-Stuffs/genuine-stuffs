@@ -133,7 +133,7 @@ export function solveLayout(
                 // A bathroom must never be 14m wide regardless of row space.
                 const constraint = getConstraintForRoom(node.id);
                 // Hard cap on width
-                if (roomW > constraint.maxWidth * scale / scale) {
+                if (roomW > constraint.maxWidth) {
                     roomW = Math.round(Math.min(roomW, constraint.maxWidth) / grid) * grid;
                     // Recalculate depth to preserve area after width cap
                     roomD = Math.ceil((safeArea / Math.max(roomW, 0.1)) / grid) * grid;
