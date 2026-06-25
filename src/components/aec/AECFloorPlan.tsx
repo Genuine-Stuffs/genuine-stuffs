@@ -104,6 +104,73 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     return match?.name ?? room_id.replace(/_/g, ' ').toUpperCase();
   };
 
+  // ── Neighbour wall detection ──────────────────────────────────────────────
+  // For a given room, finds which of its four walls is shared with a corridor,
+  // circulation space, or another room — and returns that wall as the door wall.
+  // Priority: corridor > stairwell > any adjacent room > fallback to non-external.
+  const TOLERANCE_PX = 0.3; // metres — shared wall detection threshold
+
+  const getDoorWall = (room: any): 'top' | 'bottom' | 'left' | 'right' => {
+    const roomRight  = room.x + room.width;
+    const roomBottom = room.y + room.depth;
+
+    // Score each wall by what's on the other side
+    // Higher score = better door position
+    const scores = { top: 0, bottom: 0, left: 0, right: 0 };
+
+    for (const neighbour of activeRooms) {
+      if (neighbour.room_id === room.room_id) continue;
+      const nRight  = neighbour.x + neighbour.width;
+      const nBottom = neighbour.y + neighbour.depth;
+
+      const isCorridor = neighbour.room_id.toLowerCase().includes('corridor') ||
+                         neighbour.room_id.toLowerCase().includes('hall') ||
+                         neighbour.room_id.toLowerCase().includes('foyer') ||
+                         neighbour.room_id.toLowerCase().includes('landing') ||
+                         neighbour.room_id.toLowerCase().includes('stair');
+
+      const score = isCorridor ? 10 : 1;
+
+      // Check if neighbour shares the bottom wall
+      if (Math.abs(roomBottom - neighbour.y) < TOLERANCE_PX &&
+          room.x < nRight - TOLERANCE_PX && roomRight > neighbour.x + TOLERANCE_PX) {
+        scores.bottom += score;
+      }
+      // Check if neighbour shares the top wall
+      if (Math.abs(room.y - nBottom) < TOLERANCE_PX &&
+          room.x < nRight - TOLERANCE_PX && roomRight > neighbour.x + TOLERANCE_PX) {
+        scores.top += score;
+      }
+      // Check if neighbour shares the right wall
+      if (Math.abs(roomRight - neighbour.x) < TOLERANCE_PX &&
+          room.y < nBottom - TOLERANCE_PX && roomBottom > neighbour.y + TOLERANCE_PX) {
+        scores.right += score;
+      }
+      // Check if neighbour shares the left wall
+      if (Math.abs(room.x - nRight) < TOLERANCE_PX &&
+          room.y < nBottom - TOLERANCE_PX && roomBottom > neighbour.y + TOLERANCE_PX) {
+        scores.left += score;
+      }
+    }
+
+    // Pick the wall with the highest score that is also not external
+    const edges = getExternalEdges(room);
+    const candidates: Array<'top' | 'bottom' | 'left' | 'right'> = ['bottom', 'right', 'top', 'left'];
+    const ranked = candidates
+      .filter(w => !edges[w]) // exclude external walls
+      .sort((a, b) => scores[b] - scores[a]);
+
+    // Return best non-external wall with highest neighbour score
+    if (ranked.length > 0) return ranked[0];
+
+    // Absolute fallback: first non-external wall regardless of score
+    if (!edges.bottom) return 'bottom';
+    if (!edges.right)  return 'right';
+    if (!edges.top)    return 'top';
+    if (!edges.left)   return 'left';
+    return 'bottom'; // all walls external (tiny room) — place anyway
+  };
+
   // ── External edge detection ───────────────────────────────────────────────
   // Returns which specific edges of a room touch the building boundary.
   // Used to render perimeter wall bands and place window symbols.
@@ -397,43 +464,65 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
           return wins.length > 0 ? <g opacity={0.9}>{wins}</g> : null;
         })()}
 
-        {/* ── Door symbol — placed on interior-facing wall ── */}
+        {/* ── Door symbol — placed on wall facing corridor/circulation ── */}
         {!isCorridorOrVoid && rw > 30 && rh > 24 && (() => {
-          // Door swings from the interior edge (non-external wall side)
-          // Prefer bottom wall if not external, else top wall
-          const useBottom = !edges.bottom;
-          const useRight  = !edges.right;
+          const doorWall = getDoorWall(room);
           const dR = DOOR_R;
+          const wallColor = '#475569';
 
-          if (useBottom) {
-            // Door on bottom wall, opens downward-right
-            const dx = rx + (useRight ? rw * 0.25 : rw * 0.65);
+          // For bathrooms opening into their parent bedroom, use a smaller arc
+          const isBath = room.room_id.toLowerCase().includes('bath') ||
+                         room.room_id.toLowerCase().includes('wc') ||
+                         room.room_id.toLowerCase().includes('toilet');
+          const actualR = isBath ? Math.min(dR, 10) : dR;
+
+          if (doorWall === 'bottom') {
+            const dx = rx + rw * 0.25;
             const dy = ry + rh;
             return (
-              <g opacity={0.7}>
-                <line x1={dx} y1={dy} x2={dx} y2={dy - dR}
-                  stroke="#475569" strokeWidth={1.5} />
-                <path
-                  d={`M ${dx} ${dy - dR} A ${dR} ${dR} 0 0 1 ${dx + dR} ${dy}`}
-                  fill="none" stroke="#475569" strokeWidth={0.8}
-                />
-              </g>
-            );
-          } else {
-            // Door on right wall, opens rightward-down
-            const dx = rx + rw;
-            const dy = ry + rh * 0.3;
-            return (
-              <g opacity={0.7}>
-                <line x1={dx} y1={dy} x2={dx - dR} y2={dy}
-                  stroke="#475569" strokeWidth={1.5} />
-                <path
-                  d={`M ${dx - dR} ${dy} A ${dR} ${dR} 0 0 1 ${dx} ${dy + dR}`}
-                  fill="none" stroke="#475569" strokeWidth={0.8}
-                />
+              <g opacity={0.75}>
+                <line x1={dx} y1={dy} x2={dx} y2={dy - actualR}
+                  stroke={wallColor} strokeWidth={1.5} />
+                <path d={`M ${dx} ${dy - actualR} A ${actualR} ${actualR} 0 0 1 ${dx + actualR} ${dy}`}
+                  fill="none" stroke={wallColor} strokeWidth={0.8} />
               </g>
             );
           }
+          if (doorWall === 'top') {
+            const dx = rx + rw * 0.25;
+            const dy = ry;
+            return (
+              <g opacity={0.75}>
+                <line x1={dx} y1={dy} x2={dx} y2={dy + actualR}
+                  stroke={wallColor} strokeWidth={1.5} />
+                <path d={`M ${dx} ${dy + actualR} A ${actualR} ${actualR} 0 0 0 ${dx + actualR} ${dy}`}
+                  fill="none" stroke={wallColor} strokeWidth={0.8} />
+              </g>
+            );
+          }
+          if (doorWall === 'right') {
+            const dx = rx + rw;
+            const dy = ry + rh * 0.25;
+            return (
+              <g opacity={0.75}>
+                <line x1={dx} y1={dy} x2={dx - actualR} y2={dy}
+                  stroke={wallColor} strokeWidth={1.5} />
+                <path d={`M ${dx - actualR} ${dy} A ${actualR} ${actualR} 0 0 1 ${dx} ${dy + actualR}`}
+                  fill="none" stroke={wallColor} strokeWidth={0.8} />
+              </g>
+            );
+          }
+          // left wall
+          const dx = rx;
+          const dy = ry + rh * 0.25;
+          return (
+            <g opacity={0.75}>
+              <line x1={dx} y1={dy} x2={dx + actualR} y2={dy}
+                stroke={wallColor} strokeWidth={1.5} />
+              <path d={`M ${dx + actualR} ${dy} A ${actualR} ${actualR} 0 0 0 ${dx} ${dy + actualR}`}
+                fill="none" stroke={wallColor} strokeWidth={0.8} />
+            </g>
+          );
         })()}
 
         {/* ── Label ── */}
