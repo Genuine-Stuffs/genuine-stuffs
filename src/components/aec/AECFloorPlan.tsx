@@ -143,9 +143,18 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
         neighbour.room_id.toLowerCase().includes('store') ||
         neighbour.room_id.toLowerCase().includes('garage');
 
-      // Score: corridor/circulation = 10, living zone = 8,
-      // neutral rooms = 1, service rooms = 0 (never primary door wall)
+      // Bathrooms open into their parent bedroom (score 9), not toward corridor
+      const isBedroomNeighbour =
+        neighbour.room_id.toLowerCase().includes('bedroom') ||
+        neighbour.room_id.toLowerCase().includes('master') ||
+        neighbour.room_id.toLowerCase().includes('suite');
+      const currentRoomIsBath =
+        room.room_id.toLowerCase().includes('bath') ||
+        room.room_id.toLowerCase().includes('wc') ||
+        room.room_id.toLowerCase().includes('toilet');
+
       const score = isCorridor ? 10
+        : (currentRoomIsBath && isBedroomNeighbour) ? 9
         : isLivingNeighbour ? 8
         : isServiceNeighbour ? 0
         : 1;

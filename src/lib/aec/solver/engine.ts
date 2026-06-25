@@ -199,8 +199,20 @@ export function solveLayout(
             for (const svc of services) {
                 if (usedServices.has(svc.id)) continue;
                 const svcBase = svc.id.toLowerCase();
-                // Match by shared prefix or sequential numbering
-                const matches = anchorBase.length > 2 && svcBase.includes(anchorBase.slice(0, 4));
+                // Number suffix match: "Bedroom 2" ↔ "Bathroom 2"
+                const anchorNum   = anchor.id.match(/\d+/)?.[0];
+                const svcNum      = svc.id.match(/\d+/)?.[0];
+                const numMatch    = !!(anchorNum && svcNum && anchorNum === svcNum);
+                // Master keyword match: Master Suite ↔ Master Luxury Bath / Walk-in
+                const anchorIsMaster = anchor.id.toLowerCase().includes('master');
+                const svcIsMaster    = svcBase.includes('master') ||
+                                       svcBase.includes('luxury') ||
+                                       svcBase.includes('walk-in') ||
+                                       svcBase.includes('walkin');
+                const masterMatch    = anchorIsMaster && svcIsMaster;
+                // Legacy prefix fallback
+                const prefixMatch    = anchorBase.length > 2 && svcBase.includes(anchorBase.slice(0, 4));
+                const matches        = numMatch || masterMatch || prefixMatch;
                 if (matches) {
                     group.push(svc);
                     usedServices.add(svc.id);
@@ -214,6 +226,14 @@ export function solveLayout(
         remainingServices.forEach((svc, idx) => {
             const targetGroup = suiteGroups[idx % Math.max(suiteGroups.length, 1)];
             if (targetGroup) targetGroup.push(svc);
+        });
+
+        // Map each service room to its parent bedroom for sub-placement
+        const serviceParent = new Map<string, string>(); // svcId → parentBedId
+        suiteGroups.forEach(group => {
+            if (group.length > 1 && !isService(group[0].id)) {
+                group.slice(1).forEach(svc => serviceParent.set(svc.id, group[0].id));
+            }
         });
 
         // Flatten suite groups back into ordered node list
@@ -255,6 +275,43 @@ export function solveLayout(
             while (i < sorted.length && (rowX - zoneX) < zoneW) {
                 const node = sorted[i];
                 iterations++;
+
+                // ── SUITE SUB-PLACEMENT ───────────────────────────────────────
+                // Service rooms (bath, wardrobe) are placed directly below their
+                // parent bedroom — not in the same horizontal row — so that each
+                // suite reads as a vertical strip: bedroom above, bathroom below.
+                if (isService(node.id) && serviceParent.has(node.id)) {
+                    const parentId = serviceParent.get(node.id)!;
+                    const parentPlaced = placedRooms.find(
+                        r => r.room_id === parentId && r.floor === floorIndex
+                    );
+                    if (parentPlaced) {
+                        // Stack below parent; if multiple services, stack below previous sub-room
+                        const existingSub = placedRooms.filter(r =>
+                            r.floor === floorIndex &&
+                            Math.abs(r.x - parentPlaced.x) < grid &&
+                            r.y > parentPlaced.y
+                        );
+                        const subY = existingSub.length > 0
+                            ? Math.max(...existingSub.map(r => r.y + r.depth))
+                            : parentPlaced.y + parentPlaced.depth;
+                        const svcArea = Math.max(node.target_area || 4, 4);
+                        const svcW    = parentPlaced.width;
+                        const svcD    = Math.max(
+                            Math.min(Math.round((svcArea / svcW) / grid) * grid, 2.8), 2.0
+                        );
+                        node.x = parentPlaced.x; node.y = subY;
+                        node.w = svcW;            node.d = svcD;
+                        node.placed = true;
+                        placedRooms.push({
+                            room_id: node.id, floor: floorIndex,
+                            x: node.x, y: node.y, width: node.w, depth: node.d
+                        });
+                        rowH = Math.max(rowH, subY - curY + svcD);
+                        i++;
+                        continue; // rowX stays — next bedroom slots beside this one
+                    }
+                }
 
                 const safeArea = (typeof node.target_area === 'number' &&
                                   isFinite(node.target_area) &&

@@ -69,6 +69,9 @@ ROOM DIMENSION RULES — MANDATORY:
 - Derive width_m = sqrt(area_m2 / 1.5) as a starting point, then adjust for adjacencies
 - All dimensions on a 0.1m grid
 - Garage bays: minimum 2.7m width × 6.0m depth per car
+MANDATORY ROOM NAMING:
+- Multi-car garages are always ONE room. Use "3-Car Enclosed Garage" — never split into "Garage (Car 1)", "Garage (Car 2)", "Garage (Car 3)".
+- Wet Kitchen must have adjacency: ["Dry Kitchen"] so it packs beside it, not in a separate row.
 - ADJACENCY PAIRING RULES — MANDATORY:
   - Every bedroom MUST list its en-suite bathroom in its adjacencies array. e.g. master bedroom adjacencies: ["master_bath", "master_wardrobe"].
   - Every en-suite bathroom MUST list its parent bedroom in its adjacencies array.
