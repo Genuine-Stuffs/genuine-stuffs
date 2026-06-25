@@ -165,7 +165,8 @@ export function solveLayout(
                 i++;
             }
 
-            // Stretch last room in row to fill zone width
+            // Stretch last room in row to fill zone width —
+            // ONLY if the room type constraint permits the extra width.
             if ((rowX - zoneX) < zoneW && i > rowStart) {
                 const lastPlaced = placedRooms[placedRooms.length - 1];
                 if (lastPlaced && lastPlaced.floor === floorIndex &&
@@ -173,10 +174,21 @@ export function solveLayout(
                     lastPlaced.room_id !== 'stairwell') {
                     const gap = zoneW - (lastPlaced.x - zoneX + lastPlaced.width);
                     if (gap > 0) {
-                        placedRooms[placedRooms.length - 1] = {
-                            ...lastPlaced,
-                            width: Math.round((lastPlaced.width + gap) / grid) * grid
-                        };
+                        const stretchConstraint = getConstraintForRoom(lastPlaced.room_id);
+                        const stretchedW = Math.round((lastPlaced.width + gap) / grid) * grid;
+                        // Only stretch if the result stays within the room type's max width
+                        // AND the resulting aspect ratio stays within bounds.
+                        const stretchedAspect = stretchedW / Math.max(lastPlaced.depth, 0.1);
+                        const canStretch = stretchedW <= stretchConstraint.maxWidth &&
+                                           stretchedAspect <= stretchConstraint.maxAspect;
+                        if (canStretch) {
+                            placedRooms[placedRooms.length - 1] = {
+                                ...lastPlaced,
+                                width: stretchedW
+                            };
+                        }
+                        // If stretch is blocked by constraint, the gap remains empty —
+                        // which is correct: a bathroom should not fill a 14m row gap.
                     }
                 }
             }
