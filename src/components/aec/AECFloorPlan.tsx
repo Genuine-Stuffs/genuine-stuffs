@@ -5,6 +5,34 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Ruler, ShieldAlert, Layers } from 'lucide-react';
 
+// ── ROOM FILL COLOURS ─────────────────────────────────────────────────────
+const ROOM_FILLS: Record<string, { fill: string; stroke: string; textColor: string }> = {
+  living:    { fill: '#FEF3C7', stroke: '#D97706', textColor: '#92400E' },
+  lounge:    { fill: '#FEF3C7', stroke: '#D97706', textColor: '#92400E' },
+  foyer:     { fill: '#FEF9C3', stroke: '#CA8A04', textColor: '#713F12' },
+  dining:    { fill: '#DCFCE7', stroke: '#16A34A', textColor: '#14532D' },
+  kitchen:   { fill: '#D1FAE5', stroke: '#059669', textColor: '#064E3B' },
+  pantry:    { fill: '#D1FAE5', stroke: '#059669', textColor: '#064E3B' },
+  bedroom:   { fill: '#DBEAFE', stroke: '#2563EB', textColor: '#1E3A8A' },
+  master:    { fill: '#EDE9FE', stroke: '#7C3AED', textColor: '#4C1D95' },
+  bath:      { fill: '#E0F2FE', stroke: '#0284C7', textColor: '#0C4A6E' },
+  wc:        { fill: '#E0F2FE', stroke: '#0284C7', textColor: '#0C4A6E' },
+  toilet:    { fill: '#E0F2FE', stroke: '#0284C7', textColor: '#0C4A6E' },
+  office:    { fill: '#F1F5F9', stroke: '#475569', textColor: '#1E293B' },
+  study:     { fill: '#F1F5F9', stroke: '#475569', textColor: '#1E293B' },
+  garage:    { fill: '#F3F4F6', stroke: '#6B7280', textColor: '#1F2937' },
+  corridor:  { fill: '#F8FAFC', stroke: '#CBD5E1', textColor: '#475569' },
+  stairwell: { fill: '#FEE2E2', stroke: '#DC2626', textColor: '#7F1D1D' },
+  void:      { fill: '#FEE2E2', stroke: '#DC2626', textColor: '#7F1D1D' },
+  default:   { fill: '#F8FAFC', stroke: '#94A3B8', textColor: '#334155' },
+};
+
+const getRoomFill = (room_id: string) => {
+  const id = room_id.toLowerCase();
+  const key = Object.keys(ROOM_FILLS).find(k => id.includes(k));
+  return ROOM_FILLS[key ?? 'default'];
+};
+
 interface AECFloorPlanProps {
   layout?: SolvedLayout;
 }
@@ -67,6 +95,87 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     return match?.name ?? room_id.replace(/_/g, ' ').toUpperCase();
   };
 
+  const renderFurniture = (room: any, rx: number, ry: number, rw: number, rh: number) => {
+    const id = room.room_id.toLowerCase();
+    const pad = 4;
+    const furniture: React.ReactNode[] = [];
+
+    if (id.includes('master') || (id.includes('bedroom') && !id.includes('bath'))) {
+      // Bed: centred, proportional
+      const bw = Math.min(rw * 0.6, 48), bh = Math.min(rh * 0.5, 38);
+      const bx = rx + (rw - bw) / 2, by = ry + pad + 4;
+      furniture.push(
+        <rect key="bed-frame" x={bx} y={by} width={bw} height={bh}
+          fill="#BFDBFE" stroke="#3B82F6" strokeWidth={1} rx={2} />,
+        <rect key="pillow-l" x={bx + 4} y={by + 3} width={bw * 0.35} height={bh * 0.28}
+          fill="#EFF6FF" stroke="#93C5FD" strokeWidth={0.8} rx={2} />,
+        <rect key="pillow-r" x={bx + bw - 4 - bw * 0.35} y={by + 3} width={bw * 0.35} height={bh * 0.28}
+          fill="#EFF6FF" stroke="#93C5FD" strokeWidth={0.8} rx={2} />
+      );
+    }
+
+    if (id.includes('dining')) {
+      // Dining table: rectangle with chair dots
+      const tw = Math.min(rw * 0.55, 44), th = Math.min(rh * 0.45, 30);
+      const tx = rx + (rw - tw) / 2, ty = ry + (rh - th) / 2;
+      furniture.push(
+        <rect key="table" x={tx} y={ty} width={tw} height={th}
+          fill="#BBF7D0" stroke="#16A34A" strokeWidth={1} rx={1} />
+      );
+      // Chairs — small circles around table
+      const chairs = [
+        [tx + tw * 0.25, ty - 5], [tx + tw * 0.75, ty - 5],
+        [tx + tw * 0.25, ty + th + 5], [tx + tw * 0.75, ty + th + 5],
+        [tx - 5, ty + th * 0.5], [tx + tw + 5, ty + th * 0.5],
+      ];
+      chairs.forEach(([cx, cy], i) => {
+        furniture.push(
+          <circle key={`chair-${i}`} cx={cx} cy={cy} r={3.5}
+            fill="#86EFAC" stroke="#16A34A" strokeWidth={0.8} />
+        );
+      });
+    }
+
+    if (id.includes('garage')) {
+      // Car outline — simple rectangle with wheels
+      const cw = Math.min(rw * 0.45, 38), ch = Math.min(rh * 0.55, 22);
+      const cx = rx + rw * 0.25 - cw / 2, cy2 = ry + (rh - ch) / 2;
+      furniture.push(
+        <rect key="car" x={cx} y={cy2} width={cw} height={ch}
+          fill="#D1D5DB" stroke="#6B7280" strokeWidth={1} rx={3} />,
+        <circle key="wfl" cx={cx + 6}      cy={cy2 + ch - 4} r={3} fill="#374151" />,
+        <circle key="wfr" cx={cx + cw - 6} cy={cy2 + ch - 4} r={3} fill="#374151" />,
+        <circle key="wrl" cx={cx + 6}      cy={cy2 + 4}      r={3} fill="#374151" />,
+        <circle key="wrr" cx={cx + cw - 6} cy={cy2 + 4}      r={3} fill="#374151" />
+      );
+    }
+
+    if (id.includes('living') || id.includes('lounge')) {
+      // Sofa: L-shape suggestion
+      const sw = Math.min(rw * 0.55, 44), sh = 10;
+      const sx = rx + pad + 2, sy = ry + rh - sh - pad - 2;
+      furniture.push(
+        <rect key="sofa" x={sx} y={sy} width={sw} height={sh}
+          fill="#FDE68A" stroke="#D97706" strokeWidth={1} rx={2} />,
+        <rect key="sofa-arm" x={sx} y={sy - 18} width={10} height={18}
+          fill="#FDE68A" stroke="#D97706" strokeWidth={1} rx={2} />
+      );
+    }
+
+    if (id.includes('kitchen') && !id.includes('pantry') && !id.includes('wet')) {
+      // Counter L-shape along two walls
+      const kw = rw - pad * 2;
+      furniture.push(
+        <rect key="counter-b" x={rx + pad} y={ry + rh - 7} width={kw} height={6}
+          fill="#A7F3D0" stroke="#059669" strokeWidth={0.8} />,
+        <rect key="counter-l" x={rx + pad} y={ry + pad} width={6} height={rh * 0.5}
+          fill="#A7F3D0" stroke="#059669" strokeWidth={0.8} />
+      );
+    }
+
+    return furniture.length > 0 ? <g key="furniture" opacity={0.75}>{furniture}</g> : null;
+  };
+
   const renderRoom = (room: any, idx: number) => {
     if (isNaN(room.x) || isNaN(room.y) || isNaN(room.width) || isNaN(room.depth) ||
         room.width <= 0 || room.depth <= 0) return null;
@@ -87,44 +196,65 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     // Only show label if room is large enough to hold it
     const showLabel = rw > 40 && rh > 30;
 
+    const { fill, stroke, textColor } = getRoomFill(room.room_id);
+    const isCorridorOrVoid = room.room_id.toLowerCase().includes('corridor') ||
+                             room.room_id.toLowerCase().includes('void');
+
     return (
-        <g key={`room-${idx}`} filter="url(#blueprint-shadow)">
-            <rect
-                x={rx} y={ry} width={rw} height={rh}
-                className={showStructure 
-                    ? 'fill-white/30 dark:fill-white/5 stroke-slate-800 dark:stroke-slate-200 stroke-[2]'
-                    : 'fill-white dark:fill-[#0d0f14] stroke-slate-800 dark:stroke-slate-200 stroke-[3]'
-                }
+      <g key={`room-${idx}`} filter="url(#blueprint-shadow)">
+        {/* Room fill */}
+        <rect
+          x={rx} y={ry} width={rw} height={rh}
+          fill={showStructure ? `${fill}55` : fill}
+          stroke={stroke}
+          strokeWidth={isCorridorOrVoid ? 1 : 2.5}
+          strokeDasharray={isCorridorOrVoid ? '4 2' : undefined}
+        />
+        {/* Furniture footprints — only when not in structure mode and room is large enough */}
+        {!showStructure && rw > 35 && rh > 28 && renderFurniture(room, rx, ry, rw, rh)}
+        {/* Door symbol — short line + arc at bottom-left of room entry */}
+        {!isCorridorOrVoid && rw > 30 && rh > 24 && (
+          <g opacity={0.6}>
+            <line
+              x1={rx + 1} y1={ry + rh - 12}
+              x2={rx + 1} y2={ry + rh - 1}
+              stroke={stroke} strokeWidth={1.5}
             />
-            {showLabel && (
-                <text textAnchor="middle" style={{ pointerEvents: 'none' }}>
-                    <tspan
-                        x={rx + rw / 2}
-                        y={ry + rh / 2 - lineHeight / 2}
-                        style={{ 
-                            fontSize: `${nameFontSize}px`,
-                            fontWeight: 900,
-                            letterSpacing: '0.08em',
-                            fill: 'currentColor'
-                        }}
-                        className="fill-slate-900 dark:fill-white uppercase"
-                    >
-                        {name.length > 14 ? name.substring(0, 13) + '…' : name}
-                    </tspan>
-                    <tspan
-                        x={rx + rw / 2}
-                        y={ry + rh / 2 + lineHeight / 2}
-                        style={{ 
-                            fontSize: `${dimFontSize}px`,
-                            fontWeight: 700,
-                        }}
-                        className="fill-primary"
-                    >
-                        {room.width.toFixed(1)}M × {room.depth.toFixed(1)}M
-                    </tspan>
-                </text>
-            )}
-        </g>
+            <path
+              d={`M ${rx + 1} ${ry + rh - 12} A 11 11 0 0 1 ${rx + 12} ${ry + rh - 1}`}
+              fill="none" stroke={stroke} strokeWidth={0.8}
+            />
+          </g>
+        )}
+        {/* Label */}
+        {showLabel && (
+          <text textAnchor="middle" style={{ pointerEvents: 'none' }}>
+            <tspan
+              x={rx + rw / 2}
+              y={ry + rh / 2 - lineHeight / 2}
+              style={{
+                fontSize: `${nameFontSize}px`,
+                fontWeight: 900,
+                letterSpacing: '0.08em',
+                fill: textColor,
+              }}
+            >
+              {name.length > 14 ? name.substring(0, 13) + '…' : name}
+            </tspan>
+            <tspan
+              x={rx + rw / 2}
+              y={ry + rh / 2 + lineHeight / 2}
+              style={{
+                fontSize: `${dimFontSize}px`,
+                fontWeight: 700,
+                fill: stroke,
+              }}
+            >
+              {room.width.toFixed(1)}M × {room.depth.toFixed(1)}M
+            </tspan>
+          </text>
+        )}
+      </g>
     );
   };
 

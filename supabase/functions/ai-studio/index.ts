@@ -186,7 +186,48 @@ serve(async (req: Request) => {
 
         // ── VISUALIZE PATH (unchanged) ────────────────────────────────────────
         if (type === 'visualize') {
-            const vizResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            // Use OpenRouter image generation — no additional API key needed
+            // prompt here is the image_prompt string from the Hive JSON
+            const enhancedPrompt = `${prompt}, ultra-modern Nigerian residential architecture, 
+                Lagos countryside setting, golden hour lighting, lush tropical landscaping, 
+                photorealistic architectural photography, 8K, sharp focus, 
+                rendered in Lumion, professional real estate photography`;
+
+            try {
+                const vizResponse = await fetch('https://openrouter.ai/api/v1/images/generations', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${openRouterKey}`,
+                        'Content-Type': 'application/json',
+                        'HTTP-Referer': 'https://genuinestuffs.com',
+                    },
+                    body: JSON.stringify({
+                        model: 'black-forest-labs/flux-2-klein-4b',
+                        prompt: enhancedPrompt,
+                        n: 1,
+                        size: '1024x768',
+                    })
+                });
+
+                const vizData = await vizResponse.json();
+                const imageUrl = vizData.data?.[0]?.url ?? null;
+                const imageB64 = vizData.data?.[0]?.b64_json ?? null;
+
+                if (imageUrl || imageB64) {
+                    return new Response(JSON.stringify({
+                        visualization: imageUrl ?? `data:image/png;base64,${imageB64}`,
+                        type: 'visualize',
+                        is_image: true,
+                    }), {
+                        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+                    });
+                }
+            } catch (imgErr) {
+                console.warn('[Visualize] Image generation failed, falling back to text:', imgErr);
+            }
+
+            // Fallback: text description if image generation fails or model unavailable
+            const fallbackResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${openRouterKey}`,
@@ -195,22 +236,17 @@ serve(async (req: Request) => {
                 },
                 body: JSON.stringify({
                     model: 'google/gemini-2.5-flash',
-                    messages: [
-                        {
-                            role: 'user',
-                            content: `Generate a detailed architectural visualization description for: ${prompt}. 
-                            Describe it as a photorealistic render of a Nigerian residential building, 
-                            including materials, lighting, landscaping, and context.`
-                        }
-                    ],
-                    max_tokens: 1000,
+                    messages: [{ role: 'user', content: `Describe this building as a photorealistic render: ${prompt}` }],
+                    max_tokens: 500,
                 })
             });
-
-            const vizData = await vizResponse.json();
-            const visualizationText = vizData.choices?.[0]?.message?.content ?? '';
-            
-            return new Response(JSON.stringify({ visualization: visualizationText, type: 'visualize' }), {
+            const fallbackData = await fallbackResponse.json();
+            const visualizationText = fallbackData.choices?.[0]?.message?.content ?? '';
+            return new Response(JSON.stringify({
+                visualization: visualizationText,
+                type: 'visualize',
+                is_image: false,
+            }), {
                 headers: { ...corsHeaders, 'Content-Type': 'application/json' }
             });
         }
