@@ -75,18 +75,17 @@ export function solveLayout(
         floorIndex: number,
         forceStairwell?: { x: number, y: number, w: number, d: number }
     ) => {
-        // Minimum two-column corridor grid layout
-        const corridorWidth = 1.8;
-        const leftColWidth = Math.min(
-            Math.floor((buildableW - corridorWidth) / 2 / grid) * grid,
-            9.0
-        );
-        const rightColWidth = leftColWidth;
-        
-        let leftY = 0;
-        let rightY = 0;
+        // ── GRID-BASED ROW PACKER ─────────────────────────────────────────────
+        // Rooms fill rows across a target building width so walls are shared.
+        // No floating isolated boxes — adjacent rooms touch each other.
+        // Target building width = 70% of buildable, capped at 22m (5 bays).
 
-        // Upper floor: place stairwell void at same coordinates as ground floor.
+        const targetBuildW = Math.min(buildableW * 0.70, 22.0);
+
+        // Sort largest-first so big rooms anchor the row layout
+        const sorted = [...floorNodes].sort((a, b) => b.target_area - a.target_area);
+
+        // Upper floor: mirror stairwell position from ground floor
         if (floorIndex > 0 && forceStairwell) {
             placedRooms.push({
                 room_id: "stairwell_void",
@@ -96,96 +95,96 @@ export function solveLayout(
                 width: forceStairwell.w,
                 depth: forceStairwell.d
             });
-            
-            // Assume stairwell is placed centrally or on right
-            if (forceStairwell.x >= leftColWidth) {
-                rightY = forceStairwell.y + forceStairwell.d;
-            } else {
-                leftY = forceStairwell.y + forceStairwell.d;
-            }
         }
 
-        // Place corridor 
-        const totalRoomDepth = floorNodes.reduce((sum, n) => {
-            const safeArea = (typeof n.target_area === 'number' && isFinite(n.target_area) && n.target_area > 0) ? n.target_area : 9.0;
-            const approxD = Math.sqrt(safeArea / 1.5); // balanced depth estimate
-            return sum + approxD;
-        }, 0);
-        const estimatedCorridorLength = Math.min((totalRoomDepth / floorNodes.length) * 
-            Math.ceil(floorNodes.length / 2) + 2.0, buildableD);
+        let curY = 0;
+        let i = 0;
 
-        placedRooms.push({
-            room_id: `corridor_fl_${floorIndex}`,
-            floor: floorIndex,
-            x: leftColWidth,
-            y: 0,
-            width: corridorWidth,
-            depth: Math.min(estimatedCorridorLength, buildableD)
-        });
+        while (i < sorted.length) {
+            let rowX = 0;
+            let rowH = 0;
+            const rowStart = i;
 
-        for (const node of floorNodes) {
-            iterations++;
-            const safeArea = (typeof node.target_area === 'number' && 
-                              isFinite(node.target_area) && 
-                              node.target_area > 0) ? node.target_area : 9.0;
+            // Fill one row left-to-right across targetBuildW
+            while (i < sorted.length && rowX < targetBuildW) {
+                const node = sorted[i];
+                iterations++;
 
-            const isLeft = leftY <= rightY;
-            const colWidth = isLeft ? leftColWidth : rightColWidth;
+                const safeArea = (typeof node.target_area === 'number' &&
+                                  isFinite(node.target_area) &&
+                                  node.target_area > 0) ? node.target_area : 9.0;
 
-            // KEY FIX: derive balanced dimensions, not area/fullWidth
-            // Target aspect ratio between 1:1 and 1:2.5
-            let roomW = Math.min(colWidth, Math.sqrt(safeArea * 1.8));
-            roomW = Math.max(roomW, Math.sqrt(safeArea / 2.5)); // min width guard
-            roomW = Math.min(roomW, colWidth);                  // cap at column width
-            roomW = Math.round(roomW / grid) * grid;
+                const remainW = targetBuildW - rowX;
 
-            let roomD = Math.ceil((safeArea / roomW) / grid) * grid;
+                // Width: balanced aspect ratio, capped to remaining row space
+                let roomW = Math.min(remainW, Math.sqrt(safeArea * 1.6));
+                roomW = Math.max(roomW, 2.4);
+                roomW = Math.min(roomW, remainW);
+                roomW = Math.round(roomW / grid) * grid;
 
-            // Enforce NBC minimum room dimensions (2.4m minimum)
-            if (roomW < 2.4) { roomW = 2.4; roomD = Math.ceil((safeArea / roomW) / grid) * grid; }
-            if (roomD < 2.4) { roomD = 2.4; roomW = Math.ceil((safeArea / roomD) / grid) * grid; }
+                // If the room would be too narrow, start a new row
+                if (roomW < 2.4 && i > rowStart) break;
 
-            // Enforce maximum aspect ratio 1:3
-            if (roomD > roomW * 3) { 
-                roomD = roomW * 3; 
-                roomW = Math.ceil((safeArea / roomD) / grid) * grid;
+                let roomD = Math.ceil((safeArea / roomW) / grid) * grid;
+                roomD = Math.max(roomD, 2.4);
+
+                // Enforce max aspect ratio 1:3
+                if (roomD > roomW * 3) {
+                    roomD = Math.round((roomW * 3) / grid) * grid;
+                    roomW = Math.ceil((safeArea / roomD) / grid) * grid;
+                    roomW = Math.min(roomW, remainW);
+                }
+
+                node.x = rowX;
+                node.y = curY;
+                node.w = roomW;
+                node.d = roomD;
+                node.placed = true;
+
+                placedRooms.push({
+                    room_id: node.id,
+                    floor: floorIndex,
+                    x: node.x,
+                    y: node.y,
+                    width: node.w,
+                    depth: node.d
+                });
+
+                rowX += roomW;
+                rowH = Math.max(rowH, roomD);
+                i++;
             }
 
-            node.x = isLeft ? 0 : leftColWidth + corridorWidth;
-            node.y = isLeft ? leftY : rightY;
-            node.w = roomW;
-            node.d = roomD;
-            node.placed = true;
+            // Stretch the last room in the row to close any gap at the right edge
+            if (rowX < targetBuildW && i > rowStart) {
+                const lastPlaced = placedRooms[placedRooms.length - 1];
+                if (lastPlaced && lastPlaced.floor === floorIndex &&
+                    lastPlaced.room_id !== 'stairwell_void') {
+                    const gap = targetBuildW - (lastPlaced.x + lastPlaced.width);
+                    if (gap > 0) {
+                        placedRooms[placedRooms.length - 1] = {
+                            ...lastPlaced,
+                            width: Math.round((lastPlaced.width + gap) / grid) * grid
+                        };
+                    }
+                }
+            }
 
-            placedRooms.push({
-                room_id: node.id,
-                floor: floorIndex,
-                x: node.x,
-                y: node.y,
-                width: node.w,
-                depth: node.d
-            });
-
-            if (isLeft) leftY += roomD;
-            else rightY += roomD;
+            curY += rowH;
         }
 
-        // Ground floor staircase
+        // Ground floor stairwell — appended after all rooms
         if (floorIndex === 0 && isDuplex) {
-            const stairW = 2.4; 
+            const stairW = 2.4;
             const stairD = 3.6;
+            const stairX = Math.min(targetBuildW - stairW, buildableW - stairW);
 
-            stairwellCoords = { 
-                x: leftColWidth + corridorWidth, 
-                y: rightY, 
-                w: stairW, 
-                d: stairD 
+            stairwellCoords = {
+                x: Math.max(0, stairX),
+                y: curY,
+                w: stairW,
+                d: stairD
             };
-            
-            // Re-adjust if it spills out
-            if (stairwellCoords.x + stairW > buildableW) {
-                 stairwellCoords.x = buildableW - stairW;
-            }
 
             placedRooms.push({
                 room_id: "stairwell",
