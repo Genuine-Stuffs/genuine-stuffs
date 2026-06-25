@@ -353,32 +353,27 @@ export function solveLayout(
         return curY;
     };
 
-    // ── STRATEGY SELECTION ─────────────────────────────────────────────────────
-    const plotSqm      = envelope.width * envelope.depth;
-    const bedroomCount = nodes.filter(n =>
-        n.id.toLowerCase().includes('bedroom') ||
-        n.id.toLowerCase().includes('master')
-    ).length;
-    const seed = Math.floor(Date.now() / 1000);
-
-    // Hoist selectedStrategy so it is in scope inside packFloor closure
-    const selectedStrategy = selectStrategy(plotSqm, bedroomCount, isDuplex, seed);
-    console.log(`[Solver] Using strategy: ${selectedStrategy.id}`);
-
     const packFloor = (
         floorNodes: InternalRoomNode[],
         floorIndex: number,
         forceStairwell?: { x: number, y: number, w: number, d: number }
     ) => {
         const totalBuildW = Math.min(buildableW * 0.70, 22.0);
-        const buildEnvelope: BuildableEnvelope = {
-            width: totalBuildW,
-            depth: buildableD,
-            grid,
-        };
+        const stairW = 2.4;
+        const stairD = 3.6;
 
-        // Inject synthetic corridor if Hive omitted it and floor has 2+ bedrooms
-        const bedroomsOnFloor = floorNodes.filter(n =>
+        if (floorIndex > 0 && forceStairwell) {
+            placedRooms.push({
+                room_id: "stairwell_void",
+                floor: floorIndex,
+                x: forceStairwell.x,
+                y: forceStairwell.y,
+                width: forceStairwell.w,
+                depth: forceStairwell.d
+            });
+        }
+
+        const bedroomCount = floorNodes.filter(n =>
             n.id.toLowerCase().includes('bedroom') ||
             n.id.toLowerCase().includes('master')
         ).length;
@@ -386,8 +381,8 @@ export function solveLayout(
             n.id.toLowerCase().includes('corridor') ||
             n.id.toLowerCase().includes('hall')
         );
-        if (bedroomsOnFloor >= 2 && !hasCorridorAlready) {
-            const corridorArea = Math.min(bedroomsOnFloor * 2.5, 12.0);
+        if (bedroomCount >= 2 && !hasCorridorAlready) {
+            const corridorArea = Math.min(bedroomCount * 2.5, 12.0);
             floorNodes.push({
                 id: `corridor_floor${floorIndex}`,
                 target_area: corridorArea,
@@ -397,47 +392,54 @@ export function solveLayout(
             });
         }
 
-        // Classify nodes into zones for the strategy
-        const publicNodes  = floorNodes.filter(n => classifyZone(n.id) === 'public');
-        const privateNodes = floorNodes.filter(n => classifyZone(n.id) === 'private');
+        const pairedFloorNodes = buildPairedOrder(floorNodes);
+        const publicNodes  = pairedFloorNodes.filter(n => classifyZone(n.id) === 'public');
+        const privateNodes = pairedFloorNodes.filter(n => classifyZone(n.id) === 'private');
 
-        const strategyOptions: StrategyOptions = {
-            floorIndex,
-            isDuplex,
-            stairwellCoords,
-            forceStairwell: forceStairwell ?? null,
-        };
-
-        // Run the selected strategy
-        const newRooms = selectedStrategy.pack(
-            publicNodes,
-            privateNodes,
-            buildEnvelope,
-            strategyOptions
-        );
-
-        // Merge into placedRooms
-        placedRooms.push(...newRooms);
-
-        // Capture stairwell coords from strategy for upper floor
-        const resolved = (strategyOptions as any).resolvedStairwellCoords;
-        if (resolved && !stairwellCoords) {
-            stairwellCoords = resolved;
+        if (publicNodes.length === 0 || privateNodes.length === 0) {
+            packZone(floorNodes, floorIndex, 0, totalBuildW);
+            return;
         }
 
-        // If no stairwell was placed by strategy on ground floor, add synthetic
-        if (floorIndex === 0 && isDuplex && !stairwellCoords) {
-            const stairX = Math.max(0, totalBuildW - 2.4);
-            stairwellCoords = { x: stairX, y: 0, w: 2.4, d: 3.6 };
+        const publicArea  = publicNodes.reduce((s, n) => s + (n.target_area || 9), 0);
+        const privateArea = privateNodes.reduce((s, n) => s + (n.target_area || 9), 0);
+        const usableW     = totalBuildW - (isDuplex ? stairW : 0);
+
+        const bedroomsInPrivate = privateNodes.filter(n =>
+            n.id.toLowerCase().includes('bedroom') ||
+            n.id.toLowerCase().includes('master')
+        ).length;
+
+        let publicW  = Math.round((usableW * publicArea  / (publicArea + privateArea)) / grid) * grid;
+        let privateW = Math.round((usableW - publicW) / grid) * grid;
+
+        const minPrivateW = bedroomsInPrivate >= 3
+            ? Math.round((bedroomsInPrivate * 3.6) / grid) * grid
+            : 0;
+
+        if (privateW < minPrivateW && minPrivateW < usableW * 0.75) {
+            privateW = Math.min(minPrivateW, Math.round(usableW * 0.65 / grid) * grid);
+            publicW  = Math.round((usableW - privateW) / grid) * grid;
+        }
+
+        const stairX = publicW;
+
+        packZone(publicNodes, floorIndex, 0, publicW);
+
+        if (floorIndex === 0 && isDuplex) {
+            stairwellCoords = { x: stairX, y: 0, w: stairW, d: stairD };
             placedRooms.push({
-                room_id: 'stairwell',
-                floor: 0,
+                room_id: "stairwell",
+                floor: floorIndex,
                 x: stairX,
                 y: 0,
-                width: 2.4,
-                depth: 3.6,
+                width: stairW,
+                depth: stairD
             });
         }
+
+        const privateStartX = isDuplex ? stairX + stairW : stairX;
+        packZone(privateNodes, floorIndex, privateStartX, privateW);
     };
 
     // Pack Ground Floor
@@ -472,6 +474,5 @@ export function solveLayout(
         placed_rooms:             placedRooms,
         solver_iterations_used:   iterations,
         is_fully_connected:       true,
-        layout_strategy:          selectedStrategy.id,
     };
 }

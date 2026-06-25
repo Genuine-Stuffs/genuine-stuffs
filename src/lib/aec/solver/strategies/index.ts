@@ -45,13 +45,10 @@ export interface LayoutStrategy {
 }
 
 // ── STRATEGY REGISTRY ─────────────────────────────────────────────────────────
-import { courtyardSpineStrategy }  from './courtyard_spine';
-import { frontBackSplitStrategy }  from './front_back_split';
-
-export const STRATEGY_REGISTRY: LayoutStrategy[] = [
-  courtyardSpineStrategy,
-  frontBackSplitStrategy,
-];
+// Phase 1 strategies are under active debugging — registry is empty until
+// courtyard_spine and front_back_split pass acceptance criteria.
+// The engine falls back to the legacy packFloor when registry is empty.
+export const STRATEGY_REGISTRY: LayoutStrategy[] = [];
 
 // ── STRATEGY SELECTOR ─────────────────────────────────────────────────────────
 /**
