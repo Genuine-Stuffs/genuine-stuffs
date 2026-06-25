@@ -137,7 +137,12 @@ async function mountThreeViewer(
     const isVoid     = room.room_id === 'stairwell_void';
     const floorBase  = room.floor * FLOOR_H;
 
-    const geo = new THREE.BoxGeometry(room.width - WALL_T, FLOOR_H - 0.1, room.depth - WALL_T);
+    const roomId = room.room_id.toLowerCase();
+    const roomH = roomId.includes('garage') ? 4.0
+                : (roomId.includes('foyer') || roomId.includes('living') || roomId.includes('lounge')) && room.floor === 0 ? 4.2
+                : room.floor === 0 ? 3.5
+                : 3.0;
+    const geo = new THREE.BoxGeometry(room.width - WALL_T, roomH - 0.1, room.depth - WALL_T);
     const mat = new THREE.MeshLambertMaterial({
       color: isVoid ? 0x1e293b : getRoomColour(roomType),
       transparent: isVoid,
@@ -147,7 +152,7 @@ async function mountThreeViewer(
     const mesh = new THREE.Mesh(geo, mat);
     mesh.position.set(
       room.x + room.width / 2 - cx,
-      floorBase + (FLOOR_H - 0.1) / 2,
+      floorBase + (roomH - 0.1) / 2,
       room.y + room.depth / 2 - cz
     );
     mesh.castShadow = mesh.receiveShadow = true;

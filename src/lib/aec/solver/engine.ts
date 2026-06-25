@@ -77,8 +77,11 @@ export function solveLayout(
     ) => {
         // Minimum two-column corridor grid layout
         const corridorWidth = 1.8;
-        const leftColWidth = Math.floor((buildableW - corridorWidth) / 2 / grid) * grid;
-        const rightColWidth = buildableW - leftColWidth - corridorWidth;
+        const leftColWidth = Math.min(
+            Math.floor((buildableW - corridorWidth) / 2 / grid) * grid,
+            9.0
+        );
+        const rightColWidth = leftColWidth;
         
         let leftY = 0;
         let rightY = 0;
