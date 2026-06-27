@@ -39,6 +39,7 @@ import { CartProvider } from "./context/CartContext";
 import { ThemeProvider } from "./components/ThemeProvider";
 import BottomNav from "./components/BottomNav";
 import ScrollToTop from "./components/ScrollToTop";
+import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -68,17 +69,17 @@ const App = () => (
                     <Route path="/pros" element={<Pros />} />
                     <Route path="/hire-experts" element={<HireExperts />} />
                     <Route path="/calculators" element={<Calculators />} />
-                    <Route path="/vendor-dashboard" element={<VendorDashboard />} />
-                    <Route path="/vendor-inventory" element={<VendorInventory />} />
-                    <Route path="/vendor-orders" element={<VendorOrders />} />
-                    <Route path="/vendor-analytics" element={<VendorAnalytics />} />
-                    <Route path="/vendor-settings" element={<VendorSettings />} />
-                    <Route path="/pm-dashboard" element={<PMDashboard />} />
-                    <Route path="/pm/system-maintenance" element={<SystemMaintenance />} />
-                    <Route path="/pro-portal" element={<ProDashboard />} />
-                    <Route path="/pro/ai-studio" element={<AIStudio />} />
-                    <Route path="/pro/ai-documentation" element={<AIDocumentation />} />
-                    <Route path="/pro/documentation" element={<AIDocumentation />} />
+                    <Route path="/vendor-dashboard" element={<ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorDashboard /></ProtectedRoute>} />
+                    <Route path="/vendor-inventory" element={<ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorInventory /></ProtectedRoute>} />
+                    <Route path="/vendor-orders" element={<ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorOrders /></ProtectedRoute>} />
+                    <Route path="/vendor-analytics" element={<ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorAnalytics /></ProtectedRoute>} />
+                    <Route path="/vendor-settings" element={<ProtectedRoute allowedRoles={['vendor', 'admin']}><VendorSettings /></ProtectedRoute>} />
+                    <Route path="/pm-dashboard" element={<ProtectedRoute allowedRoles={['pm', 'admin']}><PMDashboard /></ProtectedRoute>} />
+                    <Route path="/pm/system-maintenance" element={<ProtectedRoute allowedRoles={['pm', 'admin']}><SystemMaintenance /></ProtectedRoute>} />
+                    <Route path="/pro-portal" element={<ProtectedRoute allowedRoles={['professional', 'admin']}><ProDashboard /></ProtectedRoute>} />
+                    <Route path="/pro/ai-studio" element={<ProtectedRoute allowedRoles={['professional', 'admin']}><AIStudio /></ProtectedRoute>} />
+                    <Route path="/pro/ai-documentation" element={<ProtectedRoute allowedRoles={['professional', 'admin']}><AIDocumentation /></ProtectedRoute>} />
+                    <Route path="/pro/documentation" element={<ProtectedRoute allowedRoles={['professional', 'admin']}><AIDocumentation /></ProtectedRoute>} />
                     <Route path="/register" element={<Register />} />
                     <Route path="/login" element={<Login />} />
                     <Route path="/settings" element={<Settings />} />

@@ -237,10 +237,24 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-3 md:gap-4">
-            {categories.map((cat, i) => (
+            {categories.map((cat, i) => {
+              const isProOnly = cat.link?.startsWith('/pro/');
+              const isVendorOnly = cat.link?.startsWith('/vendor-');
+              
+              const isAuthorized = () => {
+                if (isProOnly && !['professional', 'admin'].includes(role)) return false;
+                if (isVendorOnly && !['vendor', 'admin'].includes(role)) return false;
+                return true;
+              };
+
+              const authorized = isAuthorized();
+              const destination = authorized ? (cat.link || `/marketplace?category=${encodeURIComponent(cat.title)}`) : '/login';
+
+              return (
               <Link
                 key={i}
-                to={cat.link || `/marketplace?category=${encodeURIComponent(cat.title)}`}
+                to={destination}
+                state={!authorized ? { fromRestricted: true, message: `Access restricted. Please login or register as a ${isProOnly ? 'Professional' : 'Vendor'} to access ${cat.title}.` } : undefined}
                 className="group flex flex-col items-center justify-start text-center cursor-pointer transition-transform md:hover:scale-105"
               >
                 <div className="w-16 h-16 md:w-20 md:h-20 rounded-[1.2rem] flex items-center justify-center mb-2 md:mb-3 shadow-sm border border-slate-200/50 dark:border-slate-800 overflow-hidden bg-slate-900 relative">
@@ -254,7 +268,7 @@ const Index = () => {
                   {cat.title}
                 </span>
               </Link>
-            ))}
+            )})}
           </div>
         </div>
       </section>
