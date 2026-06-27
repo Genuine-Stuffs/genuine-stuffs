@@ -64,6 +64,7 @@ import AECFloorPlan from '@/components/aec/AECFloorPlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { solveLayout } from '@/lib/aec/solver/engine';
+import { solveLayoutV2 } from '@/lib/aec/solver/engine_v2';
 import { runComplianceCheck, ComplianceReport } from '@/lib/aec/compliance_engine';
 
 // --- CLIENT-SIDE SANITIZER: Guarantee no JSON leaks in chat bubble ---
@@ -659,7 +660,14 @@ const AIStudio = () => {
                         ?? finalDesignData.brief_reference?.storeys
                         ?? 1;
 
-                    const solved = solveLayout(finalDesignData, {
+                    const USE_SOLVER_V2 = false;
+                    const solved = USE_SOLVER_V2 ? solveLayoutV2(finalDesignData, {
+                        width: plotWidth,
+                        depth: plotDepth,
+                        setbacks: { front: 6, rear: 3, left: 3, right: 3 }
+                    }, {
+                        floors_override: briefFloors
+                    }) : solveLayout(finalDesignData, {
                         width: plotWidth,
                         depth: plotDepth,
                         setbacks: { front: 6, rear: 3, left: 3, right: 3 }
