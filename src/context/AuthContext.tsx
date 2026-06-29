@@ -42,14 +42,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const is_pm = appMeta.is_pm === true;
             setServerClaims({ is_admin, is_pm });
 
-            // Role resolution: server claims beat everything
+            // Role resolution: server claims beat everything.
+            // user_metadata.role is set server-side during registration — safe to read.
+            // MI_DEV_ROLE localStorage bypass has been removed (P6 security fix).
             let userRole: Role;
             if (is_admin) userRole = 'admin';
             else if (is_pm) userRole = 'pm';
-            else {
-                const devRole = localStorage.getItem('MI_DEV_ROLE') as Role;
-                userRole = devRole || (session?.user?.user_metadata?.role as Role) || 'guest';
-            }
+            else userRole = (session?.user?.user_metadata?.role as Role) || 'guest';
             
             setRole(userRole);
             setIsLoading(false);
@@ -64,7 +63,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setSession(null);
                 setRole('guest');
                 setServerClaims({ is_admin: false, is_pm: false });
-                localStorage.removeItem('MI_DEV_ROLE'); // Clear dev role on real logout
                 setIsLoading(false);
                 navigate("/");
             } else {
@@ -80,10 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 let userRole: Role;
                 if (is_admin) userRole = 'admin';
                 else if (is_pm) userRole = 'pm';
-                else {
-                    const devRole = localStorage.getItem('MI_DEV_ROLE') as Role;
-                    userRole = devRole || (session?.user?.user_metadata?.role as Role) || 'guest';
-                }
+                else userRole = (session?.user?.user_metadata?.role as Role) || 'guest';
                 
                 setRole(userRole);
                 setIsLoading(false);
@@ -142,7 +137,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSession(null);
         setRole('guest');
         setServerClaims({ is_admin: false, is_pm: false });
-        localStorage.removeItem('MI_DEV_ROLE');
 
         // Attempt deletion of the server session (scope: 'local' avoids the 403 on stale sessions)
         await supabase.auth.signOut({ scope: 'local' }).catch(() => {
@@ -152,9 +146,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         navigate("/");
     };
 
+    // switchEnvironmentView: allows admin/PM users to preview how the UI
+    // renders for other roles. Gated by server claims — localStorage cannot
+    // grant this capability. (MI_DEV_ROLE bypass removed — P6 security fix)
     const switchEnvironmentView = (newRole: Role) => {
+        if (!serverClaims.is_admin && !serverClaims.is_pm) {
+            console.warn('[Auth] switchEnvironmentView blocked — not admin or PM');
+            return;
+        }
         setRole(newRole);
-        localStorage.setItem('MI_DEV_ROLE', newRole);
         toast.info(`Environment view switched to ${newRole.toUpperCase()}`);
     };
 
