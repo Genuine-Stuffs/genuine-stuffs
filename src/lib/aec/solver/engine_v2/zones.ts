@@ -137,7 +137,16 @@ export function allocateZones(
             height: CORRIDOR_D,
         };
         const privateY = footprint.y + CORRIDOR_D;
-        const privateH = footprint.height - CORRIDOR_D;
+
+        // Cap private zone height so the treemap receives a wider-than-tall
+        // rectangle — this forces horizontal (side-by-side) subdivision of
+        // bedrooms rather than vertical stacking.
+        // Suite sub-rooms (baths) add ~35% depth each, so cap at 65% of
+        // footprint height to leave room for them below each bedroom strip.
+        const privateH = Math.min(
+            footprint.height - CORRIDOR_D,
+            footprint.width * 0.65   // ← the one-liner fix
+        );
 
         allocations.push({
             zone: 'private',

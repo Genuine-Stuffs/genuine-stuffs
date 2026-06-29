@@ -660,7 +660,7 @@ const AIStudio = () => {
                         ?? finalDesignData.brief_reference?.storeys
                         ?? 1;
 
-                    const USE_SOLVER_V2 = false;
+                    const USE_SOLVER_V2 = true;
                     const solved = USE_SOLVER_V2 ? solveLayoutV2(finalDesignData, {
                         width: plotWidth,
                         depth: plotDepth,
