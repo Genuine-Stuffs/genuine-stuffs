@@ -268,7 +268,13 @@ function packPrivateZone(
     const other    = rooms.filter(r => !isBedroom(r.id) && !isSubRoom(r.id));
 
     // Match sub-rooms to bedrooms by numeric suffix or master keyword
-    const suites = buildSuites(bedrooms, subRooms);
+    // If there are no bedrooms (e.g. office WCs), promote sub-rooms to
+    // standalone so they pack flat rather than stranding with no parent.
+    const orphanSubs = bedrooms.length === 0 ? subRooms : [];
+    const pairedSubs = bedrooms.length === 0 ? [] : subRooms;
+    const suites = buildSuites(bedrooms, pairedSubs);
+    // Orphaned sub-rooms join the flat pack alongside other rooms
+    const flatExtras = [...other, ...orphanSubs];
 
     // ── B. Treemap on suite weights (bedroom + sub-room areas combined) ───
     const suiteItems = suites.map(s => ({
@@ -276,8 +282,9 @@ function packPrivateZone(
         weight: s.totalArea,
     }));
 
-    // Add non-bedroom, non-service private rooms (e.g. family lounge)
-    const otherItems = other.map(r => ({
+    // Add non-bedroom, non-service private rooms (e.g. family lounge) +
+    // any orphaned sub-rooms (WCs in office briefs with no bedrooms)
+    const otherItems = flatExtras.map(r => ({
         id:     r.id,
         weight: Math.max(r.area, 6),
     }));
@@ -415,11 +422,15 @@ function buildSuites(
         return { bedroom: bed, subs: matched, totalArea };
     });
 
-    // Round-robin remaining unmatched sub-rooms
-    subs.filter(s => !used.has(s.id)).forEach((sub, idx) => {
-        suites[idx % suites.length].subs.push(sub);
-        suites[idx % suites.length].totalArea += sub.area;
-    });
+    // Round-robin remaining unmatched sub-rooms into existing suites.
+    // Guard: if there are no suites (no bedrooms in brief), skip silently —
+    // orphaned sub-rooms are promoted to flat packing in packPrivateZone.
+    if (suites.length > 0) {
+        subs.filter(s => !used.has(s.id)).forEach((sub, idx) => {
+            suites[idx % suites.length].subs.push(sub);
+            suites[idx % suites.length].totalArea += sub.area;
+        });
+    }
 
     return suites;
 }
