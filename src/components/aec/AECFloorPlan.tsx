@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { SolvedLayout } from 'supabase/functions/ai-studio/schema';
+import { computePlacement, DoorSpec, WindowSpec, WallSide } from '@/lib/aec/solver/engine_v2/doors';
 import { structuralEngine } from '@/lib/aec/solver/structural';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -197,6 +198,28 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     if (!edges.top)    return 'top';
     if (!edges.left)   return 'left';
     return 'bottom'; // all walls external (tiny room) — place anyway
+  };
+
+  // ── Solver-derived door + window placement ────────────────────────────
+  // computePlacement() runs once per floor change (memoised).
+  // When USE_SOLVER_V2 is true, door walls come from the solver graph.
+  // When false, getDoorWall() above is used (existing behaviour).
+  const solverPlacement = useMemo(() => {
+    if (activeRooms.length === 0) return null;
+    const rects = activeRooms.map(r => ({
+      room_id: r.room_id,
+      x: r.x, y: r.y, width: r.width, depth: r.depth,
+    }));
+    return computePlacement(rects, buildingW, buildingH);
+  }, [activeRooms, buildingW, buildingH]);
+
+  const getSolverDoorWall = (room_id: string): WallSide | null => {
+    const spec = solverPlacement?.doors.find(d => d.room_id === room_id);
+    return spec?.wall ?? null;
+  };
+
+  const isSolverInteriorDoor = (room_id: string): boolean => {
+    return solverPlacement?.doors.find(d => d.room_id === room_id)?.interior ?? false;
   };
 
   // ── External edge detection ───────────────────────────────────────────────
@@ -494,7 +517,9 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
 
         {/* ── Door symbol — placed on wall facing corridor/circulation ── */}
         {!isCorridorOrVoid && rw > 30 && rh > 24 && (() => {
-          const doorWall = getDoorWall(room);
+          // Prefer solver-derived door wall; fall back to heuristic
+          const doorWall = getSolverDoorWall(room.room_id) ?? getDoorWall(room);
+          const isInteriorDoor = isSolverInteriorDoor(room.room_id);
           const dR = DOOR_R;
           const wallColor = '#475569';
 
@@ -502,7 +527,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
           const isBath = room.room_id.toLowerCase().includes('bath') ||
                          room.room_id.toLowerCase().includes('wc') ||
                          room.room_id.toLowerCase().includes('toilet');
-          const actualR = isBath ? Math.min(dR, 10) : dR;
+          const actualR = (isBath || isInteriorDoor) ? Math.min(dR, 10) : dR;
 
           if (doorWall === 'bottom') {
             const dx = rx + rw * 0.25;
