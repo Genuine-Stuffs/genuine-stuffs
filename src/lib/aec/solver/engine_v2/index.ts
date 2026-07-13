@@ -109,9 +109,7 @@ export function solveLayoutV2(
         // ── 5. Place stairwell (ground floor, duplex only) ────────────────
         if (floorIndex === 0 && isDuplex) {
             const stairW = 2.4;
-            const stairD = corridorBounds
-                ? (footprint.primary.height - corridorBounds.height)
-                : 3.6;
+            const stairD = 3.6;
             const stairX = footprint.primary.x + footprint.primary.width - stairW;
             const stairY = footprint.primary.y;
             stairCoords  = { x: stairX, y: stairY, width: stairW, height: stairD };
@@ -300,40 +298,28 @@ function packPrivateZone(
         const suite = suites.find(s => s.bedroom.id === rect.id);
 
         if (suite && suite.subs.length > 0) {
-            // Split suite rect: bedroom on top, sub-rooms stacked below
-            const totalSuiteArea  = suite.totalArea;
-            const bedFrac         = Math.max(0.60, suite.bedroom.area / totalSuiteArea);
-            const bedDepth        = snapTo(rect.height * bedFrac, 0.1);
-            const subDepth        = rect.height - bedDepth;
+            const BATH_D = 2.2;
 
-            // Place bedroom
             out.push({
                 room_id: suite.bedroom.id,
                 floor:   floorIndex,
                 x:       rect.x,
                 y:       rect.y,
                 width:   rect.width,
-                depth:   Math.max(bedDepth, 2.8),
+                depth:   rect.height,
             });
 
-            // Place sub-rooms side by side below bedroom
-            if (subDepth >= 1.8) {
-                placeSubRooms(
-                    suite.subs,
-                    { x: rect.x, y: rect.y + bedDepth, width: rect.width, height: subDepth },
-                    floorIndex,
-                    out
-                );
-            } else {
-                // Sub-depth too small — stack all sub-rooms on top of bedroom
-                // (happens when zone is very shallow). Place them as a thin strip.
-                placeSubRooms(
-                    suite.subs,
-                    { x: rect.x, y: rect.y + Math.max(bedDepth, 2.8), width: rect.width, height: 2.0 },
-                    floorIndex,
-                    out
-                );
-            }
+            placeSubRooms(
+                suite.subs,
+                {
+                    x:      rect.x,
+                    y:      rect.y + rect.height,
+                    width:  rect.width,
+                    height: BATH_D,
+                },
+                floorIndex,
+                out
+            );
         } else {
             // Standalone room (family lounge, study, etc.)
             out.push({

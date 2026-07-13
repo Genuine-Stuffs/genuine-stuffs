@@ -43,7 +43,10 @@ export type ZoneType = 'social' | 'service' | 'private' | 'circ';
 
 // Keyword lists. Checked via .includes() on lowercase room id.
 // Order matters within each group only for readability — all are checked.
-const SOCIAL_KW   = ['living','lounge','dining','foyer','family','entry','reception'];
+const SOCIAL_KW   = [
+    'living','lounge','dining','foyer','family','entry','reception',
+    'great','sunken','entertainment','sitting','drawing','parlour','parlor'
+];
 const SERVICE_KW  = ['kitchen','pantry','wet','laundry','garage','utility','store','boiler'];
 const PRIVATE_KW  = ['bedroom','master','bath','wc','toilet','shower','wardrobe','dressing','ensuite','en-suite','study','office','guest'];
 const CIRC_KW     = ['corridor','hall','landing','stairwell','stair','void'];
@@ -59,6 +62,7 @@ export function classifyRoom(roomId: string): ZoneType {
 
     // Unknown rooms default to private (safer than social — avoids
     // unknowns inflating the public front of the house)
+    console.warn(`[SOLVER_V2] classifyRoom: no match for "${roomId}" — defaulting to private`);
     return 'private';
 }
 
