@@ -25,14 +25,29 @@ import { TreemapBounds } from './treemap';
 
 export type FootprintShape = 'RECTANGLE' | 'L_SHAPE' | 'T_SHAPE';
 
+export type WingPattern = 'private_wing' | 'service_wing';
+
 export interface BuildingFootprint {
     shape: FootprintShape;
-    /** Primary zone rectangle — always present */
+    /** Which zone occupies the secondary wing — only set for L/T shapes */
+    pattern?: WingPattern;
     primary: TreemapBounds;
-    /** Secondary wing — present for L_SHAPE and T_SHAPE */
     secondary?: TreemapBounds;
-    /** Total gross floor area (sum of all rects) */
     totalArea: number;
+}
+
+// ── Seeded RNG (mulberry32) ────────────────────────────────────────────────
+// Same seed → same pattern, every time. Omit the seed for genuine randomness
+// (default production behaviour — same prompt can yield different layouts).
+export function createRng(seed?: number): () => number {
+    if (seed === undefined) return Math.random;
+    let a = seed >>> 0;
+    return function () {
+        a |= 0; a = (a + 0x6D2B79F5) | 0;
+        let t = Math.imul(a ^ (a >>> 15), 1 | a);
+        t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
 }
 
 /**
@@ -51,29 +66,28 @@ export function selectFootprint(
     setbacks: { front: number; rear: number; left: number; right: number },
     roomCount: number,
     floorCount: number,
-    floorIndex: number
+    floorIndex: number,
+    rng: () => number = Math.random,
+    mirrorOf?: BuildingFootprint
 ): BuildingFootprint {
-    // Buildable envelope after setbacks
-    const bW = plotWidth  - setbacks.left - setbacks.right;
-    const bD = plotDepth  - setbacks.front - setbacks.rear;
-
-    // Building occupies 35–55% of buildable envelope width
-    // and 40–65% of buildable depth, bounded to sensible residential sizes
+    const bW = plotWidth - setbacks.left - setbacks.right;
+    const bD = plotDepth - setbacks.front - setbacks.rear;
     const buildW = clamp(bW * 0.45, 8, 22);
     const buildD = clamp(bD * 0.50, 8, 18);
 
-    // Upper floor of a duplex mirrors the ground floor footprint exactly
-    // (same x/y origin, same dimensions — this is structurally required)
+    // Upper floor is NEVER computed independently — a second storey must
+    // sit on the exact footprint of the first, wing included. This is a
+    // structural requirement, not a style choice, so it's unaffected by rng.
     if (floorIndex > 0) {
-        return rectangle(0, 0, buildW, buildD);
+        if (mirrorOf) return { ...mirrorOf };
+        return rectangle(0, 0, buildW, buildD); // safe fallback, shouldn't fire
     }
 
-    // Shape selection based on room count
     if (roomCount >= 8) {
-        return tShape(buildW, buildD);
+        return tShape(buildW, buildD, rng() < 0.5 ? 'private_wing' : 'service_wing');
     }
     if (roomCount >= 5) {
-        return lShape(buildW, buildD);
+        return lShape(buildW, buildD, rng() < 0.5 ? 'private_wing' : 'service_wing');
     }
     return rectangle(0, 0, buildW, buildD);
 }
@@ -101,7 +115,7 @@ function rectangle(
  *   │             │   WING   │  ← rear wing (30% width, 50% depth)
  *   └─────────────┴──────────┘
  */
-function lShape(buildW: number, buildD: number): BuildingFootprint {
+function lShape(buildW: number, buildD: number, pattern: WingPattern): BuildingFootprint {
     const mainW = snapTo(buildW * 0.70, 0.5);
     const wingW = buildW - mainW;
     const wingD = snapTo(buildD * 0.50, 0.5);
@@ -111,39 +125,20 @@ function lShape(buildW: number, buildD: number): BuildingFootprint {
     const secondary: TreemapBounds = { x: mainW, y: wingY, width: wingW, height: wingD };
 
     return {
-        shape: 'L_SHAPE',
-        primary,
-        secondary,
+        shape: 'L_SHAPE', pattern, primary, secondary,
         totalArea: primary.width * primary.height + secondary.width * secondary.height,
     };
 }
 
-/**
- * T-shape: main central block + two wings (left rear, right rear).
- *
- *   ┌──────────────────────────────┐
- *   │          MAIN BLOCK          │  ← full width, 60% depth
- *   └──────┬───────────────┬───────┘
- *   │ L-WG │               │ R-WG  │  ← two rear wings, 40% depth each
- *   └──────┘               └───────┘
- *
- * For simplicity the T is represented as:
- *   primary   = full width × 60% depth (social/public front)
- *   secondary = full width × 40% depth (private rear, offset down)
- *
- * This produces a proportional T-plan that reads correctly in the renderer.
- */
-function tShape(buildW: number, buildD: number): BuildingFootprint {
+function tShape(buildW: number, buildD: number, pattern: WingPattern): BuildingFootprint {
     const frontD = snapTo(buildD * 0.60, 0.5);
     const rearD  = buildD - frontD;
 
-    const primary:   TreemapBounds = { x: 0, y: 0,       width: buildW,          height: frontD };
-    const secondary: TreemapBounds = { x: 0, y: frontD,  width: buildW * 0.65,   height: rearD  };
+    const primary:   TreemapBounds = { x: 0, y: 0,      width: buildW,        height: frontD };
+    const secondary: TreemapBounds = { x: 0, y: frontD, width: buildW * 0.65, height: rearD  };
 
     return {
-        shape: 'T_SHAPE',
-        primary,
-        secondary,
+        shape: 'T_SHAPE', pattern, primary, secondary,
         totalArea: primary.width * primary.height + secondary.width * secondary.height,
     };
 }

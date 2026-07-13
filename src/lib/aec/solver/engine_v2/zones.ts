@@ -34,6 +34,7 @@
  */
 
 import { TreemapBounds } from './treemap';
+import { BuildingFootprint, WingPattern } from './shapes';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Zone Classification
@@ -124,45 +125,42 @@ export interface ZoneAllocation {
  *   Corridor is a 1.5m band carved from the top of the private zone.
  */
 export function allocateZones(
-    footprint: TreemapBounds,
+    footprint: BuildingFootprint,
     byZone: Map<ZoneType, RoomWithZone[]>,
     floorIndex: number
-): { allocations: ZoneAllocation[]; corridorBounds: TreemapBounds | null } {
-    const CORRIDOR_D = 1.5; // metres
+): { allocations: ZoneAllocation[]; corridorBounds: TreemapBounds[] } {
+    const CORRIDOR_D = 1.5;
     const allocations: ZoneAllocation[] = [];
+    const corridorBounds: TreemapBounds[] = [];
+    const primary = footprint.primary;
+    const wingIsPrivate = footprint.secondary && footprint.pattern === 'private_wing';
+    const wingIsService = footprint.secondary && footprint.pattern === 'service_wing';
 
     if (floorIndex > 0) {
-        // ── UPPER FLOOR ───────────────────────────────────────────────────
-        // Full footprint → private. Corridor carved from top as landing.
-        const corridorBounds: TreemapBounds = {
-            x: footprint.x,
-            y: footprint.y,
-            width: footprint.width,
-            height: CORRIDOR_D,
-        };
-        const privateY = footprint.y + CORRIDOR_D;
+        // Upper floor mirrors ground floor's footprint exactly (see shapes.ts).
+        // If ground floor put bedrooms in the wing, upstairs does too — same
+        // pattern, both floors, for structural + visual coherence.
+        corridorBounds.push({ x: primary.x, y: primary.y, width: primary.width, height: CORRIDOR_D });
 
-        // Cap private zone height so the treemap receives a wider-than-tall
-        // rectangle — this forces horizontal (side-by-side) subdivision of
-        // bedrooms rather than vertical stacking.
-        // Suite sub-rooms (baths) add ~35% depth each, so cap at 65% of
-        // footprint height to leave room for them below each bedroom strip.
-        const privateH = Math.min(
-            footprint.height - CORRIDOR_D,
-            footprint.width * 0.65   // ← the one-liner fix
-        );
+        const privateY = primary.y + CORRIDOR_D;
+        const privateH = Math.min(primary.height - CORRIDOR_D, primary.width * 0.65);
+        const privateRooms = byZone.get('private') ?? [];
 
-        allocations.push({
-            zone: 'private',
-            rooms: byZone.get('private') ?? [],
-            bounds: {
-                x: footprint.x,
-                y: privateY,
-                width: footprint.width,
-                height: privateH,
-            },
-        });
-
+        if (wingIsPrivate && footprint.secondary) {
+            const { bridge, usable } = splitWingForCorridor(primary, footprint.secondary, CORRIDOR_D);
+            allocations.push({ zone: 'private', rooms: privateRooms, bounds: usable });
+            corridorBounds.push(bridge);
+            // NOTE: primary's own lower band is left unallocated here (all
+            // bedrooms moved to the wing). This mirrors the ground floor's
+            // service-only lower band under private_wing, but currently
+            // stops any *social*-classified upper-floor rooms (e.g. a family
+            // lounge) from being placed at all — see flag below the diff.
+        } else {
+            allocations.push({
+                zone: 'private', rooms: privateRooms,
+                bounds: { x: primary.x, y: privateY, width: primary.width, height: privateH },
+            });
+        }
         return { allocations, corridorBounds };
     }
 
@@ -171,81 +169,97 @@ export function allocateZones(
     const serviceRooms = byZone.get('service') ?? [];
     const privateRooms = byZone.get('private') ?? [];
 
-    const socialArea   = totalArea(socialRooms);
-    const serviceArea  = totalArea(serviceRooms);
-    const privateArea  = totalArea(privateRooms);
-    const publicArea   = socialArea + serviceArea + privateArea;
+    const lowerServiceRooms = wingIsService ? [] : serviceRooms;
+    const lowerPrivateRooms = wingIsPrivate ? [] : privateRooms;
 
-    // Social zone height: proportion of floor depth, bounded between 30–55%
-    const socialFrac = publicArea > 0
-        ? Math.max(0.30, Math.min(0.55, socialArea / publicArea))
+    const socialArea = totalArea(socialRooms);
+    const primaryPublicArea = socialArea + totalArea(lowerServiceRooms) + totalArea(lowerPrivateRooms);
+    const socialFrac = primaryPublicArea > 0
+        ? Math.max(0.30, Math.min(0.55, socialArea / primaryPublicArea))
         : 0.40;
 
-    const socialH   = snapTo(footprint.height * socialFrac, 0.1);
-    const corridorY = footprint.y + socialH;
-    const belowH    = footprint.height - socialH - CORRIDOR_D;
+    const socialH   = snapTo(primary.height * socialFrac, 0.1);
+    const corridorY = primary.y + socialH;
+    const belowH    = primary.height - socialH - CORRIDOR_D;
     const belowY    = corridorY + CORRIDOR_D;
 
-    // Service/Private split within the lower band:
-    // Minimum service width = 3.6m (kitchen + garage can't be narrower)
-    const totalBelowArea = serviceArea + privateArea;
-    let serviceFrac = totalBelowArea > 0 ? serviceArea / totalBelowArea : 0.35;
-    serviceFrac = Math.max(0.20, Math.min(0.45, serviceFrac));
-    const serviceW  = snapTo(footprint.width * serviceFrac, 0.1);
-    const serviceW2 = Math.max(serviceW, 3.6);
-    const privateW  = footprint.width - serviceW2;
+    corridorBounds.push({ x: primary.x, y: corridorY, width: primary.width, height: CORRIDOR_D });
 
-    // Corridor — full width, between social and the lower band
-    const corridorBounds: TreemapBounds = {
-        x: footprint.x,
-        y: corridorY,
-        width: footprint.width,
-        height: CORRIDOR_D,
-    };
-
-    // Social zone — full width, top of building
     if (socialRooms.length > 0) {
         allocations.push({
-            zone: 'social',
-            rooms: socialRooms,
-            bounds: {
-                x: footprint.x,
-                y: footprint.y,
-                width: footprint.width,
-                height: socialH,
-            },
+            zone: 'social', rooms: socialRooms,
+            bounds: { x: primary.x, y: primary.y, width: primary.width, height: socialH },
         });
     }
 
-    // Service zone — left portion of lower band
-    if (serviceRooms.length > 0) {
+    const lowerTotal = totalArea(lowerServiceRooms) + totalArea(lowerPrivateRooms);
+    if (lowerServiceRooms.length > 0 && lowerPrivateRooms.length > 0) {
+        let serviceFrac = lowerTotal > 0 ? totalArea(lowerServiceRooms) / lowerTotal : 0.35;
+        serviceFrac = Math.max(0.20, Math.min(0.45, serviceFrac));
+        const serviceW2 = Math.max(snapTo(primary.width * serviceFrac, 0.1), 3.6);
+
         allocations.push({
-            zone: 'service',
-            rooms: serviceRooms,
-            bounds: {
-                x: footprint.x,
-                y: belowY,
-                width: serviceW2,
-                height: belowH,
-            },
+            zone: 'service', rooms: lowerServiceRooms,
+            bounds: { x: primary.x, y: belowY, width: serviceW2, height: belowH },
+        });
+        allocations.push({
+            zone: 'private', rooms: lowerPrivateRooms,
+            bounds: { x: primary.x + serviceW2, y: belowY, width: primary.width - serviceW2, height: belowH },
+        });
+    } else if (lowerServiceRooms.length > 0) {
+        allocations.push({
+            zone: 'service', rooms: lowerServiceRooms,
+            bounds: { x: primary.x, y: belowY, width: primary.width, height: belowH },
+        });
+    } else if (lowerPrivateRooms.length > 0) {
+        allocations.push({
+            zone: 'private', rooms: lowerPrivateRooms,
+            bounds: { x: primary.x, y: belowY, width: primary.width, height: belowH },
         });
     }
 
-    // Private zone — right portion (or full lower band if no service)
-    if (privateRooms.length > 0) {
-        allocations.push({
-            zone: 'private',
-            rooms: privateRooms,
-            bounds: {
-                x: serviceRooms.length > 0 ? footprint.x + serviceW2 : footprint.x,
-                y: belowY,
-                width: serviceRooms.length > 0 ? privateW : footprint.width,
-                height: belowH,
-            },
-        });
+    // Wing allocation
+    if (wingIsPrivate && footprint.secondary && privateRooms.length > 0) {
+        const { bridge, usable } = splitWingForCorridor(primary, footprint.secondary, CORRIDOR_D);
+        allocations.push({ zone: 'private', rooms: privateRooms, bounds: usable });
+        corridorBounds.push(bridge);
+    }
+    if (wingIsService && footprint.secondary && serviceRooms.length > 0) {
+        // No corridor bridge — service rooms reach the house via a direct
+        // shared-wall doorway, auto-detected by doors.ts's adjacency scan
+        // once these rooms are placed next to primary's rooms. No extra
+        // circulation spine needed for a utility/garage wing.
+        allocations.push({ zone: 'service', rooms: serviceRooms, bounds: footprint.secondary });
     }
 
     return { allocations, corridorBounds };
+}
+
+/**
+ * Carve a corridor-width bridge strip off whichever edge of the wing is
+ * shared with primary, so wing rooms are reachable by circulation and not
+ * just an exterior door. Returns the bridge (for corridor placement) and
+ * the remaining usable rect (for room packing) — they never overlap.
+ */
+function splitWingForCorridor(
+    primary: TreemapBounds,
+    secondary: TreemapBounds,
+    corridorD: number
+): { bridge: TreemapBounds; usable: TreemapBounds } {
+    const attachedRight = Math.abs(secondary.x - (primary.x + primary.width)) < 0.05;
+
+    if (attachedRight) {
+        // L-shape: wing is to the right — vertical strip along the shared wall
+        return {
+            bridge: { x: secondary.x, y: secondary.y, width: corridorD, height: secondary.height },
+            usable: { x: secondary.x + corridorD, y: secondary.y, width: secondary.width - corridorD, height: secondary.height },
+        };
+    }
+    // T-shape: wing is below — horizontal strip along the shared wall
+    return {
+        bridge: { x: secondary.x, y: secondary.y, width: secondary.width, height: corridorD },
+        usable: { x: secondary.x, y: secondary.y + corridorD, width: secondary.width, height: secondary.height - corridorD },
+    };
 }
 
 // ──────────────────────────────────────────────────────────────────────────

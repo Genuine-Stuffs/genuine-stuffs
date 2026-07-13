@@ -29,7 +29,7 @@ import {
 import { PlotEnvelope, SolverOptions } from "../types";
 import { squarify, TreemapBounds } from "./treemap";
 import { classifyRoom, groupByZone, allocateZones, RoomWithZone } from "./zones";
-import { selectFootprint } from "./shapes";
+import { selectFootprint, createRng } from "./shapes";
 
 // ──────────────────────────────────────────────────────────────────────────
 // Public entry point — same signature as solveLayout() in engine.ts
@@ -57,54 +57,49 @@ export function solveLayoutV2(
     const isDuplex = storeys > 1 || hasUpperFloorRooms;
 
     // Buildable envelope
-    const bW = Math.max(envelope.width  - envelope.setbacks.left  - envelope.setbacks.right, 8);
-    const bD = Math.max(envelope.depth  - envelope.setbacks.front - envelope.setbacks.rear,  8);
+    const bW = Math.max(envelope.width - envelope.setbacks.left - envelope.setbacks.right, 8);
+    const bD = Math.max(envelope.depth - envelope.setbacks.front - envelope.setbacks.rear, 8);
 
     const placedRooms: PlacedRoom[] = [];
-
-    // Track ground-floor stairwell coords so upper floor can mirror the void
     let stairCoords: TreemapBounds | null = null;
-
-    // Pack each floor independently
     const floors = isDuplex ? [0, 1] : [0];
+
+    // Footprint is decided ONCE, from ground-floor room count, and reused
+    // for both floors — a second storey must sit on the exact envelope of
+    // the first (see shapes.ts). Pass options.seed for reproducible variants;
+    // omit it for genuine per-generation randomness.
+    const rng = createRng((options as any)?.seed);
+    const groundNonCirc = rooms.filter(r => r.floor === 0 && classifyRoom(r.id) !== 'circ');
+    const footprint = selectFootprint(
+        envelope.width, envelope.depth, envelope.setbacks,
+        groundNonCirc.length, storeys, 0, rng
+    );
+
+    if (footprint.pattern) {
+        console.log(`[SOLVER_V2] wing pattern=${footprint.pattern} shape=${footprint.shape}`);
+    }
 
     for (const floorIndex of floors) {
         const floorRooms = rooms.filter(r => r.floor === floorIndex);
         if (floorRooms.length === 0) continue;
 
-        // ── 1. Select footprint ───────────────────────────────────────────
-        const nonCircRooms = floorRooms.filter(
-            r => classifyRoom(r.id) !== 'circ'
-        );
-        const footprint = selectFootprint(
-            envelope.width, envelope.depth,
-            envelope.setbacks,
-            nonCircRooms.length,
-            storeys,
-            floorIndex
-        );
-
         // ── 2. Zone grouping ──────────────────────────────────────────────
         const byZone = groupByZone(floorRooms);
 
         // ── 3. Zone rectangle allocation ─────────────────────────────────
-        const { allocations, corridorBounds } = allocateZones(
-            footprint.primary,
-            byZone,
-            floorIndex
-        );
+        const { allocations, corridorBounds } = allocateZones(footprint, byZone, floorIndex);
 
-        // ── 4. Place corridor band ────────────────────────────────────────
-        if (corridorBounds) {
+        // ── 4. Place corridor band(s) ───────────────────────────────────
+        corridorBounds.forEach((band, i) => {
             placedRooms.push({
-                room_id: `corridor_floor${floorIndex}`,
+                room_id: `corridor_floor${floorIndex}_${i}`,
                 floor:   floorIndex,
-                x:       corridorBounds.x,
-                y:       corridorBounds.y,
-                width:   corridorBounds.width,
-                depth:   corridorBounds.height,
+                x:       band.x,
+                y:       band.y,
+                width:   band.width,
+                depth:   band.height,
             });
-        }
+        });
 
         // ── 5. Place stairwell (ground floor, duplex only) ────────────────
         if (floorIndex === 0 && isDuplex) {
