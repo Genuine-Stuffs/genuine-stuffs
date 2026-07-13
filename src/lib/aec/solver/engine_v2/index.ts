@@ -235,8 +235,11 @@ const SERVICE_SUB_KW = [
 const isSubRoom = (id: string) =>
     SERVICE_SUB_KW.some(k => id.toLowerCase().includes(k));
 const isBedroom = (id: string) => {
+    if (isSubRoom(id)) return false; // sub-rooms are never bedrooms, even if named "Master ..."
     const lo = id.toLowerCase();
-    return lo.includes('bedroom') || lo.includes('master') || lo.includes('suite');
+    return lo.includes('bedroom') || lo.includes('master');
+    // 'suite' alone dropped — it's redundant with 'master'/'bedroom' and
+    // collides with 'ensuite', which is a sub-room keyword.
 };
 
 /**
@@ -299,6 +302,7 @@ function packPrivateZone(
 
         if (suite && suite.subs.length > 0) {
             const BATH_D = 2.2;
+            const bedDepth = Math.max(rect.height - BATH_D, 2.4); // reserve a sane minimum bedroom depth
 
             out.push({
                 room_id: suite.bedroom.id,
@@ -306,14 +310,14 @@ function packPrivateZone(
                 x:       rect.x,
                 y:       rect.y,
                 width:   rect.width,
-                depth:   rect.height,
+                depth:   bedDepth,
             });
 
             placeSubRooms(
                 suite.subs,
                 {
                     x:      rect.x,
-                    y:      rect.y + rect.height,
+                    y:      rect.y + bedDepth,
                     width:  rect.width,
                     height: BATH_D,
                 },
