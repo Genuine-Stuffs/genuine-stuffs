@@ -30,6 +30,7 @@ import { PlotEnvelope, SolverOptions } from "../types";
 import { squarify, TreemapBounds } from "./treemap";
 import { classifyRoom, groupByZone, allocateZones, RoomWithZone } from "./zones";
 import { selectFootprint, createRng } from "./shapes";
+import { validatePlacement } from "./placement_validator";
 
 // ──────────────────────────────────────────────────────────────────────────
 // Public entry point — same signature as solveLayout() in engine.ts
@@ -131,15 +132,28 @@ export function solveLayoutV2(
         }
 
         // ── 7. Treemap + suite nesting per zone ───────────────────────────
+        const combinedW = footprint.secondary
+            ? Math.max(footprint.primary.x + footprint.primary.width, footprint.secondary.x + footprint.secondary.width)
+            : footprint.primary.width;
+        const combinedH = footprint.secondary
+            ? Math.max(footprint.primary.y + footprint.primary.height, footprint.secondary.y + footprint.secondary.height)
+            : footprint.primary.height;
+
         for (const allocation of allocations) {
             packZone(
                 allocation.zone,
                 allocation.rooms,
                 allocation.bounds,
                 floorIndex,
-                placedRooms
+                placedRooms,
+                combinedW,
+                combinedH
             );
         }
+
+        // ── 8. Validate this floor before moving to the next ──────────────
+        const floorRoomsPlaced = placedRooms.filter(r => r.floor === floorIndex);
+        validatePlacement(floorRoomsPlaced, combinedW, combinedH, floorIndex);
     }
 
     console.log(
@@ -175,13 +189,15 @@ function packZone(
     rooms: RoomWithZone[],
     bounds: TreemapBounds,
     floorIndex: number,
-    out: PlacedRoom[]
+    out: PlacedRoom[],
+    buildingW: number,
+    buildingH: number
 ): void {
     if (rooms.length === 0) return;
     if (bounds.width <= 0 || bounds.height <= 0) return;
 
     if (zone === 'private') {
-        packPrivateZone(rooms, bounds, floorIndex, out);
+        packPrivateZone(rooms, bounds, floorIndex, out, buildingW, buildingH);
     } else {
         packFlatZone(rooms, bounds, floorIndex, out);
     }
@@ -237,6 +253,17 @@ const isBedroom = (id: string) => {
     // collides with 'ensuite', which is a sub-room keyword.
 };
 
+// NEW — determine which side of a rect (if any) is on the building perimeter
+function externalSide(
+    rect: TreemapBounds, buildingW: number, buildingH: number, tol = 0.5
+): 'top' | 'bottom' | 'left' | 'right' | null {
+    if ((rect.y + rect.height) >= buildingH - tol) return 'bottom';
+    if (rect.y <= tol) return 'top';
+    if ((rect.x + rect.width) >= buildingW - tol) return 'right';
+    if (rect.x <= tol) return 'left';
+    return null;
+}
+
 /**
  * Pack the private zone as bedroom suites.
  *
@@ -256,7 +283,9 @@ function packPrivateZone(
     rooms: RoomWithZone[],
     bounds: TreemapBounds,
     floorIndex: number,
-    out: PlacedRoom[]
+    out: PlacedRoom[],
+    buildingW: number,
+    buildingH: number
 ): void {
     // ── A. Pair bedrooms with their sub-rooms ─────────────────────────────
     const bedrooms = rooms.filter(r => isBedroom(r.id));
@@ -297,28 +326,27 @@ function packPrivateZone(
 
         if (suite && suite.subs.length > 0) {
             const BATH_D = 2.2;
-            const bedDepth = Math.max(rect.height - BATH_D, 2.4); // reserve a sane minimum bedroom depth
+            const side = externalSide(rect, buildingW, buildingH);
+            const bedDepth = Math.max(rect.height - BATH_D, 2.4);
 
-            out.push({
-                room_id: suite.bedroom.id,
-                floor:   floorIndex,
-                x:       rect.x,
-                y:       rect.y,
-                width:   rect.width,
-                depth:   bedDepth,
-            });
+            // Bath takes whichever edge of the bedroom rect is external.
+            // Falls back to "bottom" (today's behaviour) if the bedroom
+            // rect isn't touching the perimeter at all — validator's
+            // BATH_VENTILATION warning will flag that case for review.
+            const subBounds = (side === 'right')
+                ? { x: rect.x + rect.width - BATH_D, y: rect.y, width: BATH_D, height: rect.height }
+                : (side === 'left')
+                ? { x: rect.x, y: rect.y, width: BATH_D, height: rect.height }
+                : { x: rect.x, y: rect.y + bedDepth, width: rect.width, height: BATH_D };
 
-            placeSubRooms(
-                suite.subs,
-                {
-                    x:      rect.x,
-                    y:      rect.y + bedDepth,
-                    width:  rect.width,
-                    height: BATH_D,
-                },
-                floorIndex,
-                out
-            );
+            const bedRect = (side === 'right')
+                ? { x: rect.x, y: rect.y, width: rect.width - BATH_D, height: rect.height }
+                : (side === 'left')
+                ? { x: rect.x + BATH_D, y: rect.y, width: rect.width - BATH_D, height: rect.height }
+                : { x: rect.x, y: rect.y, width: rect.width, height: bedDepth };
+
+            out.push({ room_id: suite.bedroom.id, floor: floorIndex, x: bedRect.x, y: bedRect.y, width: bedRect.width, depth: bedRect.height });
+            placeSubRooms(suite.subs, subBounds, floorIndex, out);
         } else {
             // Standalone room (family lounge, study, etc.)
             out.push({
