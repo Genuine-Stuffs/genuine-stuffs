@@ -73,13 +73,17 @@ export function classifyRoom(roomId: string): ZoneType {
 
 export interface RoomWithZone {
     id: string;
+    label: string;
     area: number;
     floor: number;
     zone: ZoneType;
 }
 
+/**
+ * Group rooms into the 4 architectural zones.
+ */
 export function groupByZone(
-    rooms: Array<{ id: string; area: number; floor: number }>
+    rooms: Array<{ id: string; label: string; area: number; floor: number }>
 ): Map<ZoneType, RoomWithZone[]> {
     const map = new Map<ZoneType, RoomWithZone[]>([
         ['social',  []],
@@ -88,7 +92,7 @@ export function groupByZone(
         ['circ',    []],
     ]);
     for (const r of rooms) {
-        const zone = classifyRoom(r.id);
+        const zone = classifyRoom(r.label);
         map.get(zone)!.push({ ...r, zone });
     }
     return map;

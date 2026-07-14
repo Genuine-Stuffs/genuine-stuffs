@@ -50,6 +50,8 @@ export function solveLayoutV2(
 
     const rooms = sourceRooms.map((r: any, idx: number) => ({
         id:    r.room_id   ?? r.id           ?? `room_${idx}`,
+        label: r.name ?? r.room_name ?? r.room_type ?? r.category
+               ?? r.room_id ?? r.id ?? `room_${idx}`,
         area:  r.area_m2   ?? r.min_area_sqm ?? 9.0,
         floor: r.floor     ?? r.target_floor ?? 0,
     }));
@@ -70,7 +72,7 @@ export function solveLayoutV2(
     // the first (see shapes.ts). Pass options.seed for reproducible variants;
     // omit it for genuine per-generation randomness.
     const rng = createRng((options as any)?.seed);
-    const groundNonCirc = rooms.filter(r => r.floor === 0 && classifyRoom(r.id) !== 'circ');
+    const groundNonCirc = rooms.filter(r => r.floor === 0 && classifyRoom(r.label) !== 'circ');
     const footprint = selectFootprint(
         envelope.width, envelope.depth, envelope.setbacks,
         groundNonCirc.length, storeys, 0, rng
@@ -153,7 +155,9 @@ export function solveLayoutV2(
 
         // ── 8. Validate this floor before moving to the next ──────────────
         const floorRoomsPlaced = placedRooms.filter(r => r.floor === floorIndex);
-        validatePlacement(floorRoomsPlaced, combinedW, combinedH, floorIndex);
+        const labelMap = new Map(rooms.map(r => [r.id, r.label]));
+        const labelOf = (id: string) => labelMap.get(id) || id;
+        validatePlacement(floorRoomsPlaced, labelOf, combinedW, combinedH, floorIndex);
     }
 
     console.log(
@@ -243,11 +247,11 @@ function packFlatZone(
 const SERVICE_SUB_KW = [
     'bath','wc','toilet','shower','wardrobe','dressing','ensuite','en-suite'
 ];
-const isSubRoom = (id: string) =>
-    SERVICE_SUB_KW.some(k => id.toLowerCase().includes(k));
-const isBedroom = (id: string) => {
-    if (isSubRoom(id)) return false; // sub-rooms are never bedrooms, even if named "Master ..."
-    const lo = id.toLowerCase();
+const isSubRoom = (label: string) =>
+    SERVICE_SUB_KW.some(k => label.toLowerCase().includes(k));
+const isBedroom = (label: string) => {
+    if (isSubRoom(label)) return false; // sub-rooms are never bedrooms, even if named "Master ..."
+    const lo = label.toLowerCase();
     return lo.includes('bedroom') || lo.includes('master');
     // 'suite' alone dropped — it's redundant with 'master'/'bedroom' and
     // collides with 'ensuite', which is a sub-room keyword.
@@ -288,9 +292,9 @@ function packPrivateZone(
     buildingH: number
 ): void {
     // ── A. Pair bedrooms with their sub-rooms ─────────────────────────────
-    const bedrooms = rooms.filter(r => isBedroom(r.id));
-    const subRooms = rooms.filter(r => isSubRoom(r.id));
-    const other    = rooms.filter(r => !isBedroom(r.id) && !isSubRoom(r.id));
+    const bedrooms = rooms.filter(r => isBedroom(r.label));
+    const subRooms = rooms.filter(r => isSubRoom(r.label));
+    const other    = rooms.filter(r => !isBedroom(r.label) && !isSubRoom(r.label));
 
     // Match sub-rooms to bedrooms by numeric suffix or master keyword
     // If there are no bedrooms (e.g. office WCs), promote sub-rooms to
@@ -411,16 +415,16 @@ function buildSuites(
 
     const suites: Suite[] = bedrooms.map(bed => {
         const matched: RoomWithZone[] = [];
-        const bedNum     = bed.id.match(/\d+/)?.[0];
-        const bedMaster  = bed.id.toLowerCase().includes('master');
+        const bedNum     = bed.label.match(/\d+/)?.[0];
+        const bedMaster  = bed.label.toLowerCase().includes('master');
 
         for (const sub of subs) {
             if (used.has(sub.id)) continue;
-            const subNum    = sub.id.match(/\d+/)?.[0];
-            const subMaster = sub.id.toLowerCase().includes('master') ||
-                              sub.id.toLowerCase().includes('luxury') ||
-                              sub.id.toLowerCase().includes('walk-in') ||
-                              sub.id.toLowerCase().includes('walkin');
+            const subNum    = sub.label.match(/\d+/)?.[0];
+            const subMaster = sub.label.toLowerCase().includes('master') ||
+                              sub.label.toLowerCase().includes('luxury') ||
+                              sub.label.toLowerCase().includes('walk-in') ||
+                              sub.label.toLowerCase().includes('walkin');
 
             const numMatch    = !!(bedNum && subNum && bedNum === subNum);
             const masterMatch = bedMaster && subMaster;

@@ -53,6 +53,7 @@ function touchesExternal(r: PlacedRoom, buildingW: number, buildingH: number, to
 
 export function validatePlacement(
     rooms: PlacedRoom[],
+    labelOf: (room_id: string) => string,
     buildingW: number,
     buildingH: number,
     floorIndex: number
@@ -60,37 +61,39 @@ export function validatePlacement(
     const issues: ValidationIssue[] = [];
     // "Hub" rooms are large social rects that other rooms can open into
     // directly, same as a corridor — living/great/lounge/dining qualify.
-    const connectors = rooms.filter(r =>
-        isCorridorLike(r.room_id) || /living|lounge|great|dining|family/i.test(r.room_id)
-    );
+    const connectors = rooms.filter(r => {
+        const label = labelOf(r.room_id);
+        return isCorridorLike(label) || /living|lounge|great|dining|family/i.test(label);
+    });
 
     for (const room of rooms) {
-        if (isCorridorLike(room.room_id)) continue;
+        const label = labelOf(room.room_id);
+        if (isCorridorLike(label)) continue;
 
-        if (!isSubRoom(room.room_id)) {
+        if (!isSubRoom(label)) {
             const reaches = connectors.some(c => c.room_id !== room.room_id && sharesWall(room, c));
             if (!reaches) {
                 issues.push({
                     room_id: room.room_id,
                     rule: 'CORRIDOR_ADJACENCY',
-                    detail: 'No shared wall with any corridor/hall/foyer/hub room — unreachable.',
+                    detail: `No shared wall with any corridor/hall/foyer/hub room — unreachable (${label}).`,
                 });
             }
         }
 
-        if (isHabitable(room.room_id) && !touchesExternal(room, buildingW, buildingH)) {
+        if (isHabitable(label) && !touchesExternal(room, buildingW, buildingH)) {
             issues.push({
                 room_id: room.room_id,
                 rule: 'EXTERNAL_WALL',
-                detail: 'Habitable room has no wall on the building perimeter.',
+                detail: `Habitable room has no wall on the building perimeter (${label}).`,
             });
         }
 
-        if (isBath(room.room_id) && !touchesExternal(room, buildingW, buildingH)) {
+        if (isBath(label) && !touchesExternal(room, buildingW, buildingH)) {
             issues.push({
                 room_id: room.room_id,
                 rule: 'BATH_VENTILATION',
-                detail: 'No external wall — requires mechanical ventilation (NBC-permitted, flag for review).',
+                detail: `No external wall — requires mechanical ventilation (NBC-permitted, flag for review) (${label}).`,
             });
         }
     }
