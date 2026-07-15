@@ -128,6 +128,36 @@ export interface ZoneAllocation {
  *   All rooms are PRIVATE — full footprint allocated to private zone.
  *   Corridor is a 1.5m band carved from the top of the private zone.
  */
+/**
+ * Distribute rooms across N regions proportional to each region's area
+ * capacity, so no single region is starved or overflowed. Greedy largest-
+ * room-first, always placing into whichever region has the most remaining
+ * capacity fraction at that point.
+ */
+function splitRoomsByCapacity(
+    rooms: RoomWithZone[],
+    capacities: number[]
+): RoomWithZone[][] {
+    const groups: RoomWithZone[][] = capacities.map(() => []);
+    const filled: number[] = capacities.map(() => 0);
+    const sorted = [...rooms].sort((a, b) => b.area - a.area);
+
+    for (const room of sorted) {
+        let bestIdx = 0;
+        let bestRemaining = -Infinity;
+        for (let i = 0; i < capacities.length; i++) {
+            const remaining = capacities[i] - filled[i];
+            if (remaining > bestRemaining) {
+                bestRemaining = remaining;
+                bestIdx = i;
+            }
+        }
+        groups[bestIdx].push(room);
+        filled[bestIdx] += room.area;
+    }
+    return groups;
+}
+
 export function allocateZones(
     footprint: BuildingFootprint,
     byZone: Map<ZoneType, RoomWithZone[]>,
@@ -141,30 +171,59 @@ export function allocateZones(
     const wingIsService = footprint.secondary && footprint.pattern === 'service_wing';
 
     if (floorIndex > 0) {
-        // Upper floor mirrors ground floor's footprint exactly (see shapes.ts).
-        // If ground floor put bedrooms in the wing, upstairs does too — same
-        // pattern, both floors, for structural + visual coherence.
-        corridorBounds.push({ x: primary.x, y: primary.y, width: primary.width, height: CORRIDOR_D });
+        // ── UPPER FLOOR ───────────────────────────────────────────────────
+        corridorBounds.push({
+            x: primary.x, y: primary.y,
+            width: primary.width, height: CORRIDOR_D,
+        });
 
-        const privateY = primary.y + CORRIDOR_D;
-        const privateH = Math.min(primary.height - CORRIDOR_D, primary.width * 0.65);
         const privateRooms = byZone.get('private') ?? [];
+        const socialRooms  = byZone.get('social')  ?? [];
+        const serviceRooms = byZone.get('service') ?? [];
 
-        if (wingIsPrivate && footprint.secondary) {
+        const primaryBand: TreemapBounds = {
+            x: primary.x,
+            y: primary.y + CORRIDOR_D,
+            width: primary.width,
+            height: primary.height - CORRIDOR_D,
+        };
+
+        // primary's band was sized for the GROUND floor's zone mix. If this
+        // floor has no social/service rooms competing for it (the normal
+        // case — upper floors are almost always private-only), the private
+        // zone is entitled to the FULL combined envelope: primary's band
+        // AND the wing together — not just whichever rect the ground-floor
+        // pattern happened to label "private".
+        const primaryIsFreeForPrivate = socialRooms.length === 0 && serviceRooms.length === 0;
+
+        if (wingIsPrivate && footprint.secondary && primaryIsFreeForPrivate) {
             const { bridge, usable } = splitWingForCorridor(primary, footprint.secondary, CORRIDOR_D);
-            allocations.push({ zone: 'private', rooms: privateRooms, bounds: usable });
             corridorBounds.push(bridge);
-            // NOTE: primary's own lower band is left unallocated here (all
-            // bedrooms moved to the wing). This mirrors the ground floor's
-            // service-only lower band under private_wing, but currently
-            // stops any *social*-classified upper-floor rooms (e.g. a family
-            // lounge) from being placed at all — see flag below the diff.
+
+            const groups = splitRoomsByCapacity(privateRooms, [
+                primaryBand.width * primaryBand.height,
+                usable.width * usable.height,
+            ]);
+            if (groups[0].length > 0) {
+                allocations.push({ zone: 'private', rooms: groups[0], bounds: primaryBand });
+            }
+            if (groups[1].length > 0) {
+                allocations.push({ zone: 'private', rooms: groups[1], bounds: usable });
+            }
+        } else if (wingIsPrivate && footprint.secondary) {
+            // Something else on this floor genuinely needs primary's band —
+            // keep private confined to the wing (previous behaviour).
+            const { bridge, usable } = splitWingForCorridor(primary, footprint.secondary, CORRIDOR_D);
+            corridorBounds.push(bridge);
+            allocations.push({ zone: 'private', rooms: privateRooms, bounds: usable });
         } else {
+            const privateH = Math.min(primaryBand.height, primaryBand.width * 0.65);
             allocations.push({
                 zone: 'private', rooms: privateRooms,
-                bounds: { x: primary.x, y: privateY, width: primary.width, height: privateH },
+                bounds: { x: primaryBand.x, y: primaryBand.y, width: primaryBand.width, height: privateH },
             });
         }
+
         return { allocations, corridorBounds };
     }
 
