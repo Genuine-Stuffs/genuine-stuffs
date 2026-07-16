@@ -660,6 +660,7 @@ const AIStudio = () => {
                         ?? finalDesignData.brief_reference?.storeys
                         ?? 1;
 
+                    console.log("[SOLVER_DEBUG] Raw rooms from Hive:", JSON.stringify(finalDesignData.rooms, null, 2));
                     const USE_SOLVER_V2 = true;
                     const solved = USE_SOLVER_V2 ? solveLayoutV2(finalDesignData, {
                         width: plotWidth,
@@ -676,6 +677,7 @@ const AIStudio = () => {
                     });
                     finalDesignData.solvedLayout = solved;
                     console.log("Client-side TS Solver generated geometry successfully.", solved);
+                    console.log('[SOLVER_DEBUG] placedRooms:', JSON.stringify(solved.placed_rooms, null, 2));
 
                     // Run deterministic compliance check against NBC 2006 rules
                     try {

@@ -99,7 +99,7 @@ export function validatePlacement(
     }
 
     if (issues.length > 0) {
-        console.warn(`[SOLVER_V2] floor ${floorIndex} validation: ${issues.length} issue(s)`, issues);
+        console.warn(`[SOLVER_V2] floor ${floorIndex} validation: ${issues.length} issue(s)\n${JSON.stringify(issues, null, 2)}`);
     } else {
         console.log(`[SOLVER_V2] floor ${floorIndex} validation: PASS`);
     }
