@@ -46,7 +46,8 @@ export type ZoneType = 'social' | 'service' | 'private' | 'circ';
 // Order matters within each group only for readability — all are checked.
 const SOCIAL_KW   = [
     'living','lounge','dining','foyer','family','entry','reception',
-    'great','sunken','entertainment','sitting','drawing','parlour','parlor'
+    'great','sunken','entertainment','sitting','drawing','parlour','parlor',
+    'terrace','veranda','verandah','balcony','patio','loggia'
 ];
 const SERVICE_KW  = ['kitchen','pantry','wet','laundry','garage','utility','store','boiler'];
 const PRIVATE_KW  = ['bedroom','master','bath','wc','toilet','shower','wardrobe','dressing','ensuite','en-suite','study','office','guest'];
