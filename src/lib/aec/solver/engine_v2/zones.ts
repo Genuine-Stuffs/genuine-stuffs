@@ -212,17 +212,64 @@ export function allocateZones(
                 allocations.push({ zone: 'private', rooms: groups[1], bounds: usable });
             }
         } else if (wingIsPrivate && footprint.secondary) {
-            // Something else on this floor genuinely needs primary's band —
-            // keep private confined to the wing (previous behaviour).
+            // Social or service rooms exist on this floor.
+            // Allocate them a vertical slice of primaryBand, and share the rest with privateRooms.
             const { bridge, usable } = splitWingForCorridor(primary, footprint.secondary, CORRIDOR_D);
             corridorBounds.push(bridge);
-            allocations.push({ zone: 'private', rooms: privateRooms, bounds: usable });
+
+            const pubArea = totalArea(socialRooms) + totalArea(serviceRooms);
+            const pubFrac = Math.max(0.15, Math.min(0.5, pubArea / (pubArea + totalArea(privateRooms))));
+            const pubW = snapTo(primaryBand.width * pubFrac, 0.1);
+
+            const pubBounds = { ...primaryBand, width: pubW };
+            const privPrimaryBounds = { ...primaryBand, x: primaryBand.x + pubW, width: primaryBand.width - pubW };
+
+            if (socialRooms.length > 0 && serviceRooms.length > 0) {
+                const sFrac = totalArea(socialRooms) / pubArea;
+                const sH = snapTo(pubBounds.height * sFrac, 0.1);
+                allocations.push({ zone: 'social', rooms: socialRooms, bounds: { ...pubBounds, height: sH }});
+                allocations.push({ zone: 'service', rooms: serviceRooms, bounds: { ...pubBounds, y: pubBounds.y + sH, height: pubBounds.height - sH }});
+            } else if (socialRooms.length > 0) {
+                allocations.push({ zone: 'social', rooms: socialRooms, bounds: pubBounds });
+            } else if (serviceRooms.length > 0) {
+                allocations.push({ zone: 'service', rooms: serviceRooms, bounds: pubBounds });
+            }
+
+            const groups = splitRoomsByCapacity(privateRooms, [
+                privPrimaryBounds.width * privPrimaryBounds.height,
+                usable.width * usable.height,
+            ]);
+            if (groups[0].length > 0) {
+                allocations.push({ zone: 'private', rooms: groups[0], bounds: privPrimaryBounds });
+            }
+            if (groups[1].length > 0) {
+                allocations.push({ zone: 'private', rooms: groups[1], bounds: usable });
+            }
         } else {
-            const privateH = Math.min(primaryBand.height, primaryBand.width * 0.65);
-            allocations.push({
-                zone: 'private', rooms: privateRooms,
-                bounds: { x: primaryBand.x, y: primaryBand.y, width: primaryBand.width, height: privateH },
-            });
+            // No secondary wing (e.g. rectangular footprint). Share primaryBand.
+            if (primaryIsFreeForPrivate) {
+                allocations.push({ zone: 'private', rooms: privateRooms, bounds: primaryBand });
+            } else {
+                const pubArea = totalArea(socialRooms) + totalArea(serviceRooms);
+                const pubFrac = Math.max(0.15, Math.min(0.5, pubArea / (pubArea + totalArea(privateRooms))));
+                const pubW = snapTo(primaryBand.width * pubFrac, 0.1);
+
+                const pubBounds = { ...primaryBand, width: pubW };
+                const privBounds = { ...primaryBand, x: primaryBand.x + pubW, width: primaryBand.width - pubW };
+
+                if (socialRooms.length > 0 && serviceRooms.length > 0) {
+                    const sFrac = totalArea(socialRooms) / pubArea;
+                    const sH = snapTo(pubBounds.height * sFrac, 0.1);
+                    allocations.push({ zone: 'social', rooms: socialRooms, bounds: { ...pubBounds, height: sH }});
+                    allocations.push({ zone: 'service', rooms: serviceRooms, bounds: { ...pubBounds, y: pubBounds.y + sH, height: pubBounds.height - sH }});
+                } else if (socialRooms.length > 0) {
+                    allocations.push({ zone: 'social', rooms: socialRooms, bounds: pubBounds });
+                } else if (serviceRooms.length > 0) {
+                    allocations.push({ zone: 'service', rooms: serviceRooms, bounds: pubBounds });
+                }
+
+                allocations.push({ zone: 'private', rooms: privateRooms, bounds: privBounds });
+            }
         }
 
         return { allocations, corridorBounds };
