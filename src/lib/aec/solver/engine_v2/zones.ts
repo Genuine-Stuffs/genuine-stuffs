@@ -304,18 +304,19 @@ export function allocateZones(
     }
 
     const lowerTotal = totalArea(lowerServiceRooms) + totalArea(lowerPrivateRooms);
-    if (lowerServiceRooms.length > 0 && lowerPrivateRooms.length > 0) {
+    if (lowerPrivateRooms.length > 0 && lowerServiceRooms.length > 0) {
         let serviceFrac = lowerTotal > 0 ? totalArea(lowerServiceRooms) / lowerTotal : 0.35;
         serviceFrac = Math.max(0.20, Math.min(0.45, serviceFrac));
         const serviceW2 = Math.max(snapTo(primary.width * serviceFrac, 0.1), 3.6);
+        const privateW  = primary.width - serviceW2;
 
         allocations.push({
-            zone: 'service', rooms: lowerServiceRooms,
-            bounds: { x: primary.x, y: belowY, width: serviceW2, height: belowH },
+            zone: 'private', rooms: lowerPrivateRooms,
+            bounds: { x: primary.x, y: belowY, width: privateW, height: belowH },
         });
         allocations.push({
-            zone: 'private', rooms: lowerPrivateRooms,
-            bounds: { x: primary.x + serviceW2, y: belowY, width: primary.width - serviceW2, height: belowH },
+            zone: 'service', rooms: lowerServiceRooms,
+            bounds: { x: primary.x + privateW, y: belowY, width: serviceW2, height: belowH },
         });
     } else if (lowerServiceRooms.length > 0) {
         allocations.push({

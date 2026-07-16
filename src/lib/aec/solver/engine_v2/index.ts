@@ -109,15 +109,20 @@ export function solveLayoutV2(
             const stairW = 2.4;
             const stairD = 3.6;
             const stairX = footprint.primary.x + footprint.primary.width - stairW;
-            const stairY = footprint.primary.y;
-            stairCoords  = { x: stairX, y: stairY, width: stairW, height: stairD };
+            // Place stairwell flush against the TOP of the corridor band so
+            // they share a wall — this satisfies CORRIDOR_ADJACENCY in the
+            // validator. Previously used footprint.primary.y (=0) which left
+            // a gap equal to (corridorY - stairD) between them.
+            const mainCorridorY = corridorBounds.length > 0 ? corridorBounds[0].y : footprint.primary.y;
+            const stairY = mainCorridorY - stairD;
+            stairCoords = { x: stairX, y: Math.max(stairY, footprint.primary.y), width: stairW, height: stairD };
             placedRooms.push({
                 room_id: 'stairwell',
                 floor:   0,
-                x:       stairX,
-                y:       stairY,
-                width:   stairW,
-                depth:   stairD,
+                x:       stairCoords.x,
+                y:       stairCoords.y,
+                width:   stairCoords.width,
+                depth:   stairCoords.height,
             });
         }
 
@@ -229,13 +234,14 @@ function packFlatZone(
     const rects = squarify(items, bounds);
 
     for (const rect of rects) {
+        const c = clampToBounds(rect.x, rect.y, rect.width, rect.height, bounds);
         out.push({
             room_id: rect.id,
             floor:   floorIndex,
-            x:       rect.x,
-            y:       rect.y,
-            width:   rect.width,
-            depth:   rect.height,
+            x:       c.x,
+            y:       c.y,
+            width:   c.width,
+            depth:   c.height,
         });
     }
 }
@@ -325,41 +331,49 @@ function packPrivateZone(
 
     // ── C. Place each suite (bedroom + sub-rooms subdivided vertically) ───
     for (const rect of rects) {
-        // Check if this rect belongs to a suite or a standalone room
         const suite = suites.find(s => s.bedroom.id === rect.id);
+        // Clamp the treemap rect to the allocation bounds before
+        // subdividing for bath/wardrobe — prevents floating-point
+        // accumulation from pushing rooms outside the zone.
+        const cr = clampToBounds(rect.x, rect.y, rect.width, rect.height, bounds);
 
         if (suite && suite.subs.length > 0) {
             const BATH_D = 2.2;
-            const side = externalSide(rect, buildingW, buildingH);
-            const bedDepth = Math.max(rect.height - BATH_D, 2.4);
+            const side = externalSide(
+                { x: cr.x, y: cr.y, width: cr.width, height: cr.height },
+                buildingW, buildingH
+            );
+            const bedDepth = Math.max(cr.height - BATH_D, 2.4);
 
-            // Bath takes whichever edge of the bedroom rect is external.
-            // Falls back to "bottom" (today's behaviour) if the bedroom
-            // rect isn't touching the perimeter at all — validator's
-            // BATH_VENTILATION warning will flag that case for review.
             const subBounds = (side === 'right')
-                ? { x: rect.x + rect.width - BATH_D, y: rect.y, width: BATH_D, height: rect.height }
+                ? { x: cr.x + cr.width - BATH_D, y: cr.y, width: BATH_D, height: cr.height }
                 : (side === 'left')
-                ? { x: rect.x, y: rect.y, width: BATH_D, height: rect.height }
-                : { x: rect.x, y: rect.y + bedDepth, width: rect.width, height: BATH_D };
+                ? { x: cr.x, y: cr.y, width: BATH_D, height: cr.height }
+                : { x: cr.x, y: cr.y + bedDepth, width: cr.width, height: BATH_D };
 
             const bedRect = (side === 'right')
-                ? { x: rect.x, y: rect.y, width: rect.width - BATH_D, height: rect.height }
+                ? { x: cr.x, y: cr.y, width: cr.width - BATH_D, height: cr.height }
                 : (side === 'left')
-                ? { x: rect.x + BATH_D, y: rect.y, width: rect.width - BATH_D, height: rect.height }
-                : { x: rect.x, y: rect.y, width: rect.width, height: bedDepth };
+                ? { x: cr.x + BATH_D, y: cr.y, width: cr.width - BATH_D, height: cr.height }
+                : { x: cr.x, y: cr.y, width: cr.width, height: bedDepth };
 
-            out.push({ room_id: suite.bedroom.id, floor: floorIndex, x: bedRect.x, y: bedRect.y, width: bedRect.width, depth: bedRect.height });
+            out.push({
+                room_id: suite.bedroom.id,
+                floor:   floorIndex,
+                x:       bedRect.x,
+                y:       bedRect.y,
+                width:   bedRect.width,
+                depth:   bedRect.height,
+            });
             placeSubRooms(suite.subs, subBounds, floorIndex, out);
         } else {
-            // Standalone room (family lounge, study, etc.)
             out.push({
-                room_id: rect.id,
+                room_id: cr.id ?? rect.id,
                 floor:   floorIndex,
-                x:       rect.x,
-                y:       rect.y,
-                width:   rect.width,
-                depth:   rect.height,
+                x:       cr.x,
+                y:       cr.y,
+                width:   cr.width,
+                depth:   cr.height,
             });
         }
     }
@@ -455,6 +469,29 @@ function buildSuites(
 // ──────────────────────────────────────────────────────────────────────────
 // Helpers
 // ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Clamp a placed rect so it never exceeds the bounds that were passed to
+ * squarify(). squarify() guarantees area-proportional placement but does
+ * not guarantee that floating-point accumulation keeps every rect inside
+ * the parent bounds. A rect that drifts 0.01m outside will fail
+ * EXTERNAL_WALL or CORRIDOR_ADJACENCY checks that use a 0.5m tolerance.
+ */
+function clampToBounds(
+    x: number, y: number, width: number, height: number,
+    bounds: TreemapBounds
+): { x: number; y: number; width: number; height: number } {
+    const x2 = Math.min(x + width,  bounds.x + bounds.width);
+    const y2 = Math.min(y + height, bounds.y + bounds.height);
+    const cx = Math.max(x, bounds.x);
+    const cy = Math.max(y, bounds.y);
+    return {
+        x:      cx,
+        y:      cy,
+        width:  Math.max(x2 - cx, 0.1),   // never produce zero-width
+        height: Math.max(y2 - cy, 0.1),
+    };
+}
 
 function snapTo(value: number, grid: number): number {
     return Math.round(value / grid) * grid;
