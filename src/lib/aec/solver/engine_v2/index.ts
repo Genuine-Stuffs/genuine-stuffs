@@ -367,8 +367,12 @@ function packPrivateZone(
             });
             placeSubRooms(suite.subs, subBounds, floorIndex, out);
         } else {
+            // Standalone room — use rect.id (the treemap's original id),
+            // NOT cr.id, since clampToBounds()'s return type has no id
+            // field. This was the likely TypeScript compile error in the
+            // previous attempt.
             out.push({
-                room_id: cr.id ?? rect.id,
+                room_id: rect.id,
                 floor:   floorIndex,
                 x:       cr.x,
                 y:       cr.y,
