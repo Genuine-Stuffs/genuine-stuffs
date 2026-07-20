@@ -28,7 +28,8 @@ import {
 } from "../../../../../supabase/functions/ai-studio/schema";
 import { PlotEnvelope, SolverOptions } from "../types";
 import { squarify, TreemapBounds } from "./treemap";
-import { classifyRoom, groupByZone, allocateZones, RoomWithZone } from "./zones";
+import { groupByZone, allocateZones, RoomWithZone } from "./zones";
+import { buildGraph, HiveRoom, ZoneType } from "./graph";
 import { selectFootprint, createRng } from "./shapes";
 import { validatePlacement } from "./placement_validator";
 
@@ -48,13 +49,37 @@ export function solveLayoutV2(
     const briefStoreys = briefRef.floors ?? briefRef.storeys ?? 1;
     const storeys   = (options as any)?.floors_override ?? briefStoreys;
 
-    const rooms = sourceRooms.map((r: any, idx: number) => ({
-        id:    r.room_id   ?? r.id           ?? `room_${idx}`,
-        label: r.name ?? r.room_name ?? r.room_type ?? r.category
-               ?? r.room_id ?? r.id ?? `room_${idx}`,
-        area:  r.area_m2   ?? r.min_area_sqm ?? 9.0,
-        floor: r.floor     ?? r.target_floor ?? 0,
+    // ── graph.ts::classifyRoom() is now the ONLY room classifier (D5).
+    // Build the type-authoritative graph once, then carry its per-room
+    // zone/type through into the plain `rooms` shape every downstream
+    // step already expects. `adjacencies` is preserved too, even though
+    // this phase doesn't yet consume it — Phase 3's solver will.
+    const hiveRooms: HiveRoom[] = sourceRooms.map((r: any, idx: number) => ({
+        room_id:     r.room_id ?? r.id ?? `room_${idx}`,
+        name:        r.name ?? r.room_name ?? r.room_type ?? r.category,
+        type:        r.type,
+        floor:       r.floor ?? r.target_floor ?? 0,
+        area_m2:     r.area_m2 ?? r.min_area_sqm ?? 9.0,
+        width_m:     r.width_m,
+        span_m:      r.span_m,
+        adjacencies: r.adjacencies ?? r.adjacent_to ?? [],
     }));
+    const graph = buildGraph(hiveRooms);
+
+    const rooms = sourceRooms.map((r: any, idx: number) => {
+        const id = r.room_id ?? r.id ?? `room_${idx}`;
+        const node = graph.nodes.get(id);
+        return {
+            id,
+            label: r.name ?? r.room_name ?? r.room_type ?? r.category
+                   ?? r.room_id ?? r.id ?? `room_${idx}`,
+            area:  r.area_m2   ?? r.min_area_sqm ?? 9.0,
+            floor: r.floor     ?? r.target_floor ?? 0,
+            zone:  node?.zone ?? ('private' as ZoneType),
+            type:  r.type ?? 'unknown',
+            adjacencies: r.adjacencies ?? r.adjacent_to ?? [],
+        };
+    });
 
     const hasUpperFloorRooms = rooms.some(r => r.floor === 1);
     const isDuplex = storeys > 1 || hasUpperFloorRooms;
@@ -72,7 +97,7 @@ export function solveLayoutV2(
     // the first (see shapes.ts). Pass options.seed for reproducible variants;
     // omit it for genuine per-generation randomness.
     const rng = createRng((options as any)?.seed);
-    const groundNonCirc = rooms.filter(r => r.floor === 0 && classifyRoom(r.label) !== 'circ');
+    const groundNonCirc = rooms.filter(r => r.floor === 0 && r.zone !== 'circ');
     const footprint = selectFootprint(
         envelope.width, envelope.depth, envelope.setbacks,
         groundNonCirc.length, storeys, 0, rng
@@ -161,8 +186,17 @@ export function solveLayoutV2(
         // ── 8. Validate this floor before moving to the next ──────────────
         const floorRoomsPlaced = placedRooms.filter(r => r.floor === floorIndex);
         const labelMap = new Map(rooms.map(r => [r.id, r.label]));
+        const typeMap  = new Map(rooms.map(r => [r.id, r.type]));
         const labelOf = (id: string) => labelMap.get(id) || id;
-        validatePlacement(floorRoomsPlaced, labelOf, combinedW, combinedH, floorIndex);
+        // Synthetic solver-placed rooms (corridor bands, stairwell) aren't
+        // Hive rooms and have no graph node — they get an explicit type by
+        // exact id match, since these ids are code constants, not guesses.
+        const typeOf = (id: string): string => {
+            if (id === 'stairwell' || id === 'stairwell_void') return 'stairwell';
+            if (id.startsWith('corridor_floor')) return 'circulation';
+            return typeMap.get(id) ?? 'unknown';
+        };
+        validatePlacement(floorRoomsPlaced, typeOf, labelOf, combinedW, combinedH, floorIndex);
     }
 
     console.log(

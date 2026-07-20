@@ -35,38 +35,13 @@
 
 import { TreemapBounds } from './treemap';
 import { BuildingFootprint, WingPattern } from './shapes';
+import { classifyRoom as graphClassifyRoom, ZoneType } from './graph';
+export type { ZoneType };
+// Re-export so existing call sites that import classifyRoom from zones.ts
+// continue to work without changes — they get graph.ts's type-authoritative
+// implementation instead of the old label-regex one.
+export const classifyRoom = graphClassifyRoom;
 
-// ──────────────────────────────────────────────────────────────────────────
-// Zone Classification
-// ──────────────────────────────────────────────────────────────────────────
-
-export type ZoneType = 'social' | 'service' | 'private' | 'circ';
-
-// Keyword lists. Checked via .includes() on lowercase room id.
-// Order matters within each group only for readability — all are checked.
-const SOCIAL_KW   = [
-    'living','lounge','dining','foyer','family','entry','reception',
-    'great','sunken','entertainment','sitting','drawing','parlour','parlor',
-    'terrace','veranda','verandah','balcony','patio','loggia'
-];
-const SERVICE_KW  = ['kitchen','pantry','wet','laundry','garage','utility','store','boiler'];
-const PRIVATE_KW  = ['bedroom','master','bath','wc','toilet','shower','wardrobe','dressing','ensuite','en-suite','study','office','guest'];
-const CIRC_KW     = ['corridor','hall','landing','stairwell','stair','void'];
-
-export function classifyRoom(roomId: string): ZoneType {
-    const lo = roomId.toLowerCase();
-
-    // CIRC first — stairwell must never be placed as a social room
-    if (CIRC_KW.some(k => lo.includes(k)))    return 'circ';
-    if (SOCIAL_KW.some(k => lo.includes(k)))  return 'social';
-    if (SERVICE_KW.some(k => lo.includes(k))) return 'service';
-    if (PRIVATE_KW.some(k => lo.includes(k))) return 'private';
-
-    // Unknown rooms default to private (safer than social — avoids
-    // unknowns inflating the public front of the house)
-    console.warn(`[SOLVER_V2] classifyRoom: no match for "${roomId}" — defaulting to private`);
-    return 'private';
-}
 
 // ──────────────────────────────────────────────────────────────────────────
 // Zone Grouping
@@ -82,9 +57,11 @@ export interface RoomWithZone {
 
 /**
  * Group rooms into the 4 architectural zones.
+ * Rooms are expected to carry a pre-computed `zone` field (set in index.ts
+ * via graph.ts::classifyRoom) — groupByZone no longer re-derives it.
  */
 export function groupByZone(
-    rooms: Array<{ id: string; label: string; area: number; floor: number }>
+    rooms: Array<{ id: string; label: string; area: number; floor: number; zone: ZoneType }>
 ): Map<ZoneType, RoomWithZone[]> {
     const map = new Map<ZoneType, RoomWithZone[]>([
         ['social',  []],
@@ -93,8 +70,9 @@ export function groupByZone(
         ['circ',    []],
     ]);
     for (const r of rooms) {
-        const zone = classifyRoom(r.label);
-        map.get(zone)!.push({ ...r, zone });
+        // zone is now graph.ts::classifyRoom()'s output, computed once in
+        // index.ts and carried on the room object — not re-derived here.
+        map.get(r.zone)!.push({ ...r });
     }
     return map;
 }

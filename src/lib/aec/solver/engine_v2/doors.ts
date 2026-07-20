@@ -56,20 +56,25 @@ export interface PlacementResult {
     windows: WindowSpec[];
 }
 
-// ── Keyword helpers ────────────────────────────────────────────────────────
+// ── Type-based classification (Hive `type` is authoritative — D5) ─────────
+// These take the canonical Hive type string, not a room_id/label, and are
+// checked by equality against graph.ts's own TYPE_TO_ZONE vocabulary —
+// no independent regex classifier.
 
-const isCorridor  = (id: string) => /corridor|hall|landing|void/i.test(id);
-const isStair     = (id: string) => /stair/i.test(id);
-const isGarage    = (id: string) => /garage/i.test(id);
-const isBath      = (id: string) => /bath|wc|toilet|shower/i.test(id);
-const isWardrobe  = (id: string) => /wardrobe|dressing|walk-in|walkin/i.test(id);
-const isBedroom   = (id: string) => /bedroom|master|suite/i.test(id);
-const isService   = (id: string) => isBath(id) || isWardrobe(id);
+const isCorridor  = (type: string) => type === 'circulation' || type === 'hall' || type === 'landing' || type === 'void';
+const isStair     = (type: string) => type === 'stairwell';
+const isGarage    = (type: string) => type === 'garage';
+const isBath      = (type: string) => type === 'bathroom';
+const isWardrobe  = (type: string) => type === 'wardrobe' || type === 'dressing';
+const isBedroom   = (type: string) => type === 'bedroom' || type === 'master_bedroom';
+const isService   = (type: string) => isBath(type) || isWardrobe(type);
 
 // ── Shared wall detection ──────────────────────────────────────────────────
 
 interface PlacedRect {
     room_id: string;
+    type: string;   // Hive type, or a synthetic marker the caller supplies
+                     // for solver-placed circulation (corridor/stairwell/void)
     x: number; y: number; width: number; depth: number;
 }
 
@@ -97,16 +102,16 @@ function sharedWall(
 
 // ── Wall priority scoring ──────────────────────────────────────────────────
 
-function wallScore(neighbourId: string, currentId: string): number {
-    if (isCorridor(neighbourId) || isStair(neighbourId)) return 100;
-    if (/foyer|entry|reception/i.test(neighbourId))       return 80;
-    if (/living|lounge|family|dining/i.test(neighbourId)) return 60;
+function wallScore(neighbourType: string, currentType: string): number {
+    if (isCorridor(neighbourType) || isStair(neighbourType)) return 100;
+    if (neighbourType === 'foyer')                            return 80;
+    if (['living_room', 'dining_room', 'family_room'].includes(neighbourType)) return 60;
 
     // Bathroom → open into its bedroom
-    if (isService(currentId) && isBedroom(neighbourId))   return 90;
+    if (isService(currentType) && isBedroom(neighbourType))  return 90;
 
-    if (isGarage(neighbourId))   return 0;  // never door into garage
-    if (isService(neighbourId))  return 5;  // avoid service-to-service
+    if (isGarage(neighbourType))   return 0;  // never door into garage
+    if (isService(neighbourType))  return 5;  // avoid service-to-service
     return 20;
 }
 
@@ -145,19 +150,20 @@ export function computePlacement(
 
     for (const room of rooms) {
         const id = room.room_id;
+        const type = room.type;
 
         // Corridor and void: no door, no window
-        if (isCorridor(id) || id.toLowerCase().includes('void')) continue;
+        if (isCorridor(type) || id.toLowerCase().includes('void')) continue;
 
         // ── DOOR PLACEMENT ─────────────────────────────────────────────────
-        if (!isGarage(id)) {
+        if (!isGarage(type)) {
             const wallScores: Partial<Record<WallSide, number>> = {};
 
             for (const neighbour of rooms) {
                 if (neighbour.room_id === id) continue;
                 const wall = sharedWall(room, neighbour);
                 if (!wall) continue;
-                const score = wallScore(neighbour.room_id, id);
+                const score = wallScore(neighbour.type, type);
                 wallScores[wall] = Math.max(wallScores[wall] ?? 0, score);
             }
 
@@ -169,19 +175,19 @@ export function computePlacement(
                 .sort((a, b) => (wallScores[b] ?? 0) - (wallScores[a] ?? 0));
 
             const doorWall = ranked[0] ?? sides.find(w => !ext[w]) ?? 'bottom';
-            const isInterior = isService(id); // bath/wardrobe = interior swing
+            const isInterior = isService(type); // bath/wardrobe = interior swing
 
             doors.push({
                 room_id:  id,
                 wall:     doorWall,
                 position: 0.25,
-                radius_m: isStair(id) ? 0 : (isInterior ? 0.8 : 1.0),
+                radius_m: isStair(type) ? 0 : (isInterior ? 0.8 : 1.0),
                 interior: isInterior,
             });
         }
 
         // ── WINDOW PLACEMENT ───────────────────────────────────────────────
-        if (!isCorridor(id)) {
+        if (!isCorridor(type)) {
             const ext = externalEdges(room, buildingW, buildingH);
             const extSides = (Object.keys(ext) as WallSide[]).filter(w => ext[w]);
 

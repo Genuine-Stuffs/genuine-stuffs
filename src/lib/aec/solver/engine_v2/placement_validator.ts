@@ -21,12 +21,18 @@ import { PlacedRoom } from "../../../../../supabase/functions/ai-studio/schema";
 
 const TOL = 0.35;
 
-const isCorridorLike = (id: string) => /corridor|hall|landing|void|foyer/i.test(id);
-const isSubRoom      = (id: string) => /bath|wc|toilet|shower|wardrobe|dressing|ensuite|en-suite/i.test(id);
-const isBath         = (id: string) => /bath|wc|toilet|shower/i.test(id);
-const isHabitable    = (id: string) =>
-    !isCorridorLike(id) && !isSubRoom(id) &&
-    /bedroom|master|living|lounge|dining|kitchen|family|office|study|great/i.test(id);
+// Type-based classification — same canonical vocabulary as graph.ts's
+// TYPE_TO_ZONE. Each label-regex set below is ported 1:1 to its type
+// equivalent (D5) rather than re-guessing from room_id/label.
+const isCorridorLike = (type: string) =>
+    ['circulation', 'hall', 'landing', 'void', 'foyer', 'stairwell'].includes(type);
+const isSubRoom = (type: string) =>
+    ['bathroom', 'wardrobe', 'dressing'].includes(type);
+const isBath = (type: string) => type === 'bathroom';
+const isHabitable = (type: string) =>
+    !isCorridorLike(type) && !isSubRoom(type) &&
+    ['bedroom', 'master_bedroom', 'living_room', 'dining_room', 'family_room',
+     'kitchen', 'office', 'study'].includes(type);
 
 export interface ValidationIssue {
     room_id: string;
@@ -53,24 +59,25 @@ function touchesExternal(r: PlacedRoom, buildingW: number, buildingH: number, to
 
 export function validatePlacement(
     rooms: PlacedRoom[],
+    typeOf: (room_id: string) => string,
     labelOf: (room_id: string) => string,
     buildingW: number,
     buildingH: number,
     floorIndex: number
 ): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
-    // "Hub" rooms are large social rects that other rooms can open into
-    // directly, same as a corridor — living/great/lounge/dining qualify.
     const connectors = rooms.filter(r => {
-        const label = labelOf(r.room_id);
-        return isCorridorLike(label) || /living|lounge|great|dining|family/i.test(label);
+        const type = typeOf(r.room_id);
+        return isCorridorLike(type) ||
+            ['living_room', 'dining_room', 'family_room'].includes(type);
     });
 
     for (const room of rooms) {
-        const label = labelOf(room.room_id);
-        if (isCorridorLike(label)) continue;
+        const type = typeOf(room.room_id);
+        const label = labelOf(room.room_id); // display text only, not classification
+        if (isCorridorLike(type)) continue;
 
-        if (!isSubRoom(label)) {
+        if (!isSubRoom(type)) {
             const reaches = connectors.some(c => c.room_id !== room.room_id && sharesWall(room, c));
             if (!reaches) {
                 issues.push({
@@ -81,7 +88,7 @@ export function validatePlacement(
             }
         }
 
-        if (isHabitable(label) && !touchesExternal(room, buildingW, buildingH)) {
+        if (isHabitable(type) && !touchesExternal(room, buildingW, buildingH)) {
             issues.push({
                 room_id: room.room_id,
                 rule: 'EXTERNAL_WALL',
@@ -89,7 +96,7 @@ export function validatePlacement(
             });
         }
 
-        if (isBath(label) && !touchesExternal(room, buildingW, buildingH)) {
+        if (isBath(type) && !touchesExternal(room, buildingW, buildingH)) {
             issues.push({
                 room_id: room.room_id,
                 rule: 'BATH_VENTILATION',
