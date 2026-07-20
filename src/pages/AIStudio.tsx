@@ -677,6 +677,26 @@ const AIStudio = () => {
                     });
                     finalDesignData.solvedLayout = solved;
                     console.log("Client-side TS Solver generated geometry successfully.", solved);
+                    
+                    // TEMPORARY — Phase 1 Step 1 verification only. Delete once graph.ts
+                    // output is confirmed correct against a live payload. Safe to remove
+                    // any time; touches nothing downstream.
+                    try {
+                        const { buildGraph, identifyHubs, deriveSuites, findMustTouchPairs, suiteEdgeKeys } =
+                            await import('@/lib/aec/solver/engine_v2/graph');
+                        const graph = buildGraph(finalDesignData.rooms);
+                        console.log('[GRAPH_DEBUG] Parsed graph nodes:', Array.from(graph.nodes.values()));
+                        for (const floorIdx of [0, 1]) {
+                            const hubs = identifyHubs(graph, floorIdx);
+                            const suites = deriveSuites(graph, floorIdx);
+                            const pairs = findMustTouchPairs(graph, floorIdx, new Set(hubs.map(h => h.id)), suiteEdgeKeys(suites));
+                            console.log(`[GRAPH_DEBUG] Floor ${floorIdx} hubs:`, hubs.map(h => `${h.label} (degree ${h.degree})`));
+                            console.log(`[GRAPH_DEBUG] Floor ${floorIdx} suites:`, suites);
+                            console.log(`[GRAPH_DEBUG] Floor ${floorIdx} must-touch pairs:`, pairs);
+                        }
+                    } catch (e) {
+                        console.warn('[GRAPH_DEBUG] graph module check failed:', e);
+                    }
                     console.log('[SOLVER_DEBUG] placedRooms:', JSON.stringify(solved.placed_rooms, null, 2));
 
                     // Run deterministic compliance check against NBC 2006 rules
