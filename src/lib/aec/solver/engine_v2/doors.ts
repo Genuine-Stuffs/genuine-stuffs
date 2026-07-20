@@ -56,25 +56,27 @@ export interface PlacementResult {
     windows: WindowSpec[];
 }
 
-// ── Type-based classification (Hive `type` is authoritative — D5) ─────────
+// ── Type-based classification (Hive `type` is authoritative — D5) ──────────
 // These take the canonical Hive type string, not a room_id/label, and are
 // checked by equality against graph.ts's own TYPE_TO_ZONE vocabulary —
 // no independent regex classifier.
 
-const isCorridor  = (type: string) => type === 'circulation' || type === 'hall' || type === 'landing' || type === 'void';
-const isStair     = (type: string) => type === 'stairwell';
-const isGarage    = (type: string) => type === 'garage';
-const isBath      = (type: string) => type === 'bathroom';
-const isWardrobe  = (type: string) => type === 'wardrobe' || type === 'dressing';
-const isBedroom   = (type: string) => type === 'bedroom' || type === 'master_bedroom';
-const isService   = (type: string) => isBath(type) || isWardrobe(type);
+const isCorridor = (type: string) =>
+    type === 'circulation' || type === 'hall' || type === 'landing' || type === 'void';
+const isStair    = (type: string) => type === 'stairwell';
+const isGarage   = (type: string) => type === 'garage';
+const isBath     = (type: string) => type === 'bathroom';
+const isWardrobe = (type: string) => type === 'wardrobe' || type === 'dressing';
+const isBedroom  = (type: string) => type === 'bedroom' || type === 'master_bedroom';
+const isService  = (type: string) => isBath(type) || isWardrobe(type);
 
 // ── Shared wall detection ──────────────────────────────────────────────────
 
 interface PlacedRect {
     room_id: string;
-    type: string;   // Hive type, or a synthetic marker the caller supplies
-                     // for solver-placed circulation (corridor/stairwell/void)
+    /** Hive type, or a synthetic marker the caller supplies
+     *  for solver-placed circulation (corridor/stairwell/void). */
+    type: string;
     x: number; y: number; width: number; depth: number;
 }
 
@@ -110,8 +112,8 @@ function wallScore(neighbourType: string, currentType: string): number {
     // Bathroom → open into its bedroom
     if (isService(currentType) && isBedroom(neighbourType))  return 90;
 
-    if (isGarage(neighbourType))   return 0;  // never door into garage
-    if (isService(neighbourType))  return 5;  // avoid service-to-service
+    if (isGarage(neighbourType))  return 0;  // never door into garage
+    if (isService(neighbourType)) return 5;  // avoid service-to-service
     return 20;
 }
 
@@ -136,7 +138,7 @@ function externalEdges(
 /**
  * Compute door and window specs for all rooms on a single floor.
  *
- * @param rooms        All placed rooms on this floor
+ * @param rooms        All placed rooms on this floor (must carry a `type` field)
  * @param buildingW    Building bounding-box width in metres
  * @param buildingH    Building bounding-box height (depth) in metres
  */
@@ -149,11 +151,11 @@ export function computePlacement(
     const windows: WindowSpec[] = [];
 
     for (const room of rooms) {
-        const id = room.room_id;
+        const id   = room.room_id;
         const type = room.type;
 
         // Corridor and void: no door, no window
-        if (isCorridor(type) || id.toLowerCase().includes('void')) continue;
+        if (isCorridor(type)) continue;
 
         // ── DOOR PLACEMENT ─────────────────────────────────────────────────
         if (!isGarage(type)) {
@@ -196,7 +198,7 @@ export function computePlacement(
                     ? room.width
                     : room.depth;
 
-                const narrow   = isBath(id) || isStair(id) || isWardrobe(id);
+                const narrow   = isBath(type) || isStair(type) || isWardrobe(type);
                 const winWidth = narrow
                     ? Math.min(0.6, wallLen * 0.4)
                     : Math.min(wallLen * 0.55, 2.4);

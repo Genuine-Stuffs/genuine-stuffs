@@ -66,6 +66,8 @@ export function validatePlacement(
     floorIndex: number
 ): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
+    // "Hub" rooms are large social rects that other rooms can open into
+    // directly, same as a corridor — living/great/lounge/dining/family qualify.
     const connectors = rooms.filter(r => {
         const type = typeOf(r.room_id);
         return isCorridorLike(type) ||
@@ -73,7 +75,7 @@ export function validatePlacement(
     });
 
     for (const room of rooms) {
-        const type = typeOf(room.room_id);
+        const type  = typeOf(room.room_id);
         const label = labelOf(room.room_id); // display text only, not classification
         if (isCorridorLike(type)) continue;
 

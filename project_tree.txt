@@ -1,0 +1,247 @@
+.
+|-- Genuine_Stuffs_Product_Description.txt
+|-- IMPLEMENTATION_PLAN.txt
+|-- OpenRouter_Integration_Guide.txt
+|-- README.md
+|-- _headers
+|-- backend
+|   |-- check_images.sql
+|   |-- fix_broken_images.sql
+|   |-- fix_professionals_rls.sql
+|   |-- fix_rls_and_location.sql
+|   |-- migration_fix.sql
+|   |-- orders_and_promotions.sql
+|   |-- professional_engagement.sql
+|   |-- professional_profiles.sql
+|   |-- reassign_products.sql
+|   |-- schema.sql
+|   |-- seed.sql
+|   |-- seed_engagement.sql
+|   |-- seed_more_materials.sql
+|   |-- seed_professionals.sql
+|   |-- supabaseClient.ts
+|   |-- types.ts
+|   |-- universal_sync.sql
+|   `-- update_all_prices.sql
+|-- bun.lockb
+|-- check_materials.mjs
+|-- components.json
+|-- docs
+|   |-- PLATFORM_USER_MODEL.md
+|   |-- compliance
+|   |   `-- professional_design_standards.md
+|   |-- development
+|   |   `-- aec_production_guidelines.md
+|   |-- research
+|   |   `-- dashboard_research_report.md
+|   |-- roadmaps
+|   |   `-- ai_studio_roadmap.md
+|   `-- updates
+|       `-- aec_engine_v2_release_notes.md
+|-- eslint.config.js
+|-- get_icons.py
+|-- index.html
+|-- netlify.toml
+|-- package-lock.json
+|-- package.json
+|-- postcss.config.js
+|-- project-structure.txt
+|-- project_tree.txt
+|-- src
+|   |-- App.css
+|   |-- App.tsx
+|   |-- assets
+|   |   |-- consultation-meeting.jpg
+|   |   |-- hero
+|   |   |   |-- cityscape.png
+|   |   |   |-- construction.png
+|   |   |   |-- highrise.png
+|   |   |   |-- town_after_1.png
+|   |   |   |-- town_after_2.png
+|   |   |   |-- town_before_1.png
+|   |   |   `-- town_before_2.png
+|   |   |-- hero-construction.jpg
+|   |   |-- logo-full-dark-with-text.png
+|   |   |-- logo-full-light-with-text.png
+|   |   |-- materials-quality.jpg
+|   |   `-- thematic
+|   |       |-- trust.png
+|   |       `-- value.png
+|   |-- components
+|   |   |-- BottomNav.tsx
+|   |   |-- CreditInfo.tsx
+|   |   |-- Footer.tsx
+|   |   |-- Logo.tsx
+|   |   |-- ModeToggle.tsx
+|   |   |-- NavLink.tsx
+|   |   |-- Navbar.tsx
+|   |   |-- ScrollToTop.tsx
+|   |   |-- ThemeProvider.tsx
+|   |   |-- VerificationBanner.tsx
+|   |   |-- admin
+|   |   |   |-- ContentModerationTable.tsx
+|   |   |   |-- IncidentReportTable.tsx
+|   |   |   `-- ManagementTable.tsx
+|   |   |-- aec
+|   |   |   |-- AECBillOfQuantities.tsx
+|   |   |   |-- AECFloorPlan.tsx
+|   |   |   `-- AECMassingView.tsx
+|   |   |-- auth
+|   |   |   `-- ProtectedRoute.tsx
+|   |   |-- blog
+|   |   |   `-- BlogCard.tsx
+|   |   |-- pro
+|   |   |   |-- AddExperienceDialog.tsx
+|   |   |   |-- EditIntroDialog.tsx
+|   |   |   `-- ExperienceCard.tsx
+|   |   |-- ui
+|   |   |   |-- accordion.tsx
+|   |   |   |-- alert-dialog.tsx
+|   |   |   |-- alert.tsx
+|   |   |   |-- aspect-ratio.tsx
+|   |   |   |-- avatar.tsx
+|   |   |   |-- badge.tsx
+|   |   |   |-- breadcrumb.tsx
+|   |   |   |-- button.tsx
+|   |   |   |-- calendar.tsx
+|   |   |   |-- card.tsx
+|   |   |   |-- carousel.tsx
+|   |   |   |-- chart.tsx
+|   |   |   |-- checkbox.tsx
+|   |   |   |-- collapsible.tsx
+|   |   |   |-- command.tsx
+|   |   |   |-- context-menu.tsx
+|   |   |   |-- dialog.tsx
+|   |   |   |-- drawer.tsx
+|   |   |   |-- dropdown-menu.tsx
+|   |   |   |-- form.tsx
+|   |   |   |-- hover-card.tsx
+|   |   |   |-- input-otp.tsx
+|   |   |   |-- input.tsx
+|   |   |   |-- label.tsx
+|   |   |   |-- menubar.tsx
+|   |   |   |-- navigation-menu.tsx
+|   |   |   |-- pagination.tsx
+|   |   |   |-- popover.tsx
+|   |   |   |-- progress.tsx
+|   |   |   |-- radio-group.tsx
+|   |   |   |-- resizable.tsx
+|   |   |   |-- scroll-area.tsx
+|   |   |   |-- select.tsx
+|   |   |   |-- separator.tsx
+|   |   |   |-- sheet.tsx
+|   |   |   |-- sidebar.tsx
+|   |   |   |-- skeleton.tsx
+|   |   |   |-- slider.tsx
+|   |   |   |-- sonner.tsx
+|   |   |   |-- switch.tsx
+|   |   |   |-- table.tsx
+|   |   |   |-- tabs.tsx
+|   |   |   |-- textarea.tsx
+|   |   |   |-- toast.tsx
+|   |   |   |-- toaster.tsx
+|   |   |   |-- toggle-group.tsx
+|   |   |   |-- toggle.tsx
+|   |   |   |-- tooltip.tsx
+|   |   |   `-- use-toast.ts
+|   |   `-- vendor
+|   |       |-- AddMaterialDialog.tsx
+|   |       |-- BottomNav.tsx
+|   |       `-- VendorSidebar.tsx
+|   |-- context
+|   |   |-- AuthContext.tsx
+|   |   `-- CartContext.tsx
+|   |-- data
+|   |   `-- materials.ts
+|   |-- hooks
+|   |   |-- use-mobile.tsx
+|   |   |-- use-toast.ts
+|   |   `-- useAdminData.ts
+|   |-- index.css
+|   |-- lib
+|   |   |-- aec
+|   |   |   |-- README.md
+|   |   |   |-- compliance_engine.ts
+|   |   |   |-- compliance_rules.json
+|   |   |   |-- ifc
+|   |   |   |   `-- authoring.ts
+|   |   |   |-- solver
+|   |   |   |   |-- engine.ts
+|   |   |   |   |-- engine_v2
+|   |   |   |   |   |-- doors.ts
+|   |   |   |   |   |-- graph.ts
+|   |   |   |   |   |-- index.ts
+|   |   |   |   |   |-- placement_validator.ts
+|   |   |   |   |   |-- shapes.ts
+|   |   |   |   |   |-- treemap.ts
+|   |   |   |   |   `-- zones.ts
+|   |   |   |   |-- index.ts
+|   |   |   |   |-- nigerian_rules.ts
+|   |   |   |   |-- strategies
+|   |   |   |   |   |-- courtyard_spine.ts
+|   |   |   |   |   |-- front_back_split.ts
+|   |   |   |   |   `-- index.ts
+|   |   |   |   |-- structural.ts
+|   |   |   |   `-- types.ts
+|   |   |   |-- test_e2e.ts
+|   |   |   `-- validation
+|   |   |       |-- gate.ts
+|   |   |       `-- repair.ts
+|   |   `-- utils.ts
+|   |-- main.tsx
+|   |-- pages
+|   |   |-- AIDocumentation.tsx
+|   |   |-- AIStudio.tsx
+|   |   |-- About.tsx
+|   |   |-- AdminHome.tsx
+|   |   |-- BlogAdmin.tsx
+|   |   |-- BlogList.tsx
+|   |   |-- BlogPost.tsx
+|   |   |-- Calculators.tsx
+|   |   |-- Cart.tsx
+|   |   |-- ClientProfile.tsx
+|   |   |-- Contact.tsx
+|   |   |-- EditProProfile.tsx
+|   |   |-- HelpSupport.tsx
+|   |   |-- HireExperts.tsx
+|   |   |-- Index.tsx
+|   |   |-- Login.tsx
+|   |   |-- Marketplace.tsx
+|   |   |-- NotFound.tsx
+|   |   |-- PMDashboard.tsx
+|   |   |-- ProDashboard.tsx
+|   |   |-- ProfessionalProfile.tsx
+|   |   |-- Pros.tsx
+|   |   |-- Register.tsx
+|   |   |-- Resources.tsx
+|   |   |-- Services.tsx
+|   |   |-- Settings.tsx
+|   |   |-- SystemMaintenance.tsx
+|   |   |-- VendorAnalytics.tsx
+|   |   |-- VendorDashboard.tsx
+|   |   |-- VendorInventory.tsx
+|   |   |-- VendorOrders.tsx
+|   |   `-- VendorSettings.tsx
+|   `-- vite-env.d.ts
+|-- supabase
+|   |-- config.toml
+|   |-- functions
+|   |   |-- ai-studio
+|   |   |   |-- index.ts
+|   |   |   `-- schema.ts
+|   |   `-- set-admin-claims
+|   |       `-- index.ts
+|   `-- migrations
+|       |-- add_subscription_status_to_professionals.sql
+|       |-- create_audit_log_table.sql
+|       `-- create_blog_posts_table.sql
+|-- tailwind.config.ts
+|-- test_solver.ts
+|-- tsconfig.app.json
+|-- tsconfig.json
+|-- tsconfig.node.json
+|-- update_images.py
+|-- vercel.json
+`-- vite.config.ts
+
+36 directories, 209 files

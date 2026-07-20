@@ -28,7 +28,7 @@ const ROOM_FILLS: Record<string, { fill: string; stroke: string; textColor: stri
   default:   { fill: '#F8FAFC', stroke: '#94A3B8', textColor: '#334155' },
 };
 
-// Hive `type` → ROOM_FILLS key. This is the primary path.
+// Hive `type` → ROOM_FILLS key. Primary path — avoids label-regex matching.
 const TYPE_TO_FILL_KEY: Record<string, string> = {
   living_room: 'living', family_room: 'living', foyer: 'foyer',
   dining_room: 'dining', kitchen: 'kitchen', pantry: 'pantry',
@@ -38,7 +38,7 @@ const TYPE_TO_FILL_KEY: Record<string, string> = {
   stairwell: 'stairwell', void: 'void',
 };
 
-const getRoomFill = (room_id: string, type: string) => {
+const getRoomFill = (room_id: string, type: string = 'unknown') => {
   if (type !== 'unknown' && TYPE_TO_FILL_KEY[type]) {
     return ROOM_FILLS[TYPE_TO_FILL_KEY[type]];
   }
@@ -139,21 +139,30 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   const getDoorWall = (room: any): 'top' | 'bottom' | 'left' | 'right' => {
     const roomRight  = room.x + room.width;
     const roomBottom = room.y + room.depth;
+
+    // Score each wall by what's on the other side
+    // Higher score = better door position
     const scores = { top: 0, bottom: 0, left: 0, right: 0 };
-    const currentType = resolveRoomType(room.room_id);
 
     for (const neighbour of activeRooms) {
       if (neighbour.room_id === room.room_id) continue;
       const nRight  = neighbour.x + neighbour.width;
       const nBottom = neighbour.y + neighbour.depth;
+
       const nType = resolveRoomType(neighbour.room_id);
+      const currentType = resolveRoomType(room.room_id);
 
       const isCorridor = ['circulation', 'hall', 'landing', 'stairwell'].includes(nType);
-      const isLivingNeighbour = ['living_room', 'dining_room', 'family_room'].includes(nType);
-      const isServiceNeighbour = ['bathroom', 'wardrobe', 'dressing', 'store', 'garage'].includes(nType);
-      const isBedroomNeighbour = ['bedroom', 'master_bedroom'].includes(nType);
-      const currentRoomIsBath = currentType === 'bathroom';
 
+      const isLivingNeighbour =
+        ['living_room', 'dining_room', 'family_room'].includes(nType);
+
+      const isServiceNeighbour =
+        ['bathroom', 'wardrobe', 'dressing', 'store', 'garage'].includes(nType);
+
+      // Bathrooms open into their parent bedroom (score 9), not toward corridor
+      const isBedroomNeighbour = ['bedroom', 'master_bedroom'].includes(nType);
+      const currentRoomIsBath  = currentType === 'bathroom';
 
       const score = isCorridor ? 10
         : (currentRoomIsBath && isBedroomNeighbour) ? 9
@@ -371,8 +380,10 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     const showLabel = rw > 40 && rh > 30;
 
     const { fill, stroke, textColor } = getRoomFill(room.room_id, resolveRoomType(room.room_id));
-    const isCorridorOrVoid = room.room_id.toLowerCase().includes('corridor') ||
-                             room.room_id.toLowerCase().includes('void');
+    const rType = resolveRoomType(room.room_id);
+    const isCorridorOrVoid = rType === 'circulation' || rType === 'hall' ||
+                             rType === 'landing' || rType === 'void' ||
+                             room.room_id.startsWith('corridor_floor');
 
     const edges = getExternalEdges(room);
     // Wall band thickness in px: external=5, internal=2
