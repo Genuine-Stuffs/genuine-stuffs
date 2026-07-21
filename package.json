@@ -9,7 +9,8 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "supabase": "supabase"
+    "supabase": "supabase",
+    "harness": "tsx src/lib/aec/solver/engine_v2/__harness__/run.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -90,6 +91,7 @@
     "postcss": "^8.5.6",
     "supabase": "^2.91.1",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vite": "^5.4.19",
