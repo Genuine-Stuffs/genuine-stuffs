@@ -40,7 +40,10 @@ function splitWingBridge(
         : { x: secondary.x, y: secondary.y, width: secondary.width, height: corridorD_m };
 }
 
-export function buildFootprintGrid(footprint: BuildingFootprint): {
+export function buildFootprintGrid(
+    footprint: BuildingFootprint,
+    reservedRects_m: Array<{ x_m: number; y_m: number; w_m: number; h_m: number }> = []
+): {
     grid: OccupancyGrid; combinedW_m: number; combinedH_m: number;
 } {
     const { primary, secondary } = footprint;
@@ -65,6 +68,17 @@ export function buildFootprintGrid(footprint: BuildingFootprint): {
         grid.place({
             x_cells: metersToCells(bridge_m.x), y_cells: metersToCells(bridge_m.y),
             w_cells: Math.max(1, metersToCells(bridge_m.width)), h_cells: Math.max(1, metersToCells(bridge_m.height)),
+        }, RESERVED_IDX);
+    }
+
+    // Caller-supplied fixed rects (corridor bands, stairwell) — computed
+    // by index.ts's own geometry, Phase 4 wiring. Reserved the same way
+    // as the wing bridge: pre-occupied cells the search must route around,
+    // never a room it chooses where to put.
+    for (const r of reservedRects_m) {
+        grid.place({
+            x_cells: metersToCells(r.x_m), y_cells: metersToCells(r.y_m),
+            w_cells: Math.max(1, metersToCells(r.w_m)), h_cells: Math.max(1, metersToCells(r.h_m)),
         }, RESERVED_IDX);
     }
 

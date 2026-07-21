@@ -1,23 +1,22 @@
 /**
  * Genuine Stuffs AI Studio · Solver V2 · Entry Point
  * ═══════════════════════════════════════════════════════════════════════════
- * PHASE D · 26 June 2026
+ * PHASE 4 · July 2026 · "Wire In"
  *
- * Wires treemap.ts + zones.ts + shapes.ts into a complete layout algorithm.
- * Replaces the Phase A 3-column scaffold with real squarified subdivision.
+ * zones.ts's front/social–side/service–rear/private banding and
+ * treemap.ts's squarify are GONE. Every room is now placed directly
+ * against the combined buildable footprint by solvePlacement() (Phase 3),
+ * using graph.ts's real must-touch/suite/hub data instead of a hardcoded
+ * "social always at the front" assumption.
  *
- * Algorithm sequence (per floor):
- *   1. Classify rooms into social / service / private / circ zones
- *   2. Select building footprint shape (RECTANGLE / L_SHAPE / T_SHAPE)
- *   3. Allocate zone rectangles within the footprint
- *   4. Run squarified treemap inside each zone rectangle
- *   5. Nest service sub-rooms (bath, wardrobe) inside bedroom footprints
- *   6. Place corridor band between social and private zones
- *   7. Place stairwell at zone junction (duplex ground floor)
- *   8. Mirror stairwell void on upper floor
+ * Corridor bands and the stairwell are still computed here as fixed
+ * geometry (unchanged responsibility) and pre-placed into the solver's
+ * occupancy grid via reservedRects — the solver treats them as already-
+ * occupied cells, not rooms it chooses where to put.
  *
- * Feature flag: USE_SOLVER_V2 in AIStudio.tsx (currently false).
- * This file is production-safe — it is only reached when that flag is true.
+ * treemap.ts and zones.ts are no longer imported anywhere in this file.
+ * Per Phase 4's task list, both are safe to delete once this is confirmed
+ * working end-to-end — not done in this commit, pending human test.
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
@@ -27,14 +26,14 @@ import {
     PlacedRoom
 } from "../../../../../supabase/functions/ai-studio/schema";
 import { PlotEnvelope, SolverOptions } from "../types";
-import { squarify, TreemapBounds } from "./treemap";
-import { groupByZone, allocateZones, RoomWithZone } from "./zones";
 import { buildGraph, HiveRoom, ZoneType } from "./graph";
 import { selectFootprint, createRng } from "./shapes";
-import { validatePlacement } from "./placement_validator";
+import { solvePlacement } from "./solver";
+import { SolverConfig } from "./solver/types";
+import { ValidationIssue } from "./placement_validator";
 
 // ──────────────────────────────────────────────────────────────────────────
-// Public entry point — same signature as solveLayout() in engine.ts
+// Public entry point — same signature as before
 // ──────────────────────────────────────────────────────────────────────────
 
 export function solveLayoutV2(
@@ -43,17 +42,11 @@ export function solveLayoutV2(
     options?: SolverOptions
 ): SolvedLayout {
 
-    // ── Schema guards (dual-field, same pattern as engine.ts) ─────────────
     const sourceRooms: any[] = (program as any).rooms ?? [];
     const briefRef  = (program as any).brief_reference ?? {};
     const briefStoreys = briefRef.floors ?? briefRef.storeys ?? 1;
     const storeys   = (options as any)?.floors_override ?? briefStoreys;
 
-    // ── graph.ts::classifyRoom() is now the ONLY room classifier (D5).
-    // Build the type-authoritative graph once, then carry its per-room
-    // zone/type through into the plain `rooms` shape every downstream
-    // step already expects. `adjacencies` is preserved too, even though
-    // this phase doesn't yet consume it — Phase 3's solver will.
     const hiveRooms: HiveRoom[] = sourceRooms.map((r: any, idx: number) => ({
         room_id:     r.room_id ?? r.id ?? `room_${idx}`,
         name:        r.name ?? r.room_name ?? r.room_type ?? r.category,
@@ -63,6 +56,7 @@ export function solveLayoutV2(
         width_m:     r.width_m,
         span_m:      r.span_m,
         adjacencies: r.adjacencies ?? r.adjacent_to ?? [],
+        uses_intermediate_columns: r.uses_intermediate_columns,
     }));
     const graph = buildGraph(hiveRooms);
 
@@ -77,25 +71,22 @@ export function solveLayoutV2(
             floor: r.floor     ?? r.target_floor ?? 0,
             zone:  node?.zone ?? ('private' as ZoneType),
             type:  r.type ?? 'unknown',
-            adjacencies: r.adjacencies ?? r.adjacent_to ?? [],
         };
     });
 
     const hasUpperFloorRooms = rooms.some(r => r.floor === 1);
     const isDuplex = storeys > 1 || hasUpperFloorRooms;
 
-    // Buildable envelope
     const bW = Math.max(envelope.width - envelope.setbacks.left - envelope.setbacks.right, 8);
     const bD = Math.max(envelope.depth - envelope.setbacks.front - envelope.setbacks.rear, 8);
 
     const placedRooms: PlacedRoom[] = [];
-    let stairCoords: TreemapBounds | null = null;
+    const allIssues: ValidationIssue[] = [];
+    let stairCoords: { x: number; y: number; width: number; height: number } | null = null;
+    let totalNodesExplored = 0;
+    let anyFloorUnsolved = false;
     const floors = isDuplex ? [0, 1] : [0];
 
-    // Footprint is decided ONCE, from ground-floor room count, and reused
-    // for both floors — a second storey must sit on the exact envelope of
-    // the first (see shapes.ts). Pass options.seed for reproducible variants;
-    // omit it for genuine per-generation randomness.
     const rng = createRng((options as any)?.seed);
     const groundNonCirc = rooms.filter(r => r.floor === 0 && r.zone !== 'circ');
     const footprint = selectFootprint(
@@ -107,101 +98,102 @@ export function solveLayoutV2(
         console.log(`[SOLVER_V2] wing pattern=${footprint.pattern} shape=${footprint.shape}`);
     }
 
+    const combinedW = footprint.secondary
+        ? Math.max(footprint.primary.x + footprint.primary.width, footprint.secondary.x + footprint.secondary.width)
+        : footprint.primary.width;
+    const combinedH = footprint.secondary
+        ? Math.max(footprint.primary.y + footprint.primary.height, footprint.secondary.y + footprint.secondary.height)
+        : footprint.primary.height;
+
+    const CORRIDOR_D = 1.5; // ported constant, unchanged from zones.ts::allocateZones()
+    // FLAGGED FOR CONFIRMATION — zones.ts sized the ground-floor corridor
+    // band by actual social-vs-private/service room area ratio (zone-
+    // banding math, deleted this phase). Substituting zones.ts's own
+    // FALLBACK constant (0.40 — what it used when a floor had no rooms to
+    // compute a ratio from) as a fixed band position for every floor,
+    // since corridor placement is now a solver pre-placement concern, not
+    // a zone-sizing one. This changes band Y-position versus the old
+    // area-proportional version for floors with lopsided area ratios.
+    const GROUND_CORRIDOR_FRAC = 0.40;
+
+    const seedNum = (options as any)?.seed ?? Math.floor(Math.random() * 2 ** 31);
+
     for (const floorIndex of floors) {
         const floorRooms = rooms.filter(r => r.floor === floorIndex);
         if (floorRooms.length === 0) continue;
 
-        // ── 2. Zone grouping ──────────────────────────────────────────────
-        const byZone = groupByZone(floorRooms);
+        // ── Corridor band(s) — fixed geometry, unchanged responsibility ────
+        const corridorBounds: Array<{ x: number; y: number; width: number; height: number }> = [];
+        let corridorY: number;
+        if (floorIndex === 0) {
+            const socialH = footprint.primary.height * GROUND_CORRIDOR_FRAC;
+            corridorY = footprint.primary.y + socialH;
+        } else {
+            // Upper floor: fixed band at the top — this WAS already fixed
+            // in zones.ts (not area-proportional), unchanged.
+            corridorY = footprint.primary.y;
+        }
+        corridorBounds.push({ x: footprint.primary.x, y: corridorY, width: footprint.primary.width, height: CORRIDOR_D });
 
-        // ── 3. Zone rectangle allocation ─────────────────────────────────
-        const { allocations, corridorBounds } = allocateZones(footprint, byZone, floorIndex);
-
-        // ── 4. Place corridor band(s) ───────────────────────────────────
         corridorBounds.forEach((band, i) => {
             placedRooms.push({
                 room_id: `corridor_floor${floorIndex}_${i}`,
-                floor:   floorIndex,
-                x:       band.x,
-                y:       band.y,
-                width:   band.width,
-                depth:   band.height,
+                floor: floorIndex, x: band.x, y: band.y, width: band.width, depth: band.height,
             });
         });
 
-        // ── 5. Place stairwell (ground floor, duplex only) ────────────────
+        // ── Stairwell (ground floor, duplex only) — unchanged geometry ─────
         if (floorIndex === 0 && isDuplex) {
-            const stairW = 2.4;
-            const stairD = 3.6;
+            const stairW = 2.4, stairD = 3.6;
             const stairX = footprint.primary.x + footprint.primary.width - stairW;
-            // Place stairwell flush against the TOP of the corridor band so
-            // they share a wall — this satisfies CORRIDOR_ADJACENCY in the
-            // validator. Previously used footprint.primary.y (=0) which left
-            // a gap equal to (corridorY - stairD) between them.
-            const mainCorridorY = corridorBounds.length > 0 ? corridorBounds[0].y : footprint.primary.y;
-            const stairY = mainCorridorY - stairD;
-            stairCoords = { x: stairX, y: Math.max(stairY, footprint.primary.y), width: stairW, height: stairD };
-            placedRooms.push({
-                room_id: 'stairwell',
-                floor:   0,
-                x:       stairCoords.x,
-                y:       stairCoords.y,
-                width:   stairCoords.width,
-                depth:   stairCoords.height,
-            });
+            const mainCorridorY = corridorBounds[0].y;
+            const stairY = Math.max(mainCorridorY - stairD, footprint.primary.y);
+            stairCoords = { x: stairX, y: stairY, width: stairW, height: stairD };
+            placedRooms.push({ room_id: 'stairwell', floor: 0, x: stairCoords.x, y: stairCoords.y, width: stairCoords.width, depth: stairCoords.height });
         }
-
-        // ── 6. Mirror stairwell void on upper floor ───────────────────────
         if (floorIndex === 1 && stairCoords) {
-            placedRooms.push({
-                room_id: 'stairwell_void',
-                floor:   1,
-                x:       stairCoords.x,
-                y:       stairCoords.y,
-                width:   stairCoords.width,
-                depth:   stairCoords.height,
-            });
+            placedRooms.push({ room_id: 'stairwell_void', floor: 1, x: stairCoords.x, y: stairCoords.y, width: stairCoords.width, depth: stairCoords.height });
         }
 
-        // ── 7. Treemap + suite nesting per zone ───────────────────────────
-        const combinedW = footprint.secondary
-            ? Math.max(footprint.primary.x + footprint.primary.width, footprint.secondary.x + footprint.secondary.width)
-            : footprint.primary.width;
-        const combinedH = footprint.secondary
-            ? Math.max(footprint.primary.y + footprint.primary.height, footprint.secondary.y + footprint.secondary.height)
-            : footprint.primary.height;
-
-        for (const allocation of allocations) {
-            packZone(
-                allocation.zone,
-                allocation.rooms,
-                allocation.bounds,
-                floorIndex,
-                placedRooms,
-                combinedW,
-                combinedH
-            );
+        // ── Reserve corridor + stairwell cells for the solver ───────────────
+        // The wing-bridge (L/T-shape connectivity strip) is reserved
+        // automatically inside buildFootprintGrid() — nothing to add here
+        // for that; only OUR fixed rects need declaring.
+        const reservedRects_m = corridorBounds.map(b => ({ x_m: b.x, y_m: b.y, w_m: b.width, h_m: b.height }));
+        if (floorIndex === 0 && stairCoords) {
+            reservedRects_m.push({ x_m: stairCoords.x, y_m: stairCoords.y, w_m: stairCoords.width, h_m: stairCoords.height });
+        }
+        if (floorIndex === 1 && stairCoords) {
+            reservedRects_m.push({ x_m: stairCoords.x, y_m: stairCoords.y, w_m: stairCoords.width, h_m: stairCoords.height });
         }
 
-        // ── 8. Validate this floor before moving to the next ──────────────
-        const floorRoomsPlaced = placedRooms.filter(r => r.floor === floorIndex);
-        const labelMap = new Map(rooms.map(r => [r.id, r.label]));
-        const typeMap  = new Map(rooms.map(r => [r.id, r.type]));
-        const labelOf = (id: string) => labelMap.get(id) || id;
-        // Synthetic solver-placed rooms (corridor bands, stairwell) aren't
-        // Hive rooms and have no graph node — they get an explicit type by
-        // exact id match, since these ids are code constants, not guesses.
-        const typeOf = (id: string): string => {
-            if (id === 'stairwell' || id === 'stairwell_void') return 'stairwell';
-            if (id.startsWith('corridor_floor')) return 'circulation';
-            return typeMap.get(id) ?? 'unknown';
-        };
-        validatePlacement(floorRoomsPlaced, typeOf, labelOf, combinedW, combinedH, floorIndex);
+        // ── Solve placement for every non-circ room on this floor ──────────
+        const config: SolverConfig = { budget_ms: 6000, areaTolerance: 0.10, seed: seedNum + floorIndex };
+        const result = solvePlacement(graph, footprint, floorIndex, hiveRooms, config, reservedRects_m);
+
+        if (result.status === 'UNSAT' || result.status === 'TIMEOUT') {
+            anyFloorUnsolved = true;
+            console.warn(`[SOLVER_V2] floor ${floorIndex}: ${result.status} — ${result.diagnostics.failedRoomId ?? 'no geometry produced'}`);
+        } else {
+            for (const p of result.placements) {
+                placedRooms.push({ room_id: p.id, floor: floorIndex, x: p.x_m, y: p.y_m, width: p.w_m, depth: p.h_m });
+            }
+        }
+        allIssues.push(...result.issues);
+        totalNodesExplored += result.diagnostics.nodesExplored;
+
+        console.log(`[SOLVER_V2] floor ${floorIndex}: ${result.status}` +
+            (result.relaxationsApplied.length ? ` (relaxed: ${result.relaxationsApplied.join(', ')})` : '') +
+            ` · ${result.issues.length} issue(s) · ${result.diagnostics.elapsed_ms.toFixed(0)}ms`);
+    }
+
+    if (allIssues.length > 0) {
+        console.warn(`[SOLVER_V2] ${allIssues.length} total placement issue(s) across all floors:`, allIssues);
     }
 
     console.log(
-        `[SOLVER_V2] Phase D · ${placedRooms.length} rooms placed · ` +
-        `duplex=${isDuplex} · floors=${floors.length}`
+        `[SOLVER_V2] Phase 4 · ${placedRooms.length} rooms placed · ` +
+        `duplex=${isDuplex} · floors=${floors.length} · nodesExplored=${totalNodesExplored}`
     );
 
     return {
@@ -209,328 +201,7 @@ export function solveLayoutV2(
         plot_width:              envelope.width,
         plot_depth:              envelope.depth,
         placed_rooms:            placedRooms,
-        solver_iterations_used:  0,
-        is_fully_connected:      true,
+        solver_iterations_used:  totalNodesExplored,
+        is_fully_connected:      !anyFloorUnsolved,
     };
-}
-
-// ──────────────────────────────────────────────────────────────────────────
-// Zone Packing
-// ──────────────────────────────────────────────────────────────────────────
-
-/**
- * Pack rooms for a single zone using squarified treemap.
- *
- * For PRIVATE zones: bedroom + service sub-rooms are packed as a unit.
- * Each bedroom gets a vertical strip. Service rooms (bath, wardrobe) are
- * nested inside that strip below the bedroom — they share the external wall.
- *
- * For SOCIAL and SERVICE zones: all rooms are packed flat with no nesting.
- */
-function packZone(
-    zone: string,
-    rooms: RoomWithZone[],
-    bounds: TreemapBounds,
-    floorIndex: number,
-    out: PlacedRoom[],
-    buildingW: number,
-    buildingH: number
-): void {
-    if (rooms.length === 0) return;
-    if (bounds.width <= 0 || bounds.height <= 0) return;
-
-    if (zone === 'private') {
-        packPrivateZone(rooms, bounds, floorIndex, out, buildingW, buildingH);
-    } else {
-        packFlatZone(rooms, bounds, floorIndex, out);
-    }
-}
-
-// ──────────────────────────────────────────────────────────────────────────
-// Flat Zone (social + service)
-// ──────────────────────────────────────────────────────────────────────────
-
-/**
- * Simple squarified treemap with no sub-room nesting.
- * Used for social (living/dining/kitchen) and service (garage) zones.
- */
-function packFlatZone(
-    rooms: RoomWithZone[],
-    bounds: TreemapBounds,
-    floorIndex: number,
-    out: PlacedRoom[]
-): void {
-    const items = rooms.map(r => ({
-        id:     r.id,
-        weight: Math.max(r.area, 4),
-    }));
-
-    const rects = squarify(items, bounds);
-
-    for (const rect of rects) {
-        const c = clampToBounds(rect.x, rect.y, rect.width, rect.height, bounds);
-        out.push({
-            room_id: rect.id,
-            floor:   floorIndex,
-            x:       c.x,
-            y:       c.y,
-            width:   c.width,
-            depth:   c.height,
-        });
-    }
-}
-
-// ──────────────────────────────────────────────────────────────────────────
-// Private Zone (bedrooms with nested bathrooms + wardrobes)
-// ──────────────────────────────────────────────────────────────────────────
-
-const SERVICE_SUB_KW = [
-    'bath','wc','toilet','shower','wardrobe','dressing','ensuite','en-suite'
-];
-const isSubRoom = (label: string) =>
-    SERVICE_SUB_KW.some(k => label.toLowerCase().includes(k));
-const isBedroom = (label: string) => {
-    if (isSubRoom(label)) return false; // sub-rooms are never bedrooms, even if named "Master ..."
-    const lo = label.toLowerCase();
-    return lo.includes('bedroom') || lo.includes('master');
-    // 'suite' alone dropped — it's redundant with 'master'/'bedroom' and
-    // collides with 'ensuite', which is a sub-room keyword.
-};
-
-// NEW — determine which side of a rect (if any) is on the building perimeter
-function externalSide(
-    rect: TreemapBounds, buildingW: number, buildingH: number, tol = 0.5
-): 'top' | 'bottom' | 'left' | 'right' | null {
-    if ((rect.y + rect.height) >= buildingH - tol) return 'bottom';
-    if (rect.y <= tol) return 'top';
-    if ((rect.x + rect.width) >= buildingW - tol) return 'right';
-    if (rect.x <= tol) return 'left';
-    return null;
-}
-
-/**
- * Pack the private zone as bedroom suites.
- *
- * Each bedroom is paired with its service sub-rooms.
- * The bedroom is run through the treemap as a single unit
- * (area = bedroom + all sub-room areas combined).
- * After treemap placement, the bedroom rectangle is subdivided:
- *   top portion   → bedroom (70% of suite depth)
- *   bottom portion → service sub-rooms side by side (30% of suite depth)
- *
- * This guarantees:
- *   - Bedroom touches corridor (top wall)
- *   - Bathroom touches external wall (bottom wall)
- *   - Sub-rooms never have external doors — only interior door to bedroom
- */
-function packPrivateZone(
-    rooms: RoomWithZone[],
-    bounds: TreemapBounds,
-    floorIndex: number,
-    out: PlacedRoom[],
-    buildingW: number,
-    buildingH: number
-): void {
-    // ── A. Pair bedrooms with their sub-rooms ─────────────────────────────
-    const bedrooms = rooms.filter(r => isBedroom(r.label));
-    const subRooms = rooms.filter(r => isSubRoom(r.label));
-    const other    = rooms.filter(r => !isBedroom(r.label) && !isSubRoom(r.label));
-
-    // Match sub-rooms to bedrooms by numeric suffix or master keyword
-    // If there are no bedrooms (e.g. office WCs), promote sub-rooms to
-    // standalone so they pack flat rather than stranding with no parent.
-    const orphanSubs = bedrooms.length === 0 ? subRooms : [];
-    const pairedSubs = bedrooms.length === 0 ? [] : subRooms;
-    const suites = buildSuites(bedrooms, pairedSubs);
-    // Orphaned sub-rooms join the flat pack alongside other rooms
-    const flatExtras = [...other, ...orphanSubs];
-
-    // ── B. Treemap on suite weights (bedroom + sub-room areas combined) ───
-    const suiteItems = suites.map(s => ({
-        id:     s.bedroom.id,
-        weight: s.totalArea,
-    }));
-
-    // Add non-bedroom, non-service private rooms (e.g. family lounge) +
-    // any orphaned sub-rooms (WCs in office briefs with no bedrooms)
-    const otherItems = flatExtras.map(r => ({
-        id:     r.id,
-        weight: Math.max(r.area, 6),
-    }));
-
-    const allItems = [...suiteItems, ...otherItems];
-    if (allItems.length === 0) return;
-
-    const rects = squarify(allItems, bounds);
-
-    // ── C. Place each suite (bedroom + sub-rooms subdivided vertically) ───
-    for (const rect of rects) {
-        const suite = suites.find(s => s.bedroom.id === rect.id);
-        // Clamp the treemap rect to the allocation bounds before
-        // subdividing for bath/wardrobe — prevents floating-point
-        // accumulation from pushing rooms outside the zone.
-        const cr = clampToBounds(rect.x, rect.y, rect.width, rect.height, bounds);
-
-        if (suite && suite.subs.length > 0) {
-            const BATH_D = 2.2;
-            const side = externalSide(
-                { x: cr.x, y: cr.y, width: cr.width, height: cr.height },
-                buildingW, buildingH
-            );
-            const bedDepth = Math.max(cr.height - BATH_D, 2.4);
-
-            const subBounds = (side === 'right')
-                ? { x: cr.x + cr.width - BATH_D, y: cr.y, width: BATH_D, height: cr.height }
-                : (side === 'left')
-                ? { x: cr.x, y: cr.y, width: BATH_D, height: cr.height }
-                : { x: cr.x, y: cr.y + bedDepth, width: cr.width, height: BATH_D };
-
-            const bedRect = (side === 'right')
-                ? { x: cr.x, y: cr.y, width: cr.width - BATH_D, height: cr.height }
-                : (side === 'left')
-                ? { x: cr.x + BATH_D, y: cr.y, width: cr.width - BATH_D, height: cr.height }
-                : { x: cr.x, y: cr.y, width: cr.width, height: bedDepth };
-
-            out.push({
-                room_id: suite.bedroom.id,
-                floor:   floorIndex,
-                x:       bedRect.x,
-                y:       bedRect.y,
-                width:   bedRect.width,
-                depth:   bedRect.height,
-            });
-            placeSubRooms(suite.subs, subBounds, floorIndex, out);
-        } else {
-            // Standalone room — use rect.id (the treemap's original id),
-            // NOT cr.id, since clampToBounds()'s return type has no id
-            // field. This was the likely TypeScript compile error in the
-            // previous attempt.
-            out.push({
-                room_id: rect.id,
-                floor:   floorIndex,
-                x:       cr.x,
-                y:       cr.y,
-                width:   cr.width,
-                depth:   cr.height,
-            });
-        }
-    }
-}
-
-/**
- * Place service sub-rooms (baths, wardrobes) side-by-side inside the given
- * rectangle using a simple equal-width split.
- */
-function placeSubRooms(
-    subs: RoomWithZone[],
-    bounds: TreemapBounds,
-    floorIndex: number,
-    out: PlacedRoom[]
-): void {
-    if (subs.length === 0) return;
-    const slotW = bounds.width / subs.length;
-    subs.forEach((sub, idx) => {
-        out.push({
-            room_id: sub.id,
-            floor:   floorIndex,
-            x:       bounds.x + idx * slotW,
-            y:       bounds.y,
-            width:   slotW,
-            depth:   bounds.height,
-        });
-    });
-}
-
-// ──────────────────────────────────────────────────────────────────────────
-// Suite Pairing
-// ──────────────────────────────────────────────────────────────────────────
-
-interface Suite {
-    bedroom:   RoomWithZone;
-    subs:      RoomWithZone[];
-    totalArea: number;
-}
-
-/**
- * Pair each bedroom with its service sub-rooms.
- *
- * Matching priority:
- *   1. Numeric suffix match: "Bedroom 2" ↔ "Bathroom 2", "Wardrobe 2"
- *   2. Master keyword match: "Master Suite" ↔ "Master Bath", "Walk-in Wardrobe"
- *   3. Round-robin fallback for any unmatched sub-rooms
- */
-function buildSuites(
-    bedrooms: RoomWithZone[],
-    subs: RoomWithZone[]
-): Suite[] {
-    const used = new Set<string>();
-
-    const suites: Suite[] = bedrooms.map(bed => {
-        const matched: RoomWithZone[] = [];
-        const bedNum     = bed.label.match(/\d+/)?.[0];
-        const bedMaster  = bed.label.toLowerCase().includes('master');
-
-        for (const sub of subs) {
-            if (used.has(sub.id)) continue;
-            const subNum    = sub.label.match(/\d+/)?.[0];
-            const subMaster = sub.label.toLowerCase().includes('master') ||
-                              sub.label.toLowerCase().includes('luxury') ||
-                              sub.label.toLowerCase().includes('walk-in') ||
-                              sub.label.toLowerCase().includes('walkin');
-
-            const numMatch    = !!(bedNum && subNum && bedNum === subNum);
-            const masterMatch = bedMaster && subMaster;
-
-            if (numMatch || masterMatch) {
-                matched.push(sub);
-                used.add(sub.id);
-            }
-        }
-
-        const totalArea = bed.area + matched.reduce((s, r) => s + r.area, 0);
-        return { bedroom: bed, subs: matched, totalArea };
-    });
-
-    // Round-robin remaining unmatched sub-rooms into existing suites.
-    // Guard: if there are no suites (no bedrooms in brief), skip silently —
-    // orphaned sub-rooms are promoted to flat packing in packPrivateZone.
-    if (suites.length > 0) {
-        subs.filter(s => !used.has(s.id)).forEach((sub, idx) => {
-            suites[idx % suites.length].subs.push(sub);
-            suites[idx % suites.length].totalArea += sub.area;
-        });
-    }
-
-    return suites;
-}
-
-// ──────────────────────────────────────────────────────────────────────────
-// Helpers
-// ──────────────────────────────────────────────────────────────────────────
-
-/**
- * Clamp a placed rect so it never exceeds the bounds that were passed to
- * squarify(). squarify() guarantees area-proportional placement but does
- * not guarantee that floating-point accumulation keeps every rect inside
- * the parent bounds. A rect that drifts 0.01m outside will fail
- * EXTERNAL_WALL or CORRIDOR_ADJACENCY checks that use a 0.5m tolerance.
- */
-function clampToBounds(
-    x: number, y: number, width: number, height: number,
-    bounds: TreemapBounds
-): { x: number; y: number; width: number; height: number } {
-    const x2 = Math.min(x + width,  bounds.x + bounds.width);
-    const y2 = Math.min(y + height, bounds.y + bounds.height);
-    const cx = Math.max(x, bounds.x);
-    const cy = Math.max(y, bounds.y);
-    return {
-        x:      cx,
-        y:      cy,
-        width:  Math.max(x2 - cx, 0.1),   // never produce zero-width
-        height: Math.max(y2 - cy, 0.1),
-    };
-}
-
-function snapTo(value: number, grid: number): number {
-    return Math.round(value / grid) * grid;
 }

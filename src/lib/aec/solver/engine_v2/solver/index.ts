@@ -19,14 +19,15 @@ export function solvePlacement(
     footprint: BuildingFootprint,
     floorIndex: number,
     rawRooms: HiveRoom[],
-    config: SolverConfig
+    config: SolverConfig,
+    reservedRects_m: Array<{ x_m: number; y_m: number; w_m: number; h_m: number }> = []
 ): SolveResult {
-    const { combinedW_m, combinedH_m } = buildFootprintGrid(footprint);
+    const { combinedW_m, combinedH_m } = buildFootprintGrid(footprint, reservedRects_m);
     const units = orderUnits(buildUnits(graph, floorIndex), graph, floorIndex);
     const hints = new Map(deriveDimensionHints(rawRooms.filter(r => r.floor === floorIndex)).map(h => [h.roomId, h]));
 
     const result = runWithRelaxation(
-        units, graph, () => buildFootprintGrid(footprint).grid,
+        units, graph, () => buildFootprintGrid(footprint, reservedRects_m).grid,
         combinedW_m, combinedH_m, config, hints
     );
 
