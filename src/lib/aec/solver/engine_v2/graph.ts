@@ -35,6 +35,7 @@ export interface HiveRoom {
     width_m?: number;
     span_m?: number;
     adjacencies?: string[];
+    uses_intermediate_columns?: boolean;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -118,6 +119,7 @@ export interface GraphNode {
     span: number;
     neighbors: Set<string>;
     degree: number;
+    usesIntermediateColumns: boolean;
 }
 
 export interface RoomGraph {
@@ -148,6 +150,7 @@ export function buildGraph(rooms: HiveRoom[]): RoomGraph {
             span:      r.span_m  ?? r.width_m ?? Math.sqrt(r.area_m2 ?? 9.0),
             neighbors: new Set(r.adjacencies ?? []),
             degree:    0, // computed after symmetrisation, below
+            usesIntermediateColumns: r.uses_intermediate_columns ?? false,
         });
         const floorList = floors.get(r.floor ?? 0) ?? [];
         floorList.push(r.room_id);
