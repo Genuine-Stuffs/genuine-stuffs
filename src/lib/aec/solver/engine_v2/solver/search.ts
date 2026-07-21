@@ -1,0 +1,195 @@
+/**
+ * Genuine Stuffs AI Studio · Solver V2 · Backtracking Search
+ * ═══════════════════════════════════════════════════════════════════════
+ * PHASE 3 · SESSION 3b · July 2026
+ *
+ * Notch/bridge reservation ported from zones.ts::splitWingForCorridor()
+ * (cited inline) — no zone-banding assumption, pure geometry, per the
+ * plan's explicit instruction. Suite subdivision ports index.ts's
+ * packPrivateZone() bedDepth/subBounds math, generalized to N sub-rooms.
+ * Corridor/stairwell FIXED placement stays Phase 4's job in index.ts —
+ * this file only reserves the wing-bridge strip as unplaceable circulation.
+ * ═══════════════════════════════════════════════════════════════════════
+ */
+
+import { OccupancyGrid, RectCells } from './grid';
+import { metersToCells, cellsToMeters } from './units';
+import { PlacedRect, SolverConfig, RoomDimensionHint } from './types';
+import { RoomGraph, Suite, deriveSuites, identifyHubs } from '../graph';
+import { BuildingFootprint } from '../shapes';
+import { RoomSpec, enumerateCandidates } from './candidates';
+import { insideFootprint } from './constraints';
+
+const RESERVED_IDX = 0xFFFE; // -> cell value 0xFFFF after +1 in grid.place(); never matches a real room index
+
+function xorshift32(seed: number): () => number {
+    let x = seed || 1;
+    return () => { x ^= x << 13; x ^= x >>> 17; x ^= x << 5; return ((x >>> 0) % 1000) / 1000; };
+}
+
+/** Ported from zones.ts::splitWingForCorridor() — same attached-right
+ * (L-shape) vs attached-below (T-shape) branch logic, cell-space caller. */
+function splitWingBridge(
+    primary: { x: number; y: number; width: number; height: number },
+    secondary: { x: number; y: number; width: number; height: number },
+    corridorD_m: number
+): { x: number; y: number; width: number; height: number } {
+    const attachedRight = Math.abs(secondary.x - (primary.x + primary.width)) < 0.05;
+    return attachedRight
+        ? { x: secondary.x, y: secondary.y, width: corridorD_m, height: secondary.height }
+        : { x: secondary.x, y: secondary.y, width: secondary.width, height: corridorD_m };
+}
+
+export function buildFootprintGrid(footprint: BuildingFootprint): {
+    grid: OccupancyGrid; combinedW_m: number; combinedH_m: number;
+} {
+    const { primary, secondary } = footprint;
+    const combinedW_m = secondary ? Math.max(primary.x + primary.width, secondary.x + secondary.width) : primary.width;
+    const combinedH_m = secondary ? Math.max(primary.y + primary.height, secondary.y + secondary.height) : primary.height;
+    const grid = new OccupancyGrid(combinedW_m, combinedH_m);
+
+    if (secondary) {
+        const inRect = (x: number, y: number, r: typeof primary) =>
+            x >= r.x && x < r.x + r.width && y >= r.y && y < r.y + r.height;
+
+        for (let cy = 0; cy < grid.heightCells; cy++) {
+            for (let cx = 0; cx < grid.widthCells; cx++) {
+                const x_m = cellsToMeters(cx), y_m = cellsToMeters(cy);
+                if (!inRect(x_m, y_m, primary) && !inRect(x_m, y_m, secondary)) {
+                    grid.place({ x_cells: cx, y_cells: cy, w_cells: 1, h_cells: 1 }, RESERVED_IDX);
+                }
+            }
+        }
+
+        const bridge_m = splitWingBridge(primary, secondary, 1.5);
+        grid.place({
+            x_cells: metersToCells(bridge_m.x), y_cells: metersToCells(bridge_m.y),
+            w_cells: Math.max(1, metersToCells(bridge_m.width)), h_cells: Math.max(1, metersToCells(bridge_m.height)),
+        }, RESERVED_IDX);
+    }
+
+    return { grid, combinedW_m, combinedH_m };
+}
+
+export interface SearchUnit {
+    ids: string[];
+    totalArea_m2: number;
+    isSuite: boolean;
+    suite?: Suite;
+}
+
+export function buildUnits(graph: RoomGraph, floorIndex: number): SearchUnit[] {
+    const ids = graph.floors.get(floorIndex) ?? [];
+    const suites = deriveSuites(graph, floorIndex);
+    const suiteRoomIds = new Set(suites.flatMap(s => [s.bedroomId, ...s.subIds]));
+
+    const units: SearchUnit[] = suites.map(s => ({ ids: [s.bedroomId, ...s.subIds], totalArea_m2: s.totalArea, isSuite: true, suite: s }));
+
+    for (const id of ids) {
+        if (suiteRoomIds.has(id)) continue;
+        const node = graph.nodes.get(id)!;
+        if (node.zone === 'circ') continue; // Phase 4 places circulation as fixed rects, not via search
+        units.push({ ids: [id], totalArea_m2: node.area, isSuite: false });
+    }
+    return units;
+}
+
+export function orderUnits(units: SearchUnit[], graph: RoomGraph, floorIndex: number): SearchUnit[] {
+    const hubIds = new Set(identifyHubs(graph, floorIndex).map(h => h.id));
+    const hubUnits = units.filter(u => u.ids.some(id => hubIds.has(id)));
+    const rest = units.filter(u => !u.ids.some(id => hubIds.has(id))).sort((a, b) => b.totalArea_m2 - a.totalArea_m2);
+    return [...hubUnits, ...rest];
+}
+
+/** Ports packPrivateZone()'s bedDepth/subBounds subdivision from
+ * index.ts, generalized from a single sub-room strip to N sub-rooms
+ * sharing the strip side-by-side. */
+function subdivideSuite(outer: RectCells, suite: Suite, gridW_cells: number, gridH_cells: number): Map<string, RectCells> {
+    const SUB_DEPTH = Math.max(2, metersToCells(2.2)); // ported constant: packPrivateZone's BATH_D
+    const touchesRight = (outer.x_cells + outer.w_cells) >= gridW_cells;
+    const touchesLeft = outer.x_cells === 0;
+    const touchesBottom = (outer.y_cells + outer.h_cells) >= gridH_cells;
+    const n = suite.subIds.length;
+    const result = new Map<string, RectCells>();
+    if (n === 0) { result.set(suite.bedroomId, outer); return result; }
+
+    if (touchesRight && !touchesBottom) {
+        const bedW = Math.max(2, outer.w_cells - SUB_DEPTH);
+        result.set(suite.bedroomId, { ...outer, w_cells: bedW });
+        const slot = Math.max(1, Math.floor(outer.h_cells / n));
+        suite.subIds.forEach((id, i) => result.set(id, {
+            x_cells: outer.x_cells + bedW, y_cells: outer.y_cells + i * slot,
+            w_cells: SUB_DEPTH, h_cells: i === n - 1 ? outer.h_cells - i * slot : slot,
+        }));
+    } else if (touchesLeft && !touchesBottom) {
+        result.set(suite.bedroomId, { ...outer, x_cells: outer.x_cells + SUB_DEPTH, w_cells: outer.w_cells - SUB_DEPTH });
+        const slot = Math.max(1, Math.floor(outer.h_cells / n));
+        suite.subIds.forEach((id, i) => result.set(id, {
+            x_cells: outer.x_cells, y_cells: outer.y_cells + i * slot,
+            w_cells: SUB_DEPTH, h_cells: i === n - 1 ? outer.h_cells - i * slot : slot,
+        }));
+    } else {
+        const bedH = Math.max(2, outer.h_cells - SUB_DEPTH);
+        result.set(suite.bedroomId, { ...outer, h_cells: bedH });
+        const slot = Math.max(1, Math.floor(outer.w_cells / n));
+        suite.subIds.forEach((id, i) => result.set(id, {
+            x_cells: outer.x_cells + i * slot, y_cells: outer.y_cells + bedH,
+            w_cells: i === n - 1 ? outer.w_cells - i * slot : slot, h_cells: SUB_DEPTH,
+        }));
+    }
+    return result;
+}
+
+export interface SearchOutcome {
+    placed: Map<string, RectCells>;
+    failedUnitIds?: string[];
+    nodesExplored: number;
+}
+
+/** Depth-first backtracking, budget-checked every 200 nodes (D4). */
+export function search(
+    units: SearchUnit[], graph: RoomGraph, grid: OccupancyGrid,
+    combinedW_m: number, combinedH_m: number,
+    config: SolverConfig, dimensionHints: Map<string, RoomDimensionHint>
+): SearchOutcome {
+    const startTime = performance.now();
+    const rng = xorshift32(config.seed);
+    let nodesExplored = 0;
+    const placed = new Map<string, RectCells>();
+    const placedIdx: RectCells[] = [];
+
+    function tryUnit(i: number): boolean {
+        if (i >= units.length) return true;
+        if (nodesExplored % 200 === 0 && (performance.now() - startTime) > config.budget_ms) return false;
+
+        const unit = units[i];
+        const spec: RoomSpec = {
+            id: unit.ids[0], targetArea_m2: unit.totalArea_m2, minWidth_m: 2.4,
+            dimensionHint: unit.ids.length === 1 ? dimensionHints.get(unit.ids[0]) : undefined,
+        };
+        const candidates = Array.from(enumerateCandidates(spec, grid.widthCells, grid.heightCells, config.areaTolerance))
+            .map(c => ({ c, r: rng() })).sort((a, b) => a.r - b.r).map(x => x.c);
+
+        for (const cand of candidates) {
+            nodesExplored++;
+            if (!grid.canPlace(cand)) continue;
+            const rect: PlacedRect = { id: unit.ids[0], x_m: cellsToMeters(cand.x_cells), y_m: cellsToMeters(cand.y_cells), w_m: cellsToMeters(cand.w_cells), h_m: cellsToMeters(cand.h_cells) };
+            if (!insideFootprint(rect, combinedW_m, combinedH_m).pass) continue;
+
+            const subs = unit.isSuite && unit.suite ? subdivideSuite(cand, unit.suite, grid.widthCells, grid.heightCells) : new Map([[unit.ids[0], cand]]);
+            if (![...subs.values()].every(r => grid.canPlace(r))) continue;
+
+            for (const [id, r] of subs) { grid.place(r, placedIdx.length); placedIdx.push(r); placed.set(id, r); }
+            if (tryUnit(i + 1)) return true;
+            for (const [id, r] of subs) { grid.remove(r); placed.delete(id); placedIdx.pop(); }
+        }
+        return false;
+    }
+
+    const solved = tryUnit(0);
+    return {
+        placed,
+        failedUnitIds: solved ? undefined : units.filter(u => !u.ids.every(id => placed.has(id))).flatMap(u => u.ids),
+        nodesExplored,
+    };
+}
