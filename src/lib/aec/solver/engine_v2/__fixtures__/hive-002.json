@@ -1,0 +1,25 @@
+{
+  "rooms": [
+    { "room_id": "r01", "name": "Living Room",     "type": "living_room",   "floor": 0, "area_m2": 28, "width_m": 5.6, "span_m": 5,   "adjacencies": ["r02","r03","r07"] },
+    { "room_id": "r02", "name": "Dining Room",     "type": "dining_room",   "floor": 0, "area_m2": 18, "width_m": 4.5, "span_m": 4,   "adjacencies": ["r01","r03"] },
+    { "room_id": "r03", "name": "Kitchen",         "type": "kitchen",       "floor": 0, "area_m2": 16, "width_m": 4,   "span_m": 4,   "adjacencies": ["r02"] },
+    { "room_id": "r07", "name": "Foyer",           "type": "foyer",         "floor": 0, "area_m2": 8,  "width_m": 2.5, "span_m": 3.2, "adjacencies": ["r01"] },
+    { "room_id": "r08", "name": "Home Office",     "type": "office",        "floor": 0, "area_m2": 14, "width_m": 3.5, "span_m": 4,   "adjacencies": [] },
+    { "room_id": "r09", "name": "Garage",          "type": "garage",        "floor": 0, "area_m2": 36, "width_m": 6,   "span_m": 6,   "adjacencies": [] },
+    { "room_id": "r10", "name": "Master Bedroom",  "type": "master_bedroom","floor": 1, "area_m2": 24, "width_m": 5,   "span_m": 4.8, "adjacencies": ["r10a","r10b"] },
+    { "room_id": "r10a","name": "Master Bathroom", "type": "bathroom",      "floor": 1, "area_m2": 7,  "width_m": 2.5, "span_m": 2.8, "adjacencies": ["r10"] },
+    { "room_id": "r10b","name": "Wardrobe",        "type": "wardrobe",      "floor": 1, "area_m2": 6,  "width_m": 2,   "span_m": 3,   "adjacencies": ["r10"] },
+    { "room_id": "r11", "name": "Bedroom 2",       "type": "bedroom",       "floor": 1, "area_m2": 18, "width_m": 4.5, "span_m": 4,   "adjacencies": ["r11a"] },
+    { "room_id": "r11a","name": "Bathroom 2",      "type": "bathroom",      "floor": 1, "area_m2": 5,  "width_m": 2,   "span_m": 2.5, "adjacencies": ["r11"] },
+    { "room_id": "r12", "name": "Bedroom 3",       "type": "bedroom",       "floor": 1, "area_m2": 16, "width_m": 4,   "span_m": 4,   "adjacencies": ["r12a"] },
+    { "room_id": "r12a","name": "Bathroom 3",      "type": "bathroom",      "floor": 1, "area_m2": 5,  "width_m": 2,   "span_m": 2.5, "adjacencies": ["r12"] },
+    { "room_id": "r13", "name": "Family Lounge",   "type": "family_room",   "floor": 1, "area_m2": 18, "width_m": 4.5, "span_m": 4,   "adjacencies": [] }
+  ],
+  "brief_reference": {
+    "project_id": "GS-FIXTURE-002-DUPLEX",
+    "plot_size_sqm": 2000,
+    "floors": 2,
+    "region": "lagos_residential",
+    "use_type": "residential"
+  }
+}

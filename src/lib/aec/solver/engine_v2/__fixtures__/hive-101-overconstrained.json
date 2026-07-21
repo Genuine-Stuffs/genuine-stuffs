@@ -1,0 +1,17 @@
+{
+  "rooms": [
+    { "room_id": "m01", "name": "Room A", "type": "living_room", "floor": 0, "area_m2": 20, "width_m": 4,   "span_m": 5, "adjacencies": ["m02","m03","m04","m05","m06"] },
+    { "room_id": "m02", "name": "Room B", "type": "bedroom",     "floor": 0, "area_m2": 16, "width_m": 4,   "span_m": 4, "adjacencies": ["m01","m03","m04","m05","m06"] },
+    { "room_id": "m03", "name": "Room C", "type": "bedroom",     "floor": 0, "area_m2": 16, "width_m": 4,   "span_m": 4, "adjacencies": ["m01","m02","m04","m05","m06"] },
+    { "room_id": "m04", "name": "Room D", "type": "kitchen",     "floor": 0, "area_m2": 14, "width_m": 3.5, "span_m": 4, "adjacencies": ["m01","m02","m03","m05","m06"] },
+    { "room_id": "m05", "name": "Room E", "type": "dining_room", "floor": 0, "area_m2": 16, "width_m": 4,   "span_m": 4, "adjacencies": ["m01","m02","m03","m04","m06"] },
+    { "room_id": "m06", "name": "Room F", "type": "office",      "floor": 0, "area_m2": 12, "width_m": 3,   "span_m": 4, "adjacencies": ["m01","m02","m03","m04","m05"] }
+  ],
+  "brief_reference": {
+    "project_id": "GS-FIXTURE-101-OVERCONSTRAINED",
+    "plot_size_sqm": 2000,
+    "floors": 1,
+    "region": "lagos_residential",
+    "use_type": "residential"
+  }
+}

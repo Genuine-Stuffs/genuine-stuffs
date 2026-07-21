@@ -1,0 +1,21 @@
+{
+  "rooms": [
+    { "room_id": "b01",  "name": "Living Room",  "type": "living_room", "floor": 0, "area_m2": 30, "width_m": 5,   "span_m": 6,   "adjacencies": ["b02"] },
+    { "room_id": "b02",  "name": "Dining Room",  "type": "dining_room", "floor": 0, "area_m2": 20, "width_m": 4,   "span_m": 5,   "adjacencies": ["b01","b03"] },
+    { "room_id": "b03",  "name": "Kitchen",      "type": "kitchen",     "floor": 0, "area_m2": 15, "width_m": 3.5, "span_m": 4.3, "adjacencies": ["b02"] },
+    { "room_id": "b04",  "name": "Bedroom 1",    "type": "bedroom",     "floor": 0, "area_m2": 20, "width_m": 4,   "span_m": 5,   "adjacencies": ["b04a"] },
+    { "room_id": "b04a", "name": "Bathroom 1",   "type": "bathroom",    "floor": 0, "area_m2": 5,  "width_m": 2,   "span_m": 2.5, "adjacencies": ["b04"] },
+    { "room_id": "b05",  "name": "Bedroom 2",    "type": "bedroom",     "floor": 0, "area_m2": 20, "width_m": 4,   "span_m": 5,   "adjacencies": ["b05a"] },
+    { "room_id": "b05a", "name": "Bathroom 2",   "type": "bathroom",    "floor": 0, "area_m2": 5,  "width_m": 2,   "span_m": 2.5, "adjacencies": ["b05"] },
+    { "room_id": "b06",  "name": "Bedroom 3",    "type": "bedroom",     "floor": 0, "area_m2": 20, "width_m": 4,   "span_m": 5,   "adjacencies": ["b06a"] },
+    { "room_id": "b06a", "name": "Bathroom 3",   "type": "bathroom",    "floor": 0, "area_m2": 5,  "width_m": 2,   "span_m": 2.5, "adjacencies": ["b06"] },
+    { "room_id": "b07",  "name": "Garage",       "type": "garage",      "floor": 0, "area_m2": 30, "width_m": 5,   "span_m": 6,   "adjacencies": [] }
+  ],
+  "brief_reference": {
+    "project_id": "GS-FIXTURE-102-OVERBUDGET",
+    "plot_size_sqm": 100,
+    "floors": 1,
+    "region": "lagos_residential",
+    "use_type": "residential"
+  }
+}

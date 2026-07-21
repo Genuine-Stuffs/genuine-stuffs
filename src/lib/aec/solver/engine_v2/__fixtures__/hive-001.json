@@ -1,0 +1,21 @@
+{
+  "rooms": [
+    { "room_id": "r01", "name": "Living Room",    "type": "living_room",   "floor": 0, "area_m2": 28, "width_m": 5.6, "span_m": 5,   "adjacencies": ["r02","r03"] },
+    { "room_id": "r02", "name": "Dining Room",    "type": "dining_room",   "floor": 0, "area_m2": 18, "width_m": 4.5, "span_m": 4,   "adjacencies": ["r01","r03"] },
+    { "room_id": "r03", "name": "Kitchen",        "type": "kitchen",       "floor": 0, "area_m2": 16, "width_m": 4,   "span_m": 4,   "adjacencies": ["r02"] },
+    { "room_id": "r04", "name": "Master Bedroom", "type": "master_bedroom","floor": 0, "area_m2": 24, "width_m": 5,   "span_m": 4.8, "adjacencies": ["r04a","r04b"] },
+    { "room_id": "r04a","name": "Master Bathroom","type": "bathroom",      "floor": 0, "area_m2": 6,  "width_m": 2,   "span_m": 3,   "adjacencies": ["r04"] },
+    { "room_id": "r04b","name": "Wardrobe",       "type": "wardrobe",      "floor": 0, "area_m2": 5,  "width_m": 2,   "span_m": 2.5, "adjacencies": ["r04"] },
+    { "room_id": "r05", "name": "Guest Bedroom",  "type": "bedroom",       "floor": 0, "area_m2": 16, "width_m": 4,   "span_m": 4,   "adjacencies": ["r05a"] },
+    { "room_id": "r05a","name": "Guest Bathroom", "type": "bathroom",      "floor": 0, "area_m2": 5,  "width_m": 2,   "span_m": 2.5, "adjacencies": ["r05"] },
+    { "room_id": "r06", "name": "Garage",         "type": "garage",        "floor": 0, "area_m2": 30, "width_m": 6,   "span_m": 5,   "adjacencies": [] },
+    { "room_id": "r07", "name": "Foyer",          "type": "foyer",         "floor": 0, "area_m2": 8,  "width_m": 2.5, "span_m": 3.2, "adjacencies": ["r01"] }
+  ],
+  "brief_reference": {
+    "project_id": "GS-FIXTURE-001-STANDARD-SINGLE",
+    "plot_size_sqm": 2000,
+    "floors": 1,
+    "region": "lagos_residential",
+    "use_type": "residential"
+  }
+}
