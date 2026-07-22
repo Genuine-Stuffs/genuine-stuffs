@@ -1,0 +1,32 @@
+{
+  "rooms": [
+    { "room_id": "r01", "name": "Grand Foyer", "type": "foyer", "floor": 0, "area_m2": 18, "width_m": 3.6, "span_m": 3.6, "uses_intermediate_columns": false, "adjacencies": ["r02","r03","r04","r05","stair_g"] },
+    { "room_id": "r02", "name": "Sunken Living Lounge", "type": "living_room", "floor": 0, "area_m2": 40.5, "width_m": 4.5, "span_m": 4.5, "uses_intermediate_columns": true, "adjacencies": ["r01","r03","outdoor_terrace"] },
+    { "room_id": "r03", "name": "Dining Area (12-seater)", "type": "dining_room", "floor": 0, "area_m2": 22.5, "width_m": 4.5, "span_m": 4.5, "uses_intermediate_columns": false, "adjacencies": ["r01","r02","r04"] },
+    { "room_id": "r04", "name": "Dry Kitchen", "type": "kitchen", "floor": 0, "area_m2": 18, "width_m": 3.6, "span_m": 3.6, "uses_intermediate_columns": false, "adjacencies": ["r03","r05"] },
+    { "room_id": "r05", "name": "Wet Kitchen / Pantry", "type": "utility_room", "floor": 0, "area_m2": 9, "width_m": 3, "span_m": 3, "uses_intermediate_columns": false, "adjacencies": ["r04","service_exit"] },
+    { "room_id": "r06", "name": "Guest Bedroom", "type": "bedroom", "floor": 0, "area_m2": 14.4, "width_m": 3.6, "span_m": 3.6, "uses_intermediate_columns": false, "adjacencies": ["r01","r07"] },
+    { "room_id": "r07", "name": "Guest Bathroom", "type": "bathroom", "floor": 0, "area_m2": 4, "width_m": 2, "span_m": 2, "uses_intermediate_columns": false, "adjacencies": ["r06"] },
+    { "room_id": "r08", "name": "Home Office", "type": "office", "floor": 0, "area_m2": 12, "width_m": 3, "span_m": 3, "uses_intermediate_columns": false, "adjacencies": ["r01"] },
+    { "room_id": "r09", "name": "3-Car Enclosed Garage", "type": "garage", "floor": 0, "area_m2": 54, "width_m": 8.1, "span_m": 4.05, "uses_intermediate_columns": true, "adjacencies": ["r01","exterior"] },
+    { "room_id": "r10", "name": "Master Suite", "type": "master_bedroom", "floor": 1, "area_m2": 50, "width_m": 4.5, "span_m": 4.5, "uses_intermediate_columns": true, "adjacencies": ["r11","r12","r13","r14","stair_u"] },
+    { "room_id": "r11", "name": "Master Walk-in Wardrobe", "type": "wardrobe", "floor": 1, "area_m2": 9, "width_m": 3, "span_m": 3, "uses_intermediate_columns": false, "adjacencies": ["r10"] },
+    { "room_id": "r12", "name": "Master Luxury Bath", "type": "bathroom", "floor": 1, "area_m2": 12, "width_m": 3, "span_m": 3, "uses_intermediate_columns": false, "adjacencies": ["r10"] },
+    { "room_id": "r13", "name": "Bedroom 2", "type": "bedroom", "floor": 1, "area_m2": 14.4, "width_m": 3.6, "span_m": 3.6, "uses_intermediate_columns": false, "adjacencies": ["r14","r15"] },
+    { "room_id": "r14", "name": "Bathroom 2", "type": "bathroom", "floor": 1, "area_m2": 4, "width_m": 2, "span_m": 2, "uses_intermediate_columns": false, "adjacencies": ["r13"] },
+    { "room_id": "r15", "name": "Bedroom 3", "type": "bedroom", "floor": 1, "area_m2": 14.4, "width_m": 3.6, "span_m": 3.6, "uses_intermediate_columns": false, "adjacencies": ["r16","r17"] },
+    { "room_id": "r16", "name": "Bathroom 3", "type": "bathroom", "floor": 1, "area_m2": 4, "width_m": 2, "span_m": 2, "uses_intermediate_columns": false, "adjacencies": ["r15"] },
+    { "room_id": "r17", "name": "Bedroom 4", "type": "bedroom", "floor": 1, "area_m2": 14.4, "width_m": 3.6, "span_m": 3.6, "uses_intermediate_columns": false, "adjacencies": ["r18","r19"] },
+    { "room_id": "r18", "name": "Bathroom 4", "type": "bathroom", "floor": 1, "area_m2": 4, "width_m": 2, "span_m": 2, "uses_intermediate_columns": false, "adjacencies": ["r17"] },
+    { "room_id": "r19", "name": "Family Lounge", "type": "family_room", "floor": 1, "area_m2": 27, "width_m": 4.5, "span_m": 4.5, "uses_intermediate_columns": true, "adjacencies": ["r10","r13","r15","r17","stair_u"] },
+    { "room_id": "stair_g", "name": "Stairwell (Ground Floor)", "type": "circulation", "floor": 0, "area_m2": 10, "width_m": 2.5, "span_m": 2.5, "uses_intermediate_columns": false, "adjacencies": ["r01"] },
+    { "room_id": "stair_u", "name": "Stairwell (Upper Floor Void)", "type": "circulation", "floor": 1, "area_m2": 10, "width_m": 2.5, "span_m": 2.5, "uses_intermediate_columns": false, "adjacencies": ["r10","r19"] }
+  ],
+  "brief_reference": {
+    "project_id": "GS-FIXTURE-003-REALWORLD-DUPLEX",
+    "plot_size_sqm": 2000,
+    "floors": 2,
+    "region": "lagos_residential",
+    "use_type": "residential"
+  }
+}

@@ -221,18 +221,58 @@ export function search(
             id: unit.ids[0], targetArea_m2: unit.totalArea_m2, minWidth_m: 2.4,
             dimensionHint: unit.ids.length === 1 ? dimensionHints.get(unit.ids[0]) : undefined,
         };
-        const candidates = Array.from(enumerateCandidates(spec, grid.widthCells, grid.heightCells, config.areaTolerance))
-            .map(c => ({ c, r: rng() })).sort((a, b) => a.r - b.r).map(x => x.c);
+        let candidates = Array.from(enumerateCandidates(spec, grid.widthCells, grid.heightCells, config.areaTolerance));
+        const relevantPairs = pairsByRoom.get(unit.ids[0]);
+        const activeNeighbors = relevantPairs 
+            // Note: activeNeighbors is computed only against unit.ids[0] (the bedroom), 
+            // not sub-room ids. Sub-room adjacencies outside their suite aren't declared by Hive currently.
+            ? relevantPairs.map(p => p.a === unit.ids[0] ? p.b : p.a).filter(id => placed.has(id)).map(id => placed.get(id)!)
+            : [];
+            
+        if (activeNeighbors.length > 0) {
+            const activeNeighborsM = activeNeighbors.map(r => cellsToRectM(r));
+            candidates.sort((c1, c2) => {
+                const rect1 = cellsToRectM(c1);
+                const rect2 = cellsToRectM(c2);
+                
+                let touches1 = true;
+                let touches2 = true;
+                let dist1 = 0;
+                let dist2 = 0;
+                
+                for (const nRect of activeNeighborsM) {
+                    if (!mustTouchSatisfied(rect1, nRect).pass) touches1 = false;
+                    if (!mustTouchSatisfied(rect2, nRect).pass) touches2 = false;
+                    
+                    dist1 += Math.pow((rect1.x_m + rect1.w_m/2) - (nRect.x_m + nRect.w_m/2), 2) + Math.pow((rect1.y_m + rect1.h_m/2) - (nRect.y_m + nRect.h_m/2), 2);
+                    dist2 += Math.pow((rect2.x_m + rect2.w_m/2) - (nRect.x_m + nRect.w_m/2), 2) + Math.pow((rect2.y_m + rect2.h_m/2) - (nRect.y_m + nRect.h_m/2), 2);
+                }
+                
+                // Lexicographic ordering: strictly prefer satisfying positions, fallback to sum of squared distances
+                if (touches1 && !touches2) return -1;
+                if (!touches1 && touches2) return 1;
+                return dist1 - dist2;
+            });
+        } else {
+            const mapped = candidates.map(c => ({ c, r: rng() }));
+            mapped.sort((a, b) => a.r - b.r);
+            candidates = mapped.map(x => x.c);
+        }
 
         for (const cand of candidates) {
             nodesExplored++;
-            if (!grid.canPlace(cand)) continue;
+            if (nodesExplored % 50 === 0 && (performance.now() - startTime) > config.budget_ms) {
+                timedOut = true;
+                return false;
+            }
+            
             const rect: PlacedRect = { id: unit.ids[0], x_m: cellsToMeters(cand.x_cells), y_m: cellsToMeters(cand.y_cells), w_m: cellsToMeters(cand.w_cells), h_m: cellsToMeters(cand.h_cells) };
             if (!insideFootprint(rect, combinedW_m, combinedH_m).pass) continue;
 
+            // 1. Suite Subdivision (pure geometry, fast)
             const subs = unit.isSuite && unit.suite ? subdivideSuite(cand, unit.suite, grid.widthCells, grid.heightCells) : new Map([[unit.ids[0], cand]]);
-            if (![...subs.values()].every(r => grid.canPlace(r))) continue;
-
+            
+            // 2. Adjacency check (pure math, fast)
             // Checked AFTER subdivision, against each sub-room's true
             // rect — a pair naming a specific bath/wardrobe id must be
             // verified against where that sub-room actually lands, not
@@ -244,12 +284,15 @@ export function search(
                 if (!adjacencySatisfiedFor(id, r)) { adjacencyOk = false; break; }
             }
             if (!adjacencyOk) continue;
+            
+            // 3. Grid overlap check (expensive iteration)
+            if (![...subs.values()].every(r => grid.canPlace(r))) continue;
 
             for (const [id, r] of subs) { grid.place(r, placedIdx.length); placedIdx.push(r); placed.set(id, r); }
             const success = tryUnit(i + 1);
             if (success) return true;
-            for (const [id, r] of subs) { grid.remove(r); placed.delete(id); placedIdx.pop(); }
             if (timedOut) return false;
+            for (const [id, r] of subs) { grid.remove(r); placed.delete(id); placedIdx.pop(); }
         }
         return false;
     }
