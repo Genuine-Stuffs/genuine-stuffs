@@ -147,7 +147,21 @@ export function solveLayoutV2(
             const stairW = 2.4, stairD = 3.6;
             const stairX = footprint.primary.x + footprint.primary.width - stairW;
             const mainCorridorY = corridorBounds[0].y;
-            const stairY = Math.max(mainCorridorY - stairD, footprint.primary.y);
+            // BUG FIX: stairY was previously clamped to footprint.primary.y
+            // whenever socialH < stairD (3.6m) — but footprint.primary.y is
+            // ALSO the upper floor's fixed corridor position (corridorY for
+            // floorIndex===1, set unconditionally a few lines below). On any
+            // footprint with height < 12.75m (socialH = height*0.40 < stairD),
+            // stairCoords and the upper corridor collided at the same y.
+            //
+            // Fix: give the stairwell a minimum clearance below the UPPER
+            // corridor's fixed band (footprint.primary.y + CORRIDOR_D), not
+            // just the raw footprint edge. The stairwell must clear both
+            // corridors — ground (via mainCorridorY - stairD, unchanged
+            // logic) AND upper (via this new floor) — since stairCoords is
+            // mirrored verbatim onto floor 1 as stairwell_void (I7).
+            const upperCorridorClearance = footprint.primary.y + CORRIDOR_D;
+            const stairY = Math.max(mainCorridorY - stairD, upperCorridorClearance);
             stairCoords = { x: stairX, y: stairY, width: stairW, height: stairD };
             placedRooms.push({ room_id: 'stairwell', floor: 0, x: stairCoords.x, y: stairCoords.y, width: stairCoords.width, depth: stairCoords.height });
         }
