@@ -13,7 +13,7 @@
 
 import { OccupancyGrid, RectCells } from './grid';
 import { SolverConfig, SolveResult, PlacedRect, RoomDimensionHint } from './types';
-import { RoomGraph } from '../graph';
+import { RoomGraph, AdjacencyPair } from '../graph';
 import { search, SearchUnit, SearchOutcome } from './search';
 import { cellsToMeters } from './units';
 
@@ -27,14 +27,21 @@ export function runWithRelaxation(
     units: SearchUnit[], graph: RoomGraph,
     buildGrid: () => OccupancyGrid,
     combinedW_m: number, combinedH_m: number,
-    baseConfig: SolverConfig, dimensionHints: Map<string, RoomDimensionHint>
+    baseConfig: SolverConfig, dimensionHints: Map<string, RoomDimensionHint>,
+    mustTouchPairs: AdjacencyPair[]
 ): SolveResult {
     const startTime = performance.now();
+    const hubOnlyPairs = mustTouchPairs.filter(p => p.isHubEdge);
+
     const rungs = [
-        { name: 'BASE', config: baseConfig },
-        { name: 'RELAX-AREA-20', config: { ...baseConfig, areaTolerance: 0.20 } },
-        { name: 'RELAX-SOFT-ADJ', config: { ...baseConfig, areaTolerance: 0.20 } },
-        { name: 'RELAX-MINWIDTH', config: { ...baseConfig, areaTolerance: 0.25 } },
+        { name: 'BASE', config: baseConfig, pairs: mustTouchPairs },
+        { name: 'RELAX-AREA-20', config: { ...baseConfig, areaTolerance: 0.20 }, pairs: mustTouchPairs },
+        // Drops ordinary room-to-room adjacencies only. Hub edges
+        // (isHubEdge) are NEVER in this drop — a plan where every
+        // bedroom fails to reach the foyer isn't a compromise, it's
+        // broken, regardless of what pressure the search is under.
+        { name: 'RELAX-SOFT-ADJ', config: { ...baseConfig, areaTolerance: 0.20 }, pairs: hubOnlyPairs },
+        { name: 'RELAX-MINWIDTH', config: { ...baseConfig, areaTolerance: 0.25 }, pairs: hubOnlyPairs },
     ];
 
     const applied: string[] = [];
@@ -43,7 +50,7 @@ export function runWithRelaxation(
         if (remaining <= 0) {
             return { status: 'TIMEOUT', placements: [], relaxationsApplied: applied, issues: [], diagnostics: { elapsed_ms: performance.now() - startTime, nodesExplored: 0 } };
         }
-        const outcome = search(units, graph, buildGrid(), combinedW_m, combinedH_m, { ...rung.config, budget_ms: remaining }, dimensionHints);
+        const outcome = search(units, graph, buildGrid(), combinedW_m, combinedH_m, { ...rung.config, budget_ms: remaining }, dimensionHints, rung.pairs);
         if (rung.name !== 'BASE') applied.push(rung.name);
 
         if (!outcome.failedUnitIds || outcome.failedUnitIds.length === 0) {

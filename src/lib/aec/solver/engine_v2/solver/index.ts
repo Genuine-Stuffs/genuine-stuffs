@@ -6,7 +6,7 @@
  * ═══════════════════════════════════════════════════════════════════════
  */
 
-import { RoomGraph, HiveRoom } from '../graph';
+import { RoomGraph, HiveRoom, identifyHubs, deriveSuites, findMustTouchPairs, suiteEdgeKeys } from '../graph';
 import { BuildingFootprint } from '../shapes';
 import { SolverConfig, SolveResult, deriveDimensionHints, PlacedRect, ReservedRect } from './types';
 import { buildFootprintGrid, buildUnits, orderUnits } from './search';
@@ -26,9 +26,18 @@ export function solvePlacement(
     const units = orderUnits(buildUnits(graph, floorIndex), graph, floorIndex);
     const hints = new Map(deriveDimensionHints(rawRooms.filter(r => r.floor === floorIndex)).map(h => [h.roomId, h]));
 
+    // Bug 2 fix: derive and ENFORCE must-touch pairs — this was defined
+    // in graph.ts since Phase 1 and imported into solver/types.ts in
+    // Session 3a, but never actually called until now. Without this,
+    // the solver placed rooms by fit alone and I3/I4's "enforced by:
+    // solver, by construction" claim in the invariant table was false.
+    const hubIds = new Set(identifyHubs(graph, floorIndex).map(h => h.id));
+    const suites = deriveSuites(graph, floorIndex);
+    const mustTouchPairs = findMustTouchPairs(graph, floorIndex, hubIds, suiteEdgeKeys(suites));
+
     const result = runWithRelaxation(
         units, graph, () => buildFootprintGrid(footprint, reservedRects).grid,
-        combinedW_m, combinedH_m, config, hints
+        combinedW_m, combinedH_m, config, hints, mustTouchPairs
     );
 
     if (result.status === 'SOLVED' || result.status === 'SOLVED_RELAXED') {

@@ -15,10 +15,10 @@
 import { OccupancyGrid, RectCells } from './grid';
 import { metersToCells, cellsToMeters } from './units';
 import { PlacedRect, SolverConfig, RoomDimensionHint, ReservedRect } from './types';
-import { RoomGraph, Suite, deriveSuites, identifyHubs } from '../graph';
+import { RoomGraph, Suite, deriveSuites, identifyHubs, AdjacencyPair } from '../graph';
 import { BuildingFootprint } from '../shapes';
 import { RoomSpec, enumerateCandidates } from './candidates';
-import { insideFootprint } from './constraints';
+import { insideFootprint, mustTouchSatisfied } from './constraints';
 
 const RESERVED_IDX = 0xFFFE; // -> cell value 0xFFFF after +1 in grid.place(); never matches a real room index
 
@@ -164,7 +164,8 @@ export interface SearchOutcome {
 export function search(
     units: SearchUnit[], graph: RoomGraph, grid: OccupancyGrid,
     combinedW_m: number, combinedH_m: number,
-    config: SolverConfig, dimensionHints: Map<string, RoomDimensionHint>
+    config: SolverConfig, dimensionHints: Map<string, RoomDimensionHint>,
+    mustTouchPairs: AdjacencyPair[]
 ): SearchOutcome {
     const startTime = performance.now();
     const rng = xorshift32(config.seed);
@@ -172,9 +173,48 @@ export function search(
     const placed = new Map<string, RectCells>();
     const placedIdx: RectCells[] = [];
 
+    // Indexed by room id for O(1) lookup at acceptance time — avoids an
+    // O(pairs) scan per candidate per unit.
+    const pairsByRoom = new Map<string, AdjacencyPair[]>();
+    for (const pair of mustTouchPairs) {
+        if (!pairsByRoom.has(pair.a)) pairsByRoom.set(pair.a, []);
+        pairsByRoom.get(pair.a)!.push(pair);
+        if (!pairsByRoom.has(pair.b)) pairsByRoom.set(pair.b, []);
+        pairsByRoom.get(pair.b)!.push(pair);
+    }
+
+    function cellsToRectM(r: RectCells): PlacedRect {
+        return { id: '', x_m: cellsToMeters(r.x_cells), y_m: cellsToMeters(r.y_cells), w_m: cellsToMeters(r.w_cells), h_m: cellsToMeters(r.h_cells) };
+    }
+
+    /** Checked at acceptance time against ALREADY-PLACED neighbors only.
+     * Completeness holds by ordinary backtracking: if room B must touch
+     * A and cannot from any candidate, every one of B's candidates fails
+     * this check, tryUnit(i+1) returns false for all of them, and the
+     * search naturally backtracks to move A instead. By the time the
+     * last unit is placed, every pair has been checked exactly once —
+     * from whichever side is placed second. */
+    function adjacencySatisfiedFor(roomId: string, rect: RectCells): boolean {
+        const relevant = pairsByRoom.get(roomId);
+        if (!relevant) return true;
+        for (const pair of relevant) {
+            const otherId = pair.a === roomId ? pair.b : pair.a;
+            const otherRect = placed.get(otherId);
+            if (!otherRect) continue; // not yet placed — checked when its own turn comes
+            if (!mustTouchSatisfied(cellsToRectM(rect), cellsToRectM(otherRect)).pass) return false;
+        }
+        return true;
+    }
+
+    let timedOut = false;
+
     function tryUnit(i: number): boolean {
+        if (timedOut) return false;
         if (i >= units.length) return true;
-        if (nodesExplored % 200 === 0 && (performance.now() - startTime) > config.budget_ms) return false;
+        if (nodesExplored % 200 === 0 && (performance.now() - startTime) > config.budget_ms) {
+            timedOut = true;
+            return false;
+        }
 
         const unit = units[i];
         const spec: RoomSpec = {
@@ -193,9 +233,23 @@ export function search(
             const subs = unit.isSuite && unit.suite ? subdivideSuite(cand, unit.suite, grid.widthCells, grid.heightCells) : new Map([[unit.ids[0], cand]]);
             if (![...subs.values()].every(r => grid.canPlace(r))) continue;
 
+            // Checked AFTER subdivision, against each sub-room's true
+            // rect — a pair naming a specific bath/wardrobe id must be
+            // verified against where that sub-room actually lands, not
+            // the suite's outer bounding box. For non-suite units this
+            // collapses to the same single-rect check, so it costs
+            // nothing to run uniformly.
+            let adjacencyOk = true;
+            for (const [id, r] of subs) {
+                if (!adjacencySatisfiedFor(id, r)) { adjacencyOk = false; break; }
+            }
+            if (!adjacencyOk) continue;
+
             for (const [id, r] of subs) { grid.place(r, placedIdx.length); placedIdx.push(r); placed.set(id, r); }
-            if (tryUnit(i + 1)) return true;
+            const success = tryUnit(i + 1);
+            if (success) return true;
             for (const [id, r] of subs) { grid.remove(r); placed.delete(id); placedIdx.pop(); }
+            if (timedOut) return false;
         }
         return false;
     }

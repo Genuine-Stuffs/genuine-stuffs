@@ -259,6 +259,11 @@ function classifyBySubLabel(label: string): boolean {
 export interface AdjacencyPair {
     a: string;
     b: string;
+    /** True if either side of this pair is a floor hub (e.g. the foyer).
+     * Lets the relaxation ladder drop ordinary adjacencies under pressure
+     * while never dropping hub connectivity — losing that produces a
+     * materially broken plan, not a tolerable compromise. */
+    isHubEdge: boolean;
 }
 
 /**
@@ -283,14 +288,20 @@ export function findMustTouchPairs(
 
     for (const id of ids) {
         const node = graph.nodes.get(id)!;
-        if (hubIds.has(id) || node.zone === 'circ') continue;
+        // Circulation rooms are placed as fixed rects by index.ts, never
+        // as search units — a pair naming one would never be checkable.
+        // Hub exclusion REMOVED: a bedroom failing to reach the foyer is
+        // exactly the I3 failure the harness caught (r01<->r02 in
+        // hive-001) — hubs must be enforced, not skipped.
+        if (node.zone === 'circ') continue;
 
         for (const neighborId of node.neighbors) {
-            if (hubIds.has(neighborId)) continue;
+            const neighborNode = graph.nodes.get(neighborId);
+            if (!neighborNode || neighborNode.zone === 'circ') continue;
             const key = [id, neighborId].sort().join('|');
             if (seen.has(key) || suiteEdges.has(key)) continue;
             seen.add(key);
-            pairs.push({ a: id, b: neighborId });
+            pairs.push({ a: id, b: neighborId, isHubEdge: hubIds.has(id) || hubIds.has(neighborId) });
         }
     }
     return pairs;
