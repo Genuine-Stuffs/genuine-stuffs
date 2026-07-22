@@ -774,6 +774,14 @@ const AIStudio = () => {
 
     const stableLayout = useMemo(() => designPackage?.solvedLayout, [layoutKey]);
 
+    // ── Phase 5: placement issues surfaced from SolveResult, no longer
+    // console-only. Distinguishes SEVERE (CORRIDOR_ADJACENCY/EXTERNAL_WALL —
+    // a room is genuinely unreachable or windowless) from WARN
+    // (BATH_VENTILATION — NBC-permitted with mechanical venting, informational).
+    const placementIssues = stableLayout?.placement_issues ?? [];
+    const severeIssueCount = placementIssues.filter(i => i.rule !== 'BATH_VENTILATION').length;
+    const warnIssueCount = placementIssues.length - severeIssueCount;
+
     return (
         <div className="flex flex-col h-screen md:h-[100dvh] md:relative fixed inset-0 overflow-hidden bg-white dark:bg-black z-10">
             {/* Mobile Header (Fixed) */}
@@ -1281,6 +1289,52 @@ const AIStudio = () => {
                                                                 {/* Disclaimer */}
                                                                 <p className="text-[8px] text-slate-500 leading-relaxed border-t border-white/5 pt-3">
                                                                     {complianceReport.disclaimer}
+                                                                </p>
+                                                            </div>
+                                                        )}
+
+                                                        {/* ── PLACEMENT NOTES — driven by SolveResult.issues (Phase 5) ── */}
+                                                        {placementIssues.length > 0 && (
+                                                            <div className={`p-6 rounded-2xl border flex flex-col gap-4 shadow-2xl ${
+                                                                severeIssueCount > 0
+                                                                    ? 'bg-amber-950 border-amber-800'
+                                                                    : 'bg-slate-900 border-slate-800'
+                                                            }`}>
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <DraftingCompass className={`w-6 h-6 ${severeIssueCount > 0 ? 'text-amber-400' : 'text-slate-500'}`} />
+                                                                        <div>
+                                                                            <h4 className="text-[11px] font-black uppercase tracking-widest text-white">
+                                                                                Placement Notes
+                                                                            </h4>
+                                                                            <p className="text-[9px] text-slate-400">
+                                                                                {severeIssueCount} room{severeIssueCount === 1 ? '' : 's'} flagged for review
+                                                                                {warnIssueCount > 0 ? ` · ${warnIssueCount} ventilation note${warnIssueCount === 1 ? '' : 's'}` : ''}
+                                                                                {' · solver-derived, generated automatically'}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="space-y-1.5 mt-1">
+                                                                    {placementIssues.map((issue, i) => (
+                                                                        <div key={i} className={`flex items-start gap-3 px-3 py-2 rounded-lg text-[10px] ${
+                                                                            issue.rule === 'BATH_VENTILATION'
+                                                                                ? 'bg-amber-900/40 text-amber-200'
+                                                                                : 'bg-red-900/40 text-red-200'
+                                                                        }`}>
+                                                                            <span className="font-black mt-0.5 shrink-0">
+                                                                                {issue.rule === 'BATH_VENTILATION' ? 'WARN' : 'REVIEW'}
+                                                                            </span>
+                                                                            <span>{issue.detail}</span>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+
+                                                                <p className="text-[8px] text-slate-500 leading-relaxed border-t border-white/5 pt-3">
+                                                                    These notes come from the layout solver's own placement rules — not NBC 2006
+                                                                    compliance (see the banner above). They flag rooms an architect should double-check
+                                                                    before this layout goes to a professional for review.
                                                                 </p>
                                                             </div>
                                                         )}
