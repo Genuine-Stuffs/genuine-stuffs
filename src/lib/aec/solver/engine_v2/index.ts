@@ -203,5 +203,6 @@ export function solveLayoutV2(
         placed_rooms:            placedRooms,
         solver_iterations_used:  totalNodesExplored,
         is_fully_connected:      !anyFloorUnsolved,
+        placement_issues:        allIssues,
     };
 }

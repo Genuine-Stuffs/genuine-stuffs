@@ -21,7 +21,7 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-import { TreemapBounds } from './treemap';
+export interface TreemapBounds { x: number; y: number; width: number; height: number; }
 
 export type FootprintShape = 'RECTANGLE' | 'L_SHAPE' | 'T_SHAPE';
 

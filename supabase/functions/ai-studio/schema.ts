@@ -50,6 +50,12 @@ export interface PlacedRoom {
     depth: number; // Depth (Y-axis length) in meters
 }
 
+export interface ValidationIssue {
+    room_id: string;
+    rule: string;
+    detail: string;
+}
+
 export interface SolvedLayout {
     program_reference: SpatialProgram;
     plot_width: number;
@@ -57,6 +63,7 @@ export interface SolvedLayout {
     placed_rooms: PlacedRoom[];
     solver_iterations_used: number;
     is_fully_connected: boolean;
+    placement_issues?: ValidationIssue[];
 }
 
 // ---------------------------------------------------------------------------
