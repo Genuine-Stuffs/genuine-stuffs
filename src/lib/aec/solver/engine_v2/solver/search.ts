@@ -14,7 +14,7 @@
 
 import { OccupancyGrid, RectCells } from './grid';
 import { metersToCells, cellsToMeters } from './units';
-import { PlacedRect, SolverConfig, RoomDimensionHint } from './types';
+import { PlacedRect, SolverConfig, RoomDimensionHint, ReservedRect } from './types';
 import { RoomGraph, Suite, deriveSuites, identifyHubs } from '../graph';
 import { BuildingFootprint } from '../shapes';
 import { RoomSpec, enumerateCandidates } from './candidates';
@@ -42,7 +42,7 @@ function splitWingBridge(
 
 export function buildFootprintGrid(
     footprint: BuildingFootprint,
-    reservedRects_m: Array<{ x_m: number; y_m: number; w_m: number; h_m: number }> = []
+    reservedRects: ReservedRect[] = []
 ): {
     grid: OccupancyGrid; combinedW_m: number; combinedH_m: number;
 } {
@@ -75,7 +75,7 @@ export function buildFootprintGrid(
     // by index.ts's own geometry, Phase 4 wiring. Reserved the same way
     // as the wing bridge: pre-occupied cells the search must route around,
     // never a room it chooses where to put.
-    for (const r of reservedRects_m) {
+    for (const r of reservedRects) {
         grid.place({
             x_cells: metersToCells(r.x_m), y_cells: metersToCells(r.y_m),
             w_cells: Math.max(1, metersToCells(r.w_m)), h_cells: Math.max(1, metersToCells(r.h_m)),

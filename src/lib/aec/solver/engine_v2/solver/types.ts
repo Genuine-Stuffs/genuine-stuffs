@@ -19,6 +19,12 @@ export type { ValidationIssue } from '../placement_validator';
 export type { RoomGraph, GraphNode, ZoneType, Suite, AdjacencyPair };
 export type { BuildingFootprint };
 
+export interface ReservedRect {
+    id: string;
+    type: string;
+    x_m: number; y_m: number; w_m: number; h_m: number;
+}
+
 export interface SolverConfig {
     budget_ms: number;      // default 6000 (D4)
     areaTolerance: number;  // default 0.10, relaxable to 0.20 (relax.ts, Session 3b)

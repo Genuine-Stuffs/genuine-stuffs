@@ -29,7 +29,7 @@ import { PlotEnvelope, SolverOptions } from "../types";
 import { buildGraph, HiveRoom, ZoneType } from "./graph";
 import { selectFootprint, createRng } from "./shapes";
 import { solvePlacement } from "./solver";
-import { SolverConfig } from "./solver/types";
+import { SolverConfig, ReservedRect } from "./solver/types";
 import { ValidationIssue } from "./placement_validator";
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -159,17 +159,20 @@ export function solveLayoutV2(
         // The wing-bridge (L/T-shape connectivity strip) is reserved
         // automatically inside buildFootprintGrid() — nothing to add here
         // for that; only OUR fixed rects need declaring.
-        const reservedRects_m = corridorBounds.map(b => ({ x_m: b.x, y_m: b.y, w_m: b.width, h_m: b.height }));
+        const reservedRects: ReservedRect[] = corridorBounds.map((b, i) => ({
+            id: `corridor_floor${floorIndex}_${i}`, type: 'circulation',
+            x_m: b.x, y_m: b.y, w_m: b.width, h_m: b.height,
+        }));
         if (floorIndex === 0 && stairCoords) {
-            reservedRects_m.push({ x_m: stairCoords.x, y_m: stairCoords.y, w_m: stairCoords.width, h_m: stairCoords.height });
+            reservedRects.push({ id: 'stairwell', type: 'stairwell', x_m: stairCoords.x, y_m: stairCoords.y, w_m: stairCoords.width, h_m: stairCoords.height });
         }
         if (floorIndex === 1 && stairCoords) {
-            reservedRects_m.push({ x_m: stairCoords.x, y_m: stairCoords.y, w_m: stairCoords.width, h_m: stairCoords.height });
+            reservedRects.push({ id: 'stairwell_void', type: 'stairwell', x_m: stairCoords.x, y_m: stairCoords.y, w_m: stairCoords.width, h_m: stairCoords.height });
         }
 
         // ── Solve placement for every non-circ room on this floor ──────────
         const config: SolverConfig = { budget_ms: 6000, areaTolerance: 0.10, seed: seedNum + floorIndex };
-        const result = solvePlacement(graph, footprint, floorIndex, hiveRooms, config, reservedRects_m);
+        const result = solvePlacement(graph, footprint, floorIndex, hiveRooms, config, reservedRects);
 
         if (result.status === 'UNSAT' || result.status === 'TIMEOUT') {
             anyFloorUnsolved = true;
