@@ -89,4 +89,14 @@ export class OccupancyGrid {
             (r.x_cells + r.w_cells) === this.widthCells ||
             (r.y_cells + r.h_cells) === this.heightCells;
     }
+
+    /** Count of unoccupied cells. O(n) — called once per search() entry,
+     * then tracked incrementally by the search itself; never in a loop. */
+    countFreeCells(): number {
+        let free = 0;
+        for (let i = 0; i < this.cells.length; i++) {
+            if (this.cells[i] === 0) free++;
+        }
+        return free;
+    }
 }

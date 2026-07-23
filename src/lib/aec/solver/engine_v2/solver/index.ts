@@ -37,7 +37,7 @@ export function solvePlacement(
 
     const result = runWithRelaxation(
         units, graph, () => buildFootprintGrid(footprint, reservedRects).grid,
-        combinedW_m, combinedH_m, config, hints, mustTouchPairs
+        combinedW_m, combinedH_m, config, hints, mustTouchPairs, floorIndex
     );
 
     if (result.status === 'SOLVED' || result.status === 'SOLVED_RELAXED') {

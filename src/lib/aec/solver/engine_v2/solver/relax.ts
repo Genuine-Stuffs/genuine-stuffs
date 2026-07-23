@@ -1,13 +1,15 @@
 /**
  * Genuine Stuffs AI Studio · Solver V2 · Relaxation Ladder
  * ═══════════════════════════════════════════════════════════════════════
- * PHASE 3 · SESSION 3b · July 2026
+ * PHASE 3 · SESSION 3b (reopened) · July 2026
  *
- * RELAX-SOFT-ADJ note: findMustTouchPairs() isn't enforced as a hard
- * search constraint yet — that wiring belongs in Phase 4's integration,
- * once index.ts assembles the full pipeline end-to-end. This rung
- * currently only widens area tolerance as a stand-in. Flagged in the
- * rung name and left honest here rather than silently no-op'd.
+ * Rungs BASE and RELAX-AREA-20 enforce the full mustTouchPairs list;
+ * RELAX-SOFT-ADJ and RELAX-MINWIDTH drop non-hub pairs (hub connectivity
+ * is never sacrificed). Each rung is pre-screened with a planarity bound
+ * (E ≤ 3V−6): rect contact graphs are planar, so a rung whose required
+ * adjacency graph violates the bound is geometrically unsatisfiable and
+ * is skipped without burning search budget — this is what turns
+ * over-constrained briefs into fast, PROVEN UNSAT instead of timeouts.
  * ═══════════════════════════════════════════════════════════════════════
  */
 
@@ -28,7 +30,8 @@ export function runWithRelaxation(
     buildGrid: () => OccupancyGrid,
     combinedW_m: number, combinedH_m: number,
     baseConfig: SolverConfig, dimensionHints: Map<string, RoomDimensionHint>,
-    mustTouchPairs: AdjacencyPair[]
+    mustTouchPairs: AdjacencyPair[],
+    floorIndex: number
 ): SolveResult {
     const startTime = performance.now();
     const hubOnlyPairs = mustTouchPairs.filter(p => p.isHubEdge);
@@ -45,12 +48,25 @@ export function runWithRelaxation(
     ];
 
     const applied: string[] = [];
+    const V = units.reduce((s, u) => s + u.ids.length, 0);
+    const suiteEdges = units.reduce((s, u) => s + (u.isSuite && u.suite ? u.suite.subIds.length : 0), 0);
+
     for (const rung of rungs) {
         const remaining = baseConfig.budget_ms - (performance.now() - startTime);
         if (remaining <= 0) {
             return { status: 'TIMEOUT', placements: [], relaxationsApplied: applied, issues: [], diagnostics: { elapsed_ms: performance.now() - startTime, nodesExplored: 0 } };
         }
-        const outcome = search(units, graph, buildGrid(), combinedW_m, combinedH_m, { ...rung.config, budget_ms: remaining }, dimensionHints, rung.pairs);
+
+        // Planarity fail-fast: suite edges are real adjacencies too, so
+        // they count toward E. Necessary condition only — passing this
+        // does NOT imply satisfiable; failing it PROVES unsatisfiable.
+        const E = rung.pairs.length + suiteEdges;
+        if (V >= 3 && E > 3 * V - 6) {
+            if (rung.name !== 'BASE') applied.push(rung.name);
+            continue; // provably UNSAT at this rung — try the next relaxation
+        }
+
+        const outcome = search(units, graph, buildGrid(), combinedW_m, combinedH_m, { ...rung.config, budget_ms: remaining }, dimensionHints, rung.pairs, floorIndex);
         if (rung.name !== 'BASE') applied.push(rung.name);
 
         if (!outcome.failedUnitIds || outcome.failedUnitIds.length === 0) {

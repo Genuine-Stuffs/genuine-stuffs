@@ -13,7 +13,7 @@
  */
 
 import { OccupancyGrid, RectCells } from './grid';
-import { metersToCells, cellsToMeters } from './units';
+import { GRID_RESOLUTION_M, metersToCells, cellsToMeters } from './units';
 import { PlacedRect, SolverConfig, RoomDimensionHint, ReservedRect } from './types';
 import { RoomGraph, Suite, deriveSuites, identifyHubs, AdjacencyPair } from '../graph';
 import { BuildingFootprint } from '../shapes';
@@ -165,7 +165,8 @@ export function search(
     units: SearchUnit[], graph: RoomGraph, grid: OccupancyGrid,
     combinedW_m: number, combinedH_m: number,
     config: SolverConfig, dimensionHints: Map<string, RoomDimensionHint>,
-    mustTouchPairs: AdjacencyPair[]
+    mustTouchPairs: AdjacencyPair[],
+    floorIndex: number
 ): SearchOutcome {
     const startTime = performance.now();
     const rng = xorshift32(config.seed);
@@ -208,9 +209,38 @@ export function search(
 
     let timedOut = false;
 
+    // ── v1.0 spec, Session 3b step 5, finally implemented ──────────────────────
+    // Feasibility pruning: before recursing into unit i, remaining free
+    // cells must cover the minimum possible area of every unplaced unit.
+    const cellArea = GRID_RESOLUTION_M * GRID_RESOLUTION_M;
+    const minAreaCells = units.map(u =>
+        Math.floor((u.totalArea_m2 / cellArea) * (1 - config.areaTolerance)));
+    const minAreaSuffix: number[] = new Array(units.length + 1).fill(0);
+    for (let i = units.length - 1; i >= 0; i--) {
+        minAreaSuffix[i] = minAreaSuffix[i + 1] + minAreaCells[i];
+    }
+    let freeCells = grid.countFreeCells();
+
+    // ── I5 enforcement (invariant table finally made true) ─────────────────
+    const SUB_ROOM_TYPES = new Set(['bathroom', 'wardrobe', 'dressing']);
+    const needsExternalWall = (id: string): boolean => {
+        const n = graph.nodes.get(id);
+        if (!n) return false;
+        return n.zone !== 'circ' && !SUB_ROOM_TYPES.has(n.type);
+    };
+
+    const centerX = grid.widthCells / 2, centerY = grid.heightCells / 2;
+    const distToCenter = (c: RectCells): number => {
+        const cx = c.x_cells + c.w_cells / 2, cy = c.y_cells + c.h_cells / 2;
+        return (cx - centerX) ** 2 + (cy - centerY) ** 2;
+    };
+    const hubIds = new Set(identifyHubs(graph, floorIndex).map(h => h.id));
+
     function tryUnit(i: number): boolean {
         if (timedOut) return false;
         if (i >= units.length) return true;
+        // Feasibility prune — cheapest possible dead-branch detector.
+        if (freeCells < minAreaSuffix[i]) return false;
         if (nodesExplored % 200 === 0 && (performance.now() - startTime) > config.budget_ms) {
             timedOut = true;
             return false;
@@ -228,6 +258,17 @@ export function search(
             // not sub-room ids. Sub-room adjacencies outside their suite aren't declared by Hive currently.
             ? relevantPairs.map(p => p.a === unit.ids[0] ? p.b : p.a).filter(id => placed.has(id)).map(id => placed.get(id)!)
             : [];
+
+        // I5 pre-filter: if the unit's primary room needs an external
+        // wall, only perimeter-touching outers are viable (the bedroom
+        // lives inside the outer, so a non-touching outer can never
+        // yield a touching bedroom). This collapses the candidate space
+        // from O(W×H) to O(perimeter) for most rooms — the single
+        // biggest search-space reduction in this change.
+        const unitNeedsExt = needsExternalWall(unit.ids[0]);
+        if (unitNeedsExt) {
+            candidates = candidates.filter(c => grid.touchesPerimeter(c));
+        }
             
         if (activeNeighbors.length > 0) {
             const activeNeighborsM = activeNeighbors.map(r => cellsToRectM(r));
@@ -254,9 +295,15 @@ export function search(
                 return dist1 - dist2;
             });
         } else {
-            const mapped = candidates.map(c => ({ c, r: rng() }));
-            mapped.sort((a, b) => a.r - b.r);
-            candidates = mapped.map(x => x.c);
+            if (unit.ids.some(id => hubIds.has(id))) {
+                // v1.0 spec: hub candidates by distance-from-center ASC —
+                // hubs anchor the plan, everything else touches them.
+                candidates.sort((a, b) => distToCenter(a) - distToCenter(b));
+            } else {
+                const mapped = candidates.map(c => ({ c, r: rng() }));
+                mapped.sort((a, b) => a.r - b.r);
+                candidates = mapped.map(x => x.c);
+            }
         }
 
         for (const cand of candidates) {
@@ -284,15 +331,23 @@ export function search(
                 if (!adjacencySatisfiedFor(id, r)) { adjacencyOk = false; break; }
             }
             if (!adjacencyOk) continue;
-            
+
+            // I5 acceptance: per-room, post-subdivision — the bedroom's
+            // TRUE rect must touch, not just the suite's outer box.
+            let externalOk = true;
+            for (const [id, r] of subs) {
+                if (needsExternalWall(id) && !grid.touchesPerimeter(r)) { externalOk = false; break; }
+            }
+            if (!externalOk) continue;
+
             // 3. Grid overlap check (expensive iteration)
             if (![...subs.values()].every(r => grid.canPlace(r))) continue;
 
-            for (const [id, r] of subs) { grid.place(r, placedIdx.length); placedIdx.push(r); placed.set(id, r); }
+            for (const [id, r] of subs) { grid.place(r, placedIdx.length); placedIdx.push(r); placed.set(id, r); freeCells -= r.w_cells * r.h_cells; }
             const success = tryUnit(i + 1);
             if (success) return true;
             if (timedOut) return false;
-            for (const [id, r] of subs) { grid.remove(r); placed.delete(id); placedIdx.pop(); }
+            for (const [id, r] of subs) { grid.remove(r); placed.delete(id); placedIdx.pop(); freeCells += r.w_cells * r.h_cells; }
         }
         return false;
     }
