@@ -115,6 +115,15 @@ export function solveLayoutV2(
     // a zone-sizing one. This changes band Y-position versus the old
     // area-proportional version for floors with lopsided area ratios.
     const GROUND_CORRIDOR_FRAC = 0.40;
+    // Stopgap for the fixed-geometry collision (tracked): the stairwell
+    // (3.6m) must fit between the upper corridor's band (ends at
+    // primary.y + 1.5) and the ground corridor's top (socialH). That
+    // requires socialH >= 5.1m, which height * 0.40 fails below 12.75m.
+    // Floor socialH at 5.1m so stairY = socialH - 3.6 always clears the
+    // upper corridor without clamping into it. shapes.ts clamps footprint
+    // height to >= 8m, so socialH + CORRIDOR_D <= height always holds.
+    // Real fix (stairwell as a solver-placed unit) is logged as
+    // architectural debt for after Phase 3 reopens — not now.
 
     const seedNum = (options as any)?.seed ?? Math.floor(Math.random() * 2 ** 31);
 
@@ -126,7 +135,7 @@ export function solveLayoutV2(
         const corridorBounds: Array<{ x: number; y: number; width: number; height: number }> = [];
         let corridorY: number;
         if (floorIndex === 0) {
-            const socialH = footprint.primary.height * GROUND_CORRIDOR_FRAC;
+            const socialH = Math.max(footprint.primary.height * GROUND_CORRIDOR_FRAC, 5.1);
             corridorY = footprint.primary.y + socialH;
         } else {
             // Upper floor: fixed band at the top — this WAS already fixed
