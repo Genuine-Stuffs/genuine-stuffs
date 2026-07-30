@@ -50,7 +50,8 @@ import {
   Package,
   Rows3,
   BrickWall,
-  Blocks
+  Blocks,
+  PaintBucket
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -225,20 +226,20 @@ const Index = () => {
   const categories = [
     { title: "Professionals", icon: Users, link: "/pros" },
     { title: "Artisans", icon: HardHat, link: "/pros" },
-    { title: "Equipment", icon: Construction, dbCategory: "Equipment" },
-    { title: "Sand", icon: Pyramid, dbCategory: "Sand & Gravel" },
-    { title: "Stones", icon: Mountain, dbCategory: "Sand & Gravel" },
-    { title: "Cement", icon: Package, dbCategory: "Cement & Aggregates" },
-    { title: "Site Water", icon: Droplets, dbCategory: "Site Water" },
-    { title: "Steel & Rebars", icon: Rows3, dbCategory: "Steel & Iron" },
-    { title: "Roofing", icon: Home, dbCategory: "Roofing" },
-    { title: "Electricals", icon: Zap, dbCategory: "Electricals" },
-    { title: "Plumbing", icon: Wrench, dbCategory: "Plumbing" },
-    { title: "Finishing", icon: LayoutDashboard, dbCategory: "Finishing & Decor" },
-    { title: "Bricks", icon: BrickWall, dbCategory: "Blocks & Bricks" },
-    { title: "Blocks", icon: Blocks, dbCategory: "Blocks & Bricks" },
-    { title: "Logistics", icon: Truck, dbCategory: "Logistics" },
-    { title: "Tools", icon: Hammer, dbCategory: "Tools" },
+    { title: "Logistics", icon: Truck, dbCategories: ["Logistics"] },
+    { title: "Equipment", icon: Construction, dbCategories: ["Equipment"] },
+    { title: "Cement", icon: Package, dbCategories: ["Cement", "Cement & Aggregates"] },
+    { title: "Sand & Gravel", icon: Pyramid, dbCategories: ["Sand", "Stones", "Sand & Gravel"] },
+    { title: "Blocks & Bricks", icon: Blocks, dbCategories: ["Blocks", "Bricks", "Blocks & Bricks"] },
+    { title: "Steel & Iron", icon: Rows3, dbCategories: ["Steel", "Steel & Iron", "Steel & Rebars"] },
+    { title: "Roofing", icon: Home, dbCategories: ["Roofing"] },
+    { title: "Electrical", icon: Zap, dbCategories: ["Electrical", "Electricals"] },
+    { title: "Plumbing", icon: Wrench, dbCategories: ["Plumbing"] },
+    { title: "Finishing & Tiles", icon: LayoutDashboard, dbCategories: ["Finishing", "Finishing & Decor", "Finishing & Tiles", "Flooring", "Tiles"] },
+    { title: "Paints", icon: PaintBucket, dbCategories: ["Paints", "Paint", "Paint & Coating"] },
+    { title: "Site Water", icon: Droplets, dbCategories: ["Site Water", "Water"] },
+    { title: "Tools", icon: Hammer, dbCategories: ["Tools", "Tooling"] },
+    { title: "Doors & Windows", icon: Box, dbCategories: ["Doors", "Windows", "Doors, Windows & Glazing"] },
     { title: "AI Studio", icon: Rocket, link: "/pro/ai-studio" },
   ];
 
@@ -932,7 +933,7 @@ const Index = () => {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <div className="flex items-center gap-3 mb-2 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-                  <span>06 / Ecosystem Directory</span>
+                  <span>06 / LIVE PROCUREMENT FEED</span>
                 </div>
                 <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight">
                   Verified NIS <span className="text-primary">Marketplace SKUs</span>
@@ -972,8 +973,12 @@ const Index = () => {
                     return (
                       <div key={i} className="group rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-primary/5 hover:border-primary transition-all duration-300">
                         <div className="flex justify-between items-start mb-6">
-                          <div className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-primary/10 transition-colors">
-                            <Icon className="w-5 h-5" />
+                          <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-primary/10 transition-colors overflow-hidden border border-slate-200 dark:border-slate-700 relative">
+                            {prod.image_url ? (
+                              <img src={prod.image_url} alt={prod.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <Icon className="w-6 h-6 absolute" />
+                            )}
                           </div>
                           <span className="px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 text-[9px] font-extrabold uppercase tracking-widest border border-green-200 dark:border-green-500/20">
                             Verified NIS
@@ -1006,10 +1011,13 @@ const Index = () => {
                 };
 
                 const authorized = isAuthorized();
-                const destination = authorized ? (cat.link || `/marketplace?category=${encodeURIComponent(cat.dbCategory || cat.title)}`) : '/login';
+                const primaryCategory = cat.dbCategories ? cat.dbCategories[0] : cat.title;
+                const destination = authorized ? (cat.link || `/marketplace?category=${encodeURIComponent(primaryCategory)}`) : '/login';
 
                 const isAIStudio = cat.title === "AI Studio";
-                const catCount = categoryCounts[cat.dbCategory || cat.title] || 0;
+                const catCount = cat.dbCategories 
+                  ? cat.dbCategories.reduce((sum, c) => sum + (categoryCounts[c] || 0), 0)
+                  : (categoryCounts[cat.title] || 0);
                 
                 return (
                   <Link
