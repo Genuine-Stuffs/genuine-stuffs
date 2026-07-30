@@ -226,20 +226,13 @@ const Index = () => {
   const categories = [
     { title: "Professionals", icon: Users, link: "/pros" },
     { title: "Artisans", icon: HardHat, link: "/pros" },
-    { title: "Logistics", icon: Truck, dbCategories: ["Logistics"] },
-    { title: "Equipment", icon: Construction, dbCategories: ["Equipment"] },
-    { title: "Cement", icon: Package, dbCategories: ["Cement", "Cement & Aggregates"] },
-    { title: "Sand & Gravel", icon: Pyramid, dbCategories: ["Sand", "Stones", "Sand & Gravel"] },
-    { title: "Blocks & Bricks", icon: Blocks, dbCategories: ["Blocks", "Bricks", "Blocks & Bricks"] },
-    { title: "Steel & Iron", icon: Rows3, dbCategories: ["Steel", "Steel & Iron", "Steel & Rebars"] },
-    { title: "Roofing", icon: Home, dbCategories: ["Roofing"] },
-    { title: "Electrical", icon: Zap, dbCategories: ["Electrical", "Electricals"] },
-    { title: "Plumbing", icon: Wrench, dbCategories: ["Plumbing"] },
-    { title: "Finishing & Tiles", icon: LayoutDashboard, dbCategories: ["Finishing", "Finishing & Decor", "Finishing & Tiles", "Flooring", "Tiles"] },
-    { title: "Paints", icon: PaintBucket, dbCategories: ["Paints", "Paint", "Paint & Coating"] },
-    { title: "Site Water", icon: Droplets, dbCategories: ["Site Water", "Water"] },
-    { title: "Tools", icon: Hammer, dbCategories: ["Tools", "Tooling"] },
-    { title: "Doors & Windows", icon: Box, dbCategories: ["Doors", "Windows", "Doors, Windows & Glazing"] },
+    { title: "Cement & Aggregates", icon: Package, dbCategory: "Cement & Aggregates" },
+    { title: "Electrical", icon: Zap, dbCategory: "Electrical" },
+    { title: "Finishing", icon: PaintBucket, dbCategory: "Finishing" },
+    { title: "Flooring", icon: LayoutDashboard, dbCategory: "Flooring" },
+    { title: "Plumbing", icon: Wrench, dbCategory: "Plumbing" },
+    { title: "Roofing", icon: Home, dbCategory: "Roofing" },
+    { title: "Steel & Iron", icon: Rows3, dbCategory: "Steel & Iron" },
     { title: "AI Studio", icon: Rocket, link: "/pro/ai-studio" },
   ];
 
@@ -972,17 +965,17 @@ const Index = () => {
                     const Icon = getCategoryIcon(prod.category);
                     return (
                       <div key={i} className="group rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-primary/5 hover:border-primary transition-all duration-300">
-                        <div className="flex justify-between items-start mb-6">
-                          <div className="w-12 h-12 rounded-xl bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-400 group-hover:text-primary group-hover:bg-primary/10 transition-colors overflow-hidden border border-slate-200 dark:border-slate-700 relative">
-                            {prod.image_url ? (
-                              <img src={prod.image_url} alt={prod.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <Icon className="w-6 h-6 absolute" />
-                            )}
-                          </div>
-                          <span className="px-2.5 py-1 rounded-full bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 text-[9px] font-extrabold uppercase tracking-widest border border-green-200 dark:border-green-500/20">
+                        <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-900 rounded-2xl mb-6 flex items-center justify-center border border-slate-200 dark:border-slate-800">
+                          {prod.image_url ? (
+                            <img src={prod.image_url} alt={prod.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                          ) : (
+                            <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform duration-500">
+                              <Icon className="w-8 h-8 text-slate-400 dark:text-slate-500" />
+                            </div>
+                          )}
+                          <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-green-500 text-white text-[9px] font-extrabold uppercase tracking-widest shadow-md z-10">
                             Verified NIS
-                          </span>
+                          </div>
                         </div>
                         <div>
                           <div className="flex items-baseline gap-1 mb-1">
@@ -999,7 +992,7 @@ const Index = () => {
             )}
 
             {/* Category Grid (Lucide Icons) */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-10 gap-3">
               {categories.map((cat, i) => {
                 const isProOnly = cat.link?.startsWith('/pro/');
                 const isVendorOnly = cat.link?.startsWith('/vendor-');
@@ -1011,13 +1004,11 @@ const Index = () => {
                 };
 
                 const authorized = isAuthorized();
-                const primaryCategory = cat.dbCategories ? cat.dbCategories[0] : cat.title;
+                const primaryCategory = cat.dbCategory || cat.title;
                 const destination = authorized ? (cat.link || `/marketplace?category=${encodeURIComponent(primaryCategory)}`) : '/login';
 
                 const isAIStudio = cat.title === "AI Studio";
-                const catCount = cat.dbCategories 
-                  ? cat.dbCategories.reduce((sum, c) => sum + (categoryCounts[c] || 0), 0)
-                  : (categoryCounts[cat.title] || 0);
+                const catCount = categoryCounts[cat.dbCategory || cat.title] || 0;
                 
                 return (
                   <Link
