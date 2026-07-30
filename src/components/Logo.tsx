@@ -8,7 +8,7 @@ const Logo = ({ className = "", iconClassName = "h-10 md:h-12", textClassName = 
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <img 
-        src="/logo-gs.png" 
+        src="/logo-geometric.png" 
         alt="Genuine Stuffs Logo" 
         className={`${iconClassName} w-auto object-contain rounded-lg transition-transform duration-300 group-hover:scale-105 shadow-sm`} 
       />

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
+import Methodology from "./pages/Methodology";
 import Services from "./pages/Services";
 import Resources from "./pages/Resources";
 import About from "./pages/About";
@@ -57,6 +58,7 @@ const App = () => (
                 <main className="flex-grow pb-20 md:pb-0">
                   <Routes>
                     <Route path="/" element={<Index />} />
+                    <Route path="/methodology" element={<Methodology />} />
                     <Route path="/admin-home" element={<AdminHome />} />
                     <Route path="/services" element={<Services />} />
                     <Route path="/resources" element={<Resources />} />
