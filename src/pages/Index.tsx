@@ -667,14 +667,15 @@ const Index = () => {
                   <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-2 block">Representative project · rates as of Aug 2026</span>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
-                  <Button asChild variant="outline" className="h-12 px-6 rounded-2xl text-xs font-bold border-slate-300 dark:border-slate-600 w-full sm:w-auto">
-                    <Link to="/pro/ai-studio">Customize in AI Studio</Link>
+                  <Button asChild variant="outline" className="h-12 px-6 rounded-2xl text-xs font-bold border-slate-300 dark:border-slate-600 w-full sm:w-auto whitespace-normal h-auto min-h-12 py-3">
+                    <Link to="/pro/ai-studio" className="text-center">Customize in AI Studio</Link>
                   </Button>
-                  <Button asChild className="h-12 px-6 sm:px-8 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-sm uppercase tracking-wide sm:tracking-wider shadow-lg shadow-primary/20 flex items-center justify-center gap-2 w-full sm:w-auto">
-                    <Link to="/marketplace">
-                      <Lock className="w-4 h-4 shrink-0" />
-                      <span className="hidden sm:inline">Order All — Paystack Checkout</span>
-                      <span className="sm:hidden">Order All — Checkout</span>
+                  <Button asChild className="h-auto min-h-12 py-3 px-4 sm:px-8 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-[11px] sm:text-sm uppercase tracking-normal sm:tracking-wider shadow-lg shadow-primary/20 flex items-center justify-center gap-2 w-full sm:w-auto whitespace-normal">
+                    <Link to="/marketplace" className="text-center flex items-center justify-center gap-1.5 flex-wrap">
+                      <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
+                      <span className="hidden md:inline">Order All — Paystack Checkout</span>
+                      <span className="hidden sm:inline md:hidden">Order All — Checkout</span>
+                      <span className="sm:hidden">Checkout Order</span>
                     </Link>
                   </Button>
                 </div>
