@@ -759,7 +759,130 @@ const Index = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 4: THE CONSTRUCTION FLYWHEEL & PROOF (Merged A & B)
+          SECTION 04: LIVE PROCUREMENT FEED (Unified Category Grid + Promoted SKUs)
+         ========================================================================= */}
+      <section className="py-20 bg-white dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <div className="flex items-center gap-3 mb-2 text-xs font-bold uppercase tracking-[0.15em] text-primary">
+                  <span>04 / Live Procurement Feed</span>
+                </div>
+                <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight">
+                  Verified NIS <span className="text-primary">Marketplace SKUs</span>
+                </h2>
+              </div>
+              <Link to="/marketplace" className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline uppercase tracking-tight">
+                <span className="hidden sm:inline">Explore Full Marketplace</span>
+                <span className="sm:hidden">Explore</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+
+            {/* Category Grid (Lucide Icons) — FIRST */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-10 gap-3 mb-10">
+              {categories.map((cat, i) => {
+                const isProOnly = cat.link?.startsWith('/pro/');
+                const isVendorOnly = cat.link?.startsWith('/vendor-');
+                
+                const isAuthorized = () => {
+                  if (isProOnly && !['professional', 'admin'].includes(role)) return false;
+                  if (isVendorOnly && !['vendor', 'admin'].includes(role)) return false;
+                  return true;
+                };
+
+                const authorized = isAuthorized();
+                const primaryCategory = cat.dbCategory || cat.title;
+                const destination = authorized ? (cat.link || `/marketplace?category=${encodeURIComponent(primaryCategory)}`) : '/login';
+
+                const isAIStudio = cat.title === "AI Studio";
+                const catCount = categoryCounts[cat.dbCategory || cat.title] || 0;
+                
+                return (
+                  <Link
+                    key={i}
+                    to={destination}
+                    state={!authorized ? { fromRestricted: true, message: `Access restricted. Please login or register as a ${isProOnly ? 'Professional' : 'Vendor'} to access ${cat.title}.` } : undefined}
+                    className="group flex flex-col items-center justify-start text-center p-3.5 rounded-2xl bg-slate-50 dark:bg-[#2D3748] border border-slate-200 dark:border-slate-700 hover:border-primary hover:bg-white transition-all hover:-translate-y-1 hover:shadow-md relative"
+                  >
+                    {catCount > 0 && !isAIStudio && (
+                      <span className="absolute -top-2 -right-2 bg-primary text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-md shadow-sm z-10">
+                        {catCount}
+                      </span>
+                    )}
+                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-colors ${isAIStudio ? 'bg-primary/10 text-primary' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'} group-hover:bg-primary/10 group-hover:text-primary`}>
+                      <cat.icon className="w-6 h-6" />
+                    </div>
+                    <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight group-hover:text-primary transition-colors">
+                      {cat.title}
+                    </span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Promoted SKU Cards with Images — SECOND */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {isPromotedLoading ? (
+                Array.from({ length: 4 }).map((_, i) => (
+                  <Card key={i} className="aspect-[4/5] w-full animate-pulse bg-slate-100 dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700" />
+                ))
+              ) : promotedProducts.length > 0 ? (
+                promotedProducts.map((prod) => (
+                  <Card key={prod.id} className="group overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-primary transition-all duration-300 rounded-3xl bg-white dark:bg-[#2D3748] shadow-sm hover:shadow-xl flex flex-col h-full">
+                    {/* Image Section */}
+                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
+                      <img
+                        src={prod.image_url || "/images/materials/cement.png"}
+                        alt={prod.name}
+                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
+                      />
+                      <div className="absolute top-3 right-3 px-3 py-1 rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest shadow-md z-10">
+                        Verified NIS
+                      </div>
+                    </div>
+
+                    {/* Content Section */}
+                    <div className="flex flex-col p-5 flex-1 justify-between gap-4">
+                      <div>
+                        <div className="flex items-baseline justify-between mb-1">
+                          <span className="text-xl font-extrabold text-slate-900 dark:text-white">₦{Number(prod.price).toLocaleString()}</span>
+                          <span className="text-xs text-slate-400 font-bold uppercase">/{prod.unit}</span>
+                        </div>
+                        <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200 leading-snug line-clamp-2">{prod.name}</h3>
+                      </div>
+
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
+                          <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
+                          <span className="truncate max-w-[120px]">{prod.vendor_name || 'Direct Factory'}</span>
+                        </div>
+                        <Button
+                          asChild
+                          size="sm"
+                          className="bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl h-9 px-4 transition-colors shadow-sm"
+                        >
+                          <Link to="/marketplace">Order</Link>
+                        </Button>
+                      </div>
+                    </div>
+                  </Card>
+                ))
+              ) : (
+                <div className="col-span-full py-16 text-center text-slate-400 font-normal bg-white dark:bg-[#2D3748] rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+                  No promoted materials available at the moment. Explore the full marketplace inventory.
+                </div>
+              )}
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 06: THE CONSTRUCTION FLYWHEEL & PROOF (Merged A & B)
          ========================================================================= */}
       <section className="py-24 bg-slate-950 text-white relative overflow-hidden">
         {/* Infused Construction Site Background Image with Dimmed Overlay */}
@@ -776,7 +899,7 @@ const Index = () => {
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-primary/20 border border-primary/40 text-primary text-xs font-bold uppercase tracking-[0.12em] mb-4">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin-slow" />
-                <span>04 / The Flywheel & Proof</span>
+                <span>05 / The Flywheel & Proof</span>
               </div>
               <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4">
                 Every project teaches <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-primary">the next one.</span>
@@ -837,87 +960,9 @@ const Index = () => {
         </div>
       </section>
 
-      {/* =========================================================================
-          SECTION 7: PROMOTED MARKETPLACE MATERIALS (Preserved Supabase Query)
-         ========================================================================= */}
-      <section className="py-20 bg-white dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <div className="flex items-center gap-3 mb-2 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-                  <span>06 / Live Procurement Feed</span>
-                </div>
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight">
-                  Verified NIS <span className="text-primary">Marketplace SKUs</span>
-                </h2>
-              </div>
-              <Link to="/marketplace" className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline uppercase tracking-tight">
-                <span>Explore Full Marketplace</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {isPromotedLoading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <Card key={i} className="aspect-[4/5] w-full animate-pulse bg-slate-100 dark:bg-slate-800 rounded-3xl border border-slate-200 dark:border-slate-700" />
-                ))
-              ) : promotedProducts.length > 0 ? (
-                promotedProducts.map((prod) => (
-                  <Card key={prod.id} className="group overflow-hidden border border-slate-200 dark:border-slate-700 hover:border-primary transition-all duration-300 rounded-3xl bg-white dark:bg-[#2D3748] shadow-sm hover:shadow-xl flex flex-col h-full">
-                    {/* Image Section */}
-                    <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-900">
-                      <img
-                        src={prod.image_url || "/images/materials/cement.png"}
-                        alt={prod.name}
-                        className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
-                      />
-                      <div className="absolute top-3 right-3 px-3 py-1 rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest shadow-md z-10">
-                        Verified NIS
-                      </div>
-                    </div>
-
-                    {/* Content Section */}
-                    <div className="flex flex-col p-5 flex-1 justify-between gap-4">
-                      <div>
-                        <div className="flex items-baseline justify-between mb-1">
-                          <span className="text-xl font-extrabold text-slate-900 dark:text-white">₦{Number(prod.price).toLocaleString()}</span>
-                          <span className="text-xs text-slate-400 font-bold uppercase">/{prod.unit}</span>
-                        </div>
-                        <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200 leading-snug line-clamp-2">{prod.name}</h3>
-                      </div>
-
-                      <div className="pt-3 border-t border-slate-100 dark:border-slate-700 flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
-                          <MapPin className="w-3.5 h-3.5 text-primary shrink-0" />
-                          <span className="truncate max-w-[120px]">{prod.vendor_name || 'Direct Factory'}</span>
-                        </div>
-                        <Button
-                          asChild
-                          size="sm"
-                          className="bg-primary hover:bg-primary/90 text-white font-bold text-xs rounded-xl h-9 px-4 transition-colors shadow-sm"
-                        >
-                          <Link to="/marketplace">Order</Link>
-                        </Button>
-                      </div>
-                    </div>
-                  </Card>
-                ))
-              ) : (
-                <div className="col-span-full py-16 text-center text-slate-400 font-normal bg-white dark:bg-[#2D3748] rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
-                  No promoted materials available at the moment. Explore the full marketplace inventory.
-                </div>
-              )}
-            </div>
-
-          </div>
-        </div>
-      </section>
 
       {/* =========================================================================
-          SECTION 05: ARCHITECTED FOR TRUST (Trust Mechanics & Testimonial)
+          SECTION 07: ARCHITECTED FOR TRUST (Trust Mechanics & Testimonial)
          ========================================================================= */}
       <section className="py-24 bg-[#F0F9FF] dark:bg-slate-950 text-slate-900 dark:text-white relative overflow-hidden transition-colors">
         {/* Infused Trust Background */}
@@ -930,7 +975,7 @@ const Index = () => {
           <div className="max-w-5xl mx-auto">
             
             <div className="text-center mb-16">
-              <span className="text-xs font-bold uppercase tracking-[0.15em] text-primary block mb-3">05 / Integrity by Default</span>
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-primary block mb-3">06 / Integrity by Default</span>
               <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-white">
                 Architected for <span className="text-primary">uncompromising trust.</span>
               </h2>
@@ -989,129 +1034,9 @@ const Index = () => {
         </div>
       </section>
 
-      {/* =========================================================================
-          SECTION 06: THE MARKETPLACE (Static Promoted Feed + Ecosystem Grid)
-         ========================================================================= */}
-      <section className="py-20 bg-white dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 transition-colors">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            
-            <div className="flex items-center justify-between mb-8">
-              <div>
-                <div className="flex items-center gap-3 mb-2 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-                  <span>06 / LIVE PROCUREMENT FEED</span>
-                </div>
-                <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight">
-                  Verified NIS <span className="text-primary">Marketplace SKUs</span>
-                </h2>
-              </div>
-              <Link to="/marketplace" className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline uppercase tracking-tight">
-                <span className="hidden sm:inline">Explore Full Marketplace</span>
-                <span className="sm:hidden">Explore</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-            </div>
-
-            {/* The feed */}
-            {!isPromotedLoading && promotedProducts.length === 0 ? (
-              (() => {
-                console.error("Promoted SKU feed returned 0 items. Expected at least 1 verified material. Collapsing feed gracefully.");
-                return null;
-              })()
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 relative z-10">
-                {isPromotedLoading ? (
-                  Array(4).fill(0).map((_, i) => (
-                    <div key={i} className="rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-4 shadow-sm animate-pulse">
-                      <div className="flex justify-between items-start mb-6">
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800" />
-                        <div className="w-16 h-5 rounded-full bg-slate-100 dark:bg-slate-800" />
-                      </div>
-                      <div>
-                        <div className="w-24 h-6 rounded-md bg-slate-100 dark:bg-slate-800 mb-2" />
-                        <div className="w-full h-4 rounded-md bg-slate-100 dark:bg-slate-800" />
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  promotedProducts.map((prod, i) => {
-                    const Icon = getCategoryIcon(prod.category);
-                    return (
-                      <div key={i} className="group rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 flex flex-col justify-between shadow-sm hover:shadow-xl hover:shadow-primary/5 hover:border-primary transition-all duration-300">
-                        <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 dark:bg-slate-900 rounded-2xl mb-6 flex items-center justify-center border border-slate-200 dark:border-slate-800">
-                          {prod.image_url ? (
-                            <img src={prod.image_url} alt={prod.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                          ) : (
-                            <div className="w-16 h-16 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center shadow-inner group-hover:scale-105 transition-transform duration-500">
-                              <Icon className="w-8 h-8 text-slate-400 dark:text-slate-500" />
-                            </div>
-                          )}
-                          <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-green-500 text-white text-[9px] font-extrabold uppercase tracking-widest shadow-md z-10">
-                            Verified NIS
-                          </div>
-                        </div>
-                        <div>
-                          <div className="flex items-baseline gap-1 mb-1">
-                            <span className="text-xl font-extrabold text-slate-900 dark:text-white">₦{Number(prod.price).toLocaleString()}</span>
-                            <span className="text-xs text-slate-400 font-bold uppercase">/{prod.unit}</span>
-                          </div>
-                          <h3 className="font-bold text-sm text-slate-800 dark:text-slate-200 leading-snug line-clamp-2">{prod.name}</h3>
-                        </div>
-                      </div>
-                    )
-                  })
-                )}
-              </div>
-            )}
-
-            {/* Category Grid (Lucide Icons) */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-10 gap-3">
-              {categories.map((cat, i) => {
-                const isProOnly = cat.link?.startsWith('/pro/');
-                const isVendorOnly = cat.link?.startsWith('/vendor-');
-                
-                const isAuthorized = () => {
-                  if (isProOnly && !['professional', 'admin'].includes(role)) return false;
-                  if (isVendorOnly && !['vendor', 'admin'].includes(role)) return false;
-                  return true;
-                };
-
-                const authorized = isAuthorized();
-                const primaryCategory = cat.dbCategory || cat.title;
-                const destination = authorized ? (cat.link || `/marketplace?category=${encodeURIComponent(primaryCategory)}`) : '/login';
-
-                const isAIStudio = cat.title === "AI Studio";
-                const catCount = categoryCounts[cat.dbCategory || cat.title] || 0;
-                
-                return (
-                  <Link
-                    key={i}
-                    to={destination}
-                    state={!authorized ? { fromRestricted: true, message: `Access restricted. Please login or register as a ${isProOnly ? 'Professional' : 'Vendor'} to access ${cat.title}.` } : undefined}
-                    className="group flex flex-col items-center justify-start text-center p-3.5 rounded-2xl bg-slate-50 dark:bg-[#2D3748] border border-slate-200 dark:border-slate-700 hover:border-primary hover:bg-white transition-all hover:-translate-y-1 hover:shadow-md relative"
-                  >
-                    {catCount > 0 && !isAIStudio && (
-                      <span className="absolute -top-2 -right-2 bg-primary text-white text-[9px] font-extrabold px-1.5 py-0.5 rounded-md shadow-sm z-10">
-                        {catCount}
-                      </span>
-                    )}
-                    <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-2 transition-colors ${isAIStudio ? 'bg-primary/10 text-primary' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'} group-hover:bg-primary/10 group-hover:text-primary`}>
-                      <cat.icon className="w-6 h-6" />
-                    </div>
-                    <span className="text-[11px] font-bold text-slate-800 dark:text-slate-200 leading-tight group-hover:text-primary transition-colors">
-                      {cat.title}
-                    </span>
-                  </Link>
-                );
-              })}
-            </div>
-
-          </div>
-        </div>
-      </section>
 
       {/* =========================================================================
-          SECTION 07: LUXURY AI-NATIVE CTA & TECH DISPLAY (Brand Aligned)
+          SECTION 08: LUXURY AI-NATIVE CTA & TECH DISPLAY (Brand Aligned)
          ========================================================================= */}
       <section className="py-24 bg-[#F0F9FF] dark:bg-[#181E26] border-t border-slate-200 dark:border-slate-800 transition-colors relative overflow-hidden">
         <div className="container mx-auto px-4">
