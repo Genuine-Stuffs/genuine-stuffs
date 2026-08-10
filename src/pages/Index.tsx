@@ -51,7 +51,8 @@ import {
   Rows3,
   BrickWall,
   Blocks,
-  PaintBucket
+  PaintBucket,
+  ChevronLeft
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -102,6 +103,16 @@ const Index = () => {
   const [activePillar, setActivePillar] = useState<0 | 1 | 2>(0);
   const [activeFlywheelStep, setActiveFlywheelStep] = useState<number>(0);
   const [selectedBoqProject, setSelectedBoqProject] = useState<0 | 1 | 2>(0);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+
+  // Building Gallery Images
+  const galleryImages = [
+    { src: "/images/gallery/exterior-front.jpg", label: "Front Elevation" },
+    { src: "/images/gallery/exterior-angle.jpg", label: "3/4 Perspective" },
+    { src: "/images/gallery/floor-plan-ground.jpg", label: "Ground Floor Plan" },
+    { src: "/images/gallery/floor-plan-upper.jpg", label: "First Floor Plan" },
+    { src: "/images/gallery/interior-living.jpg", label: "Interior — Living" },
+  ];
 
   // Hero Background 8-second Carousel State
   const [heroBgIndex, setHeroBgIndex] = useState(0);
@@ -549,6 +560,66 @@ const Index = () => {
               <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 font-normal">
                 See how our AI engine translates conceptual building dimensions directly into verified NIS material orders ready for instant Paystack checkout.
               </p>
+            </div>
+
+            {/* eBay-Style Building Design & Floor Plan Gallery */}
+            <div className="mb-16">
+              <div className="text-center mb-4">
+                <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                  Gallery ({galleryIndex + 1} of {galleryImages.length})
+                </span>
+              </div>
+              <div className="flex flex-col lg:flex-row gap-3">
+                {/* Large Hero Image */}
+                <div className="relative flex-1 min-h-[300px] sm:min-h-[400px] lg:min-h-[480px] rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 group">
+                  <img
+                    src={galleryImages[galleryIndex].src}
+                    alt={galleryImages[galleryIndex].label}
+                    className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-[1.02]"
+                  />
+                  {/* Navigation Arrows */}
+                  <button
+                    onClick={() => setGalleryIndex((prev) => (prev - 1 + galleryImages.length) % galleryImages.length)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 shadow-lg flex items-center justify-center text-slate-700 dark:text-white hover:bg-white hover:scale-110 transition-all z-10 border border-slate-200 dark:border-slate-700"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                  <button
+                    onClick={() => setGalleryIndex((prev) => (prev + 1) % galleryImages.length)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/90 dark:bg-slate-900/90 shadow-lg flex items-center justify-center text-slate-700 dark:text-white hover:bg-white hover:scale-110 transition-all z-10 border border-slate-200 dark:border-slate-700"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                  {/* Image Label */}
+                  <div className="absolute bottom-3 left-3 px-3 py-1.5 rounded-xl bg-black/60 text-white text-xs font-bold backdrop-blur-sm">
+                    {galleryImages[galleryIndex].label}
+                  </div>
+                </div>
+
+                {/* Thumbnail Strip */}
+                <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto lg:overflow-x-hidden lg:w-[200px] xl:w-[220px] lg:max-h-[480px] scrollbar-hide pb-1 lg:pb-0">
+                  {galleryImages.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => setGalleryIndex(idx)}
+                      className={cn(
+                        "shrink-0 w-[100px] h-[75px] sm:w-[120px] sm:h-[90px] lg:w-full lg:h-auto lg:aspect-[4/3] rounded-xl overflow-hidden border-2 transition-all duration-200",
+                        galleryIndex === idx
+                          ? "border-primary ring-2 ring-primary/30 scale-[1.02]"
+                          : "border-slate-200 dark:border-slate-700 opacity-70 hover:opacity-100 hover:border-slate-400"
+                      )}
+                    >
+                      <img
+                        src={img.src}
+                        alt={img.label}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
             {/* Project Selector Pills */}
