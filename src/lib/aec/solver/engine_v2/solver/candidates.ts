@@ -64,17 +64,64 @@ function enumerateDimensionPairs(
         .map(({ w_cells, h_cells }) => ({ w_cells, h_cells }));
 }
 
+export interface AnchorContext {
+    /** Rects already occupying the grid (placed rooms + reserved corridor/stairwell). */
+    placedRects: RectCells[];
+    gridW_cells: number;
+    gridH_cells: number;
+}
+
+/**
+ * ANCHOR-BASED ENUMERATION (replaces exhaustive O(W×H) position scan).
+ * Optimal rectangle packings always have every rect flush against
+ * another rect or the boundary — free-floating interior positions are
+ * never necessary and were ~95% of the volume that drowned the search
+ * (1.9M nodes, no solve, hive-001 fully relaxed).
+ *
+ * For each (w,h) pair, candidate positions are only:
+ *   1. The four boundary-flush lines (x=0, y=0, x=W-w, y=H-h),
+ *      stepped along the free axis;
+ *   2. Flush against each placed rect's four sides, spanning the
+ *      overlap range so partial-offset adjacency is reachable.
+ * First unit on an empty grid → boundary anchors only.
+ */
 export function* enumerateCandidates(
     room: RoomSpec,
-    gridW_cells: number,
-    gridH_cells: number,
+    ctx: AnchorContext,
     areaTolerance: number
 ): Generator<RectCells> {
-    for (const { w_cells, h_cells } of enumerateDimensionPairs(room, areaTolerance)) {
-        if (w_cells > gridW_cells || h_cells > gridH_cells) continue;
-        for (let y = 0; y <= gridH_cells - h_cells; y++) {
-            for (let x = 0; x <= gridW_cells - w_cells; x++) {
-                yield { x_cells: x, y_cells: y, w_cells, h_cells };
+    const seen = new Set<number>();
+    const emit = function* (x: number, y: number, w: number, h: number): Generator<RectCells> {
+        if (x < 0 || y < 0 || x + w > ctx.gridW_cells || y + h > ctx.gridH_cells) return;
+        const key = ((x * ctx.gridH_cells + y) * 4096 + w) * 4096 + h;
+        if (seen.has(key)) return;
+        seen.add(key);
+        yield { x_cells: x, y_cells: y, w_cells: w, h_cells: h };
+    };
+
+    for (const { w_cells: w, h_cells: h } of enumerateDimensionPairs(room, areaTolerance)) {
+        if (w > ctx.gridW_cells || h > ctx.gridH_cells) continue;
+
+        // 1. Boundary anchors — flush to each wall, stepped along it
+        for (let x = 0; x <= ctx.gridW_cells - w; x++) {
+            yield* emit(x, 0, w, h);
+            yield* emit(x, ctx.gridH_cells - h, w, h);
+        }
+        for (let y = 0; y <= ctx.gridH_cells - h; y++) {
+            yield* emit(0, y, w, h);
+            yield* emit(ctx.gridW_cells - w, y, w, h);
+        }
+
+        // 2. Placed-rect anchors — flush against each side, sliding
+        //    across the overlap range so any shared-wall offset is reachable
+        for (const p of ctx.placedRects) {
+            for (let y = p.y_cells - h + 1; y <= p.y_cells + p.h_cells - 1; y++) {
+                yield* emit(p.x_cells + p.w_cells, y, w, h); // right of p
+                yield* emit(p.x_cells - w, y, w, h);          // left of p
+            }
+            for (let x = p.x_cells - w + 1; x <= p.x_cells + p.w_cells - 1; x++) {
+                yield* emit(x, p.y_cells + p.h_cells, w, h); // below p
+                yield* emit(x, p.y_cells - h, w, h);          // above p
             }
         }
     }

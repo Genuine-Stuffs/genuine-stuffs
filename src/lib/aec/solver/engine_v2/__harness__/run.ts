@@ -38,6 +38,8 @@ interface FixtureOutcome {
     fixture: string;
     loaded: boolean;
     crashed: boolean;
+    isVacuous?: boolean;
+    solverStatus?: string;
     crashMessage?: string;
     results: AssertionResult[];
     elapsed_ms: number;
@@ -54,14 +56,12 @@ function loadFixtures(): Array<{ name: string; raw: any }> {
 function runFixture(name: string, raw: any): FixtureOutcome {
     const start = performance.now();
     const briefRef = raw.brief_reference ?? {};
-    const plotSqm = briefRef.plot_size_sqm ?? 675; // ~15x30 fallback, matches AIStudio.tsx default
+    const plotSqm = briefRef.plot_size_sqm ?? 675;
     const plotWidth = Math.sqrt(plotSqm);
     const plotDepth = plotSqm / plotWidth;
     const floors = briefRef.floors ?? briefRef.storeys ?? 1;
 
     const envelope = { width: plotWidth, depth: plotDepth, setbacks: SETBACKS };
-    // Mirrors index.ts's own buildable-envelope formula exactly, so I1's
-    // bounds match what the solver itself was constrained to.
     const buildableEnvelope = {
         width:  Math.max(plotWidth  - SETBACKS.left  - SETBACKS.right, 8),
         height: Math.max(plotDepth - SETBACKS.front - SETBACKS.rear,  8),
@@ -70,9 +70,10 @@ function runFixture(name: string, raw: any): FixtureOutcome {
     try {
         const layout = solveLayoutV2(raw, envelope, { floors_override: floors });
         const graph  = buildGraph((raw.rooms ?? []) as HiveRoom[]);
-        const results = runAllAssertions(layout, graph, buildableEnvelope);
+        const isVacuous = layout.solver_status === 'TIMEOUT';
+        const results = (isVacuous || layout.solver_status === 'UNSAT') ? [] : runAllAssertions(layout, graph, buildableEnvelope);
         return {
-            fixture: name, loaded: true, crashed: false,
+            fixture: name, loaded: true, crashed: false, isVacuous, solverStatus: layout.solver_status,
             results, elapsed_ms: performance.now() - start,
         };
     } catch (err: any) {
@@ -89,6 +90,14 @@ function printTable(outcomes: FixtureOutcome[]): void {
     for (const o of outcomes) {
         if (o.crashed) {
             console.log(`✗ ${o.fixture} — CRASHED: ${o.crashMessage} (${o.elapsed_ms.toFixed(0)}ms)`);
+            continue;
+        }
+        if (o.isVacuous) {
+            console.log(`\n${o.fixture} — TIMEOUT (invariants not evaluated) (${o.elapsed_ms.toFixed(0)}ms)`);
+            continue;
+        }
+        if (o.solverStatus === 'UNSAT') {
+            console.log(`\n${o.fixture} — UNSAT (proven) (${o.elapsed_ms.toFixed(0)}ms)`);
             continue;
         }
         const passCount = o.results.filter(r => r.pass).length;

@@ -243,7 +243,89 @@ serve(async (req: Request) => {
         const isAdmin = user?.app_metadata?.is_admin === true;
         const isPM = user?.app_metadata?.is_pm === true || isAdmin;
 
-        const { prompt, messages: history = [], type = 'text', selectedRole = 'Architect' } = await req.json();
+        const { prompt, messages: history = [], type = 'text', selectedRole = 'Architect', fileData = '', fileName = '', fileType = '', mimeType = '' } = await req.json();
+
+        // ── BOQ ANALYZER PATH ──────────────────────────────────────────────────
+        if (type === 'analyze_boq') {
+            const BOQ_ANALYZER_PROMPT = `You are the Genuine Stuffs Neural Quantity Surveyor. A user has uploaded a construction document. Your job is to analyze it and produce a Nigerian construction Bill of Quantities.
+
+RULES:
+1. Extract or infer all material line items from the document.
+2. Map every item to one of these Genuine Stuffs marketplace categories: "Foundation Concrete", "Blockwork", "Roofing", "Steel & Reinforcement", "Electrical", "Plumbing", "Finishing & Tiles", "Paints", "Doors & Windows", "Structural Steel", "Site Works", "Equipment", "Carpentry & Joinery", "Mechanical", "External Works".
+3. All prices must be in Nigerian Naira (₦) using current Lagos market rates.
+4. If the document is a CAD/BIM file (DWG, RVT, IFC, DXF, SKP), infer the BOQ from the filename and any text context provided.
+5. Output ONLY a JSON array matching this exact schema:
+[
+  {
+    "category": "Foundation Concrete",
+    "specification": "C25 grade concrete (1:1.5:3 mix ratio), Foundation Strip and Pad",
+    "quantity_estimate": 45,
+    "unit": "m³",
+    "unit_price": 65000,
+    "total_price": 2925000,
+    "suggested_marketplace_type": "marketplace"
+  }
+]
+6. Include at minimum 8 line items, maximum 20 line items.
+7. Return ONLY the JSON array with no markdown, no explanation, no prose.`;
+
+            let messages: any[];
+
+            if (mimeType.startsWith('image/') && fileData) {
+                messages = [
+                    { role: 'system', content: BOQ_ANALYZER_PROMPT },
+                    { role: 'user', content: [
+                        { type: 'text', text: `Analyze this construction plan image: ${fileName}` },
+                        { type: 'image_url', image_url: { url: `data:${mimeType};base64,${fileData}` } }
+                    ]}
+                ];
+            } else if (mimeType === 'application/pdf' && fileData) {
+                messages = [
+                    { role: 'system', content: BOQ_ANALYZER_PROMPT },
+                    { role: 'user', content: [
+                        { type: 'text', text: `Analyze this PDF construction document: ${fileName}. The document content (base64 PDF) is attached.` },
+                        { type: 'image_url', image_url: { url: `data:${mimeType};base64,${fileData}` } }
+                    ]}
+                ];
+            } else {
+                // Binary CAD/BIM formats or text-only prompts
+                const userText = prompt
+                    ? `${prompt}\nFile Name: ${fileName}\nFile Type: ${fileType}`
+                    : `Generate a comprehensive Bill of Quantities for the following construction project based on the file name and type:\nFile Name: ${fileName}\nFile Type: ${fileType}\nThis is a ${fileType ? fileType.toUpperCase() : 'CONSTRUCTION'} file from a professional AEC workflow. Infer building type, scale, and typical material requirements.`;
+                messages = [
+                    { role: 'system', content: BOQ_ANALYZER_PROMPT },
+                    { role: 'user', content: userText }
+                ];
+            }
+
+            const boqResponse = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${openRouterKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': 'https://genuinestuffs.com'
+                },
+                body: JSON.stringify({ model: 'google/gemini-2.5-flash', messages, temperature: 0.2, max_tokens: 4000 })
+            });
+            const boqJson = await boqResponse.json();
+            const rawContent = boqJson.choices?.[0]?.message?.content ?? '';
+
+            let materials: any[] = [];
+            try {
+                const cleaned = rawContent.replace(/```json|```/g, '').trim();
+                materials = JSON.parse(cleaned);
+                if (!Array.isArray(materials)) throw new Error('not array');
+            } catch {
+                const arrMatch = rawContent.match(/\[[\s\S]*\]/);
+                if (arrMatch) {
+                    try { materials = JSON.parse(arrMatch[0]); } catch { /* silent */ }
+                }
+            }
+
+            return new Response(JSON.stringify({ materials, type: 'analyze_boq' }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
 
         // ── VISUALIZE PATH (unchanged) ────────────────────────────────────────
         if (type === 'visualize') {

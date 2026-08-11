@@ -85,6 +85,7 @@ export function solveLayoutV2(
     let stairCoords: { x: number; y: number; width: number; height: number } | null = null;
     let totalNodesExplored = 0;
     let anyFloorUnsolved = false;
+    let finalStatus: 'SOLVED' | 'SOLVED_RELAXED' | 'TIMEOUT' | 'UNSAT' = 'SOLVED';
     const floors = isDuplex ? [0, 1] : [0];
 
     const rng = createRng((options as any)?.seed);
@@ -179,9 +180,6 @@ export function solveLayoutV2(
         }
 
         // ── Reserve corridor + stairwell cells for the solver ───────────────
-        // The wing-bridge (L/T-shape connectivity strip) is reserved
-        // automatically inside buildFootprintGrid() — nothing to add here
-        // for that; only OUR fixed rects need declaring.
         const reservedRects: ReservedRect[] = corridorBounds.map((b, i) => ({
             id: `corridor_floor${floorIndex}_${i}`, type: 'circulation',
             x_m: b.x, y_m: b.y, w_m: b.width, h_m: b.height,
@@ -196,6 +194,10 @@ export function solveLayoutV2(
         // ── Solve placement for every non-circ room on this floor ──────────
         const config: SolverConfig = { budget_ms: 6000, areaTolerance: 0.10, seed: seedNum + floorIndex };
         const result = solvePlacement(graph, footprint, floorIndex, hiveRooms, config, reservedRects);
+
+        if (result.status === 'TIMEOUT') finalStatus = 'TIMEOUT';
+        else if (result.status === 'UNSAT' && finalStatus !== 'TIMEOUT') finalStatus = 'UNSAT';
+        else if (result.status === 'SOLVED_RELAXED' && finalStatus === 'SOLVED') finalStatus = 'SOLVED_RELAXED';
 
         if (result.status === 'UNSAT' || result.status === 'TIMEOUT') {
             anyFloorUnsolved = true;
@@ -229,6 +231,7 @@ export function solveLayoutV2(
         placed_rooms:            placedRooms,
         solver_iterations_used:  totalNodesExplored,
         is_fully_connected:      !anyFloorUnsolved,
+        solver_status:           finalStatus,
         placement_issues:        allIssues,
     };
 }

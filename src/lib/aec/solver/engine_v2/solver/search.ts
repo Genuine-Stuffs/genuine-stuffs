@@ -13,7 +13,7 @@
  */
 
 import { OccupancyGrid, RectCells } from './grid';
-import { GRID_RESOLUTION_M, metersToCells, cellsToMeters } from './units';
+import { GRID_RESOLUTION_M, metersToCells, metersToCellsFloor, cellsToMeters } from './units';
 import { PlacedRect, SolverConfig, RoomDimensionHint, ReservedRect } from './types';
 import { RoomGraph, Suite, deriveSuites, identifyHubs, AdjacencyPair } from '../graph';
 import { BuildingFootprint } from '../shapes';
@@ -166,7 +166,8 @@ export function search(
     combinedW_m: number, combinedH_m: number,
     config: SolverConfig, dimensionHints: Map<string, RoomDimensionHint>,
     mustTouchPairs: AdjacencyPair[],
-    floorIndex: number
+    floorIndex: number,
+    reservedRects: ReservedRect[] = []
 ): SearchOutcome {
     const startTime = performance.now();
     const rng = xorshift32(config.seed);
@@ -251,7 +252,16 @@ export function search(
             id: unit.ids[0], targetArea_m2: unit.totalArea_m2, minWidth_m: 2.4,
             dimensionHint: unit.ids.length === 1 ? dimensionHints.get(unit.ids[0]) : undefined,
         };
-        let candidates = Array.from(enumerateCandidates(spec, grid.widthCells, grid.heightCells, config.areaTolerance));
+        const reservedCells: RectCells[] = reservedRects.map(r => ({
+            x_cells: metersToCellsFloor(r.x_m), y_cells: metersToCellsFloor(r.y_m),
+            w_cells: metersToCells(r.w_m), h_cells: metersToCells(r.h_m)
+        }));
+        const ctx = {
+            placedRects: [...placedIdx, ...reservedCells],
+            gridW_cells: grid.widthCells,
+            gridH_cells: grid.heightCells,
+        };
+        let candidates = Array.from(enumerateCandidates(spec, ctx, config.areaTolerance));
         const relevantPairs = pairsByRoom.get(unit.ids[0]);
         const activeNeighbors = relevantPairs 
             // Note: activeNeighbors is computed only against unit.ids[0] (the bedroom), 
@@ -295,15 +305,9 @@ export function search(
                 return dist1 - dist2;
             });
         } else {
-            if (unit.ids.some(id => hubIds.has(id))) {
-                // v1.0 spec: hub candidates by distance-from-center ASC —
-                // hubs anchor the plan, everything else touches them.
-                candidates.sort((a, b) => distToCenter(a) - distToCenter(b));
-            } else {
-                const mapped = candidates.map(c => ({ c, r: rng() }));
-                mapped.sort((a, b) => a.r - b.r);
-                candidates = mapped.map(x => x.c);
-            }
+            const mapped = candidates.map(c => ({ c, r: rng() }));
+            mapped.sort((a, b) => a.r - b.r);
+            candidates = mapped.map(x => x.c);
         }
 
         for (const cand of candidates) {

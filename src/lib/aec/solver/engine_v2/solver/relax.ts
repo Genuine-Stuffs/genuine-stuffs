@@ -31,7 +31,8 @@ export function runWithRelaxation(
     combinedW_m: number, combinedH_m: number,
     baseConfig: SolverConfig, dimensionHints: Map<string, RoomDimensionHint>,
     mustTouchPairs: AdjacencyPair[],
-    floorIndex: number
+    floorIndex: number,
+    reservedRects: ReservedRect[] = []
 ): SolveResult {
     const startTime = performance.now();
     const hubOnlyPairs = mustTouchPairs.filter(p => p.isHubEdge);
@@ -50,12 +51,22 @@ export function runWithRelaxation(
     const applied: string[] = [];
     const V = units.reduce((s, u) => s + u.ids.length, 0);
     const suiteEdges = units.reduce((s, u) => s + (u.isSuite && u.suite ? u.suite.subIds.length : 0), 0);
+    let totalNodesExplored = 0;
 
-    for (const rung of rungs) {
+    for (let r = 0; r < rungs.length; r++) {
+        const rung = rungs[r];
         const remaining = baseConfig.budget_ms - (performance.now() - startTime);
         if (remaining <= 0) {
-            return { status: 'TIMEOUT', placements: [], relaxationsApplied: applied, issues: [], diagnostics: { elapsed_ms: performance.now() - startTime, nodesExplored: 0 } };
+            return { status: 'TIMEOUT', placements: [], relaxationsApplied: applied, issues: [], diagnostics: { elapsed_ms: performance.now() - startTime, nodesExplored: totalNodesExplored } };
         }
+
+        // BUG FIX: budget was shared across rungs, so a BASE timeout
+        // starved every relaxed rung — the ladder was unreachable in the
+        // common case. Each rung now gets an equal share of what's left
+        // (v1.0 Phase 5 precedent: sequential attempts split the budget
+        // evenly). Rungs that fail fast (planarity skip, quick UNSAT)
+        // roll unused time forward automatically via `remaining`.
+        const rungBudget = remaining / (rungs.length - r);
 
         // Planarity fail-fast: suite edges are real adjacencies too, so
         // they count toward E. Necessary condition only — passing this
@@ -66,7 +77,9 @@ export function runWithRelaxation(
             continue; // provably UNSAT at this rung — try the next relaxation
         }
 
-        const outcome = search(units, graph, buildGrid(), combinedW_m, combinedH_m, { ...rung.config, budget_ms: remaining }, dimensionHints, rung.pairs, floorIndex);
+        const outcome = search(units, graph, buildGrid(), combinedW_m, combinedH_m, { ...rung.config, budget_ms: rungBudget }, dimensionHints, rung.pairs, floorIndex, reservedRects);
+        totalNodesExplored += outcome.nodesExplored;
+        
         if (rung.name !== 'BASE') applied.push(rung.name);
 
         if (!outcome.failedUnitIds || outcome.failedUnitIds.length === 0) {
@@ -75,10 +88,14 @@ export function runWithRelaxation(
                 placements: toPlacedRects(outcome.placed),
                 relaxationsApplied: applied,
                 issues: [],
-                diagnostics: { elapsed_ms: performance.now() - startTime, nodesExplored: outcome.nodesExplored },
+                diagnostics: { elapsed_ms: performance.now() - startTime, nodesExplored: totalNodesExplored },
             };
         }
     }
 
-    return { status: 'UNSAT', placements: [], relaxationsApplied: applied, issues: [], diagnostics: { elapsed_ms: performance.now() - startTime, nodesExplored: 0 } };
+    // Determine if the search space was exhausted or if it just ran out of time
+    const elapsed = performance.now() - startTime;
+    const finalStatus = (elapsed >= baseConfig.budget_ms - 50) ? 'TIMEOUT' : 'UNSAT';
+    
+    return { status: finalStatus, placements: [], relaxationsApplied: applied, issues: [], diagnostics: { elapsed_ms: elapsed, nodesExplored: totalNodesExplored } };
 }

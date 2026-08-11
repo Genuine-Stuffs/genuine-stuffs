@@ -63,6 +63,7 @@ export interface SolvedLayout {
     placed_rooms: PlacedRoom[];
     solver_iterations_used: number;
     is_fully_connected: boolean;
+    solver_status?: 'SOLVED' | 'SOLVED_RELAXED' | 'TIMEOUT' | 'UNSAT';
     placement_issues?: ValidationIssue[];
 }
 
