@@ -383,73 +383,7 @@ const Index = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 2: THE FRACTURE (Why We Exist — 6 Disconnected Industries)
-         ========================================================================= */}
-      <section className="py-20 bg-[#F0F9FF] dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            
-            <div className="flex items-center gap-3 mb-4 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-              <span>01 / The Fracture</span>
-              <div className="h-[1px] flex-1 bg-primary/30" />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              <div className="lg:col-span-6">
-                <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-6">
-                  Building is not one industry. <br />
-                  <span className="font-normal text-slate-600 dark:text-slate-400">It is six that do not speak.</span>
-                </h2>
-                <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal mb-8">
-                  Design hands over a drawing. Quantities are re-counted by hand. Procurement starts again from zero, on the telephone, at a price nobody can verify. Every handover loses money, time and truth — and the loss compounds through the life of the asset.
-                </p>
-                <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-bold text-sm uppercase tracking-wider">
-                  <ShieldCheck className="w-5 h-5" />
-                  <span>Genuine Stuffs removes the handovers.</span>
-                </div>
-              </div>
-
-              {/* Transformation Slider Visual */}
-              <div className="lg:col-span-6">
-                <div className="p-3 rounded-3xl bg-white dark:bg-[#2D3748] border border-slate-200 dark:border-slate-700 shadow-xl">
-                  <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-950 group">
-                    <Carousel className="w-full h-full" opts={{ loop: true }} plugins={[Autoplay({ delay: 5000 })]}>
-                      <CarouselContent>
-                        <CarouselItem>
-                          <div className="relative w-full h-full">
-                            <img src={paperTakeoffLoss} alt="Traditional Disconnected Construction Site" className="w-full h-full object-cover filter grayscale contrast-125 group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute inset-0 bg-black/60 flex items-end p-6">
-                              <div className="text-white">
-                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-primary px-2.5 py-1 rounded-lg text-white">The Old Way</span>
-                                <h4 className="text-xl font-bold mt-2.5">Fragmented Handovers & Unverified Pricing</h4>
-                              </div>
-                            </div>
-                          </div>
-                        </CarouselItem>
-                        <CarouselItem>
-                          <div className="relative w-full h-full">
-                            <img src={townAfter1} alt="Unified AI-Native Construction Site" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent flex items-end p-6">
-                              <div className="text-white">
-                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-lg text-white">The Genuine OS Way</span>
-                                <h4 className="text-xl font-bold mt-2.5">Unified AI Takeoffs & Verified NIS Marketplace</h4>
-                              </div>
-                            </div>
-                          </div>
-                        </CarouselItem>
-                      </CarouselContent>
-                    </Carousel>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 3: THE THREE INTEGRATED PILLARS (Brand Tokens & Rounded Radius)
+          SECTION 2: THE THREE INTEGRATED PILLARS (Brand Tokens & Rounded Radius)
          ========================================================================= */}
       <section className="py-24 bg-white dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
         <div className="container mx-auto px-4">
@@ -458,7 +392,7 @@ const Index = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-3 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-                  <span>02 / Three Pillars</span>
+                  <span>01 / Three Pillars</span>
                   <div className="h-[1px] w-12 bg-primary/30" />
                 </div>
                 <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
@@ -543,6 +477,72 @@ const Index = () => {
                   </Button>
                 </div>
               ))}
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 3: THE FRACTURE (Why We Exist — 6 Disconnected Industries)
+         ========================================================================= */}
+      <section className="py-20 bg-[#F0F9FF] dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            
+            <div className="flex items-center gap-3 mb-4 text-xs font-bold uppercase tracking-[0.15em] text-primary">
+              <span>02 / The Fracture</span>
+              <div className="h-[1px] flex-1 bg-primary/30" />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+              <div className="lg:col-span-6">
+                <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-6">
+                  Building is not one industry. <br />
+                  <span className="font-normal text-slate-600 dark:text-slate-400">It is six that do not speak.</span>
+                </h2>
+                <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal mb-8">
+                  Design hands over a drawing. Quantities are re-counted by hand. Procurement starts again from zero, on the telephone, at a price nobody can verify. Every handover loses money, time and truth — and the loss compounds through the life of the asset.
+                </p>
+                <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-bold text-sm uppercase tracking-wider">
+                  <ShieldCheck className="w-5 h-5" />
+                  <span>Genuine Stuffs removes the handovers.</span>
+                </div>
+              </div>
+
+              {/* Transformation Slider Visual */}
+              <div className="lg:col-span-6">
+                <div className="p-3 rounded-3xl bg-white dark:bg-[#2D3748] border border-slate-200 dark:border-slate-700 shadow-xl">
+                  <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-950 group">
+                    <Carousel className="w-full h-full" opts={{ loop: true }} plugins={[Autoplay({ delay: 5000 })]}>
+                      <CarouselContent>
+                        <CarouselItem>
+                          <div className="relative w-full h-full">
+                            <img src={paperTakeoffLoss} alt="Traditional Disconnected Construction Site" className="w-full h-full object-cover filter grayscale contrast-125 group-hover:scale-105 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-black/60 flex items-end p-6">
+                              <div className="text-white">
+                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-primary px-2.5 py-1 rounded-lg text-white">The Old Way</span>
+                                <h4 className="text-xl font-bold mt-2.5">Fragmented Handovers & Unverified Pricing</h4>
+                              </div>
+                            </div>
+                          </div>
+                        </CarouselItem>
+                        <CarouselItem>
+                          <div className="relative w-full h-full">
+                            <img src={townAfter1} alt="Unified AI-Native Construction Site" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent flex items-end p-6">
+                              <div className="text-white">
+                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-lg text-white">The Genuine OS Way</span>
+                                <h4 className="text-xl font-bold mt-2.5">Unified AI Takeoffs & Verified NIS Marketplace</h4>
+                              </div>
+                            </div>
+                          </div>
+                        </CarouselItem>
+                      </CarouselContent>
+                    </Carousel>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div>
