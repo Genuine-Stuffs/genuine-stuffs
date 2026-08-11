@@ -383,174 +383,7 @@ const Index = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 2: THE THREE INTEGRATED PILLARS (Brand Tokens & Rounded Radius)
-         ========================================================================= */}
-      <section className="py-24 bg-white dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-              <div>
-                <div className="flex items-center gap-3 mb-3 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-                  <span>01 / Three Pillars</span>
-                  <div className="h-[1px] w-12 bg-primary/30" />
-                </div>
-                <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                  One platform. <span className="text-primary">Three integrated engines.</span>
-                </h2>
-              </div>
-              <p className="text-base text-slate-600 dark:text-slate-300 max-w-md font-normal">
-                We bridge the gap between conceptual design, material procurement, and project management into a single digital workflow.
-              </p>
-            </div>
-
-            {/* Interactive Pillar Selector Cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  id: 0,
-                  num: "01",
-                  title: "Innovation Studio",
-                  tagline: "FOR ARCHITECTS & ENGINEERS",
-                  desc: "Turn a concept into a costed, buildable bill of quantities — AI takeoff, structural estimates and visualisations in minutes.",
-                  icon: Cpu,
-                  features: ["AI Conceptual Visualisation", "Automated BoQ Takeoff", "Preliminary Structural Costing", "BIM / CAD Export Ready"],
-                  link: "/pro/ai-studio",
-                  cta: "Launch Studio"
-                },
-                {
-                  id: 1,
-                  num: "02",
-                  title: "Procurement Marketplace",
-                  tagline: "FOR BUILDERS & PROCUREMENT",
-                  desc: "Order straight from the BoQ — verified suppliers, live factory-gate pricing and tracked logistics, no middleman markup.",
-                  icon: Box,
-                  features: ["Live Mill & Factory Pricing", "NIS-Certified Verification", "Zero Middleman Markups", "Tracked Site Logistics"],
-                  link: "/marketplace",
-                  cta: "Browse Marketplace"
-                },
-                {
-                  id: 2,
-                  num: "03",
-                  title: "Professional Portal",
-                  tagline: "FOR PROJECT TEAMS",
-                  desc: "Run the build in one hub — verified experts, BIM/CAD management and execution tracking against the same data model.",
-                  icon: Users,
-                  features: ["Verified Expert Directory", "BIM / CAD Cloud Management", "Project Execution Tracking", "Escrow & Milestone Pay"],
-                  link: "/pros",
-                  cta: "Enter ProHub"
-                }
-              ].map((pillar) => (
-                <div 
-                  key={pillar.id}
-                  className="p-8 rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-all duration-300 cursor-pointer flex flex-col justify-between group bg-white dark:bg-[#2D3748]/50 hover:bg-[#F0F9FF] dark:hover:bg-[#2D3748] hover:ring-2 hover:ring-primary/20 shadow-md hover:shadow-2xl hover:scale-[1.02] hover:z-10 opacity-95 hover:opacity-100"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-6">
-                      <span className="text-2xl font-extrabold text-primary">{pillar.num}</span>
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 group-hover:bg-primary group-hover:text-white group-hover:shadow-md group-hover:shadow-primary/30">
-                        <pillar.icon className="w-6 h-6" />
-                      </div>
-                    </div>
-
-                    <span className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 block mb-1">{pillar.tagline}</span>
-                    <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">{pillar.title}</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal mb-6">{pillar.desc}</p>
-
-                    <div className="h-[1px] w-full bg-slate-200 dark:bg-slate-800 mb-6" />
-
-                    <ul className="space-y-3 mb-8">
-                      {pillar.features.map((feat, i) => (
-                        <li key={i} className="flex items-center gap-3 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <Button asChild className="w-full h-12 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all duration-300 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 group-hover:bg-primary group-hover:text-white group-hover:shadow-lg group-hover:shadow-primary/20 hover:!bg-primary/90">
-                    <Link to={pillar.link}>
-                      <span>{pillar.cta}</span>
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Link>
-                  </Button>
-                </div>
-              ))}
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 3: THE FRACTURE (Why We Exist — 6 Disconnected Industries)
-         ========================================================================= */}
-      <section className="py-20 bg-[#F0F9FF] dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            
-            <div className="flex items-center gap-3 mb-4 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-              <span>02 / The Fracture</span>
-              <div className="h-[1px] flex-1 bg-primary/30" />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              <div className="lg:col-span-6">
-                <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-6">
-                  Building is not one industry. <br />
-                  <span className="font-normal text-slate-600 dark:text-slate-400">It is six that do not speak.</span>
-                </h2>
-                <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal mb-8">
-                  Design hands over a drawing. Quantities are re-counted by hand. Procurement starts again from zero, on the telephone, at a price nobody can verify. Every handover loses money, time and truth — and the loss compounds through the life of the asset.
-                </p>
-                <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-bold text-sm uppercase tracking-wider">
-                  <ShieldCheck className="w-5 h-5" />
-                  <span>Genuine Stuffs removes the handovers.</span>
-                </div>
-              </div>
-
-              {/* Transformation Slider Visual */}
-              <div className="lg:col-span-6">
-                <div className="p-3 rounded-3xl bg-white dark:bg-[#2D3748] border border-slate-200 dark:border-slate-700 shadow-xl">
-                  <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-950 group">
-                    <Carousel className="w-full h-full" opts={{ loop: true }} plugins={[Autoplay({ delay: 5000 })]}>
-                      <CarouselContent>
-                        <CarouselItem>
-                          <div className="relative w-full h-full">
-                            <img src={paperTakeoffLoss} alt="Traditional Disconnected Construction Site" className="w-full h-full object-cover filter grayscale contrast-125 group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute inset-0 bg-black/60 flex items-end p-6">
-                              <div className="text-white">
-                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-primary px-2.5 py-1 rounded-lg text-white">The Old Way</span>
-                                <h4 className="text-xl font-bold mt-2.5">Fragmented Handovers & Unverified Pricing</h4>
-                              </div>
-                            </div>
-                          </div>
-                        </CarouselItem>
-                        <CarouselItem>
-                          <div className="relative w-full h-full">
-                            <img src={townAfter1} alt="Unified AI-Native Construction Site" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent flex items-end p-6">
-                              <div className="text-white">
-                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-lg text-white">The Genuine OS Way</span>
-                                <h4 className="text-xl font-bold mt-2.5">Unified AI Takeoffs & Verified NIS Marketplace</h4>
-                              </div>
-                            </div>
-                          </div>
-                        </CarouselItem>
-                      </CarouselContent>
-                    </Carousel>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 4: INTERACTIVE BoQ TRANSLATOR ("One Prompt. One Bill. One Checkout")
+          SECTION 2: INTERACTIVE BoQ TRANSLATOR ("One Prompt. One Bill. One Checkout")
          ========================================================================= */}
       <section id="boq-translator" className="py-24 bg-[#F0F9FF] dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
         <div className="container mx-auto px-4">
@@ -559,7 +392,7 @@ const Index = () => {
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-[0.12em] mb-4">
                 <Terminal className="w-3.5 h-3.5" />
-                <span>03 / Live Translation Engine</span>
+                <span>01 / Live Translation Engine</span>
               </div>
               <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">
                 One prompt. One bill. <span className="text-primary underline decoration-2 underline-offset-4">One checkout.</span>
@@ -759,6 +592,173 @@ const Index = () => {
                 </div>
               </div>
 
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 3: THE THREE INTEGRATED PILLARS (Brand Tokens & Rounded Radius)
+         ========================================================================= */}
+      <section className="py-24 bg-white dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-3 text-xs font-bold uppercase tracking-[0.15em] text-primary">
+                  <span>02 / Three Pillars</span>
+                  <div className="h-[1px] w-12 bg-primary/30" />
+                </div>
+                <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  One platform. <span className="text-primary">Three integrated engines.</span>
+                </h2>
+              </div>
+              <p className="text-base text-slate-600 dark:text-slate-300 max-w-md font-normal">
+                We bridge the gap between conceptual design, material procurement, and project management into a single digital workflow.
+              </p>
+            </div>
+
+            {/* Interactive Pillar Selector Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {[
+                {
+                  id: 0,
+                  num: "01",
+                  title: "Innovation Studio",
+                  tagline: "FOR ARCHITECTS & ENGINEERS",
+                  desc: "Turn a concept into a costed, buildable bill of quantities — AI takeoff, structural estimates and visualisations in minutes.",
+                  icon: Cpu,
+                  features: ["AI Conceptual Visualisation", "Automated BoQ Takeoff", "Preliminary Structural Costing", "BIM / CAD Export Ready"],
+                  link: "/pro/ai-studio",
+                  cta: "Launch Studio"
+                },
+                {
+                  id: 1,
+                  num: "02",
+                  title: "Procurement Marketplace",
+                  tagline: "FOR BUILDERS & PROCUREMENT",
+                  desc: "Order straight from the BoQ — verified suppliers, live factory-gate pricing and tracked logistics, no middleman markup.",
+                  icon: Box,
+                  features: ["Live Mill & Factory Pricing", "NIS-Certified Verification", "Zero Middleman Markups", "Tracked Site Logistics"],
+                  link: "/marketplace",
+                  cta: "Browse Marketplace"
+                },
+                {
+                  id: 2,
+                  num: "03",
+                  title: "Professional Portal",
+                  tagline: "FOR PROJECT TEAMS",
+                  desc: "Run the build in one hub — verified experts, BIM/CAD management and execution tracking against the same data model.",
+                  icon: Users,
+                  features: ["Verified Expert Directory", "BIM / CAD Cloud Management", "Project Execution Tracking", "Escrow & Milestone Pay"],
+                  link: "/pros",
+                  cta: "Enter ProHub"
+                }
+              ].map((pillar) => (
+                <div 
+                  key={pillar.id}
+                  className="p-8 rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-all duration-300 cursor-pointer flex flex-col justify-between group bg-white dark:bg-[#2D3748]/50 hover:bg-[#F0F9FF] dark:hover:bg-[#2D3748] hover:ring-2 hover:ring-primary/20 shadow-md hover:shadow-2xl hover:scale-[1.02] hover:z-10 opacity-95 hover:opacity-100"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <span className="text-2xl font-extrabold text-primary">{pillar.num}</span>
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 group-hover:bg-primary group-hover:text-white group-hover:shadow-md group-hover:shadow-primary/30">
+                        <pillar.icon className="w-6 h-6" />
+                      </div>
+                    </div>
+
+                    <span className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 block mb-1">{pillar.tagline}</span>
+                    <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">{pillar.title}</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal mb-6">{pillar.desc}</p>
+
+                    <div className="h-[1px] w-full bg-slate-200 dark:bg-slate-800 mb-6" />
+
+                    <ul className="space-y-3 mb-8">
+                      {pillar.features.map((feat, i) => (
+                        <li key={i} className="flex items-center gap-3 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          <Check className="w-4 h-4 text-primary shrink-0" />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <Button asChild className="w-full h-12 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all duration-300 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 group-hover:bg-primary group-hover:text-white group-hover:shadow-lg group-hover:shadow-primary/20 hover:!bg-primary/90">
+                    <Link to={pillar.link}>
+                      <span>{pillar.cta}</span>
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 4: THE FRACTURE (Why We Exist — 6 Disconnected Industries)
+         ========================================================================= */}
+      <section className="py-20 bg-[#F0F9FF] dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            
+            <div className="flex items-center gap-3 mb-4 text-xs font-bold uppercase tracking-[0.15em] text-primary">
+              <span>03 / The Fracture</span>
+              <div className="h-[1px] flex-1 bg-primary/30" />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+              <div className="lg:col-span-6">
+                <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-6">
+                  Building is not one industry. <br />
+                  <span className="font-normal text-slate-600 dark:text-slate-400">It is six that do not speak.</span>
+                </h2>
+                <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal mb-8">
+                  Design hands over a drawing. Quantities are re-counted by hand. Procurement starts again from zero, on the telephone, at a price nobody can verify. Every handover loses money, time and truth — and the loss compounds through the life of the asset.
+                </p>
+                <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-bold text-sm uppercase tracking-wider">
+                  <ShieldCheck className="w-5 h-5" />
+                  <span>Genuine Stuffs removes the handovers.</span>
+                </div>
+              </div>
+
+              {/* Transformation Slider Visual */}
+              <div className="lg:col-span-6">
+                <div className="p-3 rounded-3xl bg-white dark:bg-[#2D3748] border border-slate-200 dark:border-slate-700 shadow-xl">
+                  <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-950 group">
+                    <Carousel className="w-full h-full" opts={{ loop: true }} plugins={[Autoplay({ delay: 5000 })]}>
+                      <CarouselContent>
+                        <CarouselItem>
+                          <div className="relative w-full h-full">
+                            <img src={paperTakeoffLoss} alt="Traditional Disconnected Construction Site" className="w-full h-full object-cover filter grayscale contrast-125 group-hover:scale-105 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-black/60 flex items-end p-6">
+                              <div className="text-white">
+                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-primary px-2.5 py-1 rounded-lg text-white">The Old Way</span>
+                                <h4 className="text-xl font-bold mt-2.5">Fragmented Handovers & Unverified Pricing</h4>
+                              </div>
+                            </div>
+                          </div>
+                        </CarouselItem>
+                        <CarouselItem>
+                          <div className="relative w-full h-full">
+                            <img src={townAfter1} alt="Unified AI-Native Construction Site" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent flex items-end p-6">
+                              <div className="text-white">
+                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-lg text-white">The Genuine OS Way</span>
+                                <h4 className="text-xl font-bold mt-2.5">Unified AI Takeoffs & Verified NIS Marketplace</h4>
+                              </div>
+                            </div>
+                          </div>
+                        </CarouselItem>
+                      </CarouselContent>
+                    </Carousel>
+                  </div>
+                </div>
+              </div>
             </div>
 
           </div>
