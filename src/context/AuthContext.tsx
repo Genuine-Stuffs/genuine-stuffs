@@ -112,10 +112,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setSession(data.session);
             setUser(data.user);
             const appMeta = data.user.app_metadata || {};
+            const is_admin = appMeta.is_admin === true;
+            const is_pm = appMeta.is_pm === true;
+
             setServerClaims({
-                is_admin: appMeta.is_admin === true,
-                is_pm: appMeta.is_pm === true
+                is_admin: is_admin,
+                is_pm: is_pm
             });
+
+            let userRole: Role;
+            if (is_admin) userRole = 'admin';
+            else if (is_pm) userRole = 'pm';
+            else userRole = (data.user.user_metadata?.role as Role) || 'guest';
+            
+            setRole(userRole);
         }
         
         return data;
