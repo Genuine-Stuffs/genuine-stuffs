@@ -10,7 +10,7 @@ interface AuthContextType {
     user: User | null;
     session: Session | null;
     role: Role;
-    serverClaims: { is_admin: boolean; is_pm: boolean };
+    serverClaims: { is_admin: boolean; is_pm: boolean; is_marketing: boolean };
     isLoading: boolean;
     signInWithGoogle: () => Promise<void>;
     signInWithEmail: (email: string, password: string) => Promise<{ user: User | null; session: Session | null }>;
@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [user, setUser] = useState<User | null>(null);
     const [session, setSession] = useState<Session | null>(null);
     const [role, setRole] = useState<Role>('guest');
-    const [serverClaims, setServerClaims] = useState({ is_admin: false, is_pm: false });
+    const [serverClaims, setServerClaims] = useState({ is_admin: false, is_pm: false, is_marketing: false });
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
 
@@ -40,7 +40,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const appMeta = session?.user?.app_metadata || {};
             const is_admin = appMeta.is_admin === true;
             const is_pm = appMeta.is_pm === true;
-            setServerClaims({ is_admin, is_pm });
+            const is_marketing = appMeta.is_marketing === true;
+            setServerClaims({ is_admin, is_pm, is_marketing });
 
             // Role resolution: server claims beat everything.
             // user_metadata.role is set server-side during registration — safe to read.
@@ -62,7 +63,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setUser(null);
                 setSession(null);
                 setRole('guest');
-                setServerClaims({ is_admin: false, is_pm: false });
+                setServerClaims({ is_admin: false, is_pm: false, is_marketing: false });
                 setIsLoading(false);
                 navigate("/");
             } else {
@@ -73,7 +74,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const appMeta = session?.user?.app_metadata || {};
                 const is_admin = appMeta.is_admin === true;
                 const is_pm = appMeta.is_pm === true;
-                setServerClaims({ is_admin, is_pm });
+                const is_marketing = appMeta.is_marketing === true;
+                setServerClaims({ is_admin, is_pm, is_marketing });
 
                 let userRole: Role;
                 if (is_admin) userRole = 'admin';
@@ -115,9 +117,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const is_admin = appMeta.is_admin === true;
             const is_pm = appMeta.is_pm === true;
 
+            const is_marketing = appMeta.is_marketing === true;
+
             setServerClaims({
                 is_admin: is_admin,
-                is_pm: is_pm
+                is_pm: is_pm,
+                is_marketing: is_marketing
             });
 
             let userRole: Role;
@@ -146,7 +151,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(null);
         setSession(null);
         setRole('guest');
-        setServerClaims({ is_admin: false, is_pm: false });
+        setServerClaims({ is_admin: false, is_pm: false, is_marketing: false });
 
         // Attempt deletion of the server session (scope: 'local' avoids the 403 on stale sessions)
         await supabase.auth.signOut({ scope: 'local' }).catch(() => {
@@ -160,8 +165,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // renders for other roles. Gated by server claims — localStorage cannot
     // grant this capability. (MI_DEV_ROLE bypass removed — P6 security fix)
     const switchEnvironmentView = (newRole: Role) => {
-        if (!serverClaims.is_admin && !serverClaims.is_pm) {
-            console.warn('[Auth] switchEnvironmentView blocked — not admin or PM');
+        if (!serverClaims.is_admin && !serverClaims.is_pm && !serverClaims.is_marketing) {
+            console.warn('[Auth] switchEnvironmentView blocked — not admin, PM, or marketing');
             return;
         }
         setRole(newRole);

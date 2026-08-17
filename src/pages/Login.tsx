@@ -61,8 +61,9 @@ const Login = () => {
                 const appMeta = authData.user.app_metadata || {};
                 const is_admin = appMeta.is_admin === true;
                 const is_pm = appMeta.is_pm === true;
+                const is_marketing = appMeta.is_marketing === true;
 
-                if (is_admin) {
+                if (is_admin || is_marketing) {
                     // CTO/Co-Founder: full environment switcher overlay
                     navigate("/admin-home");
                 } else if (is_pm) {

@@ -17,15 +17,15 @@ const AdminHome = () => {
     useEffect(() => {
         if (isLoading) return; // Still loading — do nothing yet
         
-        if (!serverClaims.is_admin) {
-            // Auth finished loading and user is NOT an admin — redirect.
+        if (!serverClaims.is_admin && !serverClaims.is_marketing) {
+            // Auth finished loading and user is NOT an admin or marketing — redirect.
             if (serverClaims.is_pm) {
                 navigate("/pm-dashboard", { replace: true });
             } else {
                 navigate("/", { replace: true });
             }
         }
-    }, [serverClaims.is_admin, serverClaims.is_pm, isLoading, navigate]);
+    }, [serverClaims.is_admin, serverClaims.is_pm, serverClaims.is_marketing, isLoading, navigate]);
 
     // Always show a spinner while loading — never flash the guard redirect
     if (isLoading) {
@@ -39,7 +39,7 @@ const AdminHome = () => {
         );
     }
 
-    if (!serverClaims.is_admin) {
+    if (!serverClaims.is_admin && !serverClaims.is_marketing) {
         return null; // useEffect will handle the redirect
     }
 
@@ -142,7 +142,7 @@ const AdminHome = () => {
                             Select Environment
                         </h1>
                         <p className="text-sm text-slate-400 mt-2 font-medium italic">
-                            Authenticated as CTO/Co-Founder. Where would you like to go?
+                            Authenticated as {serverClaims.is_admin ? 'CTO/Co-Founder' : serverClaims.is_pm ? 'Product Manager' : 'Marketing Engineer'}. Where would you like to go?
                         </p>
                     </div>
                 </div>

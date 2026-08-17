@@ -22,10 +22,10 @@ const Navbar = () => {
   const navigate = useNavigate();
   const { user, role, logout, serverClaims } = useAuth();
 
-  // For admins: show a dialog asking if they want to go back to the
+  // For admins and marketing: show a dialog asking if they want to go back to the
   // environment selector or fully sign out. For everyone else: logout immediately.
   const handleLogoutClick = () => {
-    if (serverClaims?.is_admin) {
+    if (serverClaims?.is_admin || serverClaims?.is_marketing) {
       setShowLogoutDialog(true);
     } else {
       logout();
