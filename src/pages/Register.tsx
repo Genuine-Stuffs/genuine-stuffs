@@ -400,7 +400,7 @@ const Register = () => {
     const vendorSteps = [
         { id: 1, title: "Owner's Info *", icon: User },
         { id: 2, title: "Company *", icon: Building2 },
-        { id: 3, title: "Inventory *", icon: FileText },
+        { id: 3, title: "Business Category *", icon: FileText },
         { id: 4, title: "Trust *", icon: CheckCircle2 },
     ];
 
@@ -808,10 +808,10 @@ const Register = () => {
                                             <div className="space-y-4 md:space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
                                                 <div className="space-y-2">
                                                     <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Select Business Categories *</Label>
-                                                    <p className="text-[10px] md:text-xs text-slate-500 italic mt-1 font-medium tracking-widest uppercase">Choose all that apply to your inventory.</p>
+                                                    <p className="text-[10px] md:text-xs text-slate-500 italic mt-1 font-medium tracking-widest uppercase">How does your business operate?</p>
                                                 </div>
                                                 <div className={`grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 p-3 md:p-4 rounded-3xl ${errors.categories ? "border-2 border-dashed border-red-500 bg-red-50" : "bg-white text-slate-900"}`}>
-                                                    {["Cement", "Steel", "Electrical", "Plumbing", "Roofing", "Tiles", "Paints", "Tools"].map((cat) => (
+                                                    {["Manufacturer", "Importer", "Sole-Distributor", "Franchise Owner", "Wholesaler", "Retailer", "Sub-Distributor", "Dealer", "Agent"].map((cat) => (
                                                         <div key={cat} onClick={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} className={`flex items-center space-x-2 md:space-x-3 p-3 md:p-4 border border-slate-100 rounded-2xl cursor-pointer transition-colors group ${formData.categories.includes(cat) ? "border-primary bg-primary/5" : "hover:bg-slate-50"}`}>
                                                             <Checkbox checked={formData.categories.includes(cat)} onCheckedChange={() => { if(errors.categories) setErrors(prev => { const n={...prev}; delete n.categories; return n; }); handleCategoryToggle(cat); }} />
                                                             <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-700 group-hover:text-slate-900">{cat}</span>
