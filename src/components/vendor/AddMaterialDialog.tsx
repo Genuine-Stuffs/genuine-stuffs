@@ -21,20 +21,27 @@ import { toast } from "sonner";
 
 // ── Comprehensive Material Catalogue ────────────────────────────────
 const materialCatalogue: Record<string, string[]> = {
-  "Cement & Aggregates": [
+  "Cement": [
     "Cement (OPC)",
     "Cement (PPC)",
+  ],
+  "Sand & Gravel": [
     "Granite/Gravel",
     "Sharp Sand",
     "Plaster Sand",
     "Laterite Sand",
     "Stone Dust",
     "Hard-core Stone",
-    "Site Water",
+  ],
+  "Blocks & Bricks": [
     "Sandcrete Hollow Block",
     "Concrete Hollow Block",
     "Brick",
     "Precast Concrete Slab",
+  ],
+  "Site Water": [
+    "Construction Site Water (Tanker)",
+    "Borehole Water Supply"
   ],
   "Steel & Iron": [
     "Rebar (Y10)",
@@ -63,7 +70,7 @@ const materialCatalogue: Record<string, string[]> = {
     "Ridge Cap",
     "Gutter & Downpipe",
   ],
-  "Flooring": [
+  "Finishing & Tiles": [
     "Floor Tiles (Ceramic)",
     "Floor Tiles (Porcelain)",
     "Floor Tiles (Vitrified)",
@@ -75,12 +82,6 @@ const materialCatalogue: Record<string, string[]> = {
     "Tile Grout",
     "Interlocking Stone",
     "Kerb Stone",
-  ],
-  "Finishing": [
-    "Paint (Emulsion)",
-    "Paint (Gloss/Oil)",
-    "Paint (Textured)",
-    "Paint (Screeding)",
     "Primer & Undercoat",
     "POP (Plaster of Paris)",
     "Wall Putty / Filler",
@@ -88,6 +89,12 @@ const materialCatalogue: Record<string, string[]> = {
     "Waterproof Coating",
     "Sealant & Caulk",
     "Epoxy Coating",
+  ],
+  "Paints": [
+    "Paint (Emulsion)",
+    "Paint (Gloss/Oil)",
+    "Paint (Textured)",
+    "Paint (Screeding)",
   ],
   "Electrical": [
     "Electrical Cable & Wire",

@@ -52,7 +52,13 @@ import {
   BrickWall,
   Blocks,
   PaintBucket,
-  ChevronLeft
+  ChevronLeft,
+  DoorOpen,
+  LayoutTemplate,
+  TreePine,
+  Milestone,
+  Waves,
+  Battery
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -248,9 +254,16 @@ const Index = () => {
     { title: "Plumbing", icon: Wrench, dbCategory: "Plumbing" },
     { title: "Finishing & Tiles", icon: LayoutDashboard, dbCategory: "Finishing & Tiles" },
     { title: "Paints", icon: PaintBucket, dbCategory: "Paints" },
-    { title: "Site Water", icon: Droplets, dbCategory: "Site Water" },
+    { title: "Doors, Windows & Glazing", icon: DoorOpen, dbCategory: "Doors, Windows & Glazing" },
+    { title: "Ceiling & Interior", icon: LayoutTemplate, dbCategory: "Ceiling & Interior" },
+    { title: "Wood & Timber", icon: TreePine, dbCategory: "Wood & Timber" },
+    { title: "Paving & Roadworks", icon: Milestone, dbCategory: "Paving & Roadworks" },
+    { title: "Water & Pumps", icon: Waves, dbCategory: "Water & Pumps" },
+    { title: "Power & Energy", icon: Battery, dbCategory: "Power & Energy" },
+    { title: "Security & Outdoor", icon: Shield, dbCategory: "Security & Outdoor" },
     { title: "Tools", icon: Hammer, dbCategory: "Tools" },
-    { title: "Doors & Windows", icon: Box, dbCategory: "Doors & Windows" },
+    { title: "Safety Gear", icon: HardHat, dbCategory: "Safety Gear" },
+    { title: "Site Water", icon: Droplets, dbCategory: "Site Water" },
     { title: "AI Studio", icon: Rocket, link: "/pro/ai-studio" },
   ];
 
