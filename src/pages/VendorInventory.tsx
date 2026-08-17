@@ -23,6 +23,7 @@ import { supabase } from "backend/supabaseClient";
 import VendorSidebar from "@/components/vendor/VendorSidebar";
 import BottomNav from "@/components/vendor/BottomNav";
 import { AddMaterialDialog } from "@/components/vendor/AddMaterialDialog";
+import { BulkImportDialog } from "@/components/vendor/BulkImportDialog";
 import { useState } from "react";
 import {
     DropdownMenu,
@@ -112,6 +113,7 @@ const VendorInventory = () => {
                                         onChange={(e) => setSearchQuery(e.target.value)}
                                     />
                                 </div>
+                                <BulkImportDialog />
                                 <AddMaterialDialog />
                             </div>
                         </header>
@@ -380,7 +382,12 @@ const VendorInventory = () => {
                                         <p className="text-slate-500 dark:text-slate-400 font-medium italic max-w-sm mb-8">
                                             {searchQuery ? "We couldn't find any materials matching your search. Try a different query." : "You haven't listed any materials yet. Start growing your construction business today!"}
                                         </p>
-                                        {!searchQuery && <AddMaterialDialog />}
+                                        {!searchQuery && (
+                                            <div className="flex flex-col sm:flex-row gap-4 items-center justify-center w-full">
+                                                <BulkImportDialog />
+                                                <AddMaterialDialog />
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </CardContent>
