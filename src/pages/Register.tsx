@@ -515,7 +515,7 @@ const Register = () => {
                         </button>
                         <button
                             onClick={() => { setRole('vendor'); setStep(1); }}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${role === 'vendor' ? 'bg-slate-100 shadow-sm text-primary' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all duration-300 ${role === 'vendor' ? 'bg-slate-900 shadow-lg text-white scale-[1.02]' : 'text-slate-400 hover:text-slate-600'}`}
                         >
                             <Building2 className="w-3.5 h-3.5" /> Vendor / Supplier
                         </button>
