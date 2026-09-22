@@ -171,31 +171,54 @@ function subdivideSuite(outer: RectCells, suite: Suite, gridW_cells: number, gri
     const touchesRight = (outer.x_cells + outer.w_cells) >= gridW_cells;
     const touchesLeft = outer.x_cells === 0;
     const touchesBottom = (outer.y_cells + outer.h_cells) >= gridH_cells;
+    const touchesTop = outer.y_cells === 0;
     const n = suite.subIds.length;
     const result = new Map<string, RectCells>();
     if (n === 0) { result.set(suite.bedroomId, outer); return result; }
 
-    if (touchesRight && !touchesBottom) {
+    // Sub-rooms (bath/wardrobe) never need a window (SUB_ROOM_TYPES,
+    // excluded from needsExternalWall below) — they always take the
+    // INTERIOR side of the split. The bedroom does need an exterior wall
+    // (I5), so it must keep whichever edge `outer` actually touches. The
+    // previous version did this backwards in every branch — it shrank the
+    // bedroom's own side away from the touching edge and gave that edge
+    // to the subs instead, so the bedroom failed I5 acceptance regardless
+    // of where the suite landed. This was the real reason hive-001/
+    // hive-002 timed out even after the ordering fix: with every suite
+    // candidate failing I5, the search burned its whole budget re-trying
+    // suite placements that could never succeed.
+    if (touchesLeft) {
         const bedW = Math.max(2, outer.w_cells - SUB_DEPTH);
-        result.set(suite.bedroomId, { ...outer, w_cells: bedW });
+        result.set(suite.bedroomId, { ...outer, w_cells: bedW }); // keeps outer.x_cells — the touching edge
         const slot = Math.max(1, Math.floor(outer.h_cells / n));
         suite.subIds.forEach((id, i) => result.set(id, {
             x_cells: outer.x_cells + bedW, y_cells: outer.y_cells + i * slot,
             w_cells: SUB_DEPTH, h_cells: i === n - 1 ? outer.h_cells - i * slot : slot,
         }));
-    } else if (touchesLeft && !touchesBottom) {
-        result.set(suite.bedroomId, { ...outer, x_cells: outer.x_cells + SUB_DEPTH, w_cells: outer.w_cells - SUB_DEPTH });
+    } else if (touchesRight) {
+        const bedW = Math.max(2, outer.w_cells - SUB_DEPTH);
+        result.set(suite.bedroomId, { ...outer, x_cells: outer.x_cells + SUB_DEPTH, w_cells: bedW }); // keeps x_cells+w_cells — the touching edge
         const slot = Math.max(1, Math.floor(outer.h_cells / n));
         suite.subIds.forEach((id, i) => result.set(id, {
             x_cells: outer.x_cells, y_cells: outer.y_cells + i * slot,
             w_cells: SUB_DEPTH, h_cells: i === n - 1 ? outer.h_cells - i * slot : slot,
         }));
-    } else {
+    } else if (touchesTop) {
         const bedH = Math.max(2, outer.h_cells - SUB_DEPTH);
-        result.set(suite.bedroomId, { ...outer, h_cells: bedH });
+        result.set(suite.bedroomId, { ...outer, h_cells: bedH }); // keeps outer.y_cells — the touching edge
         const slot = Math.max(1, Math.floor(outer.w_cells / n));
         suite.subIds.forEach((id, i) => result.set(id, {
             x_cells: outer.x_cells + i * slot, y_cells: outer.y_cells + bedH,
+            w_cells: i === n - 1 ? outer.w_cells - i * slot : slot, h_cells: SUB_DEPTH,
+        }));
+    } else {
+        // touchesBottom (the only remaining case — `outer` already passed
+        // the caller's touchesPerimeter filter, so some edge is touching).
+        const bedH = Math.max(2, outer.h_cells - SUB_DEPTH);
+        result.set(suite.bedroomId, { ...outer, y_cells: outer.y_cells + SUB_DEPTH, h_cells: bedH }); // keeps y_cells+h_cells — the touching edge
+        const slot = Math.max(1, Math.floor(outer.w_cells / n));
+        suite.subIds.forEach((id, i) => result.set(id, {
+            x_cells: outer.x_cells + i * slot, y_cells: outer.y_cells,
             w_cells: i === n - 1 ? outer.w_cells - i * slot : slot, h_cells: SUB_DEPTH,
         }));
     }
@@ -327,7 +350,7 @@ export function search(
         if (unitNeedsExt) {
             candidates = candidates.filter(c => grid.touchesPerimeter(c));
         }
-            
+
         if (activeNeighbors.length > 0) {
             const activeNeighborsM = activeNeighbors.map(r => cellsToRectM(r));
             candidates.sort((c1, c2) => {
@@ -364,13 +387,13 @@ export function search(
                 timedOut = true;
                 return false;
             }
-            
+
             const rect: PlacedRect = { id: unit.ids[0], x_m: cellsToMeters(cand.x_cells), y_m: cellsToMeters(cand.y_cells), w_m: cellsToMeters(cand.w_cells), h_m: cellsToMeters(cand.h_cells) };
             if (!insideFootprint(rect, combinedW_m, combinedH_m).pass) continue;
 
             // 1. Suite Subdivision (pure geometry, fast)
             const subs = unit.isSuite && unit.suite ? subdivideSuite(cand, unit.suite, grid.widthCells, grid.heightCells) : new Map([[unit.ids[0], cand]]);
-            
+
             // 2. Adjacency check (pure math, fast)
             // Checked AFTER subdivision, against each sub-room's true
             // rect — a pair naming a specific bath/wardrobe id must be
