@@ -108,11 +108,59 @@ export function buildUnits(graph: RoomGraph, floorIndex: number): SearchUnit[] {
     return units;
 }
 
-export function orderUnits(units: SearchUnit[], graph: RoomGraph, floorIndex: number): SearchUnit[] {
+/**
+ * Ordering used to matter only for which unit gets first pick of a tight
+ * spot; now it decides whether a must-touch chain ever GETS a spot at all.
+ * enumerateCandidates() anchors most of its output flush against whatever
+ * is already placed, so any unit placed before an adjacency-critical one
+ * has a good chance of squatting on the exact perimeter-flush-to-hub
+ * pocket that unit needed and has no other way to reach. Plain hub-first-
+ * then-area-descending let large, adjacency-free units (garage, suites
+ * with no hub edge) go before hub-adjacent units (dining/kitchen here),
+ * which is what produced hive-001/hive-002's TIMEOUT — the search wasn't
+ * short on area, it was locked out of the only shapes that satisfy both
+ * "touches the hub" and "touches the perimeter" by rooms that needed
+ * neither. BFS through the must-touch graph from the hub(s) outward fixes
+ * this: a unit is scheduled the moment something it must touch has been
+ * scheduled, so adjacency chains claim their space before anything
+ * unconnected gets a turn. Units with no must-touch path to a hub (true
+ * "free" rooms) fall back to the old area-descending order.
+ */
+export function orderUnits(units: SearchUnit[], graph: RoomGraph, floorIndex: number, mustTouchPairs: AdjacencyPair[] = []): SearchUnit[] {
     const hubIds = new Set(identifyHubs(graph, floorIndex).map(h => h.id));
-    const hubUnits = units.filter(u => u.ids.some(id => hubIds.has(id)));
-    const rest = units.filter(u => !u.ids.some(id => hubIds.has(id))).sort((a, b) => b.totalArea_m2 - a.totalArea_m2);
-    return [...hubUnits, ...rest];
+
+    const unitByRoomId = new Map<string, SearchUnit>();
+    for (const u of units) for (const id of u.ids) unitByRoomId.set(id, u);
+
+    const neighborsOf = new Map<SearchUnit, Set<SearchUnit>>();
+    for (const u of units) neighborsOf.set(u, new Set());
+    for (const pair of mustTouchPairs) {
+        const ua = unitByRoomId.get(pair.a), ub = unitByRoomId.get(pair.b);
+        if (!ua || !ub || ua === ub) continue;
+        neighborsOf.get(ua)!.add(ub);
+        neighborsOf.get(ub)!.add(ua);
+    }
+
+    const hubUnits = units
+        .filter(u => u.ids.some(id => hubIds.has(id)))
+        .sort((a, b) => b.totalArea_m2 - a.totalArea_m2);
+
+    const ordered: SearchUnit[] = [];
+    const visited = new Set<SearchUnit>();
+    const queue: SearchUnit[] = [...hubUnits];
+    for (const u of hubUnits) visited.add(u);
+
+    while (queue.length > 0) {
+        const u = queue.shift()!;
+        ordered.push(u);
+        const neighbors = [...neighborsOf.get(u)!]
+            .filter(n => !visited.has(n))
+            .sort((a, b) => b.totalArea_m2 - a.totalArea_m2);
+        for (const n of neighbors) { visited.add(n); queue.push(n); }
+    }
+
+    const rest = units.filter(u => !visited.has(u)).sort((a, b) => b.totalArea_m2 - a.totalArea_m2);
+    return [...ordered, ...rest];
 }
 
 /** Ports packPrivateZone()'s bedDepth/subBounds subdivision from

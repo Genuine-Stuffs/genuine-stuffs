@@ -43,9 +43,6 @@ export function solvePlacement(
         };
     }
 
-    const units = orderUnits(rawUnits, graph, floorIndex);
-    const hints = new Map(deriveDimensionHints(rawRooms.filter(r => r.floor === floorIndex)).map(h => [h.roomId, h]));
-
     // Bug 2 fix: derive and ENFORCE must-touch pairs — this was defined
     // in graph.ts since Phase 1 and imported into solver/types.ts in
     // Session 3a, but never actually called until now. Without this,
@@ -54,6 +51,12 @@ export function solvePlacement(
     const hubIds = new Set(identifyHubs(graph, floorIndex).map(h => h.id));
     const suites = deriveSuites(graph, floorIndex);
     const mustTouchPairs = findMustTouchPairs(graph, floorIndex, hubIds, suiteEdgeKeys(suites));
+
+    // orderUnits needs mustTouchPairs to schedule adjacency-chained units
+    // right after whatever they must touch (see search.ts's orderUnits
+    // doc comment) — computed above, so this must come after it now.
+    const units = orderUnits(rawUnits, graph, floorIndex, mustTouchPairs);
+    const hints = new Map(deriveDimensionHints(rawRooms.filter(r => r.floor === floorIndex)).map(h => [h.roomId, h]));
 
     const result = runWithRelaxation(
         units, graph, () => buildFootprintGrid(footprint, reservedRects).grid,
