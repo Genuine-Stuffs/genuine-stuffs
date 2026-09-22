@@ -32,7 +32,23 @@ function enumerateDimensionPairs(
     const hint = room.dimensionHint;
 
     if (hint?.mode === 'HARD') {
-        return [{ w_cells: metersToCells(hint.width_m), h_cells: metersToCells(hint.span_m) }];
+        // hint.span_m is the STRUCTURAL BAY span (≤4.5m per NBC 2006 — see
+        // HIVE_SYSTEM_PROMPT), not necessarily the room's actual second
+        // dimension. A room composed of multiple bays (e.g. a living room
+        // built from two 4.5m bays = 9m total depth) reports span_m as
+        // just ONE bay's span, not the room's true depth. Using span_m
+        // directly as h_cells silently shrunk multi-bay rooms to a
+        // fraction of their declared area — confirmed live: a 40.5m²
+        // living room (width_m=4.5, span_m=4.5) placed as a 4.5×4.5=
+        // 20.25m² rectangle, a 54m² "3-car garage" (width_m=8.1,
+        // span_m=4.05) placed as 8.1×4.05=32.8m². Width stays fixed
+        // (intermediate columns are positioned relative to it, per
+        // structural_notes), but depth is derived from the declared
+        // area instead — the value feasibility, costing, and compliance
+        // already treat as authoritative, and for a genuinely single-bay
+        // room this is the same number span_m would have given anyway.
+        const derivedDepth_m = room.targetArea_m2 / Math.max(hint.width_m, 0.1);
+        return [{ w_cells: metersToCells(hint.width_m), h_cells: metersToCells(derivedDepth_m) }];
     }
 
     const minW_cells = metersToCellsFloor(room.minWidth_m);
@@ -43,7 +59,15 @@ function enumerateDimensionPairs(
     const pairs: Array<{ w_cells: number; h_cells: number; delta: number }> = [];
 
     if (hint) {
-        pairs.push({ w_cells: metersToCells(hint.width_m), h_cells: metersToCells(hint.span_m), delta: 0 });
+        // Same area-derived depth as the HARD branch above, for the same
+        // reason — kept consistent rather than trusting span_m here only
+        // to re-derive it correctly a few lines up. For a genuinely
+        // single-bay SOFT room this equals span_m anyway (no divergence,
+        // no regression); it only matters for the multi-bay case, and
+        // this is just the seed — the aspect-ratio search below still
+        // finds a fit if the model's numbers don't respect this seed.
+        const derivedDepth_m = room.targetArea_m2 / Math.max(hint.width_m, 0.1);
+        pairs.push({ w_cells: metersToCells(hint.width_m), h_cells: metersToCells(derivedDepth_m), delta: 0 });
     }
 
     for (let w = minW_cells; w <= Math.sqrt(hiArea * MAX_ASPECT) + 1; w++) {
