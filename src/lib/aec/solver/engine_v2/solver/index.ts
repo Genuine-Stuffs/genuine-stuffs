@@ -11,6 +11,7 @@ import { BuildingFootprint } from '../shapes';
 import { SolverConfig, SolveResult, deriveDimensionHints, PlacedRect, ReservedRect } from './types';
 import { buildFootprintGrid, buildUnits, orderUnits } from './search';
 import { runWithRelaxation } from './relax';
+import { checkFeasibility } from './feasibility';
 import { validatePlacement } from '../placement_validator';
 import { PlacedRoom } from '../../../../../../supabase/functions/ai-studio/schema';
 
@@ -22,8 +23,27 @@ export function solvePlacement(
     config: SolverConfig,
     reservedRects: ReservedRect[] = []
 ): SolveResult {
-    const { combinedW_m, combinedH_m } = buildFootprintGrid(footprint, reservedRects);
-    const units = orderUnits(buildUnits(graph, floorIndex), graph, floorIndex);
+    const { grid, combinedW_m, combinedH_m } = buildFootprintGrid(footprint, reservedRects);
+    const rawUnits = buildUnits(graph, floorIndex);
+
+    // Feasibility gate (v1.0 Part D Phase 1, reopened): reject provably-
+    // unsolvable programs in milliseconds instead of burning the full
+    // search budget to discover the same thing.
+    const feasibility = checkFeasibility(grid, rawUnits, graph, floorIndex, combinedW_m, combinedH_m);
+    if (!feasibility.feasible) {
+        const failed = feasibility.checks.filter(c => !c.passed);
+        const summary = failed.map(c => `${c.code}: ${c.detail}`).join(' | ');
+        console.warn(`[SOLVER_V3] feasibility gate rejected floor ${floorIndex}: ${summary}`);
+        return {
+            status: 'UNSAT',
+            placements: [],
+            relaxationsApplied: [],
+            issues: [],
+            diagnostics: { elapsed_ms: 0, nodesExplored: 0, failedConstraint: summary },
+        };
+    }
+
+    const units = orderUnits(rawUnits, graph, floorIndex);
     const hints = new Map(deriveDimensionHints(rawRooms.filter(r => r.floor === floorIndex)).map(h => [h.roomId, h]));
 
     // Bug 2 fix: derive and ENFORCE must-touch pairs — this was defined

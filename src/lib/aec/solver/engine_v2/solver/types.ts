@@ -43,7 +43,7 @@ export interface SolveResult {
     placements: PlacedRect[];       // empty unless status starts with SOLVED (I6)
     relaxationsApplied: string[];
     issues: import('../placement_validator').ValidationIssue[];
-    diagnostics: { elapsed_ms: number; nodesExplored: number; failedRoomId?: string };
+    diagnostics: { elapsed_ms: number; nodesExplored: number; failedRoomId?: string; failedConstraint?: string };
 }
 
 // ── Structural rigidity classification (Session 3a decision, consumed by
