@@ -1,0 +1,27 @@
+{
+  "rooms": [
+    {"room_id":"r01","name":"Grand Foyer","type":"foyer","floor":0,"area_m2":16,"width_m":4,"span_m":4,"uses_intermediate_columns":false,"adjacencies":["r02","r03","r04","r05","r10"]},
+    {"room_id":"r02","name":"Sunken Living Lounge","type":"living","floor":0,"area_m2":40.5,"width_m":4.5,"span_m":4.5,"uses_intermediate_columns":true,"adjacencies":["r01","r03"]},
+    {"room_id":"r03","name":"12-Seater Dining Area","type":"dining","floor":0,"area_m2":20,"width_m":4,"span_m":4,"uses_intermediate_columns":false,"adjacencies":["r01","r02","r04"]},
+    {"room_id":"r04","name":"Dry Kitchen","type":"kitchen","floor":0,"area_m2":18,"width_m":4,"span_m":4,"uses_intermediate_columns":false,"adjacencies":["r01","r03","r05"]},
+    {"room_id":"r05","name":"Wet Kitchen/Pantry","type":"wet kitchen","floor":0,"area_m2":10,"width_m":2.5,"span_m":2.5,"uses_intermediate_columns":false,"adjacencies":["r04"]},
+    {"room_id":"r06","name":"Guest Bedroom","type":"bedroom","floor":0,"area_m2":14,"width_m":3.5,"span_m":3.5,"uses_intermediate_columns":false,"adjacencies":["r07"]},
+    {"room_id":"r07","name":"Guest Bathroom","type":"bathroom","floor":0,"area_m2":4,"width_m":2,"span_m":2,"uses_intermediate_columns":false,"adjacencies":["r06"]},
+    {"room_id":"r08","name":"Home Office","type":"office","floor":0,"area_m2":12,"width_m":3,"span_m":3,"uses_intermediate_columns":false,"adjacencies":["r01"]},
+    {"room_id":"r09","name":"3-Car Enclosed Garage","type":"garage","floor":0,"area_m2":54,"width_m":9,"span_m":4.5,"uses_intermediate_columns":true,"adjacencies":[]},
+    {"room_id":"r10","name":"Stairwell","type":"stairwell","floor":0,"area_m2":8.64,"width_m":2.4,"span_m":2.4,"uses_intermediate_columns":false,"adjacencies":["r01","r11"]},
+    {"room_id":"r11","name":"Master Suite Bedroom","type":"master bedroom","floor":1,"area_m2":50,"width_m":5,"span_m":4.5,"uses_intermediate_columns":true,"adjacencies":["r12","r13","r10"]},
+    {"room_id":"r12","name":"Master Walk-in Wardrobe","type":"store","floor":1,"area_m2":8,"width_m":2.5,"span_m":2.5,"uses_intermediate_columns":false,"adjacencies":["r11"]},
+    {"room_id":"r13","name":"Master Luxury Bathroom","type":"bathroom","floor":1,"area_m2":6,"width_m":2.5,"span_m":2.5,"uses_intermediate_columns":false,"adjacencies":["r11"]},
+    {"room_id":"r14","name":"Bedroom 2","type":"bedroom","floor":1,"area_m2":16,"width_m":4,"span_m":4,"uses_intermediate_columns":false,"adjacencies":["r15","r18"]},
+    {"room_id":"r15","name":"Bathroom 2","type":"bathroom","floor":1,"area_m2":4,"width_m":2,"span_m":2,"uses_intermediate_columns":false,"adjacencies":["r14"]},
+    {"room_id":"r16","name":"Bedroom 3","type":"bedroom","floor":1,"area_m2":16,"width_m":4,"span_m":4,"uses_intermediate_columns":false,"adjacencies":["r17","r18"]},
+    {"room_id":"r17","name":"Bathroom 3","type":"bathroom","floor":1,"area_m2":4,"width_m":2,"span_m":2,"uses_intermediate_columns":false,"adjacencies":["r16"]},
+    {"room_id":"r18","name":"Bedroom 4","type":"bedroom","floor":1,"area_m2":16,"width_m":4,"span_m":4,"uses_intermediate_columns":false,"adjacencies":["r19","r20"]},
+    {"room_id":"r19","name":"Bathroom 4","type":"bathroom","floor":1,"area_m2":4,"width_m":2,"span_m":2,"uses_intermediate_columns":false,"adjacencies":["r18"]},
+    {"room_id":"r20","name":"Family Lounge","type":"living","floor":1,"area_m2":25,"width_m":4.5,"span_m":4.5,"uses_intermediate_columns":false,"adjacencies":["r11","r14","r16","r18"]},
+    {"room_id":"r21","name":"Corridor (Ground Floor)","type":"corridor","floor":0,"area_m2":5,"width_m":1.8,"span_m":1.8,"uses_intermediate_columns":false,"adjacencies":["r06","r08"]},
+    {"room_id":"r22","name":"Corridor (Upper Floor)","type":"corridor","floor":1,"area_m2":7.5,"width_m":1.8,"span_m":1.8,"uses_intermediate_columns":false,"adjacencies":["r14","r16","r18","r20"]}
+  ],
+  "brief_reference": {"plot_size_sqm": 2000, "floors": 2, "use_type": "residential", "region": "lagos_residential"}
+}
