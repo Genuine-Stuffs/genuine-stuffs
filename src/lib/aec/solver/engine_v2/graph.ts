@@ -221,7 +221,7 @@ export function deriveSuites(graph: RoomGraph, floorIndex: number): Suite[] {
     const ids = graph.floors.get(floorIndex) ?? [];
     const bedrooms = ids
         .map(id => graph.nodes.get(id)!)
-        .filter(n => BEDROOM_TYPES.has(n.type) || (n.zone === 'private' && classifyByBedroomLabel(n.label)));
+        .filter(n => BEDROOM_TYPES.has(n.type) || (n.type === 'unknown' && n.zone === 'private' && classifyByBedroomLabel(n.label)));
 
     const suites: Suite[] = bedrooms.map(bed => {
         const subs: string[] = [];
