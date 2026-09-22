@@ -100,14 +100,12 @@ Roughly in order of expected effort-to-payoff, not a strict recommendation — w
 ## 6. Also still pending (unrelated to the above, lower urgency)
 
 - `solveLayoutVariants()` exists and is tested (confirmed to return multiple genuinely distinct floor plans), but nothing in the frontend UI calls it yet. This was the original product ask ("array of choices from one prompt") before the generation bug took priority. `AIStudio.tsx` still only calls `solveLayoutV2()` and renders a single result.
-- The fixture commit (`8cdfb63`) has **not been pushed** to `origin/main` yet — everything else through `ad43d02` is pushed and live; the two new fixtures are local-only until you push again.
 
 ---
 
 ## 7. Quick-start checklist for tomorrow
 
-1. `cd ~/projects/genuine-stuffs && git pull` (or just resume the sandbox — check `git log --oneline -5` matches this doc's commit table).
+1. `cd ~/projects/genuine-stuffs && git pull` (or just resume the sandbox — check `git log --oneline -5` matches this doc's commit table; `37b1a91` should be the tip).
 2. `npm run harness` — confirm `hive-004-large-villa-v1` and `hive-005-large-villa-v2` still show 0/N solved (baseline unchanged).
-3. Push `8cdfb63` if it isn't already on `origin/main`.
-4. Start with MRV ordering (§5.1) — smallest, most self-contained change, easiest to measure in isolation against the two fixtures above before touching anything else.
-5. Re-run the harness after each change — don't stack multiple heuristic changes before measuring, or you won't know which one helped (or hurt, per the rotation lesson from today).
+3. Start with MRV ordering (§5.1) — smallest, most self-contained change, easiest to measure in isolation against the two fixtures above before touching anything else.
+4. Re-run the harness after each change — don't stack multiple heuristic changes before measuring, or you won't know which one helped (or hurt, per the rotation lesson from today).
