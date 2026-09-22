@@ -92,6 +92,48 @@ export function selectFootprint(
     return rectangle(0, 0, buildW, buildD);
 }
 
+/**
+ * Every footprint shape/pattern combination worth trying for this room
+ * count. The portfolio search (index.ts) runs the actual placement solver
+ * against each candidate in turn and keeps whatever solves — this exists
+ * because trying to compute the ONE right footprint up front (an earlier
+ * attempt sized wings from each zone's area) turned out not to work:
+ * a wing can have plenty of total area while still being too NARROW for
+ * the rooms that end up needing it, and that's a per-room-width problem
+ * area math alone can't see. Generating several real candidates and
+ * letting the solver's own feasibility gate + search be the judge
+ * sidesteps needing that formula to be right at all.
+ *
+ * Ordered fastest-to-solve first: RECTANGLE has no wing to get wrong, so
+ * it's the reliable fallback every room count gets; L/T-shape variants
+ * (both wing patterns, since which one fits better depends on the actual
+ * room mix in ways this function deliberately doesn't try to predict)
+ * follow for callers that want the more architecturally varied options.
+ */
+export function generateFootprintCandidates(
+    plotWidth: number,
+    plotDepth: number,
+    setbacks: { front: number; rear: number; left: number; right: number },
+    roomCount: number
+): BuildingFootprint[] {
+    const bW = plotWidth - setbacks.left - setbacks.right;
+    const bD = plotDepth - setbacks.front - setbacks.rear;
+    const buildW = clamp(bW * 0.45, 8, 22);
+    const buildD = clamp(bD * 0.50, 8, 18);
+
+    const candidates: BuildingFootprint[] = [rectangle(0, 0, buildW, buildD)];
+
+    if (roomCount >= 5) {
+        candidates.push(lShape(buildW, buildD, 'private_wing'));
+        candidates.push(lShape(buildW, buildD, 'service_wing'));
+    }
+    if (roomCount >= 8) {
+        candidates.push(tShape(buildW, buildD, 'private_wing'));
+        candidates.push(tShape(buildW, buildD, 'service_wing'));
+    }
+    return candidates;
+}
+
 // ──────────────────────────────────────────────────────────────────────────
 // Shape builders
 // ──────────────────────────────────────────────────────────────────────────
