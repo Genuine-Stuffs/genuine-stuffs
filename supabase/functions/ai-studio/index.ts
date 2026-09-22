@@ -109,17 +109,16 @@ Produces buildability analysis and safety protocol:
 
 ## CRITICAL OUTPUT RULES
 
-1. ALWAYS respond with a JSON object wrapped in <<<DESIGN_DATA_START>>> and <<<DESIGN_DATA_END>>> tags — even for follow-up questions. Never omit it.
-2. Before the tags, write 2–4 short sentences of professional narrative. Keep it precise and technical. No marketing language.
-3. Do NOT put narrative inside the JSON.
-4. The JSON schema is fixed — do not invent new top-level keys.
-5. span_m must always be the STRUCTURAL BAY span, never the total room dimension. Maximum value: 4.5m.
-6. BOQ unit_price values must be in Nigerian Naira (₦). Use realistic current market estimates for Nigeria.
+1. Respond with EXACTLY ONE valid JSON object and nothing else — no prose before or after it, no markdown code fences, no <<<...>>> tags. The response is parsed with JSON.parse() directly; anything outside the JSON breaks it.
+2. Put your 2–4 sentences of professional narrative in the "narrative" field of the JSON (see schema below). Keep it precise and technical. No marketing language.
+3. The JSON schema is fixed — do not invent new top-level keys.
+4. span_m must always be the STRUCTURAL BAY span, never the total room dimension. Maximum value: 4.5m.
+5. BOQ unit_price values must be in Nigerian Naira (₦). Use realistic current market estimates for Nigeria.
 
 ## MANDATORY JSON SCHEMA
 
-<<<DESIGN_DATA_START>>>
 {
+  "narrative": "2–4 short, precise, technical sentences summarizing the design. No marketing language.",
   "status": "READY",
   "project_id": "GS-[6-char alphanumeric]",
   "brief_reference": {
@@ -194,14 +193,13 @@ Produces buildability analysis and safety protocol:
   },
   "image_prompt": "Cinematic architectural photography, exterior elevation, ultra-modern minimalist villa, [specific materials from design], golden hour lighting, Lagos Nigeria setting, photorealistic, 8K"
 }
-<<<DESIGN_DATA_END>>>
 
 ## HANDLING AMBIGUOUS OR INCOMPLETE BRIEFS
 
-If the brief is too vague to generate a full SpatialProgram, set "status": "DISCOVERY" and populate "discovery_questions" instead of rooms:
+If the brief is too vague to generate a full SpatialProgram, set "status": "DISCOVERY" and populate "discovery_questions" instead of rooms — still ONE JSON object, same rule as above:
 
-<<<DESIGN_DATA_START>>>
 {
+  "narrative": "1–2 sentences explaining what's missing.",
   "status": "DISCOVERY",
   "discovery_questions": [
     "What is the total plot size in square metres?",
@@ -209,7 +207,6 @@ If the brief is too vague to generate a full SpatialProgram, set "status": "DISC
     "Is this a residential or commercial project?"
   ]
 }
-<<<DESIGN_DATA_END>>>
 
 ## PERSONA
 
@@ -406,9 +403,14 @@ RULES:
             { role: "user", content: `[${selectedRole} Mode] ${prompt}` }
         ];
 
-        // ── BUG 3 FIX: response_format enforces JSON output so the model cannot
-        // return prose-only responses. The delimiter parser remains as a fallback
-        // but should rarely be needed now.
+        // response_format enforces JSON output at the API level — the model's
+        // ENTIRE message must be a single valid JSON object (see HIVE_SYSTEM_PROMPT's
+        // "narrative" field, which now carries what used to be prose-before-tags).
+        // Real fix for what the old "BUG 3 FIX" comment above this line claimed
+        // was already done: response_format was never actually present in the
+        // request body in any prior version of this file — the model was relying
+        // purely on the system prompt asking nicely, which it could (and did)
+        // ignore, returning prose-only with no JSON at all.
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             headers: {
@@ -420,47 +422,64 @@ RULES:
                 model: "google/gemini-2.5-flash",
                 messages: messagesForModel,
                 temperature: 0.3,   // Lower than original 0.4 — structural data needs determinism
-                max_tokens: 8000    // Villa-scale programs need headroom
+                max_tokens: 8000,   // Villa-scale programs need headroom
+                response_format: { type: "json_object" }
             })
         });
 
         const openRouterData = await response.json();
-        let result = openRouterData.choices?.[0]?.message?.content;
 
-        if (!result) {
+        if (openRouterData.error) {
+            // Surfaces distinctly from a plain "no content" failure — if this
+            // specific model/provider ever stops accepting response_format,
+            // this is what tells us that's why, instead of a generic error.
+            throw new Error(`OpenRouter error (possibly response_format unsupported): ${JSON.stringify(openRouterData.error)}`);
+        }
+
+        const rawContent: string | undefined = openRouterData.choices?.[0]?.message?.content;
+
+        if (!rawContent) {
             throw new Error(`OpenRouter returned no content. Status: ${response.status}`);
         }
 
-        // ── PARSER: Extract design data from tagged block ─────────────────────
-        let designData = null;
+        // ── PARSER: response_format=json_object means rawContent SHOULD already
+        // be the whole JSON object. The legacy <<<DESIGN_DATA_START>>> tag branch
+        // and the loose AEC-key regex hunt stay on as a safety net — OpenRouter's
+        // response_format support varies by provider/model, so this can't be
+        // trusted blindly for every model that might run behind this endpoint.
+        let designData: any = null;
         const dataBlockRegex = /<<<DESIGN_DATA_START>>>([\s\S]*?)<<<DESIGN_DATA_END>>>/i;
-        const match = result.match(dataBlockRegex);
+        const tagMatch = rawContent.match(dataBlockRegex);
 
-        if (match) {
-            const jsonText = match[1].trim();
+        const candidates = tagMatch ? [tagMatch[1], rawContent] : [rawContent];
+        for (const candidate of candidates) {
+            if (designData) break;
+            const cleaned = candidate.replace(/```json|```/g, '').trim();
             try {
-                designData = JSON.parse(jsonText);
-            } catch (_) {
-                // Attempt to strip any markdown fences the model may have added inside the block
-                const cleaned = jsonText.replace(/```json|```/g, '').trim();
-                try {
-                    designData = JSON.parse(cleaned);
-                } catch (e2) {
-                    console.error("Parser failed to extract JSON from tagged block:", e2);
-                }
-            }
-            // Remove the raw tag block from the narrative text
-            result = result.replace(/<<<DESIGN_DATA_START>>>[\s\S]*?<<<DESIGN_DATA_END>>>/i, '').trim();
-        } else {
-            // Fallback: hunt for any JSON object with AEC keys in the raw text
+                designData = JSON.parse(cleaned);
+            } catch (_) { /* try next candidate */ }
+        }
+
+        if (!designData) {
+            // Last resort: hunt for any JSON object with AEC keys anywhere in the text.
             const jsonRegex = /\{[\s\S]*?"(?:status|rooms|architectural_layout|project_id)"[\s\S]*\}/i;
-            const fallbackMatch = result.match(jsonRegex);
+            const fallbackMatch = rawContent.match(jsonRegex);
             if (fallbackMatch) {
                 try {
                     designData = JSON.parse(fallbackMatch[0]);
-                } catch (_) { /* silent — frontend parser will also attempt */ }
+                } catch (e) {
+                    console.error("All JSON extraction strategies failed:", e, rawContent.slice(0, 300));
+                }
+            } else {
+                console.error("No JSON found anywhere in model output:", rawContent.slice(0, 300));
             }
         }
+
+        // narrative field (new schema) is the primary source; fall back to
+        // whatever prose is left after stripping a legacy tag block, for
+        // responses that still used the old prose-before-tags shape.
+        const result: string = designData?.narrative
+            ?? rawContent.replace(dataBlockRegex, '').trim();
 
         return new Response(JSON.stringify({ result, data: designData, type: 'text' }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
