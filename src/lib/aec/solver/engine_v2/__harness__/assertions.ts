@@ -20,7 +20,7 @@
  */
 
 import { SolvedLayout, PlacedRoom } from "../../../../../../supabase/functions/ai-studio/schema";
-import { RoomGraph, deriveSuites } from "../graph";
+import { RoomGraph, deriveSuites, identifyHubs } from "../graph";
 
 export interface AssertionResult {
     invariant: string;
@@ -59,7 +59,7 @@ function byId(rooms: PlacedRoom[]): Map<string, PlacedRoom> {
     return new Map(rooms.map(r => [r.room_id, r]));
 }
 
-// ── I1 — every placed room inside its floor's buildable envelope ──────────
+// ── I1 — every placed room inside the building footprint ─────────────────
 
 export function assertI1_InsideFootprint(
     layout: SolvedLayout,
@@ -115,13 +115,24 @@ export function assertI2_NoOverlap(layout: SolvedLayout): AssertionResult {
 // swap to findMustTouchPairs() once Phase 3 lands if a stricter
 // comparison is wanted.
 
+// `hubEdgesOnly`: Part B defines I3 for SOLVED results. A SOLVED_RELAXED
+// result has, by design, passed through RELAX-SOFT-ADJ, which may drop
+// ordinary room-to-room edges — but never a hub edge (relax.ts), so hub
+// edges are still checked there rather than skipping I3 altogether.
 export function assertI3_AdjacencySatisfied(
     layout: SolvedLayout,
-    graph: RoomGraph
+    graph: RoomGraph,
+    hubEdgesOnly = false
 ): AssertionResult {
     const violations: string[] = [];
     const placed = byId(layout.placed_rooms);
     const seen = new Set<string>();
+    const hubIds = new Set<string>();
+    if (hubEdgesOnly) {
+        for (const floorIndex of graph.floors.keys()) {
+            for (const h of identifyHubs(graph, floorIndex)) hubIds.add(h.id);
+        }
+    }
 
     for (const node of graph.nodes.values()) {
         const a = placed.get(node.id);
@@ -133,6 +144,7 @@ export function assertI3_AdjacencySatisfied(
             const b = placed.get(neighborId);
             // Skip cross-floor edges (e.g. stairwells) — checked by I7
             if (!b || a.floor !== b.floor) continue;
+            if (hubEdgesOnly && !hubIds.has(node.id) && !hubIds.has(neighborId)) continue;
             const shared = sharedWallLength(a, b);
             if (shared < WALL_TOL_M) {
                 violations.push(`${node.id}<->${neighborId}: ${shared.toFixed(2)}m shared wall (need ${WALL_TOL_M}m)`);
@@ -142,7 +154,9 @@ export function assertI3_AdjacencySatisfied(
     return {
         invariant: "I3_ADJACENCY_SATISFIED",
         pass: violations.length === 0,
-        detail: violations.length === 0 ? "all declared adjacencies satisfied" : violations.join("; "),
+        detail: violations.length === 0
+            ? (hubEdgesOnly ? "all hub adjacencies satisfied (soft edges relaxed)" : "all declared adjacencies satisfied")
+            : violations.join("; "),
     };
 }
 
@@ -260,12 +274,21 @@ export function runAllAssertions(
     graph: RoomGraph,
     envelope: { width: number; height: number }
 ): AssertionResult[] {
+    // I1/I5 are defined against the building FOOTPRINT (master plan Part
+    // B), not the buildable plot envelope. Checking I5 against the far
+    // larger envelope only ever credited the top/left walls (the footprint
+    // sits at the envelope origin), which went unnoticed while the grid
+    // rounding bug kept the solver off the right/bottom walls too. Falls
+    // back to the envelope only for layouts that predate building_width.
+    const footprint = layout.building_width !== undefined && layout.building_depth !== undefined
+        ? { width: layout.building_width, height: layout.building_depth }
+        : envelope;
     return [
-        assertI1_InsideFootprint(layout, envelope),
+        assertI1_InsideFootprint(layout, footprint),
         assertI2_NoOverlap(layout),
-        assertI3_AdjacencySatisfied(layout, graph),
+        assertI3_AdjacencySatisfied(layout, graph, layout.solver_status === 'SOLVED_RELAXED'),
         assertI4_SuiteNesting(layout, graph),
-        assertI5_ExternalWall(layout, graph, envelope),
+        assertI5_ExternalWall(layout, graph, footprint),
         assertI6_PlacementsEmptyUnlessSolved(),
         assertI7_StairwellMirrored(layout),
     ];

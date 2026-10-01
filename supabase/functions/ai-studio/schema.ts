@@ -60,6 +60,12 @@ export interface SolvedLayout {
     program_reference: SpatialProgram;
     plot_width: number;
     plot_depth: number;
+    // Bounding box of the building footprint the solver actually placed
+    // into (same origin as placed_rooms). Distinct from plot_width/depth:
+    // I1/I5 ("inside" / "touches the footprint perimeter") are defined
+    // against this, not the plot. Optional — older layouts lack it.
+    building_width?: number;
+    building_depth?: number;
     placed_rooms: PlacedRoom[];
     solver_iterations_used: number;
     is_fully_connected: boolean;

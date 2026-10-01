@@ -267,6 +267,10 @@ function attemptWithFootprint(
         program_reference:      program,
         plot_width:              envelope.width,
         plot_depth:              envelope.depth,
+        // Same combined bounding box solver/search.ts's buildFootprintGrid()
+        // places into (solver/ exports only solvePlacement, so not imported).
+        building_width:          footprint.secondary ? Math.max(footprint.primary.x + footprint.primary.width, footprint.secondary.x + footprint.secondary.width) : footprint.primary.width,
+        building_depth:          footprint.secondary ? Math.max(footprint.primary.y + footprint.primary.height, footprint.secondary.y + footprint.secondary.height) : footprint.primary.height,
         placed_rooms:            placedRooms,
         solver_iterations_used:  totalNodesExplored,
         is_fully_connected:      !anyFloorUnsolved,
