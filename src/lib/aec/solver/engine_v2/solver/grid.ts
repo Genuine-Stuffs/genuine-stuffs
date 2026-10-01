@@ -56,6 +56,31 @@ export class OccupancyGrid {
         return true;
     }
 
+    /** Summed-area table of OCCUPIED cells, (W+1)×(H+1). Built once per
+     * search node so isFreeIn() can answer "is this rect empty?" in O(1)
+     * for the thousands of candidates MRV scores per node, instead of
+     * canPlace()'s O(rect area) scan. Stale as soon as the grid changes. */
+    occupiedPrefix(): Int32Array {
+        const W = this.widthCells, H = this.heightCells, stride = W + 1;
+        const p = new Int32Array(stride * (H + 1));
+        for (let y = 0; y < H; y++) {
+            let row = 0;
+            for (let x = 0; x < W; x++) {
+                if (this.cells[this.idx(x, y)] !== 0) row++;
+                p[(y + 1) * stride + x + 1] = p[y * stride + x + 1] + row;
+            }
+        }
+        return p;
+    }
+
+    /** O(1) emptiness check against a table from occupiedPrefix(). */
+    isFreeIn(prefix: Int32Array, r: RectCells): boolean {
+        if (!this.inBounds(r)) return false;
+        const stride = this.widthCells + 1;
+        const x0 = r.x_cells, y0 = r.y_cells, x1 = x0 + r.w_cells, y1 = y0 + r.h_cells;
+        return prefix[y1 * stride + x1] - prefix[y0 * stride + x1] - prefix[y1 * stride + x0] + prefix[y0 * stride + x0] === 0;
+    }
+
     place(r: RectCells, roomIdx: number): void {
         for (let y = r.y_cells; y < r.y_cells + r.h_cells; y++) {
             for (let x = r.x_cells; x < r.x_cells + r.w_cells; x++) {

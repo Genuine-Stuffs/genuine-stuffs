@@ -290,16 +290,16 @@ export function search(
     let timedOut = false;
 
     // ── v1.0 spec, Session 3b step 5, finally implemented ──────────────────────
-    // Feasibility pruning: before recursing into unit i, remaining free
-    // cells must cover the minimum possible area of every unplaced unit.
+    // Feasibility pruning: before recursing, remaining free cells must
+    // cover the minimum possible area of every unplaced unit. Tracked as
+    // a running sum rather than a suffix array, since MRV (below) places
+    // units in a dynamic order, not index order.
     const cellArea = GRID_RESOLUTION_M * GRID_RESOLUTION_M;
     const minAreaCells = units.map(u =>
         Math.floor((u.totalArea_m2 / cellArea) * (1 - config.areaTolerance)));
-    const minAreaSuffix: number[] = new Array(units.length + 1).fill(0);
-    for (let i = units.length - 1; i >= 0; i--) {
-        minAreaSuffix[i] = minAreaSuffix[i + 1] + minAreaCells[i];
-    }
+    let unplacedMinArea = minAreaCells.reduce((s, a) => s + a, 0);
     let freeCells = grid.countFreeCells();
+    const unplaced = new Set<number>(units.map((_, i) => i));
 
     // ── I5 enforcement (invariant table finally made true) ─────────────────
     const SUB_ROOM_TYPES = new Set(['bathroom', 'wardrobe', 'dressing']);
@@ -316,37 +316,27 @@ export function search(
     };
     const hubIds = new Set(identifyHubs(graph, floorIndex).map(h => h.id));
 
-    function tryUnit(i: number): boolean {
-        if (timedOut) return false;
-        if (i >= units.length) return true;
-        // Feasibility prune — cheapest possible dead-branch detector.
-        if (freeCells < minAreaSuffix[i]) return false;
-        if (nodesExplored % 200 === 0 && (performance.now() - startTime) > config.budget_ms) {
-            timedOut = true;
-            return false;
-        }
+    const reservedCells: RectCells[] = reservedRects.map(r => ({
+        x_cells: metersToCellsFloor(r.x_m), y_cells: metersToCellsFloor(r.y_m),
+        w_cells: metersToCells(r.w_m), h_cells: metersToCells(r.h_m)
+    }));
 
-        const unit = units[i];
+    /** Every placement of `unit` that is legal RIGHT NOW against what's
+     * already placed — footprint, adjacency, I5 and overlap all checked
+     * up front, in the order the search will try them. Doing the full
+     * check here (rather than lazily inside the loop) is what lets MRV
+     * see a unit's true remaining option count, and makes a zero count
+     * a proven dead end for the current partial placement. */
+    function viablePlacements(unit: SearchUnit, prefix: Int32Array): Array<Map<string, RectCells>> {
         const spec: RoomSpec = {
             id: unit.ids[0], targetArea_m2: unit.totalArea_m2, minWidth_m: 2.4,
             dimensionHint: unit.ids.length === 1 ? dimensionHints.get(unit.ids[0]) : undefined,
         };
-        const reservedCells: RectCells[] = reservedRects.map(r => ({
-            x_cells: metersToCellsFloor(r.x_m), y_cells: metersToCellsFloor(r.y_m),
-            w_cells: metersToCells(r.w_m), h_cells: metersToCells(r.h_m)
-        }));
         const ctx = {
             placedRects: [...placedIdx, ...reservedCells],
             gridW_cells: grid.widthCells,
             gridH_cells: grid.heightCells,
         };
-        let candidates = Array.from(enumerateCandidates(spec, ctx, config.areaTolerance));
-        const relevantPairs = pairsByRoom.get(unit.ids[0]);
-        const activeNeighbors = relevantPairs 
-            // Note: activeNeighbors is computed only against unit.ids[0] (the bedroom), 
-            // not sub-room ids. Sub-room adjacencies outside their suite aren't declared by Hive currently.
-            ? relevantPairs.map(p => p.a === unit.ids[0] ? p.b : p.a).filter(id => placed.has(id)).map(id => placed.get(id)!)
-            : [];
 
         // I5 pre-filter: if the unit's primary room needs an external
         // wall, only perimeter-touching outers are viable (the bedroom
@@ -355,60 +345,26 @@ export function search(
         // from O(W×H) to O(perimeter) for most rooms — the single
         // biggest search-space reduction in this change.
         const unitNeedsExt = needsExternalWall(unit.ids[0]);
-        if (unitNeedsExt) {
-            candidates = candidates.filter(c => grid.touchesPerimeter(c));
-        }
 
-        if (activeNeighbors.length > 0) {
-            const activeNeighborsM = activeNeighbors.map(r => cellsToRectM(r));
-            candidates.sort((c1, c2) => {
-                const rect1 = cellsToRectM(c1);
-                const rect2 = cellsToRectM(c2);
-                
-                let touches1 = true;
-                let touches2 = true;
-                let dist1 = 0;
-                let dist2 = 0;
-                
-                for (const nRect of activeNeighborsM) {
-                    if (!mustTouchSatisfied(rect1, nRect).pass) touches1 = false;
-                    if (!mustTouchSatisfied(rect2, nRect).pass) touches2 = false;
-                    
-                    dist1 += Math.pow((rect1.x_m + rect1.w_m/2) - (nRect.x_m + nRect.w_m/2), 2) + Math.pow((rect1.y_m + rect1.h_m/2) - (nRect.y_m + nRect.h_m/2), 2);
-                    dist2 += Math.pow((rect2.x_m + rect2.w_m/2) - (nRect.x_m + nRect.w_m/2), 2) + Math.pow((rect2.y_m + rect2.h_m/2) - (nRect.y_m + nRect.h_m/2), 2);
-                }
-                
-                // Lexicographic ordering: strictly prefer satisfying positions, fallback to sum of squared distances
-                if (touches1 && !touches2) return -1;
-                if (!touches1 && touches2) return 1;
-                return dist1 - dist2;
-            });
-        } else {
-            const mapped = candidates.map(c => ({ c, r: rng() }));
-            mapped.sort((a, b) => a.r - b.r);
-            candidates = mapped.map(x => x.c);
-        }
-
-        for (const cand of candidates) {
-            nodesExplored++;
-            if (nodesExplored % 50 === 0 && (performance.now() - startTime) > config.budget_ms) {
-                timedOut = true;
-                return false;
-            }
-
+        // Filter BEFORE ordering: MRV scores every unplaced unit at every
+        // node, so sorting thousands of raw candidates (each comparison
+        // re-running mustTouchSatisfied) just to discard most of them was
+        // the dominant per-node cost. Cheapest checks run first.
+        const viable: Array<Map<string, RectCells>> = [];
+        for (const cand of enumerateCandidates(spec, ctx, config.areaTolerance)) {
+            if (unitNeedsExt && !grid.touchesPerimeter(cand)) continue;
+            // Sub-rooms subdivide the outer rect, so an empty outer
+            // implies empty subs — one O(1) check covers the whole unit.
+            if (!grid.isFreeIn(prefix, cand)) continue;
             const rect: PlacedRect = { id: unit.ids[0], x_m: cellsToMeters(cand.x_cells), y_m: cellsToMeters(cand.y_cells), w_m: cellsToMeters(cand.w_cells), h_m: cellsToMeters(cand.h_cells) };
             if (!insideFootprint(rect, combinedW_m, combinedH_m).pass) continue;
 
-            // 1. Suite Subdivision (pure geometry, fast)
             const subs = unit.isSuite && unit.suite ? subdivideSuite(cand, unit.suite, grid.widthCells, grid.heightCells) : new Map([[unit.ids[0], cand]]);
 
-            // 2. Adjacency check (pure math, fast)
-            // Checked AFTER subdivision, against each sub-room's true
-            // rect — a pair naming a specific bath/wardrobe id must be
-            // verified against where that sub-room actually lands, not
-            // the suite's outer bounding box. For non-suite units this
-            // collapses to the same single-rect check, so it costs
-            // nothing to run uniformly.
+            // Adjacency is checked against each sub-room's true rect — a
+            // pair naming a specific bath/wardrobe id must be verified
+            // against where that sub-room actually lands, not the suite's
+            // outer bounding box.
             let adjacencyOk = true;
             for (const [id, r] of subs) {
                 if (!adjacencySatisfiedFor(id, r)) { adjacencyOk = false; break; }
@@ -423,19 +379,97 @@ export function search(
             }
             if (!externalOk) continue;
 
-            // 3. Grid overlap check (expensive iteration)
-            if (![...subs.values()].every(r => grid.canPlace(r))) continue;
-
-            for (const [id, r] of subs) { grid.place(r, placedIdx.length); placedIdx.push(r); placed.set(id, r); freeCells -= r.w_cells * r.h_cells; }
-            const success = tryUnit(i + 1);
-            if (success) return true;
-            if (timedOut) return false;
-            for (const [id, r] of subs) { grid.remove(r); placed.delete(id); placedIdx.pop(); freeCells += r.w_cells * r.h_cells; }
+            viable.push(subs);
         }
+
+        // Every survivor already touches all placed must-touch neighbors,
+        // so ordering reduces to proximity to them; with none placed yet,
+        // random (seeded) order, as before.
+        const relevantPairs = pairsByRoom.get(unit.ids[0]);
+        // Note: activeNeighbors is computed only against unit.ids[0] (the bedroom),
+        // not sub-room ids. Sub-room adjacencies outside their suite aren't declared by Hive currently.
+        const activeNeighbors = relevantPairs
+            ? relevantPairs.map(p => p.a === unit.ids[0] ? p.b : p.a).filter(id => placed.has(id)).map(id => placed.get(id)!)
+            : [];
+        const keyed = viable.map(subs => {
+            const c = subs.get(unit.ids[0])!;
+            let key = 0;
+            if (activeNeighbors.length > 0) {
+                const cx = c.x_cells + c.w_cells / 2, cy = c.y_cells + c.h_cells / 2;
+                for (const n of activeNeighbors) key += (cx - (n.x_cells + n.w_cells / 2)) ** 2 + (cy - (n.y_cells + n.h_cells / 2)) ** 2;
+            } else {
+                key = rng();
+            }
+            return { subs, key };
+        });
+        keyed.sort((a, b) => a.key - b.key);
+        return keyed.map(k => k.subs);
+    }
+
+    /** MRV (most-constrained-variable) dynamic ordering + forward check.
+     * The static orderUnits() ranking was decided once, up front, and
+     * could not react to how constrained a unit became mid-search: when a
+     * later unit lost its last viable spot, chronological backtracking
+     * kept re-shuffling the units in between before ever revisiting the
+     * cause. Now every step recomputes each unplaced unit's viable
+     * placements, fails immediately if a perimeter-bound unit has none
+     * left, and branches on whichever unit has the fewest. Ties fall back
+     * to the static order, so the hub-first / must-touch BFS preference
+     * still decides between equally constrained units.
+     * Measured (20 seeds, hive-001 + hive-002): avg solve 1.0s/0.8s ->
+     * 0.3s/0.1s, strict SOLVED (no relaxation) 29/40 -> 37/40. */
+    function tryNext(): boolean {
+        if (timedOut) return false;
+        if (unplaced.size === 0) return true;
+        // Feasibility prune — cheapest possible dead-branch detector.
+        if (freeCells < unplacedMinArea) return false;
+        if ((performance.now() - startTime) > config.budget_ms) {
+            timedOut = true;
+            return false;
+        }
+
+        let bestIdx = -1;
+        let best: Array<Map<string, RectCells>> = [];
+        const prefix = grid.occupiedPrefix();
+        for (const i of unplaced) {
+            const viable = viablePlacements(units[i], prefix);
+            if (viable.length === 0) {
+                // Forward check — sound only for perimeter-bound units:
+                // boundary anchors enumerate EVERY perimeter-flush position,
+                // so their option set can only shrink as rooms are placed.
+                // An interior unit's candidates also anchor on placed rects,
+                // so a later placement can create options it lacks now —
+                // defer it rather than declaring the branch dead.
+                if (needsExternalWall(units[i].ids[0])) return false;
+                continue;
+            }
+            if (bestIdx === -1 || viable.length < best.length || (viable.length === best.length && i < bestIdx)) {
+                bestIdx = i;
+                best = viable;
+            }
+        }
+
+        if (bestIdx === -1) return false; // only deferred interior units left, none placeable
+
+        unplaced.delete(bestIdx);
+        unplacedMinArea -= minAreaCells[bestIdx];
+        for (const subs of best) {
+            nodesExplored++;
+            if (nodesExplored % 50 === 0 && (performance.now() - startTime) > config.budget_ms) {
+                timedOut = true;
+                break;
+            }
+            for (const [id, r] of subs) { grid.place(r, placedIdx.length); placedIdx.push(r); placed.set(id, r); freeCells -= r.w_cells * r.h_cells; }
+            if (tryNext()) return true;
+            for (const [id, r] of subs) { grid.remove(r); placed.delete(id); placedIdx.pop(); freeCells += r.w_cells * r.h_cells; }
+            if (timedOut) break;
+        }
+        unplaced.add(bestIdx);
+        unplacedMinArea += minAreaCells[bestIdx];
         return false;
     }
 
-    const solved = tryUnit(0);
+    const solved = tryNext();
     return {
         placed,
         failedUnitIds: solved ? undefined : units.filter(u => !u.ids.every(id => placed.has(id))).flatMap(u => u.ids),
