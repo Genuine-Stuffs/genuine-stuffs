@@ -40,6 +40,20 @@ function splitWingBridge(
         : { x: secondary.x, y: secondary.y, width: secondary.width, height: corridorD_m };
 }
 
+/** Every cell a fixed rect touches, clamped to the grid. Fixed geometry
+ * (corridor, stairwell, wing bridge) isn't always grid-aligned — the
+ * stairwell is 2.4m × 3.6m — and rounding each edge to the NEAREST cell
+ * left slivers of it unreserved, so rooms could be placed overlapping it
+ * (I2). Covering outward guarantees no overlap; clamping stops a rect
+ * flush with the far wall from writing past the end of a grid row. */
+function coveringCells(x_m: number, y_m: number, w_m: number, h_m: number, grid: OccupancyGrid): RectCells {
+    const x0 = Math.max(0, Math.floor(x_m / GRID_RESOLUTION_M + 1e-6));
+    const y0 = Math.max(0, Math.floor(y_m / GRID_RESOLUTION_M + 1e-6));
+    const x1 = Math.min(grid.widthCells, Math.max(x0 + 1, Math.ceil((x_m + w_m) / GRID_RESOLUTION_M - 1e-6)));
+    const y1 = Math.min(grid.heightCells, Math.max(y0 + 1, Math.ceil((y_m + h_m) / GRID_RESOLUTION_M - 1e-6)));
+    return { x_cells: x0, y_cells: y0, w_cells: x1 - x0, h_cells: y1 - y0 };
+}
+
 export function buildFootprintGrid(
     footprint: BuildingFootprint,
     reservedRects: ReservedRect[] = []
@@ -65,10 +79,7 @@ export function buildFootprintGrid(
         }
 
         const bridge_m = splitWingBridge(primary, secondary, 1.5);
-        grid.place({
-            x_cells: metersToCells(bridge_m.x), y_cells: metersToCells(bridge_m.y),
-            w_cells: Math.max(1, metersToCells(bridge_m.width)), h_cells: Math.max(1, metersToCells(bridge_m.height)),
-        }, RESERVED_IDX);
+        grid.place(coveringCells(bridge_m.x, bridge_m.y, bridge_m.width, bridge_m.height, grid), RESERVED_IDX);
     }
 
     // Caller-supplied fixed rects (corridor bands, stairwell) — computed
@@ -76,10 +87,7 @@ export function buildFootprintGrid(
     // as the wing bridge: pre-occupied cells the search must route around,
     // never a room it chooses where to put.
     for (const r of reservedRects) {
-        grid.place({
-            x_cells: metersToCells(r.x_m), y_cells: metersToCells(r.y_m),
-            w_cells: Math.max(1, metersToCells(r.w_m)), h_cells: Math.max(1, metersToCells(r.h_m)),
-        }, RESERVED_IDX);
+        grid.place(coveringCells(r.x_m, r.y_m, r.w_m, r.h_m, grid), RESERVED_IDX);
     }
 
     return { grid, combinedW_m, combinedH_m };

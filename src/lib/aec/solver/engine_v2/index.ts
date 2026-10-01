@@ -42,6 +42,7 @@ import { buildGraph, HiveRoom, ZoneType } from "./graph";
 import { BuildingFootprint, generateFootprintCandidates } from "./shapes";
 import { solvePlacement } from "./solver";
 import { SolverConfig, ReservedRect } from "./solver/types";
+import { GRID_RESOLUTION_M } from "./solver/units";
 import { ValidationIssue } from "./placement_validator";
 
 // Per attempt, per floor. Kept short deliberately — trying several
@@ -71,6 +72,30 @@ const RETRIES_PER_CANDIDATE = 2;
 // satisfy any cryptographic property.
 const ATTEMPT_SEED_CANDIDATE_STRIDE = 7919;
 const ATTEMPT_SEED_RETRY_STRIDE = 104729;
+
+const snapDownToGrid = (m: number) => Math.floor(m / GRID_RESOLUTION_M + 1e-6) * GRID_RESOLUTION_M;
+const snapUpToGrid = (m: number) => Math.ceil(m / GRID_RESOLUTION_M - 1e-6) * GRID_RESOLUTION_M;
+
+/** Aligns every footprint edge to the solver's 0.5m grid (edges move
+ * inward, never out). shapes.ts produces arbitrary-precision dimensions
+ * (e.g. 17.4m × 17.9m); the occupancy grid can only represent whole
+ * cells, so an unaligned footprint left the corridor, stairwell and
+ * wing boundaries straddling cells — rooms then overlapped fixed
+ * geometry (I2) or ended short of the real perimeter wall. Snapping
+ * once, here, gives the grid, the fixed geometry and the reported
+ * building_width/depth one shared, exact outline. */
+function snapFootprintToGrid(fp: BuildingFootprint): BuildingFootprint {
+    const snap = (b: { x: number; y: number; width: number; height: number }) => {
+        const x = snapDownToGrid(b.x), y = snapDownToGrid(b.y);
+        return { x, y, width: snapDownToGrid(b.x + b.width) - x, height: snapDownToGrid(b.y + b.height) - y };
+    };
+    const primary = snap(fp.primary);
+    const secondary = fp.secondary ? snap(fp.secondary) : undefined;
+    return {
+        ...fp, primary, secondary,
+        totalArea: primary.width * primary.height + (secondary ? secondary.width * secondary.height : 0),
+    };
+}
 
 interface PreparedProgram {
     hiveRooms: HiveRoom[];
@@ -175,7 +200,12 @@ function attemptWithFootprint(
         const corridorBounds: Array<{ x: number; y: number; width: number; height: number }> = [];
         let corridorY: number;
         if (floorIndex === 0) {
-            const socialH = Math.max(footprint.primary.height * GROUND_CORRIDOR_FRAC, 5.1);
+            // Rounded UP to the solver grid: an off-grid band (e.g. 7.14m)
+            // was reserved as the nearest cells (7.0–8.5m) while the emitted
+            // corridor sat at 7.14–8.64m, so rooms placed flush below the
+            // reserved cells overlapped the real corridor (I2). Up, not
+            // nearest, so the 5.1m stairwell clearance above still holds.
+            const socialH = snapUpToGrid(Math.max(footprint.primary.height * GROUND_CORRIDOR_FRAC, 5.1));
             corridorY = footprint.primary.y + socialH;
         } else {
             // Upper floor: fixed band at the top — this WAS already fixed
@@ -305,7 +335,7 @@ function solveLayoutCandidates(
     let lastAttempt: SolvedLayout | undefined;
 
     outer: for (let c = 0; c < candidates.length; c++) {
-        const footprint = candidates[c];
+        const footprint = snapFootprintToGrid(candidates[c]);
         for (let retry = 0; retry < RETRIES_PER_CANDIDATE; retry++) {
             const attemptSeed = prepared.seedNum + c * ATTEMPT_SEED_CANDIDATE_STRIDE + retry * ATTEMPT_SEED_RETRY_STRIDE;
             const result = attemptWithFootprint(program, envelope, prepared, footprint, CANDIDATE_FLOOR_BUDGET_MS, attemptSeed);

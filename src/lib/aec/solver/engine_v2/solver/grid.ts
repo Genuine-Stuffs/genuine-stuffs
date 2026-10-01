@@ -9,7 +9,7 @@
  * ═══════════════════════════════════════════════════════════════════════
  */
 
-import { metersToCells } from './units';
+import { GRID_RESOLUTION_M } from './units';
 
 export interface RectCells {
     x_cells: number; y_cells: number; w_cells: number; h_cells: number;
@@ -20,9 +20,16 @@ export class OccupancyGrid {
     readonly widthCells: number;
     readonly heightCells: number;
 
+    /** Dimensions round DOWN, never to nearest: the grid must never extend
+     * past the real footprint. With metersToCells()'s Math.round, a 17.4m ×
+     * 17.9m footprint became a 17.5m × 18.0m grid — every rect flush to the
+     * grid's right or bottom edge then failed insideFootprint(), so those
+     * two walls were silently unusable and only the top/left perimeter
+     * could satisfy I5 (hive-001: 8/10 → 10/10 seeds, avg 3.3s → 0.7s).
+     * The epsilon absorbs float noise (e.g. 11.9999999m → 24 cells, not 23). */
     constructor(width_m: number, height_m: number) {
-        this.widthCells  = Math.max(1, metersToCells(width_m));
-        this.heightCells = Math.max(1, metersToCells(height_m));
+        this.widthCells  = Math.max(1, Math.floor(width_m / GRID_RESOLUTION_M + 1e-6));
+        this.heightCells = Math.max(1, Math.floor(height_m / GRID_RESOLUTION_M + 1e-6));
         this.cells = new Uint16Array(this.widthCells * this.heightCells);
     }
 
