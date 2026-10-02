@@ -56,7 +56,7 @@ function loadFixtures(): Array<{ name: string; raw: any }> {
     });
 }
 
-function runFixture(name: string, raw: any): FixtureOutcome {
+function runFixture(name: string, raw: any, seed: number): FixtureOutcome {
     const start = performance.now();
     const briefRef = raw.brief_reference ?? {};
     const plotSqm = briefRef.plot_size_sqm ?? 675;
@@ -71,7 +71,7 @@ function runFixture(name: string, raw: any): FixtureOutcome {
     };
 
     try {
-        const layout = solveLayoutV2(raw, envelope, { floors_override: floors });
+        const layout = solveLayoutV2(raw, envelope, { floors_override: floors, seed });
         const graph  = buildGraph((raw.rooms ?? []) as HiveRoom[]);
         const isVacuous = layout.solver_status === 'TIMEOUT';
         const evaluate = layout.solver_fallback ? runFallbackAssertions : runAllAssertions;
@@ -138,7 +138,12 @@ function main(): void {
         process.exit(1);
     }
 
-    const outcomes = fixtures.map(f => runFixture(f.name, f.raw));
+    // Fixed seeds: an unseeded run picked a random seed per fixture, so a
+    // failure seen 9 times in 12 (hive-003's suite nesting, Oct 2) could
+    // still print a clean table. Every fixture runs on each seed and every
+    // result is listed with its seed, so any failure can be replayed.
+    const seeds = (process.env.HARNESS_SEEDS ?? "1,2,3").split(",").map(Number).filter(Number.isFinite);
+    const outcomes = fixtures.flatMap(f => seeds.map(seed => runFixture(`${f.name} [seed ${seed}]`, f.raw, seed)));
     printTable(outcomes);
 
     // Harness fails ONLY on a genuine crash (fixture didn't produce
