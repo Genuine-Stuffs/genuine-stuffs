@@ -19,8 +19,31 @@
 
 Reported Friday evening, after the 8-commit deploy (`f6c6e18`…`5642012`, pushed ~6 pm): "the current changes broke something". The owner took a screenshot and copied the browser console, but **neither had reached the VM at shutdown**, so the symptom is still unknown.
 
+**Investigated Friday night, once the console arrived** (the screenshot hadn't):
+- **Not a crash.** The console shows a 23-room villa brief that ends in a fallback plan with 16 flagged compromises:
+  - ground floor solves relaxed, but the upper floor times out on every strict footprint;
+  - the fallback then flags the garage, master suite and bedrooms as unreachable or without an outside wall.
+  The WebGL error is the browser's disabled GPU, as before.
+- **Bisected with the exact brief** (saved as fixture `hive-007-live-villa-2026-10-02-evening.json`, 6 seeds per version): **it falls back at every version since before the deploy.**
+
+  | Version | Result | Time |
+  |---|---|---|
+  | `8ae51e6` (live before the deploy) | Fallback | 15.7 s |
+  | `b45cbde` (proportions) | Fallback | 15.1 s |
+  | `c4e648f` (entrance) | Fallback | 10.8 s |
+  | `8fe41f2` (sizing) | Fallback | 17.6 s |
+  | HEAD (with the 6 s cap) | Fallback | **8.5 s** |
+
+  So the solver did **not** regress on this brief, and the deploy made it faster.
+- **Hard invariants pass** on it (and on the earlier live villa brief, now fixture `hive-006-live-villa-foyer-degree7.json`), all seeds. Harness 162/162. The geometry is valid.
+- **Conclusion:** whatever looks broken is in what is DISPLAYED, or is the plan's quality (16 compromises on a villa), not invalid geometry. **The screenshot is needed to say which.** Candidates to check against it:
+  - the compromise banner / Placement Notes panel;
+  - how a fallback plan renders, e.g. an unreachable garage mid-plan, the master suite with no corridor access;
+  - the 12-room partial results logged before the fallback (are they ever shown?);
+  - the structural grid now generating 91 columns where a failed plan used to give 0.
+
 **On Monday:**
-1. Get the console text pasted into chat, and the screenshot uploaded with `scp -P 22 "/Users/EduPc/Desktop/Screenshot …png" root@2.29.17.102:/root/projects/genuine-stuffs/docs/design-references/images/`. This worked on Friday with the full quoted path.
+1. Get the screenshot uploaded (the console is already analysed above). Paste any NEW console output into chat, and the screenshot uploaded with `scp -P 22 "/Users/EduPc/Desktop/Screenshot …png" root@2.29.17.102:/root/projects/genuine-stuffs/docs/design-references/images/`. This worked on Friday with the full quoted path.
 2. **Diagnose before changing anything.** Reproduce with the brief from the console's `[SOLVER_DEBUG] Raw rooms from Hive` JSON, using `__harness__/render.tsx` and the harness.
 3. Suspects, from the deploy, in rough order of risk:
 
