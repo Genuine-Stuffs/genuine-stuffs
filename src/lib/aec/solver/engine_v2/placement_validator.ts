@@ -41,7 +41,7 @@ const isHabitable = (type: string) =>
 
 export interface ValidationIssue {
     room_id: string;
-    rule: 'CORRIDOR_ADJACENCY' | 'EXTERNAL_WALL' | 'BATH_VENTILATION' | 'ADJACENCY_MISSED' | 'AREA_ADJUSTED';
+    rule: 'CORRIDOR_ADJACENCY' | 'EXTERNAL_WALL' | 'BATH_VENTILATION' | 'ADJACENCY_MISSED' | 'AREA_ADJUSTED' | 'NO_FRONT_ENTRANCE';
     detail: string;
 }
 

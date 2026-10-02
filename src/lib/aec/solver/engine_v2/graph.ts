@@ -238,6 +238,13 @@ const STORAGE_TYPES = new Set(['store', 'wardrobe', 'dressing']);
  * storage. NBC 2006 permits mechanically-vented bathrooms; wardrobes and
  * stores need no window at all. */
 export const NO_WINDOW_TYPES = new Set(['bathroom', 'wardrobe', 'dressing', 'store']);
+
+/** Rooms you enter the house through. On the ground floor they must sit on
+ * the FRONT edge — the bottom edge of the plan (y = building depth), the
+ * convention of the target drawings, where the entrance and garage face
+ * the street. Before this, the Grand Foyer could land mid-plan with no
+ * outside wall, i.e. a house with no front door. */
+export const ENTRANCE_TYPES = new Set(['foyer', 'entrance', 'entry', 'entrance_hall', 'lobby', 'reception']);
 const BEDROOM_TYPES  = new Set(['bedroom', 'master_bedroom']);
 
 /**

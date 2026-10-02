@@ -20,7 +20,7 @@
  */
 
 import { SolvedLayout, PlacedRoom } from "../../../../../../supabase/functions/ai-studio/schema";
-import { RoomGraph, deriveSuites, identifyHubs, NO_WINDOW_TYPES } from "../graph";
+import { RoomGraph, deriveSuites, identifyHubs, NO_WINDOW_TYPES, ENTRANCE_TYPES } from "../graph";
 
 export interface AssertionResult {
     invariant: string;
@@ -281,6 +281,25 @@ export function assertI8_Reachable(layout: SolvedLayout): AssertionResult {
     };
 }
 
+// ── I9 — the ground-floor entrance room is on the front (bottom) edge ─────
+export function assertI9_FrontEntrance(
+    layout: SolvedLayout,
+    graph: RoomGraph,
+    footprint: { width: number; height: number }
+): AssertionResult {
+    const violations: string[] = [];
+    for (const r of layout.placed_rooms) {
+        const node = graph.nodes.get(r.room_id);
+        if (!node || r.floor !== 0 || !ENTRANCE_TYPES.has(node.type)) continue;
+        if (Math.abs(r.y + r.depth - footprint.height) > 0.05) violations.push(`${r.room_id} (${node.label}): not on the front edge`);
+    }
+    return {
+        invariant: "I9_FRONT_ENTRANCE",
+        pass: violations.length === 0,
+        detail: violations.length === 0 ? "entrance room on the front edge (or none declared)" : violations.join("; "),
+    };
+}
+
 // ── Fallback plans: every relaxed requirement it misses must be flagged ────
 // A fallback plan may break I3/I5/I8 — that is what it's for — but only
 // openly: each room pair failing I3 needs an ADJACENCY_MISSED flag on one
@@ -288,7 +307,7 @@ export function assertI8_Reachable(layout: SolvedLayout): AssertionResult {
 // from the flags themselves, so it can't go unflagged.)
 
 export function assertCompromisesFlagged(
-    i3: AssertionResult, i5: AssertionResult, layout: SolvedLayout
+    i3: AssertionResult, i5: AssertionResult, layout: SolvedLayout, i9?: AssertionResult
 ): AssertionResult {
     const flags = layout.placement_issues ?? [];
     const flaggedAdj = new Set(flags.filter(i => i.rule === "ADJACENCY_MISSED").map(i => i.room_id));
@@ -304,6 +323,13 @@ export function assertCompromisesFlagged(
         for (const v of i5.detail.split("; ")) {
             const m = /^(\S+) \(/.exec(v);
             if (m && !flaggedExt.has(m[1])) unflagged.push(`outside wall ${m[1]}`);
+        }
+    }
+    if (i9 && !i9.pass) {
+        const flaggedEntrance = new Set(flags.filter(i => i.rule === "NO_FRONT_ENTRANCE").map(i => i.room_id));
+        for (const v of i9.detail.split("; ")) {
+            const m = /^(\S+) \(/.exec(v);
+            if (m && !flaggedEntrance.has(m[1])) unflagged.push(`front entrance ${m[1]}`);
         }
     }
     return {
@@ -323,7 +349,7 @@ export function runFallbackAssertions(
     const get = (id: string) => all.find(r => r.invariant.startsWith(id))!;
     // I3 in full (not hub-only): every declared pair the plan misses must be flagged.
     const i3 = assertI3_AdjacencySatisfied(layout, graph, false);
-    return [get("I1"), get("I2"), get("I4"), get("I6"), get("I7"), assertCompromisesFlagged(i3, get("I5"), layout)];
+    return [get("I1"), get("I2"), get("I4"), get("I6"), get("I7"), assertCompromisesFlagged(i3, get("I5"), layout, get("I9"))];
 }
 
 // ── Aggregate runner ────────────────────────────────────────────────────────
@@ -351,5 +377,6 @@ export function runAllAssertions(
         assertI6_PlacementsEmptyUnlessSolved(),
         assertI7_StairwellMirrored(layout),
         assertI8_Reachable(layout),
+        assertI9_FrontEntrance(layout, graph, footprint),
     ];
 }

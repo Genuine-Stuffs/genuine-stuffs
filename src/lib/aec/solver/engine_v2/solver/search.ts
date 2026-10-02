@@ -15,7 +15,7 @@
 import { OccupancyGrid, RectCells } from './grid';
 import { GRID_RESOLUTION_M, metersToCells, metersToCellsFloor, cellsToMeters } from './units';
 import { PlacedRect, SolverConfig, RoomDimensionHint, ReservedRect } from './types';
-import { RoomGraph, Suite, deriveSuites, identifyHubs, AdjacencyPair, NO_WINDOW_TYPES } from '../graph';
+import { RoomGraph, Suite, deriveSuites, identifyHubs, AdjacencyPair, NO_WINDOW_TYPES, ENTRANCE_TYPES } from '../graph';
 import { roomShapeOk } from './room_shape';
 import { BuildingFootprint } from '../shapes';
 import { RoomSpec, enumerateCandidates } from './candidates';
@@ -418,6 +418,10 @@ export function search(
         if (!n) return false;
         return n.zone !== 'circ' && !NO_WINDOW_TYPES.has(n.type);
     };
+    // Ground-floor entrance rooms must sit on the front (bottom) edge.
+    const isEntrance = (id: string) => floorIndex === 0 && ENTRANCE_TYPES.has(graph.nodes.get(id)?.type ?? '');
+    const onFront = (r: RectCells) => r.y_cells + r.h_cells === grid.heightCells;
+
     // In fallback mode no unit is perimeter-bound; windows only rank.
     const unitNeedsExt = units.map(u => !soft && needsExternalWall(u.ids[0]));
     const unitWantsExt = units.map(u => needsExternalWall(u.ids[0]));
@@ -480,6 +484,7 @@ export function search(
                     // Adjacency against each sub-room's true rect, too: a
                     // pair naming a bath/wardrobe is about where IT lands.
                     if ((!soft && needsExternalWall(id) && !grid.touchesPerimeter(r)) || !adjacencySatisfiedFor(id, r)) { ok = false; break; }
+                    if (!soft && isEntrance(id) && !onFront(r)) { ok = false; break; }
                     // Proportions per type, on the room's own rect — a suite
                     // split can otherwise leave a 2 m wide bedroom. Rooms the
                     // Hive pinned to exact structural dimensions are exempt.
@@ -585,6 +590,7 @@ export function search(
         let n = 0;
         for (const [id, r] of cand.subs) {
             if (unitWantsExt[u] && needsExternalWall(id) && !grid.touchesPerimeter(r)) n++;
+            if (isEntrance(id) && !onFront(r)) n += 3; // no front door outweighs any one other miss
             for (const other of preferByRoom.get(id) ?? []) {
                 const o = placed.get(other) ?? soft!.reach.anchors.get(other);
                 if (o && !touches(r, o)) n++;

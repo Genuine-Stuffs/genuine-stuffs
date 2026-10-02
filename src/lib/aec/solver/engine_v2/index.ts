@@ -350,10 +350,11 @@ function solveLayoutCandidates(
 }
 
 /** How bad a fallback plan's compromises are, for picking the best one:
- * an unreachable room or a room with no outside wall outweighs a missed
+ * no front entrance is worst; an unreachable room or a room with no
+ * outside wall outweighs a missed
  * adjacency, which outweighs a resized room. Advisory bath notes are free. */
 const COMPROMISE_WEIGHT: Record<string, number> = {
-    CORRIDOR_ADJACENCY: 5, EXTERNAL_WALL: 4, ADJACENCY_MISSED: 2, AREA_ADJUSTED: 1, BATH_VENTILATION: 0,
+    NO_FRONT_ENTRANCE: 8, CORRIDOR_ADJACENCY: 5, EXTERNAL_WALL: 4, ADJACENCY_MISSED: 2, AREA_ADJUSTED: 1, BATH_VENTILATION: 0,
 };
 const compromiseCost = (l: SolvedLayout) =>
     (l.placement_issues ?? []).reduce((s, i) => s + (COMPROMISE_WEIGHT[i.rule] ?? 1), 0);

@@ -6,7 +6,7 @@
  * ═══════════════════════════════════════════════════════════════════════
  */
 
-import { RoomGraph, HiveRoom, GraphNode, AdjacencyPair, identifyHubs, deriveSuites, findMustTouchPairs, suiteEdgeKeys, NO_WINDOW_TYPES } from '../graph';
+import { RoomGraph, HiveRoom, GraphNode, AdjacencyPair, identifyHubs, deriveSuites, findMustTouchPairs, suiteEdgeKeys, NO_WINDOW_TYPES, ENTRANCE_TYPES } from '../graph';
 import { BuildingFootprint } from '../shapes';
 import { SolverConfig, SolveResult, deriveDimensionHints, PlacedRect, ReservedRect } from './types';
 import { buildFootprintGrid, buildUnits, orderUnits, SearchUnit, ReachRules } from './search';
@@ -245,6 +245,12 @@ function fallbackCompromises(
         if (!n || n.zone === 'circ' || NO_WINDOW_TYPES.has(n.type) || flagged.has(p.id)) continue;
         const onEdge = p.x_m < eps || p.y_m < eps || p.x_m + p.w_m > buildingW_m - eps || p.y_m + p.h_m > buildingH_m - eps;
         if (!onEdge) issues.push({ room_id: p.id, rule: 'EXTERNAL_WALL', detail: `${labelOf(p.id)} has no outside wall (no window or direct outside access).` });
+    }
+    for (const p of placements) {
+        const n = graph.nodes.get(p.id);
+        if (n && n.floor === 0 && ENTRANCE_TYPES.has(n.type) && Math.abs(p.y_m + p.h_m - buildingH_m) > eps) {
+            issues.push({ room_id: p.id, rule: 'NO_FRONT_ENTRANCE', detail: `${labelOf(p.id)} isn't on the front of the house, so there is no front door into it.` });
+        }
     }
     for (const p of pairs) {
         const a = byId.get(p.a), b = byId.get(p.b);
