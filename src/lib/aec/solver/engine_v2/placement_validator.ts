@@ -24,10 +24,15 @@ const TOL = 0.35;
 // Type-based classification — same canonical vocabulary as graph.ts's
 // TYPE_TO_ZONE. Each label-regex set below is ported 1:1 to its type
 // equivalent (D5) rather than re-guessing from room_id/label.
-const isCorridorLike = (type: string) =>
+export const isCorridorLike = (type: string) =>
     ['circulation', 'hall', 'landing', 'void', 'foyer', 'stairwell'].includes(type);
-const isSubRoom = (type: string) =>
+export const isSubRoom = (type: string) =>
     ['bathroom', 'wardrobe', 'dressing'].includes(type);
+/** Rooms other rooms may open into: circulation, plus the large social
+ * rooms people walk through (rule 1's "hub" rooms). Shared with the
+ * solver, which enforces rule 1 during placement (solver/search.ts). */
+export const isConnectorType = (type: string) =>
+    isCorridorLike(type) || ['living_room', 'dining_room', 'family_room'].includes(type);
 const isBath = (type: string) => type === 'bathroom';
 const isHabitable = (type: string) =>
     !isCorridorLike(type) && !isSubRoom(type) &&
@@ -63,23 +68,22 @@ export function validatePlacement(
     labelOf: (room_id: string) => string,
     buildingW: number,
     buildingH: number,
-    floorIndex: number
+    floorIndex: number,
+    suiteSubIds: Set<string> = new Set()
 ): ValidationIssue[] {
     const issues: ValidationIssue[] = [];
     // "Hub" rooms are large social rects that other rooms can open into
     // directly, same as a corridor — living/great/lounge/dining/family qualify.
-    const connectors = rooms.filter(r => {
-        const type = typeOf(r.room_id);
-        return isCorridorLike(type) ||
-            ['living_room', 'dining_room', 'family_room'].includes(type);
-    });
+    const connectors = rooms.filter(r => isConnectorType(typeOf(r.room_id)));
 
     for (const room of rooms) {
         const type  = typeOf(room.room_id);
         const label = labelOf(room.room_id); // display text only, not classification
         if (isCorridorLike(type)) continue;
 
-        if (!isSubRoom(type)) {
+        // Suite members of any type (e.g. a "store" walk-in wardrobe)
+        // reach through their bedroom, same as a typed sub-room.
+        if (!isSubRoom(type) && !suiteSubIds.has(room.room_id)) {
             const reaches = connectors.some(c => c.room_id !== room.room_id && sharesWall(room, c));
             if (!reaches) {
                 issues.push({

@@ -14,9 +14,9 @@
  */
 
 import { OccupancyGrid, RectCells } from './grid';
-import { SolverConfig, SolveResult, PlacedRect, RoomDimensionHint } from './types';
+import { SolverConfig, SolveResult, PlacedRect, RoomDimensionHint, ReservedRect } from './types';
 import { RoomGraph, AdjacencyPair } from '../graph';
-import { search, SearchUnit, SearchOutcome } from './search';
+import { search, SearchUnit, SearchOutcome, ReachRules } from './search';
 import { cellsToMeters } from './units';
 
 function toPlacedRects(placed: Map<string, RectCells>): PlacedRect[] {
@@ -32,7 +32,8 @@ export function runWithRelaxation(
     baseConfig: SolverConfig, dimensionHints: Map<string, RoomDimensionHint>,
     mustTouchPairs: AdjacencyPair[],
     floorIndex: number,
-    reservedRects: ReservedRect[] = []
+    reservedRects: ReservedRect[] = [],
+    reach?: ReachRules
 ): SolveResult {
     const startTime = performance.now();
     const hubOnlyPairs = mustTouchPairs.filter(p => p.isHubEdge);
@@ -49,8 +50,8 @@ export function runWithRelaxation(
     ];
 
     const applied: string[] = [];
-    const V = units.reduce((s, u) => s + u.ids.length, 0);
     const suiteEdges = units.reduce((s, u) => s + (u.isSuite && u.suite ? u.suite.subIds.length : 0), 0);
+    const suiteRoomIds = units.flatMap(u => u.isSuite && u.suite && u.suite.subIds.length > 0 ? u.ids : []);
     let totalNodesExplored = 0;
 
     for (let r = 0; r < rungs.length; r++) {
@@ -71,13 +72,18 @@ export function runWithRelaxation(
         // Planarity fail-fast: suite edges are real adjacencies too, so
         // they count toward E. Necessary condition only — passing this
         // does NOT imply satisfiable; failing it PROVES unsatisfiable.
+        // V counts only rooms that HAVE an edge: the bound holds for any
+        // subgraph of a planar graph, and edgeless units (the solver-placed
+        // corridor, with no declared adjacencies) only loosen it — hive-101's
+        // K6 slipped through as soon as the corridor made V = 7.
         const E = rung.pairs.length + suiteEdges;
+        const V = new Set([...rung.pairs.flatMap(p => [p.a, p.b]), ...suiteRoomIds]).size;
         if (V >= 3 && E > 3 * V - 6) {
             if (rung.name !== 'BASE') applied.push(rung.name);
             continue; // provably UNSAT at this rung — try the next relaxation
         }
 
-        const outcome = search(units, graph, buildGrid(), combinedW_m, combinedH_m, { ...rung.config, budget_ms: rungBudget }, dimensionHints, rung.pairs, floorIndex, reservedRects);
+        const outcome = search(units, graph, buildGrid(), combinedW_m, combinedH_m, { ...rung.config, budget_ms: rungBudget }, dimensionHints, rung.pairs, floorIndex, reservedRects, reach);
         totalNodesExplored += outcome.nodesExplored;
         
         if (rung.name !== 'BASE') applied.push(rung.name);

@@ -15,10 +15,10 @@
 import { OccupancyGrid, RectCells } from './grid';
 import { GRID_RESOLUTION_M, metersToCells, metersToCellsFloor, cellsToMeters } from './units';
 import { PlacedRect, SolverConfig, RoomDimensionHint, ReservedRect } from './types';
-import { RoomGraph, Suite, deriveSuites, identifyHubs, AdjacencyPair } from '../graph';
+import { RoomGraph, Suite, deriveSuites, identifyHubs, AdjacencyPair, NO_WINDOW_TYPES } from '../graph';
 import { BuildingFootprint } from '../shapes';
 import { RoomSpec, enumerateCandidates } from './candidates';
-import { insideFootprint, mustTouchSatisfied } from './constraints';
+import { insideFootprint } from './constraints';
 
 const RESERVED_IDX = 0xFFFE; // -> cell value 0xFFFF after +1 in grid.place(); never matches a real room index
 
@@ -98,6 +98,20 @@ export interface SearchUnit {
     totalArea_m2: number;
     isSuite: boolean;
     suite?: Suite;
+    /** Exact candidate shapes (solver-placed corridor / stairwell). Tried
+     * smallest-first, so circulation never takes more floor than needed. */
+    shapes?: Array<{ w_cells: number; h_cells: number }>;
+}
+
+/** Reachability (validator rule CORRIDOR_ADJACENCY), enforced during the
+ * search instead of only reported after it: each room in `targets` must
+ * share ≥1.0m of wall with at least one of its target rooms — a corridor,
+ * the stairwell, or a room people walk through (foyer, living, dining).
+ * `anchors` are fixed rects (the upper floor's stairwell_void) that can
+ * satisfy a reach target or a must-touch pair without being placed. */
+export interface ReachRules {
+    targets: Map<string, Set<string>>;
+    anchors: Map<string, RectCells>;
 }
 
 export function buildUnits(graph: RoomGraph, floorIndex: number): SearchUnit[] {
@@ -171,6 +185,51 @@ export function orderUnits(units: SearchUnit[], graph: RoomGraph, floorIndex: nu
     return [...ordered, ...rest];
 }
 
+/** Every way to split `outer` into the bedroom plus one sub-room strip
+ * along one of its four sides, N sub-rooms sharing the strip side-by-side.
+ * The strip on the side OPPOSITE the perimeter wall (subdivideSuite's
+ * original, single answer) comes first, so it stays the preferred split.
+ *
+ * One fixed split was too few: the strip covers the bedroom's whole
+ * interior side, leaving only its two short ends free to meet anything
+ * else. On an upper floor where a family lounge must touch four bedrooms
+ * (hive-004/005), that left the lounge almost nowhere to go. A strip
+ * across one end instead frees the bedroom's long interior side. Variants
+ * whose bedroom loses the perimeter are dropped later by the caller's I5
+ * check; ones that would leave the bedroom under minimum width, here. */
+function suiteSplits(outer: RectCells, suite: Suite, gridW_cells: number, gridH_cells: number): Array<Map<string, RectCells>> {
+    const preferred = subdivideSuite(outer, suite, gridW_cells, gridH_cells);
+    const n = suite.subIds.length;
+    if (n === 0) return [preferred];
+
+    const SUB_DEPTH = Math.max(2, metersToCells(2.2));
+    const MIN_BED = metersToCellsFloor(2.4);
+    const { x_cells: x, y_cells: y, w_cells: w, h_cells: h } = outer;
+    const variants: Array<Map<string, RectCells>> = [preferred];
+    const key = (m: Map<string, RectCells>) => { const b = m.get(suite.bedroomId)!; return `${b.x_cells},${b.y_cells},${b.w_cells},${b.h_cells}`; };
+    const seen = new Set([key(preferred)]);
+
+    const strip = (vertical: boolean, atStart: boolean) => {
+        const span = vertical ? h : w;
+        if ((vertical ? w : h) - SUB_DEPTH < MIN_BED || span < n) return;
+        const m = new Map<string, RectCells>();
+        const subPos = atStart ? (vertical ? x : y) : (vertical ? x + w : y + h) - SUB_DEPTH;
+        m.set(suite.bedroomId, vertical
+            ? { x_cells: atStart ? x + SUB_DEPTH : x, y_cells: y, w_cells: w - SUB_DEPTH, h_cells: h }
+            : { x_cells: x, y_cells: atStart ? y + SUB_DEPTH : y, w_cells: w, h_cells: h - SUB_DEPTH });
+        const slot = Math.floor(span / n);
+        suite.subIds.forEach((id, i) => {
+            const len = i === n - 1 ? span - i * slot : slot;
+            m.set(id, vertical
+                ? { x_cells: subPos, y_cells: y + i * slot, w_cells: SUB_DEPTH, h_cells: len }
+                : { x_cells: x + i * slot, y_cells: subPos, w_cells: len, h_cells: SUB_DEPTH });
+        });
+        if (!seen.has(key(m))) { seen.add(key(m)); variants.push(m); }
+    };
+    strip(true, true); strip(true, false); strip(false, true); strip(false, false);
+    return variants;
+}
+
 /** Ports packPrivateZone()'s bedDepth/subBounds subdivision from
  * index.ts, generalized from a single sub-room strip to N sub-rooms
  * sharing the strip side-by-side. */
@@ -184,7 +243,7 @@ function subdivideSuite(outer: RectCells, suite: Suite, gridW_cells: number, gri
     const result = new Map<string, RectCells>();
     if (n === 0) { result.set(suite.bedroomId, outer); return result; }
 
-    // Sub-rooms (bath/wardrobe) never need a window (SUB_ROOM_TYPES,
+    // Sub-rooms (bath/wardrobe) never need a window (NO_WINDOW_TYPES,
     // excluded from needsExternalWall below) — they always take the
     // INTERIOR side of the split. The bedroom does need an exterior wall
     // (I5), so it must keep whichever edge `outer` actually touches. The
@@ -246,7 +305,8 @@ export function search(
     config: SolverConfig, dimensionHints: Map<string, RoomDimensionHint>,
     mustTouchPairs: AdjacencyPair[],
     floorIndex: number,
-    reservedRects: ReservedRect[] = []
+    reservedRects: ReservedRect[] = [],
+    reach: ReachRules = { targets: new Map(), anchors: new Map() }
 ): SearchOutcome {
     const startTime = performance.now();
     const rng = xorshift32(config.seed);
@@ -264,10 +324,6 @@ export function search(
         pairsByRoom.get(pair.b)!.push(pair);
     }
 
-    function cellsToRectM(r: RectCells): PlacedRect {
-        return { id: '', x_m: cellsToMeters(r.x_cells), y_m: cellsToMeters(r.y_cells), w_m: cellsToMeters(r.w_cells), h_m: cellsToMeters(r.h_cells) };
-    }
-
     /** Checked at acceptance time against ALREADY-PLACED neighbors only.
      * Completeness holds by ordinary backtracking: if room B must touch
      * A and cannot from any candidate, every one of B's candidates fails
@@ -280,12 +336,51 @@ export function search(
         if (!relevant) return true;
         for (const pair of relevant) {
             const otherId = pair.a === roomId ? pair.b : pair.a;
-            const otherRect = placed.get(otherId);
+            const otherRect = placed.get(otherId) ?? reach.anchors.get(otherId);
             if (!otherRect) continue; // not yet placed — checked when its own turn comes
-            if (!mustTouchSatisfied(cellsToRectM(rect), cellsToRectM(otherRect)).pass) return false;
+            if (!touches(rect, otherRect)) return false;
         }
         return true;
     }
+
+    /** mustTouchSatisfied() (≥1.0m shared wall) in cell space: every rect
+     * here is grid-aligned, so its 0.35m tolerance can only ever match an
+     * exactly shared edge, and 1.0m is 2 cells. Allocation-free — this
+     * runs for every candidate of every unit at every node. */
+    const MIN_SHARED_CELLS = Math.round(1.0 / GRID_RESOLUTION_M);
+    const touches = (a: RectCells, b: RectCells): boolean => {
+        if (a.y_cells + a.h_cells === b.y_cells || b.y_cells + b.h_cells === a.y_cells) {
+            return Math.min(a.x_cells + a.w_cells, b.x_cells + b.w_cells) - Math.max(a.x_cells, b.x_cells) >= MIN_SHARED_CELLS;
+        }
+        if (a.x_cells + a.w_cells === b.x_cells || b.x_cells + b.w_cells === a.x_cells) {
+            return Math.min(a.y_cells + a.h_cells, b.y_cells + b.h_cells) - Math.max(a.y_cells, b.y_cells) >= MIN_SHARED_CELLS;
+        }
+        return false;
+    };
+
+    // Reachability bookkeeping. A room's rule is decided the moment it
+    // touches a placed target (satisfied) or every target is placed
+    // without touching it (dead branch); until then it is pending, and a
+    // pending room whose targets all sit in ONE unplaced unit becomes a
+    // hard requirement on that unit's candidates (see tryNext).
+    const unitOfRoom = new Map<string, number>();
+    units.forEach((u, i) => u.ids.forEach(id => unitOfRoom.set(id, i)));
+    const reachedNow = (id: string, rect: RectCells): boolean => {
+        for (const t of reach.targets.get(id)!) {
+            const r = placed.get(t) ?? reach.anchors.get(t);
+            if (r && touches(rect, r)) return true;
+        }
+        return false;
+    };
+    /** Unplaced units that could still satisfy `id`'s reach rule. */
+    const openTargetUnits = (id: string): Set<number> => {
+        const open = new Set<number>();
+        for (const t of reach.targets.get(id)!) {
+            const u = unitOfRoom.get(t);
+            if (u !== undefined && unplaced.has(u)) open.add(u);
+        }
+        return open;
+    };
 
     let timedOut = false;
 
@@ -302,108 +397,183 @@ export function search(
     const unplaced = new Set<number>(units.map((_, i) => i));
 
     // ── I5 enforcement (invariant table finally made true) ─────────────────
-    const SUB_ROOM_TYPES = new Set(['bathroom', 'wardrobe', 'dressing']);
     const needsExternalWall = (id: string): boolean => {
         const n = graph.nodes.get(id);
         if (!n) return false;
-        return n.zone !== 'circ' && !SUB_ROOM_TYPES.has(n.type);
+        return n.zone !== 'circ' && !NO_WINDOW_TYPES.has(n.type);
     };
-
-    const centerX = grid.widthCells / 2, centerY = grid.heightCells / 2;
-    const distToCenter = (c: RectCells): number => {
-        const cx = c.x_cells + c.w_cells / 2, cy = c.y_cells + c.h_cells / 2;
-        return (cx - centerX) ** 2 + (cy - centerY) ** 2;
-    };
-    const hubIds = new Set(identifyHubs(graph, floorIndex).map(h => h.id));
+    const unitNeedsExt = units.map(u => needsExternalWall(u.ids[0]));
 
     const reservedCells: RectCells[] = reservedRects.map(r => ({
         x_cells: metersToCellsFloor(r.x_m), y_cells: metersToCellsFloor(r.y_m),
         w_cells: metersToCells(r.w_m), h_cells: metersToCells(r.h_m)
     }));
 
-    /** Every placement of `unit` that is legal RIGHT NOW against what's
-     * already placed — footprint, adjacency, I5 and overlap all checked
-     * up front, in the order the search will try them. Doing the full
-     * check here (rather than lazily inside the loop) is what lets MRV
-     * see a unit's true remaining option count, and makes a zero count
-     * a proven dead end for the current partial placement. */
-    function viablePlacements(unit: SearchUnit, prefix: Int32Array): Array<Map<string, RectCells>> {
-        const spec: RoomSpec = {
-            id: unit.ids[0], targetArea_m2: unit.totalArea_m2, minWidth_m: 2.4,
-            dimensionHint: unit.ids.length === 1 ? dimensionHints.get(unit.ids[0]) : undefined,
-        };
-        const ctx = {
-            placedRects: [...placedIdx, ...reservedCells],
-            gridW_cells: grid.widthCells,
-            gridH_cells: grid.heightCells,
-        };
+    type Cand = { outer: RectCells; subs: Map<string, RectCells> };
+    const specs: RoomSpec[] = units.map(unit => ({
+        id: unit.ids[0], targetArea_m2: unit.totalArea_m2, minWidth_m: 2.4,
+        dimensionHint: unit.ids.length === 1 ? dimensionHints.get(unit.ids[0]) : undefined,
+        shapes: unit.shapes,
+    }));
 
-        // I5 pre-filter: if the unit's primary room needs an external
-        // wall, only perimeter-touching outers are viable (the bedroom
-        // lives inside the outer, so a non-touching outer can never
-        // yield a touching bedroom). This collapses the candidate space
-        // from O(W×H) to O(perimeter) for most rooms — the single
-        // biggest search-space reduction in this change.
-        const unitNeedsExt = needsExternalWall(unit.ids[0]);
+    const overlaps = (a: RectCells, b: RectCells) =>
+        a.x_cells < b.x_cells + b.w_cells && b.x_cells < a.x_cells + a.w_cells &&
+        a.y_cells < b.y_cells + b.h_cells && b.y_cells < a.y_cells + a.h_cells;
+    /** enumerateCandidates()' anchor relation: edge contact with ≥1 cell overlap. */
+    const flush = (c: RectCells, p: RectCells) =>
+        ((c.x_cells === p.x_cells + p.w_cells || c.x_cells + c.w_cells === p.x_cells) &&
+            c.y_cells < p.y_cells + p.h_cells && p.y_cells < c.y_cells + c.h_cells) ||
+        ((c.y_cells === p.y_cells + p.h_cells || c.y_cells + c.h_cells === p.y_cells) &&
+            c.x_cells < p.x_cells + p.w_cells && p.x_cells < c.x_cells + c.w_cells);
 
-        // Filter BEFORE ordering: MRV scores every unplaced unit at every
-        // node, so sorting thousands of raw candidates (each comparison
-        // re-running mustTouchSatisfied) just to discard most of them was
-        // the dominant per-node cost. Cheapest checks run first.
-        const viable: Array<Map<string, RectCells>> = [];
-        for (const cand of enumerateCandidates(spec, ctx, config.areaTolerance)) {
-            if (unitNeedsExt && !grid.touchesPerimeter(cand)) continue;
+    /** Candidates of unit `u` anchored on `anchorRects` (plus the four
+     * walls when `boundary`), through every check that is fixed for the
+     * rest of this branch: footprint, I5 per room post-split, overlap
+     * with what's placed (`prefix`), and must-touch pairs with what's
+     * placed. Candidates `skip` says were already generated are dropped. */
+    function generate(u: number, anchorRects: RectCells[], boundary: boolean, prefix: Int32Array, skip?: (c: RectCells) => boolean): Cand[] {
+        const unit = units[u];
+        const ctx = { placedRects: anchorRects, gridW_cells: grid.widthCells, gridH_cells: grid.heightCells, skipBoundary: !boundary };
+        const out: Cand[] = [];
+        for (const cand of enumerateCandidates(specs[u], ctx, config.areaTolerance)) {
+            // I5 pre-filter: if the unit's primary room needs an external
+            // wall, only perimeter-touching outers are viable (the bedroom
+            // lives inside the outer, so a non-touching outer can never
+            // yield a touching bedroom).
+            if (unitNeedsExt[u] && !grid.touchesPerimeter(cand)) continue;
+            if (skip?.(cand)) continue;
             // Sub-rooms subdivide the outer rect, so an empty outer
             // implies empty subs — one O(1) check covers the whole unit.
             if (!grid.isFreeIn(prefix, cand)) continue;
             const rect: PlacedRect = { id: unit.ids[0], x_m: cellsToMeters(cand.x_cells), y_m: cellsToMeters(cand.y_cells), w_m: cellsToMeters(cand.w_cells), h_m: cellsToMeters(cand.h_cells) };
             if (!insideFootprint(rect, combinedW_m, combinedH_m).pass) continue;
 
-            const subs = unit.isSuite && unit.suite ? subdivideSuite(cand, unit.suite, grid.widthCells, grid.heightCells) : new Map([[unit.ids[0], cand]]);
-
-            // Adjacency is checked against each sub-room's true rect — a
-            // pair naming a specific bath/wardrobe id must be verified
-            // against where that sub-room actually lands, not the suite's
-            // outer bounding box.
-            let adjacencyOk = true;
-            for (const [id, r] of subs) {
-                if (!adjacencySatisfiedFor(id, r)) { adjacencyOk = false; break; }
+            const splits = unit.isSuite && unit.suite ? suiteSplits(cand, unit.suite, grid.widthCells, grid.heightCells) : [new Map([[unit.ids[0], cand]])];
+            for (const subs of splits) {
+                let ok = true;
+                for (const [id, r] of subs) {
+                    // I5 acceptance: per-room, post-subdivision — the
+                    // bedroom's TRUE rect must touch, not the suite's box.
+                    // Adjacency against each sub-room's true rect, too: a
+                    // pair naming a bath/wardrobe is about where IT lands.
+                    if ((needsExternalWall(id) && !grid.touchesPerimeter(r)) || !adjacencySatisfiedFor(id, r)) { ok = false; break; }
+                }
+                if (ok) out.push({ outer: cand, subs });
             }
-            if (!adjacencyOk) continue;
-
-            // I5 acceptance: per-room, post-subdivision — the bedroom's
-            // TRUE rect must touch, not just the suite's outer box.
-            let externalOk = true;
-            for (const [id, r] of subs) {
-                if (needsExternalWall(id) && !grid.touchesPerimeter(r)) { externalOk = false; break; }
-            }
-            if (!externalOk) continue;
-
-            viable.push(subs);
         }
+        return out;
+    }
 
-        // Every survivor already touches all placed must-touch neighbors,
-        // so ordering reduces to proximity to them; with none placed yet,
-        // random (seeded) order, as before.
-        const relevantPairs = pairsByRoom.get(unit.ids[0]);
-        // Note: activeNeighbors is computed only against unit.ids[0] (the bedroom),
-        // not sub-room ids. Sub-room adjacencies outside their suite aren't declared by Hive currently.
-        const activeNeighbors = relevantPairs
-            ? relevantPairs.map(p => p.a === unit.ids[0] ? p.b : p.a).filter(id => placed.has(id)).map(id => placed.get(id)!)
-            : [];
-        const keyed = viable.map(subs => {
-            const c = subs.get(unit.ids[0])!;
-            let key = 0;
+    /**
+     * Incremental candidate lists. Every unplaced unit's list holds the
+     * placements still legal against everything placed so far, and a
+     * child node's list is its parent's minus what the one newly placed
+     * unit rules out — overlap with it, or a must-touch pair it now fails
+     * — so each node costs work proportional to what changed, not to the
+     * whole candidate space. Recomputing every list from scratch at every
+     * node (MRV needs every unit's count) was ~90% of search time on
+     * hive-004/005 (CPU profile), capping the search at ~200 nodes/s.
+     *
+     * Perimeter-bound units never gain candidates: boundary anchors cover
+     * every wall-flush position. Interior units (corridor, stairwell,
+     * standalone baths) also anchor on placed rects, so they gain the
+     * candidates anchored on the new rect — minus any flush to a wall or
+     * an older rect, which were generated (and kept or ruled out for
+     * good) when that anchor appeared.
+     */
+    function childLists(parent: Cand[][], newSubs: Map<string, RectCells>, prefix: Int32Array): Cand[][] {
+        const newRects = [...newSubs.values()];
+        const older = [...placedIdx.slice(0, placedIdx.length - newRects.length), ...reservedCells];
+        return parent.map((list, u) => {
+            if (!unplaced.has(u)) return list;
+            const kept = list.filter(c => {
+                for (const r of newRects) if (overlaps(c.outer, r)) return false;
+                for (const [id, r] of c.subs) {
+                    for (const pair of pairsByRoom.get(id) ?? []) {
+                        const other = newSubs.get(pair.a === id ? pair.b : pair.a);
+                        if (other && !touches(r, other)) return false;
+                    }
+                }
+                return true;
+            });
+            if (unitNeedsExt[u]) return kept;
+            const onWall = (c: RectCells) => c.x_cells === 0 || c.y_cells === 0 ||
+                c.x_cells + c.w_cells === grid.widthCells || c.y_cells + c.h_cells === grid.heightCells;
+            return kept.concat(generate(u, newRects, false, prefix, c => onWall(c) || older.some(p => flush(c, p))));
+        });
+    }
+
+    /** True if `unit` must touch an already-fixed rect: a placed must-touch
+     * partner, or — once no other unplaced unit could satisfy it — one of
+     * its placed reach targets. */
+    function mustTouchPlaced(u: number): boolean {
+        for (const id of units[u].ids) {
+            for (const pair of pairsByRoom.get(id) ?? []) {
+                const other = pair.a === id ? pair.b : pair.a;
+                if (placed.has(other) || reach.anchors.has(other)) return true;
+            }
+            const targets = reach.targets.get(id);
+            if (targets && ![...targets].some(t => { const o = unitOfRoom.get(t); return o !== undefined && o !== u && unplaced.has(o); })) return true;
+        }
+        return false;
+    }
+
+    /** `list` narrowed by reachability: this unit's own rooms (decided
+     * now if no other unplaced unit could reach them later), then every
+     * pending room for which this unit is the last chance (`mustReach`). */
+    function reachFilter(u: number, list: Cand[], mustReach: RectCells[] = []): Cand[] {
+        const own: Array<{ id: string; rects: RectCells[] }> = [];
+        for (const id of units[u].ids) {
+            const targets = reach.targets.get(id);
+            if (!targets) continue;
+            let openElsewhere = false;
+            const rects: RectCells[] = [];
+            for (const t of targets) {
+                const o = unitOfRoom.get(t);
+                if (o !== undefined && o !== u && unplaced.has(o)) { openElsewhere = true; break; }
+                const r = placed.get(t) ?? reach.anchors.get(t);
+                if (r) rects.push(r);
+            }
+            if (!openElsewhere) own.push({ id, rects });
+        }
+        if (own.length === 0 && mustReach.length === 0) return list;
+        const primaryId = units[u].ids[0];
+        return list.filter(({ subs }) => {
+            for (const { id, rects } of own) {
+                const r = subs.get(id)!;
+                if (!rects.some(t => touches(r, t))) return false;
+            }
+            const primary = subs.get(primaryId)!;
+            return mustReach.every(r => touches(primary, r));
+        });
+    }
+
+    /** Try order for the unit MRV picked. Every survivor already touches
+     * all placed must-touch neighbors, so ordering reduces to proximity to
+     * them; with none placed yet, random (seeded) order, as before.
+     * Circulation (shaped units) goes shortest first. */
+    function ordered(u: number, viable: Cand[]): Cand[] {
+        const primaryId = units[u].ids[0];
+        // Note: activeNeighbors is computed only against the primary room (the
+        // bedroom), not sub-room ids. Sub-room adjacencies outside their suite
+        // aren't declared by Hive currently.
+        const activeNeighbors = (pairsByRoom.get(primaryId) ?? [])
+            .map(p => p.a === primaryId ? p.b : p.a)
+            .map(id => placed.get(id) ?? reach.anchors.get(id))
+            .filter((r): r is RectCells => r !== undefined);
+        const keyed = viable.map(cand => {
+            const c = cand.subs.get(primaryId)!;
+            let key = units[u].shapes ? c.w_cells * c.h_cells * 1e6 : 0;
             if (activeNeighbors.length > 0) {
                 const cx = c.x_cells + c.w_cells / 2, cy = c.y_cells + c.h_cells / 2;
                 for (const n of activeNeighbors) key += (cx - (n.x_cells + n.w_cells / 2)) ** 2 + (cy - (n.y_cells + n.h_cells / 2)) ** 2;
             } else {
-                key = rng();
+                key += rng();
             }
-            return { subs, key };
+            return { cand, key };
         });
         keyed.sort((a, b) => a.key - b.key);
-        return keyed.map(k => k.subs);
+        return keyed.map(k => k.cand);
     }
 
     /** MRV (most-constrained-variable) dynamic ordering + forward check.
@@ -411,14 +581,14 @@ export function search(
      * could not react to how constrained a unit became mid-search: when a
      * later unit lost its last viable spot, chronological backtracking
      * kept re-shuffling the units in between before ever revisiting the
-     * cause. Now every step recomputes each unplaced unit's viable
-     * placements, fails immediately if a perimeter-bound unit has none
-     * left, and branches on whichever unit has the fewest. Ties fall back
-     * to the static order, so the hub-first / must-touch BFS preference
-     * still decides between equally constrained units.
+     * cause. Now every step counts each unplaced unit's viable
+     * placements, fails immediately if a unit with a complete option set
+     * has none left, and branches on whichever unit has the fewest. Ties
+     * fall back to the static order, so the hub-first / must-touch BFS
+     * preference still decides between equally constrained units.
      * Measured (20 seeds, hive-001 + hive-002): avg solve 1.0s/0.8s ->
      * 0.3s/0.1s, strict SOLVED (no relaxation) 29/40 -> 37/40. */
-    function tryNext(): boolean {
+    function tryNext(lists: Cand[][]): boolean {
         if (timedOut) return false;
         if (unplaced.size === 0) return true;
         // Feasibility prune — cheapest possible dead-branch detector.
@@ -428,19 +598,37 @@ export function search(
             return false;
         }
 
+        // Pending reach rules: a placed room not yet touching any target.
+        // If no unplaced unit can still reach it the branch is dead; if
+        // exactly one can, that unit must touch it.
+        const mustReach = new Map<number, RectCells[]>();
+        for (const [id, rect] of [...placed, ...reach.anchors]) {
+            if (!reach.targets.has(id) || reachedNow(id, rect)) continue;
+            const open = openTargetUnits(id);
+            if (open.size === 0) return false;
+            if (open.size === 1) {
+                const u = open.values().next().value as number;
+                if (!mustReach.has(u)) mustReach.set(u, []);
+                mustReach.get(u)!.push(rect);
+            }
+        }
+
         let bestIdx = -1;
-        let best: Array<Map<string, RectCells>> = [];
-        const prefix = grid.occupiedPrefix();
+        let best: Cand[] = [];
         for (const i of unplaced) {
-            const viable = viablePlacements(units[i], prefix);
+            const viable = reachFilter(i, lists[i], mustReach.get(i));
             if (viable.length === 0) {
-                // Forward check — sound only for perimeter-bound units:
-                // boundary anchors enumerate EVERY perimeter-flush position,
-                // so their option set can only shrink as rooms are placed.
-                // An interior unit's candidates also anchor on placed rects,
-                // so a later placement can create options it lacks now —
-                // defer it rather than declaring the branch dead.
-                if (needsExternalWall(units[i].ids[0])) return false;
+                // Forward check — sound when the unit's option set can
+                // only shrink from here: perimeter-bound units (boundary
+                // anchors enumerate EVERY perimeter-flush position), and
+                // interior units that must touch something already fixed
+                // (every rect touching a placed rect is flush to it, and
+                // every side of every placed rect is anchored at every
+                // offset). hive-004's stair, pinned to the foyer, was
+                // otherwise deferred to last and refuted ~2000 times over.
+                // Any other interior unit may gain options from a later
+                // placement — defer it rather than declare the branch dead.
+                if (unitNeedsExt[i] || mustTouchPlaced(i)) return false;
                 continue;
             }
             if (bestIdx === -1 || viable.length < best.length || (viable.length === best.length && i < bestIdx)) {
@@ -453,14 +641,14 @@ export function search(
 
         unplaced.delete(bestIdx);
         unplacedMinArea -= minAreaCells[bestIdx];
-        for (const subs of best) {
+        for (const { subs } of ordered(bestIdx, best)) {
             nodesExplored++;
             if (nodesExplored % 50 === 0 && (performance.now() - startTime) > config.budget_ms) {
                 timedOut = true;
                 break;
             }
             for (const [id, r] of subs) { grid.place(r, placedIdx.length); placedIdx.push(r); placed.set(id, r); freeCells -= r.w_cells * r.h_cells; }
-            if (tryNext()) return true;
+            if (tryNext(childLists(lists, subs, grid.occupiedPrefix()))) return true;
             for (const [id, r] of subs) { grid.remove(r); placed.delete(id); placedIdx.pop(); freeCells += r.w_cells * r.h_cells; }
             if (timedOut) break;
         }
@@ -469,7 +657,9 @@ export function search(
         return false;
     }
 
-    const solved = tryNext();
+    const rootPrefix = grid.occupiedPrefix();
+    const rootLists = units.map((_, u) => generate(u, unitNeedsExt[u] ? [] : reservedCells, true, rootPrefix));
+    const solved = tryNext(rootLists);
     return {
         placed,
         failedUnitIds: solved ? undefined : units.filter(u => !u.ids.every(id => placed.has(id))).flatMap(u => u.ids),

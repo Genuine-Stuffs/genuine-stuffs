@@ -16,7 +16,7 @@
  * (adjacency degree). Two are intentionally left out:
  *   F-003 (adjacency graph disconnected) — does NOT transfer to this
  *   codebase's architecture. The corridor is never a graph node here
- *   (index.ts places it as fixed reserved geometry, not a Hive room), so
+ *   (the search places a synthetic corridor unit, not a Hive room), so
  *   ordinary bedrooms/garages having no declared edge back to the social
  *   cluster is normal, not broken — they connect to the corridor
  *   geometrically, checked post-placement by placement_validator.ts. A
@@ -50,8 +50,8 @@ export interface FeasibilityReport {
 }
 
 // F-001 (v1.0 I2): fraction of the floor's PLACEABLE area (grid free
-// cells — already excludes circulation/stairwell/footprint notches, since
-// this codebase reserves those before the solver ever runs) that room
+// cells — already excludes footprint notches and any fixed stair void;
+// the corridor and stairwell are search units, counted in `units`) that room
 // targets may consume. The remaining 15% covers wall thickness and
 // candidate-enumeration slack.
 const AREA_BUDGET_RATIO = 0.85;
@@ -118,10 +118,10 @@ export function checkFeasibility(
 
     // NOTE — v1.0's F-003 ("adjacency graph disconnected") is deliberately
     // NOT implemented here. In this codebase the corridor is never a graph
-    // node (index.ts places it as fixed reserved geometry, not a Hive
+    // node (the search places it as a synthetic unit, not a Hive
     // room), so most private/service rooms have no declared edge back to
     // the social cluster BY DESIGN — they connect to the corridor
-    // geometrically, checked post-placement by placement_validator.ts, not
+    // geometrically, enforced during the search (ReachRules), not
     // through the Hive's declared adjacency graph. A BFS-over-the-graph
     // reachability check would flag nearly every ordinary bedroom/garage
     // as "unreachable" — a false positive, not a real infeasibility. Real

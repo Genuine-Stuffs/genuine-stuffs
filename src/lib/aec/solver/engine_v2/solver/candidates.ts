@@ -21,6 +21,10 @@ export interface RoomSpec {
     targetArea_m2: number;
     minWidth_m: number;
     dimensionHint?: RoomDimensionHint;
+    /** Exact (w,h) pairs to try, in order, instead of any area search —
+     * solver-placed circulation (corridor strips, the stairwell), whose
+     * shape is fixed by function rather than by a target area. */
+    shapes?: Array<{ w_cells: number; h_cells: number }>;
 }
 
 const MAX_ASPECT = 3.0;
@@ -29,6 +33,8 @@ const MAX_DIMENSION_PAIRS = 12;
 function enumerateDimensionPairs(
     room: RoomSpec, areaTolerance: number
 ): Array<{ w_cells: number; h_cells: number }> {
+    if (room.shapes) return room.shapes;
+
     const hint = room.dimensionHint;
 
     if (hint?.mode === 'HARD') {
@@ -93,6 +99,8 @@ export interface AnchorContext {
     placedRects: RectCells[];
     gridW_cells: number;
     gridH_cells: number;
+    /** Placed-rect anchors only — the caller already has the boundary ones. */
+    skipBoundary?: boolean;
 }
 
 /**
@@ -127,13 +135,15 @@ export function* enumerateCandidates(
         if (w > ctx.gridW_cells || h > ctx.gridH_cells) continue;
 
         // 1. Boundary anchors — flush to each wall, stepped along it
-        for (let x = 0; x <= ctx.gridW_cells - w; x++) {
-            yield* emit(x, 0, w, h);
-            yield* emit(x, ctx.gridH_cells - h, w, h);
-        }
-        for (let y = 0; y <= ctx.gridH_cells - h; y++) {
-            yield* emit(0, y, w, h);
-            yield* emit(ctx.gridW_cells - w, y, w, h);
+        if (!ctx.skipBoundary) {
+            for (let x = 0; x <= ctx.gridW_cells - w; x++) {
+                yield* emit(x, 0, w, h);
+                yield* emit(x, ctx.gridH_cells - h, w, h);
+            }
+            for (let y = 0; y <= ctx.gridH_cells - h; y++) {
+                yield* emit(0, y, w, h);
+                yield* emit(ctx.gridW_cells - w, y, w, h);
+            }
         }
 
         // 2. Placed-rect anchors — flush against each side, sliding

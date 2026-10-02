@@ -74,7 +74,6 @@ const ATTEMPT_SEED_CANDIDATE_STRIDE = 7919;
 const ATTEMPT_SEED_RETRY_STRIDE = 104729;
 
 const snapDownToGrid = (m: number) => Math.floor(m / GRID_RESOLUTION_M + 1e-6) * GRID_RESOLUTION_M;
-const snapUpToGrid = (m: number) => Math.ceil(m / GRID_RESOLUTION_M - 1e-6) * GRID_RESOLUTION_M;
 
 /** Aligns every footprint edge to the solver's 0.5m grid (edges move
  * inward, never out). shapes.ts produces arbitrary-precision dimensions
@@ -172,97 +171,30 @@ function attemptWithFootprint(
     let finalStatus: 'SOLVED' | 'SOLVED_RELAXED' | 'TIMEOUT' | 'UNSAT' = 'SOLVED';
     const floors = isDuplex ? [0, 1] : [0];
 
-    const CORRIDOR_D = 1.5; // ported constant, unchanged from zones.ts::allocateZones()
-    // FLAGGED FOR CONFIRMATION — zones.ts sized the ground-floor corridor
-    // band by actual social-vs-private/service room area ratio (zone-
-    // banding math, deleted this phase). Substituting zones.ts's own
-    // FALLBACK constant (0.40 — what it used when a floor had no rooms to
-    // compute a ratio from) as a fixed band position for every floor,
-    // since corridor placement is now a solver pre-placement concern, not
-    // a zone-sizing one. This changes band Y-position versus the old
-    // area-proportional version for floors with lopsided area ratios.
-    const GROUND_CORRIDOR_FRAC = 0.40;
-    // Stopgap for the fixed-geometry collision (tracked): the stairwell
-    // (3.6m) must fit between the upper corridor's band (ends at
-    // primary.y + 1.5) and the ground corridor's top (socialH). That
-    // requires socialH >= 5.1m, which height * 0.40 fails below 12.75m.
-    // Floor socialH at 5.1m so stairY = socialH - 3.6 always clears the
-    // upper corridor without clamping into it. shapes.ts clamps footprint
-    // height to >= 8m, so socialH + CORRIDOR_D <= height always holds.
-    // Real fix (stairwell as a solver-placed unit) is logged as
-    // architectural debt for after Phase 3 reopens — not now.
-
+    // Corridor and stairwell are placed by the solver itself (see
+    // solver/index.ts::buildCirculation) — no fixed band, no pinned
+    // stairwell. The ground floor's solved stairwell is then reserved on
+    // the floor above as stairwell_void, same rect (I7).
     for (const floorIndex of floors) {
         const floorRooms = rooms.filter(r => r.floor === floorIndex);
         if (floorRooms.length === 0) continue;
 
-        // ── Corridor band(s) — fixed geometry, unchanged responsibility ────
-        const corridorBounds: Array<{ x: number; y: number; width: number; height: number }> = [];
-        let corridorY: number;
-        if (floorIndex === 0) {
-            // Rounded UP to the solver grid: an off-grid band (e.g. 7.14m)
-            // was reserved as the nearest cells (7.0–8.5m) while the emitted
-            // corridor sat at 7.14–8.64m, so rooms placed flush below the
-            // reserved cells overlapped the real corridor (I2). Up, not
-            // nearest, so the 5.1m stairwell clearance above still holds.
-            const socialH = snapUpToGrid(Math.max(footprint.primary.height * GROUND_CORRIDOR_FRAC, 5.1));
-            corridorY = footprint.primary.y + socialH;
-        } else {
-            // Upper floor: fixed band at the top — this WAS already fixed
-            // in zones.ts (not area-proportional), unchanged.
-            corridorY = footprint.primary.y;
+        // The upper floor's stair void comes from the ground floor's
+        // solution; without one there is nothing to land the stair on.
+        if (floorIndex > 0 && anyFloorUnsolved) {
+            console.warn(`[SOLVER_V2] floor ${floorIndex}: skipped — floor below unsolved`);
+            continue;
         }
-        corridorBounds.push({ x: footprint.primary.x, y: corridorY, width: footprint.primary.width, height: CORRIDOR_D });
 
-        corridorBounds.forEach((band, i) => {
-            placedRooms.push({
-                room_id: `corridor_floor${floorIndex}_${i}`,
-                floor: floorIndex, x: band.x, y: band.y, width: band.width, depth: band.height,
-            });
-        });
-
-        // ── Stairwell (ground floor, duplex only) — unchanged geometry ─────
-        if (floorIndex === 0 && isDuplex) {
-            const stairW = 2.4, stairD = 3.6;
-            const stairX = footprint.primary.x + footprint.primary.width - stairW;
-            const mainCorridorY = corridorBounds[0].y;
-            // BUG FIX: stairY was previously clamped to footprint.primary.y
-            // whenever socialH < stairD (3.6m) — but footprint.primary.y is
-            // ALSO the upper floor's fixed corridor position (corridorY for
-            // floorIndex===1, set unconditionally a few lines below). On any
-            // footprint with height < 12.75m (socialH = height*0.40 < stairD),
-            // stairCoords and the upper corridor collided at the same y.
-            //
-            // Fix: give the stairwell a minimum clearance below the UPPER
-            // corridor's fixed band (footprint.primary.y + CORRIDOR_D), not
-            // just the raw footprint edge. The stairwell must clear both
-            // corridors — ground (via mainCorridorY - stairD, unchanged
-            // logic) AND upper (via this new floor) — since stairCoords is
-            // mirrored verbatim onto floor 1 as stairwell_void (I7).
-            const upperCorridorClearance = footprint.primary.y + CORRIDOR_D;
-            const stairY = Math.max(mainCorridorY - stairD, upperCorridorClearance);
-            stairCoords = { x: stairX, y: stairY, width: stairW, height: stairD };
-            placedRooms.push({ room_id: 'stairwell', floor: 0, x: stairCoords.x, y: stairCoords.y, width: stairCoords.width, depth: stairCoords.height });
-        }
+        const reservedRects: ReservedRect[] = [];
         if (floorIndex === 1 && stairCoords) {
+            reservedRects.push({ id: 'stairwell_void', type: 'stairwell', x_m: stairCoords.x, y_m: stairCoords.y, w_m: stairCoords.width, h_m: stairCoords.height });
             placedRooms.push({ room_id: 'stairwell_void', floor: 1, x: stairCoords.x, y: stairCoords.y, width: stairCoords.width, depth: stairCoords.height });
         }
 
-        // ── Reserve corridor + stairwell cells for the solver ───────────────
-        const reservedRects: ReservedRect[] = corridorBounds.map((b, i) => ({
-            id: `corridor_floor${floorIndex}_${i}`, type: 'circulation',
-            x_m: b.x, y_m: b.y, w_m: b.width, h_m: b.height,
-        }));
-        if (floorIndex === 0 && stairCoords) {
-            reservedRects.push({ id: 'stairwell', type: 'stairwell', x_m: stairCoords.x, y_m: stairCoords.y, w_m: stairCoords.width, h_m: stairCoords.height });
-        }
-        if (floorIndex === 1 && stairCoords) {
-            reservedRects.push({ id: 'stairwell_void', type: 'stairwell', x_m: stairCoords.x, y_m: stairCoords.y, w_m: stairCoords.width, h_m: stairCoords.height });
-        }
-
-        // ── Solve placement for every non-circ room on this floor ──────────
         const config: SolverConfig = { budget_ms: budgetMsPerFloor, areaTolerance: 0.10, seed: attemptSeed + floorIndex };
-        const result = solvePlacement(graph, footprint, floorIndex, hiveRooms, config, reservedRects);
+        const result = solvePlacement(graph, footprint, floorIndex, hiveRooms, config, reservedRects,
+            { placeStairwell: floorIndex === 0 && isDuplex });
 
         if (result.status === 'TIMEOUT') finalStatus = 'TIMEOUT';
         else if (result.status === 'UNSAT' && finalStatus !== 'TIMEOUT') finalStatus = 'UNSAT';
@@ -274,6 +206,7 @@ function attemptWithFootprint(
         } else {
             for (const p of result.placements) {
                 placedRooms.push({ room_id: p.id, floor: floorIndex, x: p.x_m, y: p.y_m, width: p.w_m, depth: p.h_m });
+                if (p.id === 'stairwell') stairCoords = { x: p.x_m, y: p.y_m, width: p.w_m, height: p.h_m };
             }
         }
         allIssues.push(...result.issues);

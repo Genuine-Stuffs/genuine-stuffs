@@ -227,6 +227,17 @@ export interface Suite {
 }
 
 const SUB_ROOM_TYPES = new Set(['bathroom', 'wardrobe', 'dressing']);
+
+/** Storage the Hive types as "store" even when it is a walk-in wardrobe
+ * (hive-004/005's "Master Walk-in Wardrobe", type "store"). One whose only
+ * neighbour is a bedroom opens only into that bedroom — a wardrobe in
+ * everything but name — so it joins the suite like one. */
+const STORAGE_TYPES = new Set(['store', 'wardrobe', 'dressing']);
+
+/** Room types that never need an external wall (I5): sub-rooms and
+ * storage. NBC 2006 permits mechanically-vented bathrooms; wardrobes and
+ * stores need no window at all. */
+export const NO_WINDOW_TYPES = new Set(['bathroom', 'wardrobe', 'dressing', 'store']);
 const BEDROOM_TYPES  = new Set(['bedroom', 'master_bedroom']);
 
 /**
@@ -248,6 +259,7 @@ export function deriveSuites(graph: RoomGraph, floorIndex: number): Suite[] {
             const neighbor = graph.nodes.get(neighborId);
             if (!neighbor) continue;
             const isSubType = SUB_ROOM_TYPES.has(neighbor.type) ||
+                (STORAGE_TYPES.has(neighbor.type) && neighbor.degree === 1) ||
                 (neighbor.type === 'unknown' && classifyBySubLabel(neighbor.label));
             if (isSubType) subs.push(neighbor.id);
         }

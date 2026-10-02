@@ -4,7 +4,7 @@
  * PHASE 2 · July 2026
  *
  * Pure predicate functions, one per invariant from the master plan's
- * Part D invariant table (I1, I2, I3, I4, I5, I7). Each takes the current
+ * Part D invariant table (I1, I2, I3, I4, I5, I7) plus I8 (reachability). Each takes the current
  * pipeline's real output — SolvedLayout — plus the buildable envelope the
  * harness itself computed, and returns a single pass/fail with an
  * aggregated detail string covering every violation found.
@@ -20,7 +20,7 @@
  */
 
 import { SolvedLayout, PlacedRoom } from "../../../../../../supabase/functions/ai-studio/schema";
-import { RoomGraph, deriveSuites, identifyHubs } from "../graph";
+import { RoomGraph, deriveSuites, identifyHubs, NO_WINDOW_TYPES } from "../graph";
 
 export interface AssertionResult {
     invariant: string;
@@ -195,10 +195,8 @@ export function assertI4_SuiteNesting(
 }
 
 // ── I5 — every room needing an external wall touches the perimeter ─────────
-// Rule per Part D I5: zone !== 'circ' and not a sub-room (bath/wardrobe/
-// dressing) — living, bedroom, kitchen, dining, office, garage, etc.
-
-const SUB_ROOM_TYPES = new Set(["bathroom", "wardrobe", "dressing"]);
+// Rule per Part D I5: zone !== 'circ' and not a no-window type (bath/
+// wardrobe/dressing/store) — living, bedroom, kitchen, dining, office, etc.
 
 export function assertI5_ExternalWall(
     layout: SolvedLayout,
@@ -215,7 +213,7 @@ export function assertI5_ExternalWall(
         const node = graph.nodes.get(r.room_id);
         // Synthetic rooms (corridor/stairwell) not in graph — not subject to this rule
         if (!node) continue;
-        if (node.zone === "circ" || SUB_ROOM_TYPES.has(node.type)) continue;
+        if (node.zone === "circ" || NO_WINDOW_TYPES.has(node.type)) continue;
         if (!touchesPerimeter(r)) {
             violations.push(`${r.room_id} (${node.label}): no perimeter wall`);
         }
@@ -267,6 +265,22 @@ export function assertI7_StairwellMirrored(layout: SolvedLayout): AssertionResul
     };
 }
 
+// ── I8 — every room reachable: shares a wall with circulation or a hub room ─
+// The validator's CORRIDOR_ADJACENCY rule. Reported-only until the solver
+// placed circulation itself; now enforced during the search (ReachRules),
+// so any such issue on a solved layout is a solver bug.
+
+export function assertI8_Reachable(layout: SolvedLayout): AssertionResult {
+    const violations = (layout.placement_issues ?? [])
+        .filter(i => i.rule === "CORRIDOR_ADJACENCY")
+        .map(i => `${i.room_id}: ${i.detail}`);
+    return {
+        invariant: "I8_REACHABLE",
+        pass: violations.length === 0,
+        detail: violations.length === 0 ? "every room opens onto circulation or a hub room" : violations.join("; "),
+    };
+}
+
 // ── Aggregate runner ────────────────────────────────────────────────────────
 
 export function runAllAssertions(
@@ -291,5 +305,6 @@ export function runAllAssertions(
         assertI5_ExternalWall(layout, graph, footprint),
         assertI6_PlacementsEmptyUnlessSolved(),
         assertI7_StairwellMirrored(layout),
+        assertI8_Reachable(layout),
     ];
 }
