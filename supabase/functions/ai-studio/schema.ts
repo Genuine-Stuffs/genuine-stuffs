@@ -56,6 +56,18 @@ export interface ValidationIssue {
     detail: string;
 }
 
+export interface SolverFailureReason {
+    code: string;
+    detail: string;
+    rooms?: string[];
+    values?: Record<string, number>;
+}
+
+export interface SolverFailure {
+    floor: number;
+    reasons: SolverFailureReason[];
+}
+
 export interface SolvedLayout {
     program_reference: SpatialProgram;
     plot_width: number;
@@ -74,6 +86,11 @@ export interface SolvedLayout {
     // condition (feasibility gate / planarity bound). False or absent
     // means the search ran out of candidates — not a proof.
     solver_unsat_proven?: boolean;
+    // Why the layout failed, when it did: the first floor that couldn't be
+    // placed and the error-taxonomy codes behind it (F-001/F-002/F-004 from
+    // the feasibility gate, S-001 search exhausted, S-002 out of time).
+    // engine_v2/failure_messages.ts turns these into plain language.
+    solver_failure?: SolverFailure;
     // Phase 5 rubric score (engine_v2/score.ts), 0–100 per part. Set on
     // layouts returned by solveLayoutVariants(); absent elsewhere.
     layout_score?: {

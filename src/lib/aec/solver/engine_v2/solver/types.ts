@@ -49,6 +49,8 @@ export interface SolveResult {
          * planarity bound) rules the program out. False when the search
          * merely exhausted its capped candidate set — no proof either way. */
         proven?: boolean;
+        /** Feasibility checks that rejected the floor, when the gate did. */
+        failedChecks?: import('./feasibility').FeasibilityCheck[];
     };
 }
 

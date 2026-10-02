@@ -35,7 +35,9 @@
 import {
     SpatialProgram,
     SolvedLayout,
-    PlacedRoom
+    PlacedRoom,
+    SolverFailure,
+    SolverFailureReason
 } from "../../../../../supabase/functions/ai-studio/schema";
 import { PlotEnvelope, SolverOptions } from "../types";
 import { buildGraph, HiveRoom, RoomGraph, ZoneType } from "./graph";
@@ -171,6 +173,7 @@ function attemptWithFootprint(
     let anyFloorUnsolved = false;
     let finalStatus: 'SOLVED' | 'SOLVED_RELAXED' | 'TIMEOUT' | 'UNSAT' = 'SOLVED';
     let unsatProven = true; // stays true only if every UNSAT floor was proven
+    let failure: SolverFailure | undefined;
     const floors = isDuplex ? [0, 1] : [0];
 
     // Corridor and stairwell are placed by the solver itself (see
@@ -200,11 +203,12 @@ function attemptWithFootprint(
 
         if (result.status === 'TIMEOUT') finalStatus = 'TIMEOUT';
         else if (result.status === 'UNSAT' && finalStatus !== 'TIMEOUT') finalStatus = 'UNSAT';
-        if (result.status === 'UNSAT' && !result.diagnostics.proven) unsatProven = false;
         else if (result.status === 'SOLVED_RELAXED' && finalStatus === 'SOLVED') finalStatus = 'SOLVED_RELAXED';
+        if (result.status === 'UNSAT' && !result.diagnostics.proven) unsatProven = false;
 
         if (result.status === 'UNSAT' || result.status === 'TIMEOUT') {
             anyFloorUnsolved = true;
+            failure = { floor: floorIndex, reasons: failureReasons(result) };
             console.warn(`[SOLVER_V2] floor ${floorIndex}: ${result.status} — ${result.diagnostics.failedRoomId ?? 'no geometry produced'}`);
         } else {
             for (const p of result.placements) {
@@ -242,8 +246,45 @@ function attemptWithFootprint(
         is_fully_connected:      !anyFloorUnsolved,
         solver_status:           finalStatus,
         solver_unsat_proven:     finalStatus === 'UNSAT' ? unsatProven : undefined,
+        solver_failure:          failure,
         placement_issues:        allIssues,
     };
+}
+
+/** Why one floor failed, as error-taxonomy codes: the feasibility checks
+ * that rejected it, else S-002 (out of time) or S-001 (search exhausted). */
+function failureReasons(result: { status: string; diagnostics: { failedChecks?: SolverFailureReason[] } }): SolverFailureReason[] {
+    if (result.diagnostics.failedChecks?.length) {
+        return result.diagnostics.failedChecks.map(({ code, detail, rooms, values }) => ({ code, detail, rooms, values }));
+    }
+    return result.status === 'TIMEOUT'
+        ? [{ code: 'S-002', detail: 'search ran out of time before every room could be placed' }]
+        : [{ code: 'S-001', detail: 'no placement satisfies every requirement, even after relaxation' }];
+}
+
+/** One failure for a whole portfolio: the lowest floor that failed, with
+ * the reasons EVERY footprint attempt on it hit — a reason only some
+ * shapes hit (e.g. a T-shape short on area) isn't why the brief failed,
+ * and would send the user cutting rooms for nothing. If none is shared,
+ * the search failures (S-*) are reported, else all. Rooms merged per code. */
+function mergeFailures(failures: SolverFailure[]): SolverFailure | undefined {
+    if (failures.length === 0) return undefined;
+    const floor = Math.min(...failures.map(f => f.floor));
+    const onFloor = failures.filter(f => f.floor === floor);
+    const byCode = new Map<string, SolverFailureReason>();
+    for (const r of onFloor.flatMap(f => f.reasons)) {
+        const seen = byCode.get(r.code);
+        if (!seen) byCode.set(r.code, { ...r, rooms: r.rooms ? [...r.rooms] : undefined });
+        else if (r.rooms) seen.rooms = [...new Set([...(seen.rooms ?? []), ...r.rooms])];
+    }
+    const all = [...byCode.values()];
+    const shared = all.filter(r => onFloor.every(f => f.reasons.some(x => x.code === r.code)));
+    if (shared.length > 0) return { floor, reasons: shared };
+    // Nothing shared: a shape that passed the feasibility gate and still
+    // failed in the search is the real story; gate rejections then only
+    // describe the other shapes.
+    const search = all.filter(r => r.code.startsWith('S-'));
+    return { floor, reasons: search.length > 0 ? search : all };
 }
 
 function isFullSuccess(layout: SolvedLayout): boolean {
@@ -301,6 +342,7 @@ function summarizeFailures(attempts: SolvedLayout[], last: SolvedLayout): Solved
         ...last,
         solver_status: anyTimeout ? 'TIMEOUT' : 'UNSAT',
         solver_unsat_proven: anyTimeout ? undefined : attempts.every(a => a.solver_unsat_proven === true),
+        solver_failure: mergeFailures(attempts.flatMap(a => a.solver_failure ? [a.solver_failure] : [])),
     };
 }
 

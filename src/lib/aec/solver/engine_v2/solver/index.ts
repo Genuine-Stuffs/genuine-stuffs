@@ -161,7 +161,7 @@ export function solvePlacement(
             placements: [],
             relaxationsApplied: [],
             issues: [],
-            diagnostics: { elapsed_ms: 0, nodesExplored: 0, failedConstraint: summary, proven: true },
+            diagnostics: { elapsed_ms: 0, nodesExplored: 0, failedConstraint: summary, proven: true, failedChecks: failed },
         };
     }
 

@@ -30,7 +30,8 @@ import {
     Home,
     ShoppingBag,
     ShieldCheck,
-    PenTool
+    PenTool,
+    AlertTriangle,
 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -65,6 +66,7 @@ import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { solveLayoutV2 } from '@/lib/aec/solver/engine_v2';
 import { useLayoutOptions, layoutSignature } from '@/hooks/use-layout-options';
+import { explainFailure } from '@/lib/aec/solver/engine_v2/failure_messages';
 import { runComplianceCheck, ComplianceReport } from '@/lib/aec/compliance_engine';
 
 // --- CLIENT-SIDE SANITIZER: Guarantee no JSON leaks in chat bubble ---
@@ -687,7 +689,7 @@ const AIStudio = () => {
                             });
                         });
                     }
-                    console.log("Client-side TS Solver generated geometry successfully.", solved);
+                    console.log(`[SOLVER] ${solved.solver_status}: ${solved.placed_rooms.length} rooms placed`, solved);
                     console.log('[SOLVER_DEBUG] placedRooms:', JSON.stringify(solved.placed_rooms, null, 2));
 
                     // Run deterministic compliance check against NBC 2006 rules
@@ -794,6 +796,11 @@ const AIStudio = () => {
     const layoutChoices: any[] = designPackage?.solvedLayoutOptions ?? [];
 
     const stableLayout = useMemo(() => designPackage?.solvedLayout, [layoutKey]);
+
+    // A failed solve has no geometry: explain why instead of drawing an
+    // empty plan. Layouts saved before solver_status existed render as before.
+    const layoutFailed = stableLayout?.solver_status === 'UNSAT' || stableLayout?.solver_status === 'TIMEOUT';
+    const failureExplanation = layoutFailed ? explainFailure(stableLayout?.solver_failure) : null;
 
     // ── Phase 5: placement issues surfaced from SolveResult, no longer
     // console-only. Distinguishes SEVERE (CORRIDOR_ADJACENCY/EXTERNAL_WALL —
@@ -1269,9 +1276,35 @@ const AIStudio = () => {
                                                                 })}
                                                             </div>
                                                         )}
-                                                        <AECFloorPlan layout={stableLayout} />
-                                                        <AECMassingView layout={stableLayout} />
-                                                        <AECBillOfQuantities layout={stableLayout} materials={designPackage.material_schedule || []} />
+                                                        {failureExplanation ? (
+                                                            <div className="p-6 rounded-2xl border border-amber-800 bg-amber-950 flex flex-col gap-4 shadow-2xl">
+                                                                <div className="flex items-start gap-3">
+                                                                    <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                                                                    <div>
+                                                                        <p className="text-sm font-black text-amber-100">{failureExplanation.title}</p>
+                                                                        <p className="text-xs text-amber-200/80 mt-1">No floor plan was drawn, so nothing below is based on a layout yet.</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Why</p>
+                                                                    {failureExplanation.reasons.map((r, i) => (
+                                                                        <p key={i} className="text-xs text-amber-100">{r}</p>
+                                                                    ))}
+                                                                </div>
+                                                                <div className="space-y-1.5">
+                                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">What you can change</p>
+                                                                    {failureExplanation.suggestions.map((s, i) => (
+                                                                        <p key={i} className="text-xs text-amber-100">• {s}</p>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <AECFloorPlan layout={stableLayout} />
+                                                                <AECMassingView layout={stableLayout} />
+                                                                <AECBillOfQuantities layout={stableLayout} materials={designPackage.material_schedule || []} />
+                                                            </>
+                                                        )}
                                                         
                                                         {/* ── REAL COMPLIANCE BANNER — driven by compliance_engine.ts ── */}
                                                         {complianceReport && (

@@ -42,6 +42,10 @@ export interface FeasibilityCheck {
     code: string;
     passed: boolean;
     detail: string;
+    /** Labels of the rooms the check is about, for user-facing messages. */
+    rooms?: string[];
+    /** The numbers behind the verdict, for user-facing messages. */
+    values?: Record<string, number>;
 }
 
 export interface FeasibilityReport {
@@ -100,6 +104,7 @@ export function checkFeasibility(
     checks.push({
         code: 'F-001',
         passed: targetArea_m2 <= budget_m2,
+        values: { needed_m2: targetArea_m2, budget_m2 },
         detail: `rooms need ${targetArea_m2.toFixed(1)}m² · budget is ${(AREA_BUDGET_RATIO * 100).toFixed(0)}% of ${freeArea_m2.toFixed(1)}m² placeable area = ${budget_m2.toFixed(1)}m²`,
     });
 
@@ -111,6 +116,8 @@ export function checkFeasibility(
     checks.push({
         code: 'F-002',
         passed: oversized.length === 0,
+        rooms: oversized.flatMap(o => o.u.ids.map(id => graph.nodes.get(id)?.label ?? id)),
+        values: { shorterSide_m },
         detail: oversized.length === 0
             ? `all unit minimum widths fit within the ${shorterSide_m.toFixed(1)}m shorter footprint side`
             : `${oversized.map(o => `${o.u.ids.join('+')} needs ${o.minWidth.toFixed(1)}m`).join(', ')} vs ${shorterSide_m.toFixed(1)}m shorter side`,
@@ -136,6 +143,8 @@ export function checkFeasibility(
     checks.push({
         code: 'F-004',
         passed: overDegree.length === 0,
+        rooms: overDegree.map(n => n.label),
+        values: { maxDegree: Math.max(0, ...overDegree.map(n => n.degree)), limit: MAX_ADJACENCY_DEGREE },
         detail: overDegree.length === 0
             ? `no room exceeds degree ${MAX_ADJACENCY_DEGREE}`
             : `${overDegree.map(n => `${n.label} (degree ${n.degree})`).join(', ')} exceed degree ${MAX_ADJACENCY_DEGREE}`,
