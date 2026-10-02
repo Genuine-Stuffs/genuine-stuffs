@@ -10,10 +10,30 @@
 ## 1. Where we stopped
 
 - **Everything is pushed.** `main` = `origin/main` = `5642012`. The working tree is clean, apart from `supabase/.temp/cli-latest`, local CLI noise that is never committed.
-- **Monday's first step belongs to the owner.** Samuel will send new AI Studio screenshots taken on the live site after today's deploy. Compare them against the target drawing (`images/Screenshot 2026-06-25 at 10.18.16 AM.png`) **before** changing anything, and update the gap list in ledger §5b from what they actually show.
+- **A breakage was reported after the last deploy; see §1b, which comes first.** Then Samuel will send new AI Studio screenshots taken on the live site after today's deploy. Compare them against the target drawing (`images/Screenshot 2026-06-25 at 10.18.16 AM.png`) **before** changing anything, and update the gap list in ledger §5b from what they actually show.
 - **Not yet verified on the live site:** today's last 8 commits (`f6c6e18`…`5642012`) were checked with the harness, 20-seed sweeps and server-rendered SVGs, but not in a logged-in browser. The screenshots are that check.
 
 ---
+
+## 1b. ⚠️ FIRST ON MONDAY: the owner reports a breakage on the live site
+
+Reported Friday evening, after the 8-commit deploy (`f6c6e18`…`5642012`, pushed ~6 pm): "the current changes broke something". The owner took a screenshot and copied the browser console, but **neither had reached the VM at shutdown**, so the symptom is still unknown.
+
+**On Monday:**
+1. Get the console text pasted into chat, and the screenshot uploaded with `scp -P 22 "/Users/EduPc/Desktop/Screenshot …png" root@2.29.17.102:/root/projects/genuine-stuffs/docs/design-references/images/`. This worked on Friday with the full quoted path.
+2. **Diagnose before changing anything.** Reproduce with the brief from the console's `[SOLVER_DEBUG] Raw rooms from Hive` JSON, using `__harness__/render.tsx` and the harness.
+3. Suspects, from the deploy, in rough order of risk:
+
+| Commit | What could break |
+|---|---|
+| `8fe41f2` (footprint sized to program) | A smaller building that a brief can't fit; F-002/F-001 rejections; odd sizes on small plots |
+| `c4e648f` (entrance on front) | Briefs whose entrance can't reach the front edge now go to the fallback |
+| `b45cbde` (room proportions) | Briefs that used to solve now need relaxation or fall back |
+| `ef2732b` (6 s strict cap) | A slow-but-solvable brief now gets a fallback plan |
+| `f6c6e18` (furniture by type) | A renderer error on an unexpected room type |
+| `7269dc7` (exclusive suites) | Different suite grouping for some briefs |
+
+If production is badly broken and the cause isn't found quickly, the safe rollback is `git revert` of the specific commit (never a force-push), then push. Ask the owner first: pushing deploys.
 
 ## 2. What shipped today (2 October), in order
 
