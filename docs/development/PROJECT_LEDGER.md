@@ -49,7 +49,8 @@ Relaxation ladder, strictly in order: `RELAX-AREA-20` → `RELAX-SOFT-ADJ` (neve
 - **Preferences only:** must-touch pairs, outside walls and reachability rank candidates. Areas may flex ±25%.
 - **Gate:** only F-002 still blocks a floor.
 - **Result:** a complete plan (`solver_fallback: true`), with each compromise flagged (`ADJACENCY_MISSED`, `EXTERNAL_WALL`, `CORRIDOR_ADJACENCY`, `AREA_ADJUSTED`) and the strict failure kept in `solver_failure`.
-- **Harness:** fallback plans are judged on I1/I2/I4/I6/I7 plus **F1_COMPROMISES_FLAGGED**, which fails if any I3/I5 miss is unflagged. The error-code taxonomy (N-001…N-008, F-001…F-005, S-001/S-002, R-001) is closed: **no new codes without approval**.
+- **Harness:** fallback plans are judged on I1/I2/I4/I6/I7 plus **F1_COMPROMISES_FLAGGED**, which fails if any I3/I5 miss is unflagged.
+- **Harness runs fixed seeds 1–3** (`HARNESS_SEEDS` overrides). Unseeded runs hid a 9-in-12 failure (`91c17ab`). The error-code taxonomy (N-001…N-008, F-001…F-005, S-001/S-002, R-001) is closed: **no new codes without approval**.
 
 ### 2.2 Session protocol (rebuild plan A2/A3)
 
@@ -158,6 +159,35 @@ Know these before citing the plan as fact.
 | Statically importing WASM/3D packages | Production builds hung | `2e8c66b` |
 
 ---
+
+## 5b. Gap to the target drawing (assessed 2026-10-02)
+
+Assessed against the quality bar (`images/Screenshot 2026-06-25 at 10.18.16 AM.png`, CAD ground + first floor) using the owner's live screenshots (`images/Screenshot 2026-10-02 at 5.44.*`).
+
+**Layout (solver)**
+
+| Gap | Status |
+|---|---|
+| Building sized to the plot, not the rooms, leaving large voids | **Fixed** `8fe41f2`: fill 46–54% → 75–81% |
+| Unusable proportions (2 m bedroom, 1.5 × 7.5 m dining) | **Fixed** `b45cbde`: minimum width and maximum aspect per type |
+| Foyer mid-plan, no front door | **Fixed** `c4e648f`: entrance on the front (bottom) edge, I9 |
+| Shared bathroom placed twice, suites broken | **Fixed** `7269dc7` |
+| Garage not on the street front | Open (the same front-edge rule as the entrance would apply) |
+| Hall is a strip, not the connected space between rooms | Open |
+| No structural grid; upper walls don't stack on lower ones | Open (largest change) |
+| Fallback plans: up to ~12 missed adjacencies on villas | Open |
+
+**Drawing (renderer)**
+
+| Gap | Status |
+|---|---|
+| No furniture | **Fixed** `f6c6e18` (keyed on type) |
+| Labels truncated ("3-Car Enclose…") | Open |
+| Thin walls instead of thick external/internal walls | Open |
+| No door/window tags (D1…, W1…) or schedule | Open |
+| Overall dimensions only, no per-bay chains or grid bubbles | Open |
+| Stair is a box, with no treads or UP arrow | Open |
+| One floor at a time instead of a sheet with both floors | Open |
 
 ## 6. Open items (single list)
 
