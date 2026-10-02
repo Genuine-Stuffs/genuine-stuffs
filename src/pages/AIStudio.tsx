@@ -64,6 +64,7 @@ import AECFloorPlan from '@/components/aec/AECFloorPlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { solveLayoutV2 } from '@/lib/aec/solver/engine_v2';
+import { useLayoutOptions, layoutSignature } from '@/hooks/use-layout-options';
 import { runComplianceCheck, ComplianceReport } from '@/lib/aec/compliance_engine';
 
 // --- CLIENT-SIDE SANITIZER: Guarantee no JSON leaks in chat bubble ---
@@ -117,6 +118,7 @@ const AIStudio = () => {
     const [generatedImage, setGeneratedImage] = useState<string | null>(null);
     const [visualUrl, setVisualUrl] = useState<string | null>(null);
     const [designPackage, setDesignPackage] = useState<any | null>(null);
+    const layoutOptions = useLayoutOptions();
     const [complianceReport, setComplianceReport] = useState<ComplianceReport | null>(null);
     const [promptText, setPromptText] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -660,14 +662,31 @@ const AIStudio = () => {
                         ?? 1;
 
                     console.log("[SOLVER_DEBUG] Raw rooms from Hive:", JSON.stringify(finalDesignData.rooms, null, 2));
-                    const solved = solveLayoutV2(finalDesignData, {
-                        width: plotWidth,
-                        depth: plotDepth,
-                        setbacks: { front: 6, rear: 3, left: 3, right: 3 }
-                    }, {
-                        floors_override: briefFloors
-                    });
+                    const envelope = { width: plotWidth, depth: plotDepth, setbacks: { front: 6, rear: 3, left: 3, right: 3 } };
+                    // One seed for both runs, so the plan shown first is
+                    // the same geometry as its entry in the options list.
+                    const solverOptions = { floors_override: briefFloors, seed: Math.floor(Math.random() * 2 ** 31) };
+                    const program = { ...finalDesignData };
+                    const solved = solveLayoutV2(finalDesignData, envelope, solverOptions);
                     finalDesignData.solvedLayout = solved;
+
+                    // Show this plan now; alternatives are computed off the
+                    // main thread and offered once they arrive — only if the
+                    // user is still looking at this same plan.
+                    if (solved.solver_status === 'SOLVED' || solved.solver_status === 'SOLVED_RELAXED') {
+                        const shownSig = layoutSignature(solved);
+                        layoutOptions.request({ program, envelope, options: solverOptions }, (variants) => {
+                            setDesignPackage((prev: any) => {
+                                if (!prev || layoutSignature(prev.solvedLayout) !== shownSig) return prev;
+                                const current = variants.find(v => layoutSignature(v) === shownSig);
+                                return {
+                                    ...prev,
+                                    solvedLayout: current ?? prev.solvedLayout,
+                                    solvedLayoutOptions: current ? variants : [prev.solvedLayout, ...variants],
+                                };
+                            });
+                        });
+                    }
                     console.log("Client-side TS Solver generated geometry successfully.", solved);
                     console.log('[SOLVER_DEBUG] placedRooms:', JSON.stringify(solved.placed_rooms, null, 2));
 
@@ -756,6 +775,7 @@ const AIStudio = () => {
         }
         
         // 100% Clean Slate — reset the session latch so idle screen returns
+        layoutOptions.cancel();
         setHasActiveSession(false);
         setMessages([]);
         setDesignPackage(null);
@@ -768,9 +788,10 @@ const AIStudio = () => {
         toast.success("New Project Session Initiated (Memory Cleared).");
     };
 
-    const layoutKey = designPackage?.solvedLayout 
-      ? `${designPackage.solvedLayout.plot_width}-${designPackage.solvedLayout.plot_depth}-${designPackage.solvedLayout.placed_rooms?.length}`
-      : null;
+    // Geometry signature, not just plot size + room count: options for the
+    // same brief share both, and switching between them must re-render.
+    const layoutKey = layoutSignature(designPackage?.solvedLayout);
+    const layoutChoices: any[] = designPackage?.solvedLayoutOptions ?? [];
 
     const stableLayout = useMemo(() => designPackage?.solvedLayout, [layoutKey]);
 
@@ -960,6 +981,7 @@ const AIStudio = () => {
                                                     className="group flex items-center justify-between p-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-primary/30 transition-all cursor-pointer mb-2"
                                                     onClick={() => {
                                                         setMessages(session.messages);
+                                                        layoutOptions.cancel();
                                                         setDesignPackage(session.design);
                                                         setSidebarOpen(false);
                                                         toast.info(`Switched to: ${session.title}`);
@@ -1221,6 +1243,32 @@ const AIStudio = () => {
                                                     </div>
                                                 ) : (
                                                     <>
+                                                        {(layoutChoices.length > 1 || layoutOptions.loading) && (
+                                                            <div className="flex flex-wrap items-center gap-2">
+                                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Layout options</span>
+                                                                {layoutOptions.loading && (
+                                                                    <span className="text-[10px] font-bold text-slate-400 animate-pulse">Finding alternatives…</span>
+                                                                )}
+                                                                {layoutChoices.length > 1 && layoutChoices.map((opt, i) => {
+                                                                    const active = layoutSignature(opt) === layoutKey;
+                                                                    const s = opt.layout_score;
+                                                                    return (
+                                                                        <button
+                                                                            key={i}
+                                                                            onClick={() => setDesignPackage((prev: any) => prev ? { ...prev, solvedLayout: opt } : prev)}
+                                                                            title={s ? `Score ${s.total}/100 — area fit ${s.area}, adjacency ${s.adjacency}, compactness ${s.compactness}, windows ${s.window}, circulation ${s.circulation}` : undefined}
+                                                                            className={`px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all ${
+                                                                                active
+                                                                                    ? 'border-primary bg-primary/10 text-primary'
+                                                                                    : 'border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:border-primary/30'
+                                                                            }`}
+                                                                        >
+                                                                            Option {i + 1}{s ? ` · ${Math.round(s.total)}` : ''}{i === 0 && s ? ' · Best' : ''}
+                                                                        </button>
+                                                                    );
+                                                                })}
+                                                            </div>
+                                                        )}
                                                         <AECFloorPlan layout={stableLayout} />
                                                         <AECMassingView layout={stableLayout} />
                                                         <AECBillOfQuantities layout={stableLayout} materials={designPackage.material_schedule || []} />

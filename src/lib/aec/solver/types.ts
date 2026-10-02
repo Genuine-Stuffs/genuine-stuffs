@@ -17,6 +17,8 @@ export interface PlotEnvelope {
 export interface SolverOptions {
     grid_size_m?: number; // Snap resolution, default 0.1m
     max_iterations?: number;
+    floors_override?: number; // storeys from the brief, overriding the program's own
+    seed?: number;            // fixes the footprint/candidate RNG; random when absent
 }
 
 export interface InternalRoomNode {

@@ -38,7 +38,8 @@ import {
     PlacedRoom
 } from "../../../../../supabase/functions/ai-studio/schema";
 import { PlotEnvelope, SolverOptions } from "../types";
-import { buildGraph, HiveRoom, ZoneType } from "./graph";
+import { buildGraph, HiveRoom, RoomGraph, ZoneType } from "./graph";
+import { scoreLayout } from "./score";
 import { BuildingFootprint, generateFootprintCandidates } from "./shapes";
 import { solvePlacement } from "./solver";
 import { SolverConfig, ReservedRect } from "./solver/types";
@@ -109,7 +110,7 @@ function prepareProgram(program: SpatialProgram, options?: SolverOptions): Prepa
     const sourceRooms: any[] = (program as any).rooms ?? [];
     const briefRef  = (program as any).brief_reference ?? {};
     const briefStoreys = briefRef.floors ?? briefRef.storeys ?? 1;
-    const storeys   = (options as any)?.floors_override ?? briefStoreys;
+    const storeys   = options?.floors_override ?? briefStoreys;
 
     const hiveRooms: HiveRoom[] = sourceRooms.map((r: any, idx: number) => ({
         room_id:     r.room_id ?? r.id ?? `room_${idx}`,
@@ -140,7 +141,7 @@ function prepareProgram(program: SpatialProgram, options?: SolverOptions): Prepa
 
     const hasUpperFloorRooms = rooms.some(r => r.floor === 1);
     const isDuplex = storeys > 1 || hasUpperFloorRooms;
-    const seedNum = (options as any)?.seed ?? Math.floor(Math.random() * 2 ** 31);
+    const seedNum = options?.seed ?? Math.floor(Math.random() * 2 ** 31);
 
     return { hiveRooms, graph, rooms, isDuplex, storeys, seedNum };
 }
@@ -260,7 +261,7 @@ function solveLayoutCandidates(
     envelope: PlotEnvelope,
     options: SolverOptions | undefined,
     stopAtFirstSuccess: boolean
-): { successes: SolvedLayout[]; lastAttempt: SolvedLayout } {
+): { successes: SolvedLayout[]; lastAttempt: SolvedLayout; graph: RoomGraph } {
     const prepared = prepareProgram(program, options);
     const groundNonCirc = prepared.rooms.filter(r => r.floor === 0 && r.zone !== 'circ');
     const candidates = generateFootprintCandidates(
@@ -286,7 +287,7 @@ function solveLayoutCandidates(
         }
     }
 
-    return { successes, lastAttempt: summarizeFailures(attempts, lastAttempt!) };
+    return { successes, lastAttempt: summarizeFailures(attempts, lastAttempt!), graph: prepared.graph };
 }
 
 /** The status a failed portfolio reports must describe every attempt, not
@@ -320,14 +321,20 @@ export function solveLayoutV2(
 /** Every candidate footprint that produced a complete, valid layout (up
  * to `maxVariants`), for a UI that wants to offer several real options
  * from one prompt instead of committing to whichever one the RNG picked.
- * Falls back to the last (failed) attempt, same as solveLayoutV2, if
- * nothing solved at all — callers always get at least one result. */
+ * Each success carries its Phase 5 layout_score and the list is sorted
+ * best-first, so [0] is the recommended option. Falls back to the last
+ * (failed) attempt, same as solveLayoutV2, if nothing solved at all —
+ * callers always get at least one result. */
 export function solveLayoutVariants(
     program: SpatialProgram,
     envelope: PlotEnvelope,
     options?: SolverOptions,
     maxVariants: number = 4
 ): SolvedLayout[] {
-    const { successes, lastAttempt } = solveLayoutCandidates(program, envelope, options, /* stopAtFirstSuccess */ false);
-    return successes.length > 0 ? successes.slice(0, maxVariants) : [lastAttempt];
+    const { successes, lastAttempt, graph } = solveLayoutCandidates(program, envelope, options, /* stopAtFirstSuccess */ false);
+    if (successes.length === 0) return [lastAttempt];
+    return successes
+        .map(layout => ({ ...layout, layout_score: scoreLayout(layout, graph) }))
+        .sort((a, b) => b.layout_score.total - a.layout_score.total)
+        .slice(0, maxVariants);
 }

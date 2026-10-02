@@ -122,7 +122,7 @@ Know these before citing the plan as fact.
 | D7: legacy squarify kept behind a flag until the Phase 6 parity gate | Treemap/squarify deleted on Jul 21–22 with no parity gate | Already done. Don't go looking for the flag. |
 | F-003: disconnected-graph check | **Intentionally omitted** (`d0784dd`) | It would false-positive on ordinary rooms. I8 now enforces reachability instead. |
 | Phase 4: `refine.ts` (snap, doors, R-001) | Not built. `doors.ts` handles door placement separately. | Open |
-| Phase 5: `score.ts` rubric with variants ranked by score | `solveLayoutVariants()` returns distinct layouts **unscored**, and **nothing in the UI calls it** | Open: the original product ask |
+| Phase 5: `score.ts` rubric; variants come from seeds 1–5, are deduplicated, and the top 3 are kept | `score.ts` implements the rubric. Variants come from the **footprint portfolio**, not seeds. Up to 4 are kept, sorted best-first, with no dedupe (each comes from a different footprint). Wired into AI Studio via a Web Worker (Oct 2). | Done, with that difference |
 | Phase 6: pipeline.ts, user-facing messages per code, week-one monitoring | Not built as specified | Open |
 | A3: strict TS, no `any` | `tsconfig.app.json` has `"strict": false`. engine_v2 contains 17 `any`/`@ts-ignore`. | Technical debt |
 | Commit format `phase-N: … [harness: X/Y passing]` | Conventional commits (`feat(solver-v3): …`) since July | The current convention is in use |
@@ -157,7 +157,7 @@ Know these before citing the plan as fact.
 1. ~~Honest UNSAT/TIMEOUT labelling~~ done in `5b59633`: hive-005 turned out to be a TIMEOUT, not proven UNSAT, so it is a search problem.
 2. hive-004: 8/20 → higher. Next is backjumping, then a perimeter-capacity check. (Oct 2 plan §5)
 3. A local-search fallback so a hard case yields a flagged plan instead of a blank one.
-4. **Wire `solveLayoutVariants()` into `AIStudio.tsx`.** This was the original product ask and is still untouched.
+4. ~~Wire `solveLayoutVariants()` into `AIStudio.tsx`~~ done on Oct 2: scored options in a Web Worker, shown as an "Option N · score" picker.
 5. Office window: decided 2026-10-02 (§2.4), still to implement. It would only be a last resort after normal search fails, and it does **not** unblock hive-004/005 (§5).
 6. Rebuild-plan phases not yet built: refinement (Phase 4), scoring (Phase 5), the pipeline plus user messages per code (Phase 6). Then update the plan to v1.1 with the divergences in §4.
 7. Documentation debt: `src/lib/aec/README.md` is stale, `dashboard_research_report.md` is empty, and the plan's invariant numbering doesn't match the harness.

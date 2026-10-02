@@ -74,6 +74,12 @@ export interface SolvedLayout {
     // condition (feasibility gate / planarity bound). False or absent
     // means the search ran out of candidates — not a proof.
     solver_unsat_proven?: boolean;
+    // Phase 5 rubric score (engine_v2/score.ts), 0–100 per part. Set on
+    // layouts returned by solveLayoutVariants(); absent elsewhere.
+    layout_score?: {
+        total: number; area: number; adjacency: number;
+        compactness: number; window: number; circulation: number;
+    };
     placement_issues?: ValidationIssue[];
 }
 
