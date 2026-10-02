@@ -249,7 +249,12 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   };
 
   const renderFurniture = (room: any, rx: number, ry: number, rw: number, rh: number) => {
-    const id = room.room_id.toLowerCase();
+    // Keyed on the room's TYPE, not its id: Hive ids are opaque (r01, r11…),
+    // so matching "bedroom"/"kitchen" in the id never drew anything. The name
+    // is only a fallback for untyped rooms — "Master Bathroom" by name would
+    // match the bedroom rule.
+    const type = resolveRoomType(room.room_id);
+    const id = (type !== 'unknown' ? type : resolveRoomName(room.room_id)).toLowerCase();
     const pad = 4;
     const furniture: React.ReactNode[] = [];
 
