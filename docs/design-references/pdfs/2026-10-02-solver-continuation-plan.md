@@ -1,114 +1,99 @@
-# AI Studio Solver — Continuation Plan
+# AI Studio Solver: Continuation Plan (end of day, Friday 2 October 2026)
 
-**Date:** 2026-10-02
 **Author of record:** Samuel Edu, with Claude (Opus 5.5)
-**Supersedes:** `2026-09-22-solver-continuation-plan.md` (kept for history — its §3–§4 analysis is still useful background)
-**Purpose:** Pick up where the 2026-10-01/02 sessions left off. Read this first before touching solver code.
+**Supersedes:** this morning's version of this file, and `2026-09-22-solver-continuation-plan.md`
+**Resume:** Monday 5 October 2026, from exactly this point.
+**Read first:** this file, then `docs/development/PROJECT_LEDGER.md` (policies, ruled-out approaches, gap list §5b).
 
 ---
 
-## 1. TL;DR
+## 1. Where we stopped
 
-- Since the Sep 22 plan: **6 commits**, `7b30722` → `b84c902` (tip). hive-001 and hive-002 now solve **20/20, rule-clean**, under a stricter harness (I1/I5 fixed, new I8). hive-004 went from **0/20 → 8/20**.
-- **hive-005 still solves 0/20.** The harness labels it "UNSAT (proven)", but **that label is not a proof** (see §4). Fix the labelling before drawing conclusions from it.
-- The Sep 22 plan blamed the search strategy. Most of the gain actually came from **geometry and input-data bugs** that made the perimeter or the floor unusable (§2). MRV helped with speed, but on its own it did not unlock hive-004/005.
-- Still pending and unrelated: wiring `solveLayoutVariants()` into `AIStudio.tsx`. This was the original product ask, and no progress has been made on it.
+- **Everything is pushed.** `main` = `origin/main` = `5642012`. The working tree is clean, apart from `supabase/.temp/cli-latest`, local CLI noise that is never committed.
+- **Monday's first step belongs to the owner.** Samuel will send new AI Studio screenshots taken on the live site after today's deploy. Compare them against the target drawing (`images/Screenshot 2026-06-25 at 10.18.16 AM.png`) **before** changing anything, and update the gap list in ledger §5b from what they actually show.
+- **Not yet verified on the live site:** today's last 8 commits (`f6c6e18`…`5642012`) were checked with the harness, 20-seed sweeps and server-rendered SVGs, but not in a logged-in browser. The screenshots are that check.
 
 ---
 
-## 2. What shipped since Sep 22 (in order)
+## 2. What shipped today (2 October), in order
 
-| Commit | What | Where |
+| Commit | What | Evidence |
 |---|---|---|
-| `7b30722` | Harness checked I1/I5 against the **plot**, not the building, so I5 credited only the top/left walls. `SolvedLayout` gains optional `building_width`/`building_depth`. On `SOLVED_RELAXED`, I3 checks hub edges only. | `__harness__/assertions.ts`, `types.ts` |
-| `db2d0d6` | Grid sized with `Math.round`, which overshot the footprint, so the **right/bottom walls were unusable**. The off-grid ground corridor made ~half of "solved" hive-001/002 layouts overlap it (I2). Grid now rounds down, footprints snap inward, and reserved rects cover every touched cell. | `grid.ts`, `index.ts`, `solver/search.ts` |
-| `ad9b6a8` | **MRV dynamic unit ordering + forward checking** (Sep 22 §5.1, plus part of §5.3). An O(1) summed-area overlap test was added. hive-001 1.0s → 0.3s, hive-002 0.8s → 0.1s. Strict SOLVED 29/40 → 37/40. | `solver/search.ts`, `grid.ts` |
-| `ed84d98` | Design-reference index, images and PDFs. | `docs/design-references/` |
-| `49255a7` | `normalizeRoomType()`: the Hive sends free text ("master bedroom"), so hive-004/005's master suite was never derived. | `graph.ts` |
-| `b84c902` | **Corridor and stairwell are now search units**, replacing a fixed full-width band (which used 25.5m² against a declared 7.5m² and split the ground floor in two). Reachability is a hard constraint (new invariant **I8**). Wardrobes and stores need no window (`NO_WINDOW_TYPES`). Suite strips can run along any side. Candidate lists update incrementally (~7× nodes/s on hive-004). Interior must-touch units now fail the branch instead of being deferred. Planarity fail-fast ignores edgeless units. | `solver/index.ts`, `solver/search.ts`, `graph.ts`, `placement_validator.ts`, `__harness__/assertions.ts` |
+| `49255a7` | Normalize free-text Hive room types ("master bedroom" → `master_bedroom`) | Master suite now derived on hive-004/005 |
+| `b84c902` | Solver places the corridor and stairwell itself; reachability enforced (I8) | hive-004 0/20 → 8/20 |
+| `6cc2639` | Project ledger + first version of this plan | — |
+| `5b59633` | UNSAT is only called "proven" when it is | hive-005 turned out to be a timeout, not infeasible |
+| `24d4fad` | Ledger: window rules by room type (owner decision) | Office-window attempt measured and rejected |
+| `ce430b4` | Scored layout options ("Option N · score · Best"), computed in a Web Worker | 3–4 options on typical briefs |
+| `4e9e62a` | Ledger: backjumping and F-004 results | Both measured, neither committed |
+| `d698117` | Plain-language explanation instead of a blank plan (one message per F-/S- code) | Live villa brief: "Grand Foyer has to share a wall directly with 7 rooms…" |
+| `8ae51e6` | **Fallback:** always a complete plan, with every compromise flagged | Live villa brief and hive-004/005 always get a plan |
+| `f6c6e18` | Furniture drawn by room type (it was keyed on opaque ids, so almost never drew) | hive-001: 10 → 18 furniture groups |
+| `91c17ab` | **Harness runs fixed seeds 1–3** | Unseeded runs hid a 9-in-12 failure |
+| `7269dc7` | A sub-room shared by two bedrooms goes to exactly one suite | Fixed a bug `8ae51e6` had shipped: hive-003 I4 9/12 failing → 0 |
+| `b45cbde` | Room proportions per type (min width from the plan's table; max aspect 2:1 for bedrooms/living/dining/office, 2.5:1 for kitchen/foyer) | Villa dining 1.5 × 7.5 m → 5.5 × 3.5 m |
+| `c4e648f` | Ground-floor entrance (foyer…) on the **front = bottom edge**; I9 | hive-002 strict 9/20 → 20/20, 0.51 s → 0.29 s |
+| `8fe41f2` | **Footprint sized to the room program**, tightest first | Fill 46–54% → 75–81%; hive-002 now 12 × 15 m |
+| `ef2732b` | Strict portfolio capped at 6 s before the fallback | Villas ~14 s → ~8.8 s |
+| `5642012` | Ledger: gap to the target drawing + owner screenshots | — |
 
-### Pass rates (20 seeds, production pipeline, 1.2s/floor, all I1–I8 checked)
+---
 
-| Fixture | Sep 22 | Now |
+## 3. Measured state at shutdown
+
+Harness (`npm run harness`, seeds 1–3): **126/126**.
+
+| Fixture | Result | Time |
 |---|---|---|
-| `hive-001` (single floor) | 17/20 | **20/20** rule-clean, avg 0.08s |
-| `hive-002` (duplex) | 18/20 | **20/20** rule-clean (19 strict + 1 relaxed), avg 0.37s |
-| `hive-004-large-villa-v1` | 0/20 | **8/20**, all rule-clean |
-| `hive-005-large-villa-v2` | 0/20 | 0/20 — ground floor still open |
-| `hive-003`, `hive-101`, `hive-102` | UNSAT | UNSAT (correct, fail fast) |
+| hive-001 | 9/9 all seeds | ~0.1 s |
+| hive-002 | 9/9 all seeds | ~0.1 s |
+| hive-003 (infeasible by design) | Fallback plan, all hard checks pass | ~1.5 s |
+| hive-004 | Fallback plan, all hard checks pass | ~8.8 s |
+| hive-005 | Fallback plan, all hard checks pass | ~8.8 s |
+| hive-101 (infeasible by design) | Fallback plan, all hard checks pass | ~0.2 s |
+| hive-102 (175 m² on 54 m²) | UNSAT (proven), shows the explanation | <0.1 s |
 
-The Sep 22 figures were measured under the older, looser harness (I5 masking bug, no I8). They are not like-for-like.
+20-seed sweeps:
 
-### `npm run harness` on 2026-10-02 (single default seed)
+| Fixture | Solved | Rule-clean | Avg time | Building | Ground fill |
+|---|---|---|---|---|---|
+| hive-001 | 20/20 strict | 20 | 0.07 s | 200 m² | 81% |
+| hive-002 | 20/20 strict | 20 | 0.05 s | 180 m² | 75% |
 
-```
-hive-001  8/8 invariants  (166ms)
-hive-002  8/8 invariants  (103ms)
-hive-003  UNSAT (proven)  (4ms)
-hive-004  TIMEOUT         (12211ms)   ← consistent with 8/20
-hive-005  UNSAT (proven)  (7207ms)    ← label is misleading, see §4
-hive-101  UNSAT (proven)  (2ms)
-hive-102  UNSAT (proven)  (1ms)
-Invariants: 16/16 passed, 0 crashed
-```
+The live 23-room villa brief (saved during the session as hive-006, not yet committed as a fixture) gets a fallback plan, 15.5 × 19 m, with the foyer on the front.
 
 ---
 
-## 3. Status of the Sep 22 candidate directions
+## 4. Monday: the order of work
 
-| Sep 22 §5 item | Status |
-|---|---|
-| 5.1 MRV dynamic ordering | ✅ Done (`ad9b6a8`) |
-| 5.2 Conflict-directed backjumping | ❌ Not started |
-| 5.3 Stronger forward checking | 🟡 Partial. Perimeter-bound units (`ad9b6a8`) and interior must-touch units (`b84c902`) are covered. No perimeter-length vs. remaining-window-rooms check yet. |
-| 5.4 Local-search fallback | ❌ Not started |
-| 5.5 Warm-start candidate ordering | ❌ Not started |
-| 5.6 Relax "needs external wall" for some types | 🟡 Partial. Wardrobes and stores are exempt. The office is still a hard requirement; this needs a product/compliance decision. |
-
-The "do not retry" list from Sep 22 still holds. Rotation for all HARD-mode candidates and blind budget increases were measured as neutral-to-negative.
-
----
-
-## 4. Open problem 1: hive-005's "UNSAT (proven)" is not a proof
-
-The harness prints "UNSAT (proven)" whenever `layout.solver_status === 'UNSAT'` (`__harness__/run.ts:99`). That status is not a proof, for three reasons:
-
-1. **`solver/relax.ts:104`** sets `UNSAT` whenever the relaxation ladder finishes before `budget_ms - 50`. In other words, it means the search ran out of options early, not that it proved infeasibility.
-2. The options it ran out of are **incomplete by construction**. Room shapes are capped at `MAX_DIMENSION_PAIRS = 12` with `MAX_ASPECT = 3.0` (`solver/candidates.ts:30–31`). Since `b84c902`, interior must-touch units also fail a branch when their anchored options run out. Exhausting this set means "no solution among the candidates we generated", not "no solution exists".
-3. **`solveLayoutV2` returns the last attempt's status** (`index.ts:299`, `successes[0] ?? lastAttempt`). It does not aggregate over the footprint portfolio. If any earlier footprint timed out, the reported UNSAT hides it.
-
-Only the **feasibility gate** (`solver/index.ts`, `checkFeasibility`) and the **planarity fail-fast** (`relax.ts`) produce genuine proofs. That is why hive-003/101/102 return in a few milliseconds.
-
-**Next steps:**
-- Split the status into proven UNSAT (gate/planarity) and `EXHAUSTED` (candidate set ran out), or carry a `proven: boolean` in diagnostics. Have the harness print the difference.
-- Aggregate the status across the portfolio: TIMEOUT if any attempt timed out, otherwise EXHAUSTED, and UNSAT only if every attempt was proven.
-- Then instrument hive-005's ground floor. Find which unit runs out of options most often (`failedUnitIds`) and whether the cap of 12 dimension pairs is what cuts it off. If a single room causes it, the fix may be on the candidate side (more shapes for that room) or the program side, not the search.
+1. **Review the owner's screenshots** against the target. Re-rank the list below by what they show.
+2. **Garage on the street front.** Same mechanism as the entrance (`ENTRANCE_TYPES` / `onFront` in `solver/search.ts`, flag + I9-style check). Both targets put the garage at the front. Measure that hive-001/002 still solve 20/20.
+3. **Labels that fit.** "3-Car Enclose…", "Wet Kitchen/P…": wrap or shrink the label in `AECFloorPlan.tsx` instead of truncating it.
+4. **Commit the live villa brief as `hive-006` fixture** (it exists only in the session scratchpad; regenerate it from the console log the owner pasted, which has the full rooms JSON).
+5. **Hall as the connected space between rooms**, not a fixed strip (the corridor unit in `solver/index.ts::buildCirculation`).
+6. **Structural grid:** generate ~4–6 m bays and snap both floors to it, so upper walls stack on lower ones. This is the largest change, and design should be discussed with the owner first.
+7. **Fallback quality:** villas still miss up to ~12 adjacencies.
+8. **Move `solveLayoutV2` off the main thread** (the options worker pattern already exists in `hooks/use-layout-options.ts`). Villas still freeze the page ~9 s.
+9. **Drawing quality** (ledger §5b): thick walls, door/window tags + schedule, dimension chains and grid bubbles, stair treads + arrow, both floors on one sheet.
 
 ---
 
-## 5. Open problem 2: hive-004 at 8/20
+## 5. How to work (the owner's standing rules; details in ledger §2)
 
-It now solves sometimes, so this is a search-efficiency problem. Remaining ideas, in order of expected payoff:
-
-1. **Conflict-directed backjumping** (Sep 22 §5.2). This is the main untried search idea. `failedUnitIds` already exists. Extend it to record *which placed units* removed the failing unit's last options, then jump back to the most recent one.
-2. **Perimeter-capacity forward check** (rest of Sep 22 §5.3). Compare the remaining free perimeter length against the minimum widths of the remaining window rooms, and fail the branch early if they can't fit.
-3. **Local-search fallback** (Sep 22 §5.4). When exact search fails, return a plan with flagged violations instead of a blank floor. This is a product win regardless of 1–2.
-
-Measure each change separately with 20-seed sweeps on hive-001/002/004/005. Don't stack changes before measuring (lesson from Sep 22).
+- Run `npm run harness` first and last. Use 20-seed sweeps for any solver change. **Measure one change at a time.**
+- **State the expected result before running.** Report results verbatim, including when the prediction was wrong.
+- **To look at a plan:** `npx tsx src/lib/aec/solver/engine_v2/__harness__/render.tsx <fixture> out.svg [seed]`, then convert to PNG outside the repo (instructions in the file header).
+- **Git:** commit directly on `main`, and ask before pushing (pushing deploys).
+- **Don't retry** (ledger §5): office-window-as-preference, backjumping, raising F-004, rotating HARD rooms, raising the time budget.
 
 ---
 
-## 6. Still pending (product, unrelated to the solver)
+## 6. Known debt (not blocking)
 
-- `solveLayoutVariants()` (`engine_v2/index.ts:306`) returns multiple distinct plans but has **no caller**. `AIStudio.tsx` still calls `solveLayoutV2()` and renders one result. Wire it into the UI so one prompt yields a choice of plans. This was the original ask.
-- Decide with the product/compliance side whether the office (and similar rooms) may go without a window as a flagged warning (Sep 22 §5.6).
-
----
-
-## 7. Quick-start checklist
-
-1. `git log --oneline -1` should show `b84c902` or a later commit that updates this doc.
-2. `npm run harness`. The baseline should match §2: hive-001/002 pass 8/8, hive-004 TIMEOUT or solved, hive-005 "UNSAT".
-3. Start with **§4**: make the solver say what it actually knows (proven vs. exhausted vs. timeout). It's small and self-contained, and it decides what to do about hive-005.
-4. Then §5.1 (backjumping) against hive-004, measured alone.
-5. Update this doc at the end of the session, or write a new dated one.
+- 29 TypeScript errors from `tsc -p tsconfig.app.json`, all pre-existing:
+  - `test_e2e.ts` imports files deleted in July.
+  - `verify_phase3.ts` has a stale signature.
+  - `AECBillOfQuantities` imports a missing `MaterialRequirement` type.
+  - `AIStudio` has a `react-markdown` prop type error.
+- `src/lib/aec/README.md` is stale, and `docs/research/dashboard_research_report.md` is empty.
+- The rebuild plan's invariant numbering differs from the harness I1–I9. Use the harness names.
