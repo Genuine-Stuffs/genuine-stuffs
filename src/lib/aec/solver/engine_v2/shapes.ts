@@ -114,14 +114,25 @@ export function generateFootprintCandidates(
     plotWidth: number,
     plotDepth: number,
     setbacks: { front: number; rear: number; left: number; right: number },
-    roomCount: number
+    roomCount: number,
+    programArea_m2?: number
 ): BuildingFootprint[] {
     const bW = plotWidth - setbacks.left - setbacks.right;
     const bD = plotDepth - setbacks.front - setbacks.rear;
     const buildW = clamp(bW * 0.45, 8, 22);
     const buildD = clamp(bD * 0.50, 8, 18);
 
-    const candidates: BuildingFootprint[] = [rectangle(0, 0, buildW, buildD)];
+    // Sized to the PROGRAM first, tightest first: the plot-proportional box
+    // below gave every brief on a 2000 m² plot the same ~17 x 17.5 m
+    // building, so a 150 m² ground floor came back half empty. The first
+    // footprint that solves wins, so plans are as compact as the rooms
+    // allow, and the plot-based shapes stay as the reliable fallback.
+    const sized = programArea_m2 && programArea_m2 > 0
+        ? PROGRAM_FILL_RATIOS.map(fill => programRectangle(programArea_m2 / fill, bW, bD))
+            .filter(r => r.primary.width < buildW - 0.25 || r.primary.height < buildD - 0.25)
+        : [];
+
+    const candidates: BuildingFootprint[] = [...sized, rectangle(0, 0, buildW, buildD)];
 
     if (roomCount >= 5) {
         candidates.push(lShape(buildW, buildD, 'private_wing'));
@@ -132,6 +143,25 @@ export function generateFootprintCandidates(
         candidates.push(tShape(buildW, buildD, 'service_wing'));
     }
     return candidates;
+}
+
+// Share of the footprint the rooms' own areas may fill, tightest first.
+// 0.80 sits just inside the feasibility gate's 85% (F-001), leaving room
+// for walls and the hall; 0.70 is the looser retry.
+const PROGRAM_FILL_RATIOS = [0.80, 0.70];
+// Depth ÷ width (width is the street front). The target drawings run
+// ~12 m x 17 m; 1.25 keeps the front generous enough for the entrance
+// and garage side by side.
+const PROGRAM_DEPTH_RATIO = 1.25;
+const MIN_SIDE_M = 8;
+
+/** A rectangle of about `area_m2`, PROGRAM_DEPTH_RATIO deep, on the 0.5 m
+ * grid, within the buildable envelope (bW x bD). */
+function programRectangle(area_m2: number, bW: number, bD: number): BuildingFootprint {
+    let w = clamp(Math.sqrt(area_m2 / PROGRAM_DEPTH_RATIO), MIN_SIDE_M, bW);
+    let d = clamp(area_m2 / w, MIN_SIDE_M, bD);
+    w = clamp(area_m2 / d, MIN_SIDE_M, bW); // re-widen if depth hit the envelope
+    return rectangle(0, 0, Math.ceil(w * 2) / 2, Math.ceil(d * 2) / 2);
 }
 
 // ──────────────────────────────────────────────────────────────────────────

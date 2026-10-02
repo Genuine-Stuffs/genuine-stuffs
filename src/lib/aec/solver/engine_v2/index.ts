@@ -318,8 +318,12 @@ function solveLayoutCandidates(
 ): { successes: SolvedLayout[]; lastAttempt: SolvedLayout; graph: RoomGraph } {
     const prepared = prepareProgram(program, options);
     const groundNonCirc = prepared.rooms.filter(r => r.floor === 0 && r.zone !== 'circ');
+    // The busier floor's room areas (circulation included) size the footprint.
+    const floorArea = new Map<number, number>();
+    for (const r of prepared.rooms) floorArea.set(r.floor, (floorArea.get(r.floor) ?? 0) + r.area);
     const candidates = generateFootprintCandidates(
-        envelope.width, envelope.depth, envelope.setbacks, groundNonCirc.length
+        envelope.width, envelope.depth, envelope.setbacks, groundNonCirc.length,
+        Math.max(0, ...floorArea.values())
     );
 
     const successes: SolvedLayout[] = [];
