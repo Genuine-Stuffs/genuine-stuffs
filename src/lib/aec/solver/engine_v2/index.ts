@@ -68,6 +68,12 @@ const CANDIDATE_FLOOR_BUDGET_MS = 1200;
 // seed (see ATTEMPT_SEED_STRIDE below), not a re-run of the same one.
 const RETRIES_PER_CANDIDATE = 2;
 
+// Cap on the whole strict portfolio. Briefs that solve do so in well under
+// a second (20-seed sweeps: 0.05-0.4s); a brief that hasn't solved after
+// this long is a fallback case, and every footprint it still had to fail
+// was another few seconds of frozen page (villas: ~14s before the cap).
+const STRICT_TOTAL_MS = 6000;
+
 // Fallback (owner request 2026-10-02): when no footprint solves strictly,
 // lay the plan out with every soft requirement as a preference and flag
 // what was given up, rather than return nothing. Every footprint × a few
@@ -330,7 +336,9 @@ function solveLayoutCandidates(
     const attempts: SolvedLayout[] = [];
     let lastAttempt: SolvedLayout | undefined;
 
+    const strictStart = performance.now();
     outer: for (let c = 0; c < candidates.length; c++) {
+        if (performance.now() - strictStart > STRICT_TOTAL_MS) break;
         const footprint = snapFootprintToGrid(candidates[c]);
         for (let retry = 0; retry < RETRIES_PER_CANDIDATE; retry++) {
             const attemptSeed = prepared.seedNum + c * ATTEMPT_SEED_CANDIDATE_STRIDE + retry * ATTEMPT_SEED_RETRY_STRIDE;
