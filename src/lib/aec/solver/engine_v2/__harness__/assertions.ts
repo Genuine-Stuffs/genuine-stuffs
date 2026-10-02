@@ -281,6 +281,51 @@ export function assertI8_Reachable(layout: SolvedLayout): AssertionResult {
     };
 }
 
+// ── Fallback plans: every relaxed requirement it misses must be flagged ────
+// A fallback plan may break I3/I5/I8 — that is what it's for — but only
+// openly: each room pair failing I3 needs an ADJACENCY_MISSED flag on one
+// of the two rooms, each room failing I5 an EXTERNAL_WALL flag. (I8 is read
+// from the flags themselves, so it can't go unflagged.)
+
+export function assertCompromisesFlagged(
+    i3: AssertionResult, i5: AssertionResult, layout: SolvedLayout
+): AssertionResult {
+    const flags = layout.placement_issues ?? [];
+    const flaggedAdj = new Set(flags.filter(i => i.rule === "ADJACENCY_MISSED").map(i => i.room_id));
+    const flaggedExt = new Set(flags.filter(i => i.rule === "EXTERNAL_WALL").map(i => i.room_id));
+    const unflagged: string[] = [];
+    if (!i3.pass) {
+        for (const v of i3.detail.split("; ")) {
+            const m = /^(\S+)<->(\S+):/.exec(v);
+            if (m && !flaggedAdj.has(m[1]) && !flaggedAdj.has(m[2])) unflagged.push(`adjacency ${m[1]}<->${m[2]}`);
+        }
+    }
+    if (!i5.pass) {
+        for (const v of i5.detail.split("; ")) {
+            const m = /^(\S+) \(/.exec(v);
+            if (m && !flaggedExt.has(m[1])) unflagged.push(`outside wall ${m[1]}`);
+        }
+    }
+    return {
+        invariant: "F1_COMPROMISES_FLAGGED",
+        pass: unflagged.length === 0,
+        detail: unflagged.length === 0 ? `all ${flags.length} compromise(s) flagged` : `unflagged: ${unflagged.join("; ")}`,
+    };
+}
+
+/** Fallback plans: the never-relaxed invariants plus F1, instead of all I1–I8. */
+export function runFallbackAssertions(
+    layout: SolvedLayout,
+    graph: RoomGraph,
+    envelope: { width: number; height: number }
+): AssertionResult[] {
+    const all = runAllAssertions(layout, graph, envelope);
+    const get = (id: string) => all.find(r => r.invariant.startsWith(id))!;
+    // I3 in full (not hub-only): every declared pair the plan misses must be flagged.
+    const i3 = assertI3_AdjacencySatisfied(layout, graph, false);
+    return [get("I1"), get("I2"), get("I4"), get("I6"), get("I7"), assertCompromisesFlagged(i3, get("I5"), layout)];
+}
+
 // ── Aggregate runner ────────────────────────────────────────────────────────
 
 export function runAllAssertions(

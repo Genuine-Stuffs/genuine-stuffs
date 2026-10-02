@@ -292,6 +292,17 @@ function subdivideSuite(outer: RectCells, suite: Suite, gridW_cells: number, gri
     return result;
 }
 
+/** Fallback mode: requirements the strict search enforces become
+ * preferences that only rank candidates. Overlap, footprint and suite
+ * nesting stay hard — the geometry is always valid; what the plan gives up
+ * is flagged afterwards by the caller. */
+export interface SoftPreferences {
+    /** Pairs that should share a wall (all of them, hub edges included). */
+    pairs: AdjacencyPair[];
+    /** Rooms that should open onto circulation or a hub room. */
+    reach: ReachRules;
+}
+
 export interface SearchOutcome {
     placed: Map<string, RectCells>;
     failedUnitIds?: string[];
@@ -309,7 +320,8 @@ export function search(
     mustTouchPairs: AdjacencyPair[],
     floorIndex: number,
     reservedRects: ReservedRect[] = [],
-    reach: ReachRules = { targets: new Map(), anchors: new Map() }
+    reach: ReachRules = { targets: new Map(), anchors: new Map() },
+    soft?: SoftPreferences
 ): SearchOutcome {
     const startTime = performance.now();
     const rng = xorshift32(config.seed);
@@ -405,7 +417,14 @@ export function search(
         if (!n) return false;
         return n.zone !== 'circ' && !NO_WINDOW_TYPES.has(n.type);
     };
-    const unitNeedsExt = units.map(u => needsExternalWall(u.ids[0]));
+    // In fallback mode no unit is perimeter-bound; windows only rank.
+    const unitNeedsExt = units.map(u => !soft && needsExternalWall(u.ids[0]));
+    const unitWantsExt = units.map(u => needsExternalWall(u.ids[0]));
+    const preferByRoom = new Map<string, string[]>();
+    for (const p of soft?.pairs ?? []) {
+        preferByRoom.set(p.a, [...(preferByRoom.get(p.a) ?? []), p.b]);
+        preferByRoom.set(p.b, [...(preferByRoom.get(p.b) ?? []), p.a]);
+    }
 
     const reservedCells: RectCells[] = reservedRects.map(r => ({
         x_cells: metersToCellsFloor(r.x_m), y_cells: metersToCellsFloor(r.y_m),
@@ -459,7 +478,7 @@ export function search(
                     // bedroom's TRUE rect must touch, not the suite's box.
                     // Adjacency against each sub-room's true rect, too: a
                     // pair naming a bath/wardrobe is about where IT lands.
-                    if ((needsExternalWall(id) && !grid.touchesPerimeter(r)) || !adjacencySatisfiedFor(id, r)) { ok = false; break; }
+                    if ((!soft && needsExternalWall(id) && !grid.touchesPerimeter(r)) || !adjacencySatisfiedFor(id, r)) { ok = false; break; }
                 }
                 if (ok) out.push({ outer: cand, subs });
             }
@@ -551,6 +570,27 @@ export function search(
         });
     }
 
+    /** Fallback mode: how many preferences this candidate gives up,
+     * judged against what is placed so far — a window it lacks, a
+     * placed preferred neighbour it doesn't touch, and (once one exists)
+     * no placed connector touched. Fewest compromises are tried first. */
+    function compromises(u: number, cand: Cand): number {
+        let n = 0;
+        for (const [id, r] of cand.subs) {
+            if (unitWantsExt[u] && needsExternalWall(id) && !grid.touchesPerimeter(r)) n++;
+            for (const other of preferByRoom.get(id) ?? []) {
+                const o = placed.get(other) ?? soft!.reach.anchors.get(other);
+                if (o && !touches(r, o)) n++;
+            }
+            const targets = soft!.reach.targets.get(id);
+            if (targets) {
+                const placedTargets = [...targets].map(t => placed.get(t) ?? soft!.reach.anchors.get(t)).filter((x): x is RectCells => !!x);
+                if (placedTargets.length > 0 && !placedTargets.some(t => touches(r, t))) n++;
+            }
+        }
+        return n;
+    }
+
     /** Try order for the unit MRV picked. Every survivor already touches
      * all placed must-touch neighbors, so ordering reduces to proximity to
      * them; with none placed yet, random (seeded) order, as before.
@@ -567,6 +607,7 @@ export function search(
         const keyed = viable.map(cand => {
             const c = cand.subs.get(primaryId)!;
             let key = units[u].shapes ? c.w_cells * c.h_cells * 1e6 : 0;
+            if (soft) key += compromises(u, cand) * 1e12;
             if (activeNeighbors.length > 0) {
                 const cx = c.x_cells + c.w_cells / 2, cy = c.y_cells + c.h_cells / 2;
                 for (const n of activeNeighbors) key += (cx - (n.x_cells + n.w_cells / 2)) ** 2 + (cy - (n.y_cells + n.h_cells / 2)) ** 2;

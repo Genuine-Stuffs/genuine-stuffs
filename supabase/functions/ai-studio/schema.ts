@@ -91,6 +91,10 @@ export interface SolvedLayout {
     // the feasibility gate, S-001 search exhausted, S-002 out of time).
     // engine_v2/failure_messages.ts turns these into plain language.
     solver_failure?: SolverFailure;
+    // True when no layout met every requirement and this is the fallback:
+    // complete, valid geometry with each compromise in placement_issues.
+    // solver_failure then says why the strict search failed.
+    solver_fallback?: boolean;
     // Phase 5 rubric score (engine_v2/score.ts), 0–100 per part. Set on
     // layouts returned by solveLayoutVariants(); absent elsewhere.
     layout_score?: {

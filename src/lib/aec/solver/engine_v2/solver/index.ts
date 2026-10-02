@@ -6,15 +6,15 @@
  * ═══════════════════════════════════════════════════════════════════════
  */
 
-import { RoomGraph, HiveRoom, GraphNode, AdjacencyPair, identifyHubs, deriveSuites, findMustTouchPairs, suiteEdgeKeys } from '../graph';
+import { RoomGraph, HiveRoom, GraphNode, AdjacencyPair, identifyHubs, deriveSuites, findMustTouchPairs, suiteEdgeKeys, NO_WINDOW_TYPES } from '../graph';
 import { BuildingFootprint } from '../shapes';
 import { SolverConfig, SolveResult, deriveDimensionHints, PlacedRect, ReservedRect } from './types';
 import { buildFootprintGrid, buildUnits, orderUnits, SearchUnit, ReachRules } from './search';
 import { RectCells } from './grid';
 import { GRID_RESOLUTION_M, metersToCells } from './units';
-import { runWithRelaxation } from './relax';
+import { runWithRelaxation, runFallback } from './relax';
 import { checkFeasibility } from './feasibility';
-import { validatePlacement, isConnectorType, isCorridorLike, isSubRoom } from '../placement_validator';
+import { validatePlacement, isConnectorType, isCorridorLike, isSubRoom, ValidationIssue } from '../placement_validator';
 import { PlacedRoom } from '../../../../../../supabase/functions/ai-studio/schema';
 
 const DEFAULT_CORRIDOR_W_M = 1.5;   // ported constant, zones.ts::allocateZones()
@@ -25,6 +25,10 @@ export interface CirculationOptions {
     /** Place the stairwell on this floor (ground floor of a duplex). The
      * floor above receives it back as a fixed `stairwell_void` reservedRect. */
     placeStairwell?: boolean;
+    /** Fallback mode (relax.ts::runFallback): must-touch pairs, windows and
+     * reachability become preferences; whatever the plan gives up comes
+     * back as placement issues. */
+    fallback?: boolean;
 }
 
 interface Circulation {
@@ -151,9 +155,13 @@ export function solvePlacement(
     // Feasibility gate (v1.0 Part D Phase 1, reopened): reject provably-
     // unsolvable programs in milliseconds instead of burning the full
     // search budget to discover the same thing.
+    // In fallback mode only F-002 (a room wider than the building) still
+    // rules a floor out: degree (F-004) and area (F-001, rooms may flex
+    // ±25%) are exactly what the fallback is allowed to compromise on.
     const feasibility = checkFeasibility(grid, rawUnits, graph, floorIndex, combinedW_m, combinedH_m);
-    if (!feasibility.feasible) {
-        const failed = feasibility.checks.filter(c => !c.passed);
+    const blocking = feasibility.checks.filter(c => !c.passed && (!options.fallback || c.code === 'F-002'));
+    if (blocking.length > 0) {
+        const failed = blocking;
         const summary = failed.map(c => `${c.code}: ${c.detail}`).join(' | ');
         console.warn(`[SOLVER_V3] feasibility gate rejected floor ${floorIndex}: ${summary}`);
         return {
@@ -179,11 +187,15 @@ export function solvePlacement(
     const units = orderUnits(rawUnits, graph, floorIndex, mustTouchPairs);
     const hints = new Map(deriveDimensionHints(rawRooms.filter(r => r.floor === floorIndex)).map(h => [h.roomId, h]));
 
-    const result = runWithRelaxation(
-        units, graph, () => buildFootprintGrid(footprint, reservedRects).grid,
-        combinedW_m, combinedH_m, config, hints, mustTouchPairs, floorIndex,
-        reservedRects, circulation.reach
-    );
+    const buildGrid = () => buildFootprintGrid(footprint, reservedRects).grid;
+    const result = options.fallback
+        ? runFallback(units, graph, buildGrid, combinedW_m, combinedH_m, config, hints,
+            { pairs: mustTouchPairs, reach: circulation.reach }, floorIndex, reservedRects)
+        : runWithRelaxation(
+            units, graph, buildGrid,
+            combinedW_m, combinedH_m, config, hints, mustTouchPairs, floorIndex,
+            reservedRects, circulation.reach
+        );
 
     if (result.status === 'SOLVED' || result.status === 'SOLVED_RELAXED') {
         const placedRooms: PlacedRoom[] = result.placements.map((p: PlacedRect) => ({
@@ -205,7 +217,59 @@ export function solvePlacement(
         if (result.status === 'SOLVED' && issues.length > 0) {
             console.warn(`[SOLVER_V3] SOLVED result has ${issues.length} validator issue(s) — solver constraint bug:`, issues);
         }
+        if (options.fallback) {
+            issues.push(...fallbackCompromises(result.placements, mustTouchPairs, units, labelOf, graph, combinedW_m, combinedH_m, issues));
+        }
         return { ...result, issues };
     }
     return result;
+}
+
+/** Fallback plans flag what the strict search would have enforced and the
+ * validator doesn't already report: declared pairs that don't share a
+ * wall, and rooms whose area moved more than the normal ±10%. (Windows and
+ * reachability are reported by validatePlacement as usual.) */
+function fallbackCompromises(
+    placements: PlacedRect[], pairs: AdjacencyPair[], units: SearchUnit[], labelOf: (id: string) => string,
+    graph: RoomGraph, buildingW_m: number, buildingH_m: number, already: ValidationIssue[]
+): ValidationIssue[] {
+    const byId = new Map(placements.map(p => [p.id, p]));
+    const issues: ValidationIssue[] = [];
+    // Every room the strict search keeps on the perimeter (zone not circ,
+    // not a no-window type) — the validator only checks habitable rooms,
+    // so a garage or wet kitchen moved inside would otherwise go unflagged.
+    const flagged = new Set(already.filter(i => i.rule === 'EXTERNAL_WALL').map(i => i.room_id));
+    const eps = 1e-6;
+    for (const p of placements) {
+        const n = graph.nodes.get(p.id);
+        if (!n || n.zone === 'circ' || NO_WINDOW_TYPES.has(n.type) || flagged.has(p.id)) continue;
+        const onEdge = p.x_m < eps || p.y_m < eps || p.x_m + p.w_m > buildingW_m - eps || p.y_m + p.h_m > buildingH_m - eps;
+        if (!onEdge) issues.push({ room_id: p.id, rule: 'EXTERNAL_WALL', detail: `${labelOf(p.id)} has no outside wall (no window or direct outside access).` });
+    }
+    for (const p of pairs) {
+        const a = byId.get(p.a), b = byId.get(p.b);
+        if (a && b && !shareWall_m(a, b)) {
+            issues.push({ room_id: p.a, rule: 'ADJACENCY_MISSED', detail: `${labelOf(p.a)} doesn't share a wall with ${labelOf(p.b)}.` });
+        }
+    }
+    for (const u of units) {
+        const placedArea = u.ids.reduce((s, id) => { const r = byId.get(id); return s + (r ? r.w_m * r.h_m : 0); }, 0);
+        const change = (placedArea - u.totalArea_m2) / u.totalArea_m2;
+        if (u.totalArea_m2 > 0 && Math.abs(change) > 0.10 && !u.shapes) {
+            issues.push({
+                room_id: u.ids[0], rule: 'AREA_ADJUSTED',
+                detail: `${labelOf(u.ids[0])} is ${Math.round(Math.abs(change) * 100)}% ${change < 0 ? 'smaller' : 'larger'} than requested (${placedArea.toFixed(1)} m² vs ${u.totalArea_m2.toFixed(1)} m²).`,
+            });
+        }
+    }
+    return issues;
+}
+
+/** True when two rects share at least 1.0 m of wall (D5). */
+function shareWall_m(a: PlacedRect, b: PlacedRect): boolean {
+    const eps = 1e-6, min = 1.0 - eps;
+    const overlap = (a0: number, a1: number, b0: number, b1: number) => Math.min(a1, b1) - Math.max(a0, b0);
+    if (Math.abs(a.x_m + a.w_m - b.x_m) < eps || Math.abs(b.x_m + b.w_m - a.x_m) < eps) return overlap(a.y_m, a.y_m + a.h_m, b.y_m, b.y_m + b.h_m) >= min;
+    if (Math.abs(a.y_m + a.h_m - b.y_m) < eps || Math.abs(b.y_m + b.h_m - a.y_m) < eps) return overlap(a.x_m, a.x_m + a.w_m, b.x_m, b.x_m + b.w_m) >= min;
+    return false;
 }

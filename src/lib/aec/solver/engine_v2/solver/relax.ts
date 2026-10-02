@@ -16,7 +16,7 @@
 import { OccupancyGrid, RectCells } from './grid';
 import { SolverConfig, SolveResult, PlacedRect, RoomDimensionHint, ReservedRect } from './types';
 import { RoomGraph, AdjacencyPair } from '../graph';
-import { search, SearchUnit, SearchOutcome, ReachRules } from './search';
+import { search, SearchUnit, SearchOutcome, ReachRules, SoftPreferences } from './search';
 import { cellsToMeters } from './units';
 
 function toPlacedRects(placed: Map<string, RectCells>): PlacedRect[] {
@@ -115,4 +115,36 @@ export function runWithRelaxation(
     const proven = finalStatus === 'UNSAT' && !anyRungSearched;
 
     return { status: finalStatus, placements: [], relaxationsApplied: applied, issues: [], diagnostics: { elapsed_ms: elapsed, nodesExplored: totalNodesExplored, proven } };
+}
+
+/** Area tolerance in fallback mode — the RELAX-MINWIDTH rung's ±25%. */
+export const FALLBACK_AREA_TOLERANCE = 0.25;
+
+/**
+ * Last resort after the full ladder fails (owner request 2026-10-02:
+ * always produce a complete plan, with every compromise flagged). One
+ * search in which must-touch pairs, windows and reachability only RANK
+ * candidates (SoftPreferences) and room areas may flex ±25%. Overlap,
+ * footprint and suite nesting stay hard, so the geometry is valid (D8);
+ * the caller flags what was given up. Status SOLVED_RELAXED with rung
+ * FALLBACK on success; UNSAT/TIMEOUT (never proven) otherwise.
+ */
+export function runFallback(
+    units: SearchUnit[], graph: RoomGraph,
+    buildGrid: () => OccupancyGrid,
+    combinedW_m: number, combinedH_m: number,
+    baseConfig: SolverConfig, dimensionHints: Map<string, RoomDimensionHint>,
+    prefs: SoftPreferences,
+    floorIndex: number,
+    reservedRects: ReservedRect[] = []
+): SolveResult {
+    const startTime = performance.now();
+    const config = { ...baseConfig, areaTolerance: FALLBACK_AREA_TOLERANCE };
+    const noHardReach: ReachRules = { targets: new Map(), anchors: prefs.reach.anchors };
+    const outcome = search(units, graph, buildGrid(), combinedW_m, combinedH_m, config, dimensionHints, [], floorIndex, reservedRects, noHardReach, prefs);
+    const diagnostics = { elapsed_ms: performance.now() - startTime, nodesExplored: outcome.nodesExplored };
+    if (!outcome.failedUnitIds || outcome.failedUnitIds.length === 0) {
+        return { status: 'SOLVED_RELAXED', placements: toPlacedRects(outcome.placed), relaxationsApplied: ['FALLBACK'], issues: [], diagnostics };
+    }
+    return { status: outcome.timedOut ? 'TIMEOUT' : 'UNSAT', placements: [], relaxationsApplied: ['FALLBACK'], issues: [], diagnostics: { ...diagnostics, proven: false } };
 }

@@ -24,7 +24,7 @@ import { fileURLToPath } from "url";
 
 import { solveLayoutV2 } from "../index";
 import { buildGraph, HiveRoom } from "../graph";
-import { runAllAssertions, AssertionResult } from "./assertions";
+import { runAllAssertions, runFallbackAssertions, AssertionResult } from "./assertions";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURES_DIR = join(__dirname, "..", "__fixtures__");
@@ -41,6 +41,8 @@ interface FixtureOutcome {
     isVacuous?: boolean;
     solverStatus?: string;
     unsatProven?: boolean;
+    fallback?: boolean;
+    compromises?: Record<string, number>;
     crashMessage?: string;
     results: AssertionResult[];
     elapsed_ms: number;
@@ -72,9 +74,13 @@ function runFixture(name: string, raw: any): FixtureOutcome {
         const layout = solveLayoutV2(raw, envelope, { floors_override: floors });
         const graph  = buildGraph((raw.rooms ?? []) as HiveRoom[]);
         const isVacuous = layout.solver_status === 'TIMEOUT';
-        const results = (isVacuous || layout.solver_status === 'UNSAT') ? [] : runAllAssertions(layout, graph, buildableEnvelope);
+        const evaluate = layout.solver_fallback ? runFallbackAssertions : runAllAssertions;
+        const results = (isVacuous || layout.solver_status === 'UNSAT') ? [] : evaluate(layout, graph, buildableEnvelope);
+        const compromises: Record<string, number> = {};
+        for (const i of layout.placement_issues ?? []) compromises[i.rule] = (compromises[i.rule] ?? 0) + 1;
         return {
             fixture: name, loaded: true, crashed: false, isVacuous, solverStatus: layout.solver_status,
+            fallback: layout.solver_fallback === true, compromises,
             unsatProven: layout.solver_unsat_proven === true,
             results, elapsed_ms: performance.now() - start,
         };
@@ -104,7 +110,10 @@ function printTable(outcomes: FixtureOutcome[]): void {
             continue;
         }
         const passCount = o.results.filter(r => r.pass).length;
-        console.log(`\n${o.fixture} — ${passCount}/${o.results.length} invariants passed (${o.elapsed_ms.toFixed(0)}ms)`);
+        const kind = o.fallback
+            ? `FALLBACK plan — ${passCount}/${o.results.length} hard invariants passed, compromises ${JSON.stringify(o.compromises)}`
+            : `${passCount}/${o.results.length} invariants passed`;
+        console.log(`\n${o.fixture} — ${kind} (${o.elapsed_ms.toFixed(0)}ms)`);
         for (const r of o.results) {
             const mark = r.pass ? "PASS" : "FAIL";
             console.log(`  [${mark}] ${r.invariant} — ${r.detail}`);

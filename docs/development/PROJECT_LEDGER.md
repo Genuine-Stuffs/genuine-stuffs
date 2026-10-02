@@ -44,7 +44,12 @@ Read in this order. ★ marks the documents that are authoritative today.
 | D7 | The legacy path is deleted only after a parity gate. (Not followed; see §4.) |
 | D8 | **The solver never returns invalid geometry.** It returns a typed failure (UNSAT/TIMEOUT) with diagnostics. No post-hoc "repair". |
 
-Relaxation ladder, strictly in order: `RELAX-AREA-20` → `RELAX-SOFT-ADJ` (never drop hub or corridor edges) → `RELAX-MINWIDTH` → UNSAT. The error-code taxonomy (N-001…N-008, F-001…F-005, S-001/S-002, R-001) is closed: **no new codes without approval**.
+Relaxation ladder, strictly in order: `RELAX-AREA-20` → `RELAX-SOFT-ADJ` (never drop hub or corridor edges) → `RELAX-MINWIDTH` → UNSAT. **Amended 2026-10-02 at the owner's request:** if every footprint ends UNSAT/TIMEOUT, a final **`FALLBACK`** step (`relax.ts::runFallback`) runs.
+- **Still enforced:** overlap, footprint, suite nesting, and stair alignment (D8 holds).
+- **Preferences only:** must-touch pairs, outside walls and reachability rank candidates. Areas may flex ±25%.
+- **Gate:** only F-002 still blocks a floor.
+- **Result:** a complete plan (`solver_fallback: true`), with each compromise flagged (`ADJACENCY_MISSED`, `EXTERNAL_WALL`, `CORRIDOR_ADJACENCY`, `AREA_ADJUSTED`) and the strict failure kept in `solver_failure`.
+- **Harness:** fallback plans are judged on I1/I2/I4/I6/I7 plus **F1_COMPROMISES_FLAGGED**, which fails if any I3/I5 miss is unflagged. The error-code taxonomy (N-001…N-008, F-001…F-005, S-001/S-002, R-001) is closed: **no new codes without approval**.
 
 ### 2.2 Session protocol (rebuild plan A2/A3)
 
@@ -123,7 +128,7 @@ Know these before citing the plan as fact.
 | F-003: disconnected-graph check | **Intentionally omitted** (`d0784dd`) | It would false-positive on ordinary rooms. I8 now enforces reachability instead. |
 | Phase 4: `refine.ts` (snap, doors, R-001) | Not built. `doors.ts` handles door placement separately. | Open |
 | Phase 5: `score.ts` rubric; variants come from seeds 1–5, are deduplicated, and the top 3 are kept | `score.ts` implements the rubric. Variants come from the **footprint portfolio**, not seeds. Up to 4 are kept, sorted best-first, with no dedupe (each comes from a different footprint). Wired into AI Studio via a Web Worker (Oct 2). | Done, with that difference |
-| Phase 6: pipeline.ts, user-facing messages per code, week-one monitoring | Not built as specified | Open |
+| Phase 6: pipeline.ts, user-facing messages per code, week-one monitoring | Messages per code exist (`failure_messages.ts`) and are shown in AI Studio. There's no pipeline.ts and no monitoring. | Partly done |
 | A3: strict TS, no `any` | `tsconfig.app.json` has `"strict": false`. engine_v2 contains 17 `any`/`@ts-ignore`. | Technical debt |
 | Commit format `phase-N: … [harness: X/Y passing]` | Conventional commits (`feat(solver-v3): …`) since July | The current convention is in use |
 | UNSAT means "proven" | `relax.ts:104` labels any early search exhaustion as UNSAT, and `solveLayoutV2` reports the last attempt's status | Found 2026-10-02. This is the first item in the Oct 2 plan. |
@@ -158,7 +163,7 @@ Know these before citing the plan as fact.
 
 1. ~~Honest UNSAT/TIMEOUT labelling~~ done in `5b59633`: hive-005 turned out to be a TIMEOUT, not proven UNSAT, so it is a search problem.
 2. Large villas (hive-004 8/20, hive-005 0/20, live brief 0/10): backjumping was tried and didn't help (§5). The remaining lever is a local-search fallback that returns a complete plan with flagged issues (item 3). **Since `b84c902`, a failed ground floor gives a blank plan** (the upper floor is no longer drawn on its own), and the UI shows no message.
-3. A local-search fallback so a hard case yields a flagged plan instead of a blank one.
+3. ~~Fallback plan instead of a blank~~ done on Oct 2. Failed floors also get a plain-language explanation (`failure_messages.ts`, one message per F-/S- code). The next quality step is fewer compromises per fallback plan: up to ~10 missed adjacencies on the villas.
 4. ~~Wire `solveLayoutVariants()` into `AIStudio.tsx`~~ done on Oct 2: scored options in a Web Worker, shown as an "Option N · score" picker.
 5. Office window: decided 2026-10-02 (§2.4), still to implement. It would only be a last resort after normal search fails, and it does **not** unblock hive-004/005 (§5).
 6. Rebuild-plan phases not yet built: refinement (Phase 4), scoring (Phase 5), the pipeline plus user messages per code (Phase 6). Then update the plan to v1.1 with the divergences in §4.

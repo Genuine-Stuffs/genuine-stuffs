@@ -68,6 +68,18 @@ const CANDIDATE_FLOOR_BUDGET_MS = 1200;
 // seed (see ATTEMPT_SEED_STRIDE below), not a re-run of the same one.
 const RETRIES_PER_CANDIDATE = 2;
 
+// Fallback (owner request 2026-10-02): when no footprint solves strictly,
+// lay the plan out with every soft requirement as a preference and flag
+// what was given up, rather than return nothing. Every footprint × a few
+// seeds, best compromise cost wins (see fallbackPlan). Without adjacency/
+// window/reach constraints each attempt is a plain packing search and
+// normally finishes in ~0.1s.
+// Measured: a fallback attempt that succeeds takes 50–100ms; one that
+// doesn't would burn its whole budget, so the budget stays short.
+const FALLBACK_FLOOR_BUDGET_MS = 300;
+const FALLBACK_SEEDS = 3;
+const FALLBACK_TOTAL_MS = 1500;
+
 // Large, mutually-coprime-ish strides so (candidateIndex, retry) pairs
 // don't collide or correlate for any realistic candidate/retry count —
 // exact values don't matter beyond "big and not a small multiple of
@@ -158,7 +170,8 @@ function attemptWithFootprint(
     prepared: PreparedProgram,
     footprint: BuildingFootprint,
     budgetMsPerFloor: number,
-    attemptSeed: number
+    attemptSeed: number,
+    fallback: boolean = false
 ): SolvedLayout {
     const { hiveRooms, graph, rooms, isDuplex } = prepared;
 
@@ -199,7 +212,7 @@ function attemptWithFootprint(
 
         const config: SolverConfig = { budget_ms: budgetMsPerFloor, areaTolerance: 0.10, seed: attemptSeed + floorIndex };
         const result = solvePlacement(graph, footprint, floorIndex, hiveRooms, config, reservedRects,
-            { placeStairwell: floorIndex === 0 && isDuplex });
+            { placeStairwell: floorIndex === 0 && isDuplex, fallback });
 
         if (result.status === 'TIMEOUT') finalStatus = 'TIMEOUT';
         else if (result.status === 'UNSAT' && finalStatus !== 'TIMEOUT') finalStatus = 'UNSAT';
@@ -328,7 +341,46 @@ function solveLayoutCandidates(
         }
     }
 
-    return { successes, lastAttempt: summarizeFailures(attempts, lastAttempt!), graph: prepared.graph };
+    const failed = summarizeFailures(attempts, lastAttempt!);
+    if (successes.length === 0) {
+        const plan = fallbackPlan(program, envelope, prepared, candidates, failed);
+        if (plan) successes.push(plan);
+    }
+    return { successes, lastAttempt: failed, graph: prepared.graph };
+}
+
+/** How bad a fallback plan's compromises are, for picking the best one:
+ * an unreachable room or a room with no outside wall outweighs a missed
+ * adjacency, which outweighs a resized room. Advisory bath notes are free. */
+const COMPROMISE_WEIGHT: Record<string, number> = {
+    CORRIDOR_ADJACENCY: 5, EXTERNAL_WALL: 4, ADJACENCY_MISSED: 2, AREA_ADJUSTED: 1, BATH_VENTILATION: 0,
+};
+const compromiseCost = (l: SolvedLayout) =>
+    (l.placement_issues ?? []).reduce((s, i) => s + (COMPROMISE_WEIGHT[i.rule] ?? 1), 0);
+
+/** A complete plan with flagged compromises, or undefined if even the
+ * fallback can't place every room (then the strict failure is reported).
+ * Each attempt is a plain packing search and usually takes ~0.1s, so it
+ * tries every footprint with a few seeds (within FALLBACK_TOTAL_MS) and
+ * keeps the plan whose compromises cost least. Carries the strict failure
+ * so the UI can say why it compromised. */
+function fallbackPlan(
+    program: SpatialProgram, envelope: PlotEnvelope, prepared: PreparedProgram,
+    candidates: BuildingFootprint[], strictFailure: SolvedLayout
+): SolvedLayout | undefined {
+    const start = performance.now();
+    let best: SolvedLayout | undefined;
+    outer: for (let retry = 0; retry < FALLBACK_SEEDS; retry++) {
+        for (let c = 0; c < candidates.length; c++) {
+            if (best && performance.now() - start > FALLBACK_TOTAL_MS) break outer;
+            const seed = prepared.seedNum + c * ATTEMPT_SEED_CANDIDATE_STRIDE + retry * ATTEMPT_SEED_RETRY_STRIDE;
+            const result = attemptWithFootprint(program, envelope, prepared, snapFootprintToGrid(candidates[c]), FALLBACK_FLOOR_BUDGET_MS, seed, true);
+            if (isFullSuccess(result) && (!best || compromiseCost(result) < compromiseCost(best))) best = result;
+        }
+    }
+    if (!best) return undefined;
+    console.warn(`[SOLVER_V2] strict solve failed; fallback plan with ${best.placement_issues?.length ?? 0} flagged compromise(s)`);
+    return { ...best, solver_fallback: true, solver_failure: strictFailure.solver_failure };
 }
 
 /** The status a failed portfolio reports must describe every attempt, not

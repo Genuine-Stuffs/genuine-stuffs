@@ -67,6 +67,7 @@ import AECMassingView from '@/components/aec/AECMassingView';
 import { solveLayoutV2 } from '@/lib/aec/solver/engine_v2';
 import { useLayoutOptions, layoutSignature } from '@/hooks/use-layout-options';
 import { explainFailure } from '@/lib/aec/solver/engine_v2/failure_messages';
+import { ADVISORY_RULES } from '@/lib/aec/solver/engine_v2/placement_validator';
 import { runComplianceCheck, ComplianceReport } from '@/lib/aec/compliance_engine';
 
 // --- CLIENT-SIDE SANITIZER: Guarantee no JSON leaks in chat bubble ---
@@ -675,7 +676,9 @@ const AIStudio = () => {
                     // Show this plan now; alternatives are computed off the
                     // main thread and offered once they arrive — only if the
                     // user is still looking at this same plan.
-                    if (solved.solver_status === 'SOLVED' || solved.solver_status === 'SOLVED_RELAXED') {
+                    // A fallback plan means nothing solved strictly: the worker
+                    // would only repeat that search, so don't offer options.
+                    if ((solved.solver_status === 'SOLVED' || solved.solver_status === 'SOLVED_RELAXED') && !solved.solver_fallback) {
                         const shownSig = layoutSignature(solved);
                         layoutOptions.request({ program, envelope, options: solverOptions }, (variants) => {
                             setDesignPackage((prev: any) => {
@@ -807,8 +810,11 @@ const AIStudio = () => {
     // a room is genuinely unreachable or windowless) from WARN
     // (BATH_VENTILATION — NBC-permitted with mechanical venting, informational).
     const placementIssues = stableLayout?.placement_issues ?? [];
-    const severeIssueCount = placementIssues.filter(i => i.rule !== 'BATH_VENTILATION').length;
+    const severeIssueCount = placementIssues.filter(i => !ADVISORY_RULES.has(i.rule)).length;
     const warnIssueCount = placementIssues.length - severeIssueCount;
+    // Fallback plan: complete and valid, but it gave things up — say so
+    // above the plan, with the reason the strict layout failed.
+    const compromiseExplanation = stableLayout?.solver_fallback ? explainFailure(stableLayout?.solver_failure) : null;
 
     return (
         <div className="flex flex-col h-screen md:h-[100dvh] md:relative fixed inset-0 overflow-hidden bg-white dark:bg-black z-10">
@@ -1300,6 +1306,31 @@ const AIStudio = () => {
                                                             </div>
                                                         ) : (
                                                             <>
+                                                                {compromiseExplanation && (
+                                                                    <div className="p-5 rounded-2xl border border-amber-800 bg-amber-950 flex flex-col gap-3 shadow-2xl">
+                                                                        <div className="flex items-start gap-3">
+                                                                            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+                                                                            <div>
+                                                                                <p className="text-sm font-black text-amber-100">Compromise plan — not every requirement could be met</p>
+                                                                                <p className="text-xs text-amber-200/80 mt-1">
+                                                                                    Every room is placed and nothing overlaps, but some rooms don't touch the rooms they should, lack an outside wall, or were resized. Each one is listed under Placement Notes below for review.
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">Why a full plan wasn't possible</p>
+                                                                            {compromiseExplanation.reasons.map((r, i) => (
+                                                                                <p key={i} className="text-xs text-amber-100">{r}</p>
+                                                                            ))}
+                                                                        </div>
+                                                                        <div className="space-y-1">
+                                                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-400">For a plan without compromises</p>
+                                                                            {compromiseExplanation.suggestions.map((t, i) => (
+                                                                                <p key={i} className="text-xs text-amber-100">• {t}</p>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
                                                                 <AECFloorPlan layout={stableLayout} />
                                                                 <AECMassingView layout={stableLayout} />
                                                                 <AECBillOfQuantities layout={stableLayout} materials={designPackage.material_schedule || []} />
@@ -1390,7 +1421,7 @@ const AIStudio = () => {
                                                                             </h4>
                                                                             <p className="text-[9px] text-slate-400">
                                                                                 {severeIssueCount} room{severeIssueCount === 1 ? '' : 's'} flagged for review
-                                                                                {warnIssueCount > 0 ? ` · ${warnIssueCount} ventilation note${warnIssueCount === 1 ? '' : 's'}` : ''}
+                                                                                {warnIssueCount > 0 ? ` · ${warnIssueCount} advisory note${warnIssueCount === 1 ? '' : 's'}` : ''}
                                                                                 {' · solver-derived, generated automatically'}
                                                                             </p>
                                                                         </div>
@@ -1400,12 +1431,12 @@ const AIStudio = () => {
                                                                 <div className="space-y-1.5 mt-1">
                                                                     {placementIssues.map((issue, i) => (
                                                                         <div key={i} className={`flex items-start gap-3 px-3 py-2 rounded-lg text-[10px] ${
-                                                                            issue.rule === 'BATH_VENTILATION'
+                                                                            ADVISORY_RULES.has(issue.rule)
                                                                                 ? 'bg-amber-900/40 text-amber-200'
                                                                                 : 'bg-red-900/40 text-red-200'
                                                                         }`}>
                                                                             <span className="font-black mt-0.5 shrink-0">
-                                                                                {issue.rule === 'BATH_VENTILATION' ? 'WARN' : 'REVIEW'}
+                                                                                {ADVISORY_RULES.has(issue.rule) ? 'WARN' : 'REVIEW'}
                                                                             </span>
                                                                             <span>{issue.detail}</span>
                                                                         </div>

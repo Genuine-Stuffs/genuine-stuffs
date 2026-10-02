@@ -41,9 +41,16 @@ const isHabitable = (type: string) =>
 
 export interface ValidationIssue {
     room_id: string;
-    rule: 'CORRIDOR_ADJACENCY' | 'EXTERNAL_WALL' | 'BATH_VENTILATION';
+    rule: 'CORRIDOR_ADJACENCY' | 'EXTERNAL_WALL' | 'BATH_VENTILATION' | 'ADJACENCY_MISSED' | 'AREA_ADJUSTED';
     detail: string;
 }
+
+/** Issue rules that are advisory — the plan works, a professional should
+ * review — as opposed to a room that is unreachable or a habitable room
+ * with no window. Shared with the UI's WARN/REVIEW split. ADJACENCY_MISSED
+ * and AREA_ADJUSTED come only from fallback plans. */
+export const ADVISORY_RULES: ReadonlySet<ValidationIssue['rule']> =
+    new Set(['BATH_VENTILATION', 'ADJACENCY_MISSED', 'AREA_ADJUSTED']);
 
 function sharesWall(a: PlacedRoom, b: PlacedRoom): boolean {
     const aR = a.x + a.width, aB = a.y + a.depth;
