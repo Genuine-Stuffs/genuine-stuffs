@@ -87,8 +87,27 @@ const LABEL_FALLBACK: Array<[ZoneType, string[]]> = [
                  'office', 'guest']],
 ];
 
+/** The Hive's "type" is free text: the same room arrives as
+ * "master_bedroom" in one payload and "master bedroom" in the next
+ * (hive-004/005). Every lookup table here is keyed snake_case, so an
+ * unnormalized "master bedroom" silently missed BEDROOM_TYPES — the
+ * master suite was never derived and its bath/wardrobe became
+ * free-standing rooms the placer had to fit separately. Short forms the
+ * Hive also emits ("living", "dining") alias to the canonical key, so the
+ * validator's living_room/dining_room checks see them too. */
+const TYPE_ALIASES: Record<string, string> = {
+    living: 'living_room', lounge: 'living_room', sitting_room: 'living_room',
+    dining: 'dining_room', family: 'family_room', family_lounge: 'family_room',
+    master: 'master_bedroom', corridor: 'circulation',
+};
+
+export function normalizeRoomType(type: string | undefined): string | undefined {
+    const t = type?.toLowerCase().trim().replace(/[\s-]+/g, '_');
+    return t ? (TYPE_ALIASES[t] ?? t) : undefined;
+}
+
 export function classifyRoom(room: { type?: string; name?: string; room_id: string }): ZoneType {
-    const t = room.type?.toLowerCase().trim();
+    const t = normalizeRoomType(room.type);
     if (t && TYPE_TO_ZONE[t]) return TYPE_TO_ZONE[t];
 
     // Fallback: label keywords (name, then room_id)
@@ -142,7 +161,7 @@ export function buildGraph(rooms: HiveRoom[]): RoomGraph {
         nodes.set(r.room_id, {
             id:        r.room_id,
             label:     r.name ?? r.room_id,
-            type:      r.type ?? 'unknown',
+            type:      normalizeRoomType(r.type) ?? 'unknown',
             zone,
             floor:     r.floor ?? 0,
             area:      r.area_m2 ?? 9.0,
