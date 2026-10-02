@@ -253,21 +253,32 @@ export function deriveSuites(graph: RoomGraph, floorIndex: number): Suite[] {
         .map(id => graph.nodes.get(id)!)
         .filter(n => BEDROOM_TYPES.has(n.type) || (n.type === 'unknown' && n.zone === 'private' && classifyByBedroomLabel(n.label)));
 
-    const suites: Suite[] = bedrooms.map(bed => {
-        const subs: string[] = [];
-        for (const neighborId of bed.neighbors) {
-            const neighbor = graph.nodes.get(neighborId);
-            if (!neighbor) continue;
-            const isSubType = SUB_ROOM_TYPES.has(neighbor.type) ||
-                (STORAGE_TYPES.has(neighbor.type) && neighbor.degree === 1) ||
-                (neighbor.type === 'unknown' && classifyBySubLabel(neighbor.label));
-            if (isSubType) subs.push(neighbor.id);
-        }
+    const isSub = (n: GraphNode) => SUB_ROOM_TYPES.has(n.type) ||
+        (STORAGE_TYPES.has(n.type) && n.degree === 1) ||
+        (n.type === 'unknown' && classifyBySubLabel(n.label));
+
+    // Each sub-room belongs to exactly ONE suite. A bath two bedrooms both
+    // list (hive-003's Bathroom 2: Master Suite and Bedroom 2) used to land
+    // in both suites — placed twice, the second rect silently overwriting
+    // the first, and I4 demanding it nest in both. It goes to the bedroom
+    // with the fewest sub-rooms so far, then the fewest connections, then
+    // the lower id; its edge to the other bedroom stays an ordinary
+    // must-touch pair (findMustTouchPairs skips suite edges only).
+    const subsOf = new Map<string, string[]>(bedrooms.map(b => [b.id, []]));
+    const subIds = [...new Set(bedrooms.flatMap(b => [...b.neighbors]))]
+        .filter(id => { const n = graph.nodes.get(id); return !!n && isSub(n); })
+        .sort();
+    for (const subId of subIds) {
+        const owners = bedrooms.filter(b => b.neighbors.has(subId)).sort((a, b) =>
+            subsOf.get(a.id)!.length - subsOf.get(b.id)!.length || a.degree - b.degree || a.id.localeCompare(b.id));
+        subsOf.get(owners[0].id)!.push(subId);
+    }
+
+    return bedrooms.map(bed => {
+        const subs = subsOf.get(bed.id)!;
         const totalArea = bed.area + subs.reduce((s, id) => s + (graph.nodes.get(id)?.area ?? 0), 0);
         return { bedroomId: bed.id, subIds: subs, totalArea };
     });
-
-    return suites;
 }
 
 // Fallback label checks — only used when "type" is "unknown" (missing
