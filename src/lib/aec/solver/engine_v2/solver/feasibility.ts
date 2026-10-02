@@ -37,6 +37,7 @@ import { RoomGraph } from '../graph';
 import { OccupancyGrid } from './grid';
 import { GRID_RESOLUTION_M } from './units';
 import { SearchUnit } from './search';
+import { minWidthFor } from './room_shape';
 
 export interface FeasibilityCheck {
     code: string;
@@ -64,25 +65,11 @@ const AREA_BUDGET_RATIO = 0.85;
 // axis-aligned rectangle (v1.0 Part C).
 const MAX_ADJACENCY_DEGREE = 6;
 
-// Per-type minimum widths (F-002), covering every Hive "type" value
-// graph.ts's TYPE_TO_ZONE table recognises. Falls back to a per-zone
-// default when a room's type is missing/unrecognised.
-const ABSOLUTE_MIN_WIDTH_M: Record<string, number> = {
-    foyer: 1.8, living_room: 3.0, dining_room: 2.7, family_room: 3.0, entertainment: 2.7,
-    kitchen: 2.1, utility: 1.5, garage: 3.0, laundry: 1.5, store: 1.2, boiler_room: 1.2,
-    bedroom: 2.7, master_bedroom: 3.0, bathroom: 1.5, wardrobe: 1.2, dressing: 1.5,
-    office: 2.4, study: 2.4,
-    void: 1.0, circulation: 1.0, hall: 1.2, landing: 1.2, stairwell: 2.4,
-};
-const DEFAULT_MIN_WIDTH_BY_ZONE: Record<string, number> = {
-    social: 3.0, service: 2.1, private: 2.4, circ: 1.0,
-};
-
 function minWidthForUnit(graph: RoomGraph, unit: SearchUnit): number {
     return Math.max(...unit.ids.map(id => {
         const node = graph.nodes.get(id);
         if (!node) return 0;
-        return ABSOLUTE_MIN_WIDTH_M[node.type] ?? DEFAULT_MIN_WIDTH_BY_ZONE[node.zone] ?? 2.4;
+        return minWidthFor(node);
     }));
 }
 

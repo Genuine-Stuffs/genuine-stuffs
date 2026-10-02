@@ -16,6 +16,7 @@ import { OccupancyGrid, RectCells } from './grid';
 import { GRID_RESOLUTION_M, metersToCells, metersToCellsFloor, cellsToMeters } from './units';
 import { PlacedRect, SolverConfig, RoomDimensionHint, ReservedRect } from './types';
 import { RoomGraph, Suite, deriveSuites, identifyHubs, AdjacencyPair, NO_WINDOW_TYPES } from '../graph';
+import { roomShapeOk } from './room_shape';
 import { BuildingFootprint } from '../shapes';
 import { RoomSpec, enumerateCandidates } from './candidates';
 import { insideFootprint } from './constraints';
@@ -479,6 +480,12 @@ export function search(
                     // Adjacency against each sub-room's true rect, too: a
                     // pair naming a bath/wardrobe is about where IT lands.
                     if ((!soft && needsExternalWall(id) && !grid.touchesPerimeter(r)) || !adjacencySatisfiedFor(id, r)) { ok = false; break; }
+                    // Proportions per type, on the room's own rect — a suite
+                    // split can otherwise leave a 2 m wide bedroom. Rooms the
+                    // Hive pinned to exact structural dimensions are exempt.
+                    const node = graph.nodes.get(id);
+                    if (node && dimensionHints.get(id)?.mode !== 'HARD'
+                        && !roomShapeOk(node, cellsToMeters(r.w_cells), cellsToMeters(r.h_cells))) { ok = false; break; }
                 }
                 if (ok) out.push({ outer: cand, subs });
             }
