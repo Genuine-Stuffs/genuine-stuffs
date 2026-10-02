@@ -43,7 +43,13 @@ export interface SolveResult {
     placements: PlacedRect[];       // empty unless status starts with SOLVED (I6)
     relaxationsApplied: string[];
     issues: import('../placement_validator').ValidationIssue[];
-    diagnostics: { elapsed_ms: number; nodesExplored: number; failedRoomId?: string; failedConstraint?: string };
+    diagnostics: {
+        elapsed_ms: number; nodesExplored: number; failedRoomId?: string; failedConstraint?: string;
+        /** UNSAT only: true when a necessary condition (feasibility gate,
+         * planarity bound) rules the program out. False when the search
+         * merely exhausted its capped candidate set — no proof either way. */
+        proven?: boolean;
+    };
 }
 
 // ── Structural rigidity classification (Session 3a decision, consumed by

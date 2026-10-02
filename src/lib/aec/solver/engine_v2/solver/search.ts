@@ -296,6 +296,9 @@ export interface SearchOutcome {
     placed: Map<string, RectCells>;
     failedUnitIds?: string[];
     nodesExplored: number;
+    /** True when the budget clock stopped the search — the failure says
+     * nothing about the program. False means the candidate set ran out. */
+    timedOut: boolean;
 }
 
 /** Depth-first backtracking, budget-checked every 200 nodes (D4). */
@@ -664,5 +667,6 @@ export function search(
         placed,
         failedUnitIds: solved ? undefined : units.filter(u => !u.ids.every(id => placed.has(id))).flatMap(u => u.ids),
         nodesExplored,
+        timedOut,
     };
 }

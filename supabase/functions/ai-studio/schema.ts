@@ -70,6 +70,10 @@ export interface SolvedLayout {
     solver_iterations_used: number;
     is_fully_connected: boolean;
     solver_status?: 'SOLVED' | 'SOLVED_RELAXED' | 'TIMEOUT' | 'UNSAT';
+    // UNSAT only: true when every attempt was ruled out by a necessary
+    // condition (feasibility gate / planarity bound). False or absent
+    // means the search ran out of candidates — not a proof.
+    solver_unsat_proven?: boolean;
     placement_issues?: ValidationIssue[];
 }
 

@@ -40,6 +40,7 @@ interface FixtureOutcome {
     crashed: boolean;
     isVacuous?: boolean;
     solverStatus?: string;
+    unsatProven?: boolean;
     crashMessage?: string;
     results: AssertionResult[];
     elapsed_ms: number;
@@ -74,6 +75,7 @@ function runFixture(name: string, raw: any): FixtureOutcome {
         const results = (isVacuous || layout.solver_status === 'UNSAT') ? [] : runAllAssertions(layout, graph, buildableEnvelope);
         return {
             fixture: name, loaded: true, crashed: false, isVacuous, solverStatus: layout.solver_status,
+            unsatProven: layout.solver_unsat_proven === true,
             results, elapsed_ms: performance.now() - start,
         };
     } catch (err: any) {
@@ -97,7 +99,8 @@ function printTable(outcomes: FixtureOutcome[]): void {
             continue;
         }
         if (o.solverStatus === 'UNSAT') {
-            console.log(`\n${o.fixture} — UNSAT (proven) (${o.elapsed_ms.toFixed(0)}ms)`);
+            const label = o.unsatProven ? 'UNSAT (proven)' : 'UNSAT (search exhausted — not a proof)';
+            console.log(`\n${o.fixture} — ${label} (${o.elapsed_ms.toFixed(0)}ms)`);
             continue;
         }
         const passCount = o.results.filter(r => r.pass).length;

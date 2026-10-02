@@ -169,6 +169,7 @@ function attemptWithFootprint(
     let totalNodesExplored = 0;
     let anyFloorUnsolved = false;
     let finalStatus: 'SOLVED' | 'SOLVED_RELAXED' | 'TIMEOUT' | 'UNSAT' = 'SOLVED';
+    let unsatProven = true; // stays true only if every UNSAT floor was proven
     const floors = isDuplex ? [0, 1] : [0];
 
     // Corridor and stairwell are placed by the solver itself (see
@@ -198,6 +199,7 @@ function attemptWithFootprint(
 
         if (result.status === 'TIMEOUT') finalStatus = 'TIMEOUT';
         else if (result.status === 'UNSAT' && finalStatus !== 'TIMEOUT') finalStatus = 'UNSAT';
+        if (result.status === 'UNSAT' && !result.diagnostics.proven) unsatProven = false;
         else if (result.status === 'SOLVED_RELAXED' && finalStatus === 'SOLVED') finalStatus = 'SOLVED_RELAXED';
 
         if (result.status === 'UNSAT' || result.status === 'TIMEOUT') {
@@ -238,6 +240,7 @@ function attemptWithFootprint(
         solver_iterations_used:  totalNodesExplored,
         is_fully_connected:      !anyFloorUnsolved,
         solver_status:           finalStatus,
+        solver_unsat_proven:     finalStatus === 'UNSAT' ? unsatProven : undefined,
         placement_issues:        allIssues,
     };
 }
@@ -265,6 +268,7 @@ function solveLayoutCandidates(
     );
 
     const successes: SolvedLayout[] = [];
+    const attempts: SolvedLayout[] = [];
     let lastAttempt: SolvedLayout | undefined;
 
     outer: for (let c = 0; c < candidates.length; c++) {
@@ -273,6 +277,7 @@ function solveLayoutCandidates(
             const attemptSeed = prepared.seedNum + c * ATTEMPT_SEED_CANDIDATE_STRIDE + retry * ATTEMPT_SEED_RETRY_STRIDE;
             const result = attemptWithFootprint(program, envelope, prepared, footprint, CANDIDATE_FLOOR_BUDGET_MS, attemptSeed);
             lastAttempt = result;
+            attempts.push(result);
             if (isFullSuccess(result)) {
                 successes.push(result);
                 if (stopAtFirstSuccess) break outer;
@@ -281,7 +286,21 @@ function solveLayoutCandidates(
         }
     }
 
-    return { successes, lastAttempt: lastAttempt! };
+    return { successes, lastAttempt: summarizeFailures(attempts, lastAttempt!) };
+}
+
+/** The status a failed portfolio reports must describe every attempt, not
+ * just the last: TIMEOUT if any attempt ran out of clock (a later footprint
+ * failing fast proves nothing about it), otherwise UNSAT — proven only if
+ * every attempt was proven. Geometry is still the last attempt's. */
+function summarizeFailures(attempts: SolvedLayout[], last: SolvedLayout): SolvedLayout {
+    if (isFullSuccess(last)) return last;
+    const anyTimeout = attempts.some(a => a.solver_status === 'TIMEOUT');
+    return {
+        ...last,
+        solver_status: anyTimeout ? 'TIMEOUT' : 'UNSAT',
+        solver_unsat_proven: anyTimeout ? undefined : attempts.every(a => a.solver_unsat_proven === true),
+    };
 }
 
 // ──────────────────────────────────────────────────────────────────────────

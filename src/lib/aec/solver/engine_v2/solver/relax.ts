@@ -53,6 +53,12 @@ export function runWithRelaxation(
     const suiteEdges = units.reduce((s, u) => s + (u.isSuite && u.suite ? u.suite.subIds.length : 0), 0);
     const suiteRoomIds = units.flatMap(u => u.isSuite && u.suite && u.suite.subIds.length > 0 ? u.ids : []);
     let totalNodesExplored = 0;
+    // A rung that ran out of clock says nothing about the program, and
+    // neither does one that exhausted its capped candidate set. Only a
+    // ladder where EVERY rung was ruled out by the planarity bound is a
+    // proof — anything else must not be reported as one.
+    let anyRungTimedOut = false;
+    let anyRungSearched = false;
 
     for (let r = 0; r < rungs.length; r++) {
         const rung = rungs[r];
@@ -85,6 +91,8 @@ export function runWithRelaxation(
 
         const outcome = search(units, graph, buildGrid(), combinedW_m, combinedH_m, { ...rung.config, budget_ms: rungBudget }, dimensionHints, rung.pairs, floorIndex, reservedRects, reach);
         totalNodesExplored += outcome.nodesExplored;
+        anyRungSearched = true;
+        if (outcome.timedOut) anyRungTimedOut = true;
         
         if (rung.name !== 'BASE') applied.push(rung.name);
 
@@ -99,9 +107,12 @@ export function runWithRelaxation(
         }
     }
 
-    // Determine if the search space was exhausted or if it just ran out of time
+    // TIMEOUT if any rung was stopped by the clock (a later rung failing
+    // fast doesn't make an earlier rung's timeout a proof); otherwise
+    // UNSAT, proven only when no rung needed a search at all.
     const elapsed = performance.now() - startTime;
-    const finalStatus = (elapsed >= baseConfig.budget_ms - 50) ? 'TIMEOUT' : 'UNSAT';
-    
-    return { status: finalStatus, placements: [], relaxationsApplied: applied, issues: [], diagnostics: { elapsed_ms: elapsed, nodesExplored: totalNodesExplored } };
+    const finalStatus = (anyRungTimedOut || elapsed >= baseConfig.budget_ms - 50) ? 'TIMEOUT' : 'UNSAT';
+    const proven = finalStatus === 'UNSAT' && !anyRungSearched;
+
+    return { status: finalStatus, placements: [], relaxationsApplied: applied, issues: [], diagnostics: { elapsed_ms: elapsed, nodesExplored: totalNodesExplored, proven } };
 }
