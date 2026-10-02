@@ -72,6 +72,10 @@ Relaxation ladder, strictly in order: `RELAX-AREA-20` → `RELAX-SOFT-ADJ` (neve
 - Hive roles mirror the NBC professional boundaries: Architect, Structural Engineer, QS, Builder.
 - A "Verified Project" package must contain drawings and specs, a priced BOQ, a QMP, an H&S plan, a construction programme, and a buildability report.
 - Commits are surgical and modular: one feature per push, with non-AEC logic preserved.
+- **Windows by room type (owner decision, 2026-10-02):**
+  - Habitable rooms must touch an outside wall (living, bedroom, kitchen, dining).
+  - Stores, wardrobes and dressing rooms never need a window, and bathrooms may be mechanically vented. These are `NO_WINDOW_TYPES`.
+  - An **office or study should get a window but may go without**, flagged for review. Stores and wardrobes are more often windowless than offices, so treat the office as a preference, not an exemption. **Not implemented yet.** The first attempt (letting the office go inside at any point, perimeter tried first) was measured and rejected; see §5.
 
 ### 2.5 Security and platform rules (from commit history)
 
@@ -142,6 +146,7 @@ Know these before citing the plan as fact.
 | Regenerating candidate lists per node | ~90% of search time. Now incremental. | `b84c902` |
 | Matching rooms on `name` instead of `type` | Mislabelled suites | `ce4016a` |
 | Trusting the Hive's type spelling | "master bedroom" ≠ `master_bedroom`. Normalize on our side (D6). | `49255a7` |
+| Office window as an in-search preference (perimeter first, inside allowed anywhere), Oct 2 | hive-004 8/20 → 6/20, hive-005 0/20 → 0/20, and hive-002's office lost its window in 2/20 runs that had one before. More choices slowed the search, and the preference only holds locally. The office's window is **not** what blocks the villas. Patch not committed. | 20-seed sweep, 2026-10-02 |
 | Free OpenRouter models | 429s. Paid models plus a fallback. | `5830729` |
 | Statically importing WASM/3D packages | Production builds hung | `2e8c66b` |
 
@@ -149,11 +154,11 @@ Know these before citing the plan as fact.
 
 ## 6. Open items (single list)
 
-1. Make the solver report proven UNSAT, exhausted and timeout as different statuses, then diagnose hive-005. (Oct 2 plan §4)
+1. ~~Honest UNSAT/TIMEOUT labelling~~ done in `5b59633`: hive-005 turned out to be a TIMEOUT, not proven UNSAT, so it is a search problem.
 2. hive-004: 8/20 → higher. Next is backjumping, then a perimeter-capacity check. (Oct 2 plan §5)
 3. A local-search fallback so a hard case yields a flagged plan instead of a blank one.
 4. **Wire `solveLayoutVariants()` into `AIStudio.tsx`.** This was the original product ask and is still untouched.
-5. Product/compliance decision: may an office (or similar room) go without a window, as a warning?
+5. Office window: decided 2026-10-02 (§2.4), still to implement. It would only be a last resort after normal search fails, and it does **not** unblock hive-004/005 (§5).
 6. Rebuild-plan phases not yet built: refinement (Phase 4), scoring (Phase 5), the pipeline plus user messages per code (Phase 6). Then update the plan to v1.1 with the divergences in §4.
 7. Documentation debt: `src/lib/aec/README.md` is stale, `dashboard_research_report.md` is empty, and the plan's invariant numbering doesn't match the harness.
 8. Typing debt: `strict: false` and 17 `any`/`@ts-ignore` in engine_v2.
