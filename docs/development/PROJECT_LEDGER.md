@@ -1,0 +1,159 @@
+# Project Ledger: Progress Records and Development Policies
+
+**Compiled:** 2026-10-02, from all 683 commits (2025-11-06 → `b84c902`) and every document in the repo.
+**Purpose:** A single place to check what has already been decided, tried, measured and ruled out, so sessions stop re-covering the same ground. Update it at the end of any session that changes a policy or closes a milestone.
+
+---
+
+## 1. Where the records live
+
+Read in this order. ★ marks the documents that are authoritative today.
+
+| Document | What it is | State |
+|---|---|---|
+| ★ `docs/design-references/pdfs/AI_STUDIO_REBUILD_PLAN.pdf` | Master plan v1.0 for the floor-plan solver: locked decisions D1–D8, session protocol, data contracts, error taxonomy, phases 0–7. It says it **wins over individual judgment**. | Authoritative, but the code has diverged in places (see §4) |
+| ★ `docs/design-references/pdfs/2026-10-02-solver-continuation-plan.md` | Latest session handoff: current pass rates, open problems, next steps. | Current |
+| `docs/design-references/pdfs/2026-09-22-solver-continuation-plan.md` | Previous handoff. Its §3–§4 analysis and "do not retry" list still hold. | Superseded |
+| `docs/design-references/INDEX.md` | Catalogue of reference PDFs and images. The CAD screenshot `2026-06-25 10.18.16` is **the quality bar**. | Current |
+| `docs/development/aec_production_guidelines.md` | AEC engineering rules: Hive roles, compliance-first, mandatory output package, surgical/modular commits. | Current (policy) |
+| `docs/compliance/professional_design_standards.md` | User-facing claims about NBC 2006 compliance. | Marketing copy. Claims must stay true. |
+| `docs/PLATFORM_USER_MODEL.md` | Canonical user categories, tiers, credits, roles and feature-access matrix. | Current (business logic) |
+| `docs/roadmaps/ai_studio_roadmap.md` | Original 4-phase AI Studio vision. The rebuild plan supersedes its Phase 2 (placement engine). | Vision only |
+| `docs/updates/aec_engine_v2_release_notes.md` | Apr 15 2026 release notes. | Historical. Its Three.js massing has since been reworked. |
+| `src/lib/aec/README.md` | Pipeline overview (LLM → solver → validation → IFC → viewers). | **Stale.** `validation/gate.ts` and `repair.ts` were deleted in `7c9dbd6`, and the That Open viewer was removed in `eaf758b`. |
+| `IMPLEMENTATION_PLAN.txt` (root) | Feb 23 2026 plan to turn the marketing site into the platform. | Historical, delivered |
+| `OpenRouter_Integration_Guide.txt` (root) | Setup and deployment of the `ai-studio` edge function. | Steps still valid; the model names it implies are outdated |
+| `Genuine_Stuffs_Product_Description.txt` (root) | Investor/product vision (Studio → BOQ → Marketplace → Pro Portal flywheel). | Vision |
+| `extract.txt` (root) | Raw dump of a 2026-07-23 session transcript holding the owner's working directives (§2.3). | The source for §2.3. Not tidy. |
+| `docs/research/dashboard_research_report.md` | PM dashboard research. | **Empty file (0 lines).** Content was lost in the Apr 8 migration. |
+
+---
+
+## 2. Development policies
+
+### 2.1 Locked solver decisions (rebuild plan Part A1: do not re-litigate)
+
+| # | Decision |
+|---|---|
+| D1 | Custom TypeScript backtracking constraint solver. **No** external CP library, WASM, Python service or ML model. |
+| D2 | Axis-aligned rectangles on a grid. L-shaped rooms are out of scope for v1. |
+| D3 | 0.5 m grid via the single constant `GRID_RESOLUTION_M` (`solver/units.ts`). Never hardcode 0.5 elsewhere. |
+| D4 | The solver must return within its budget, with a best-effort status. |
+| D5 | "Adjacent" means a shared wall of ≥ 2 contiguous cells (1.0 m). |
+| D6 | **The Hive's JSON output is frozen.** The normalizer adapts to the Hive, never the other way round. (So `49255a7` normalizes free-text types on our side.) |
+| D7 | The legacy path is deleted only after a parity gate. (Not followed; see §4.) |
+| D8 | **The solver never returns invalid geometry.** It returns a typed failure (UNSAT/TIMEOUT) with diagnostics. No post-hoc "repair". |
+
+Relaxation ladder, strictly in order: `RELAX-AREA-20` → `RELAX-SOFT-ADJ` (never drop hub or corridor edges) → `RELAX-MINWIDTH` → UNSAT. The error-code taxonomy (N-001…N-008, F-001…F-005, S-001/S-002, R-001) is closed: **no new codes without approval**.
+
+### 2.2 Session protocol (rebuild plan A2/A3)
+
+1. One phase or problem per session.
+2. **Read the current file state before writing any diff.** Never edit from memory of an earlier session.
+3. Surgical edits only. Any change outside the agreed scope needs the file named, a reason given, and approval **before** writing it.
+4. **Run `npm run harness` first and last.** If it fails at the start, fix nothing else until the owner confirms whether the failure is expected.
+5. No silent renames, drive-by refactors, formatting sweeps or new dependencies without approval.
+6. Coding standards: no `any`, no `@ts-ignore`, JSDoc on exports, `_m`/`_cells` suffixes on every length, unit conversion only in `units.ts`, functions ≤ 60 lines, pure functions and no module-level mutable state.
+
+### 2.3 How the owner wants work done (from the 2026-07-23 directives in `extract.txt`, reaffirmed Sep 22)
+
+- **Verbatim stdout** at every step. Don't paraphrase results.
+- **State the expected outcome before running.** A prediction that fails is useful information, not something to hide.
+- **Make measurement honest before changing what is measured.** Fix the harness first. The harness must never count vacuous passes: a floor with no geometry reports `TIMEOUT (invariants not evaluated)`, never `7/7`.
+- **Smallest change first.** Test a one-line hypothesis before any larger rewrite.
+- **One change per diff, measured alone.** Don't stack heuristics before measuring (lesson from the Sep 22 rotation experiment).
+- Larger architectural changes go in **their own reviewed diff**.
+- Seed sweeps (20 seeds, all invariants) are the standard of evidence, not single runs.
+
+### 2.4 AEC and product rules (`aec_production_guidelines.md`, `src/lib/aec/README.md`)
+
+- **The LLM never produces geometry.** It only emits a `SpatialProgram`; the deterministic solver computes coordinates (decided in `c68510b`, Jun 4).
+- Compliance first: request → orchestration → **validation against `src/lib/aec/compliance_rules.json`** → artifact. That JSON is the source of truth for minimum sizes, mix ratios and structural ratios.
+- Hive roles mirror the NBC professional boundaries: Architect, Structural Engineer, QS, Builder.
+- A "Verified Project" package must contain drawings and specs, a priced BOQ, a QMP, an H&S plan, a construction programme, and a buildability report.
+- Commits are surgical and modular: one feature per push, with non-AEC logic preserved.
+
+### 2.5 Security and platform rules (from commit history)
+
+- **Roles come from server-side claims only** (`app_metadata`). Forged-role mechanisms were removed (`527540a`), the `MI_DEV_ROLE` localStorage escalation was removed (`78a3ef5`), and email-based admin checks were replaced by claims (`dcf61d9`). Never reintroduce client-writable role sources.
+- Pro, Vendor and PM routes go through `ProtectedRoute` (`40ea6b8`).
+- Heavy WASM/WebGL packages must be **dynamically imported** and excluded from Vite pre-bundling, or the production build hangs (`2e8c66b`).
+- COOP/COEP headers live in `vercel.json`. The CSP has explicit allowances for Paystack and geo APIs. Check both before adding a third-party script.
+- The `ai-studio` edge function **must enforce `response_format: json_object`** (`85ca6fc`). Its absence caused the Sep 2026 "generates nothing" outage.
+- Deploy edge functions with `supabase functions deploy ai-studio`. Debug with `supabase functions logs ai-studio --follow`.
+
+---
+
+## 3. Progress timeline
+
+| When | Milestone | Key commits |
+|---|---|---|
+| Feb 23 – Mar 2026 | Marketing site turned into the platform (marketplace, calculators, pro portal). AI Studio goes live on OpenRouter (Mar 2). | `fb75366`, `e5be559` |
+| Mar – early Apr | AI Studio UI iterations. Model churn: DALL-E → Gemma → free Llama → paid models (fixing 429s), plus a fallback strategy. | `8ebcaec`…`5830729`, `c338808` |
+| Apr 8–15 | Structured AEC output, multi-agent orchestration, PDF export, NBC 2006 rules, priced BOQ, Three.js massing, exponential backoff. (These are the v2 release notes.) | `e77c268`…`7f483db` |
+| May 7–26 | Parser hardening against JSON leaking into chat, DXF export, blueprint styling. PDF/DXF gated behind premium. | `e76e4dd`…`31824ec` |
+| **Jun 4** | **Deterministic pipeline.** Contracts `DesignBrief/SpatialProgram/SolvedLayout`, LLM emits a program only, first solver, `web-ifc` IFC authoring, multi-storey. | `acea7f8`…`07a9ae9` |
+| Jun 19–24 | Client-side solver in production, Hive orchestration on `gemini-2.5-flash`, claims-based security, WASM/COEP stabilization, That Open dependency removed. | `0bb2509`…`eaf758b` |
+| Jun 25 | Row and zone packer iterations. **Two reverts:** the multi-strategy engine (`4536a4c`, which produced 34–38 m wide buildings) and the circulation-first rewrite (`65816de`). | `9f45034`…`57674bb` |
+| Jun 27–29 | engine_v2: treemap (squarify) "Visual Sprint" A–F, live for all users. | `55846d4`…`36113d1` |
+| Jul 13–20 | engine_v2 fixes, `graph.ts` as the authoritative classifier. V1 solver deleted. | `ebe4424`, `56aebe4`, `7c9dbd6` |
+| **Jul 21–23** | **solver-v3 per the rebuild plan.** Harness and fixtures, units/types/grid/constraints/candidates/search/relax. Treemap and zones replaced and then deleted. Placement-issues panel in the UI. Phase 3 reopened (feasibility pruning, I5, hub ordering, planarity fail-fast). | `09cbd23`…`4df0338` |
+| Aug | Platform work: landing page, BOQ-Cal wired to AI (live Aug 11), vendor CSV import, categories. | `1bafe07`, `ddb8d3c` |
+| **Sep 22** | Production outage fixed (`85ca6fc`). Feasibility gate, suite and ordering fixes, footprint portfolio and `solveLayoutVariants()`, multi-bay depth fix. hive-004/005 fixtures added. | `d0784dd`…`8cdfb63` |
+| **Oct 1–2** | Harness I1/I5 measured against the building, grid alignment, MRV + forward checking, room-type normalization, solver-placed circulation + I8. | `7b30722`…`b84c902` |
+
+**Current status (Oct 2, 20 seeds, I1–I8):** hive-001 and hive-002 solve 20/20 with no rule violations. hive-004 solves 8/20. hive-005 solves 0/20. hive-003/101/102 are correctly rejected as unsolvable. Details are in the Oct 2 continuation plan.
+
+---
+
+## 4. Where the code diverges from the rebuild plan
+
+Know these before citing the plan as fact.
+
+| Plan says | Reality | Note |
+|---|---|---|
+| Code in `src/floorplan/*`, Next.js | `src/lib/aec/solver/engine_v2/*`, Vite + React | Paths moved. The plan was written generically. |
+| Invariants I1–I7: I3 no overlap/inside, I4 adjacency, I5 window, I6 status-gated, I7 refinement keeps topology | Harness I1 inside footprint, I2 no overlap, I3 adjacency, I4 suite nesting, I5 external wall, I6 status-gated, I7 stairwell mirrored, **I8 reachable** | **Numbering differs.** Always use the harness names (`I5_EXTERNAL_WALL` etc.) to avoid confusion. |
+| D4: default budget 8000 ms | `CANDIDATE_FLOOR_BUDGET_MS = 1200` per floor per attempt (≤ 5 footprints × 2 retries) | Changed deliberately in `2fc4cfe`. |
+| D7: legacy squarify kept behind a flag until the Phase 6 parity gate | Treemap/squarify deleted on Jul 21–22 with no parity gate | Already done. Don't go looking for the flag. |
+| F-003: disconnected-graph check | **Intentionally omitted** (`d0784dd`) | It would false-positive on ordinary rooms. I8 now enforces reachability instead. |
+| Phase 4: `refine.ts` (snap, doors, R-001) | Not built. `doors.ts` handles door placement separately. | Open |
+| Phase 5: `score.ts` rubric with variants ranked by score | `solveLayoutVariants()` returns distinct layouts **unscored**, and **nothing in the UI calls it** | Open: the original product ask |
+| Phase 6: pipeline.ts, user-facing messages per code, week-one monitoring | Not built as specified | Open |
+| A3: strict TS, no `any` | `tsconfig.app.json` has `"strict": false`. engine_v2 contains 17 `any`/`@ts-ignore`. | Technical debt |
+| Commit format `phase-N: … [harness: X/Y passing]` | Conventional commits (`feat(solver-v3): …`) since July | The current convention is in use |
+| UNSAT means "proven" | `relax.ts:104` labels any early search exhaustion as UNSAT, and `solveLayoutV2` reports the last attempt's status | Found 2026-10-02. This is the first item in the Oct 2 plan. |
+
+---
+
+## 5. Settled lessons: don't repeat these
+
+| Tried | Result | Source |
+|---|---|---|
+| Multi-strategy layout engine | 34–38 m wide buildings from proportional width overflow. Reverted. | `4536a4c` |
+| Circulation-first rewrite (Jun 25) | Reverted to the working solver. (Note: the Oct 2 approach is different. The corridor is an ordinary search unit, not a pre-allocated spine.) | `65816de` |
+| Placing the hub at the footprint **centre** | Fragmented free space and blocked perimeter access. Prefer the perimeter. | `extract.txt`, Jul 23 |
+| Enumerating every grid position | 15–30k candidates per room, so the search drowned. Use **anchor-based** enumeration (flush to the perimeter or to placed rooms). | `extract.txt`, Jul 23 |
+| Rotating HARD-mode multi-bay rooms | Worse: 2/8 → 0/8 | Sep 22 plan §3 |
+| Raising the time budget 10× | Barely changed anything. The problem was never the time budget. | Sep 22 plan §3, `ad9b6a8` (20 s/floor) |
+| One RNG-picked footprint | 0/20 on hive-001. Use the portfolio with seed retries. | `2fc4cfe` |
+| A fixed full-width corridor band | Took 25.5 m² against a declared 7.5 m² and split floors. The solver now places circulation. | `b84c902` |
+| `Math.round` grid sizing | The right and bottom walls became unusable, which masked a harness bug | `db2d0d6`, `7b30722` |
+| Regenerating candidate lists per node | ~90% of search time. Now incremental. | `b84c902` |
+| Matching rooms on `name` instead of `type` | Mislabelled suites | `ce4016a` |
+| Trusting the Hive's type spelling | "master bedroom" ≠ `master_bedroom`. Normalize on our side (D6). | `49255a7` |
+| Free OpenRouter models | 429s. Paid models plus a fallback. | `5830729` |
+| Statically importing WASM/3D packages | Production builds hung | `2e8c66b` |
+
+---
+
+## 6. Open items (single list)
+
+1. Make the solver report proven UNSAT, exhausted and timeout as different statuses, then diagnose hive-005. (Oct 2 plan §4)
+2. hive-004: 8/20 → higher. Next is backjumping, then a perimeter-capacity check. (Oct 2 plan §5)
+3. A local-search fallback so a hard case yields a flagged plan instead of a blank one.
+4. **Wire `solveLayoutVariants()` into `AIStudio.tsx`.** This was the original product ask and is still untouched.
+5. Product/compliance decision: may an office (or similar room) go without a window, as a warning?
+6. Rebuild-plan phases not yet built: refinement (Phase 4), scoring (Phase 5), the pipeline plus user messages per code (Phase 6). Then update the plan to v1.1 with the divergences in §4.
+7. Documentation debt: `src/lib/aec/README.md` is stale, `dashboard_research_report.md` is empty, and the plan's invariant numbering doesn't match the harness.
+8. Typing debt: `strict: false` and 17 `any`/`@ts-ignore` in engine_v2.
