@@ -147,6 +147,8 @@ Know these before citing the plan as fact.
 | Matching rooms on `name` instead of `type` | Mislabelled suites | `ce4016a` |
 | Trusting the Hive's type spelling | "master bedroom" ≠ `master_bedroom`. Normalize on our side (D6). | `49255a7` |
 | Office window as an in-search preference (perimeter first, inside allowed anywhere), Oct 2 | hive-004 8/20 → 6/20, hive-005 0/20 → 0/20, and hive-002's office lost its window in 2/20 runs that had one before. More choices slowed the search, and the preference only holds locally. The office's window is **not** what blocks the villas. Patch not committed. | 20-seed sweep, 2026-10-02 |
+| Conflict-directed backjumping (Oct 2) | hive-004 8/20 → 7/20, hive-005 0/20 → 0/20, and the live 23-room villa brief still times out on 10/10 seeds. Diagnostics showed the dead ends are traceable (perimeter rooms losing their last wall spot), but jumping back to the cause doesn't find solutions within budget. The villa ground floors fail around the foyer hub 3–4 rooms deep. Patch not committed. | 20-seed sweep, 2026-10-02 |
+| Raising F-004 (degree > 6) for a degree-7 foyer | The live brief still times out on 10/10 seeds. The gate only makes it fail faster. Dropping the two one-sided links to the foyer (office, stair) doesn't help either. | 2026-10-02 |
 | Free OpenRouter models | 429s. Paid models plus a fallback. | `5830729` |
 | Statically importing WASM/3D packages | Production builds hung | `2e8c66b` |
 
@@ -155,7 +157,7 @@ Know these before citing the plan as fact.
 ## 6. Open items (single list)
 
 1. ~~Honest UNSAT/TIMEOUT labelling~~ done in `5b59633`: hive-005 turned out to be a TIMEOUT, not proven UNSAT, so it is a search problem.
-2. hive-004: 8/20 → higher. Next is backjumping, then a perimeter-capacity check. (Oct 2 plan §5)
+2. Large villas (hive-004 8/20, hive-005 0/20, live brief 0/10): backjumping was tried and didn't help (§5). The remaining lever is a local-search fallback that returns a complete plan with flagged issues (item 3). **Since `b84c902`, a failed ground floor gives a blank plan** (the upper floor is no longer drawn on its own), and the UI shows no message.
 3. A local-search fallback so a hard case yields a flagged plan instead of a blank one.
 4. ~~Wire `solveLayoutVariants()` into `AIStudio.tsx`~~ done on Oct 2: scored options in a Web Worker, shown as an "Option N · score" picker.
 5. Office window: decided 2026-10-02 (§2.4), still to implement. It would only be a last resort after normal search fails, and it does **not** unblock hive-004/005 (§5).
