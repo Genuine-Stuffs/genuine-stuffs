@@ -946,7 +946,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
                 <g>
                   <text x={tbX} y={tbY} textAnchor="middle"
                     style={{ fontSize: '8px', fontWeight: 900, fill: '#1e293b', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-                    {projectId} · {plot_width.toFixed(1)}M × {plot_depth.toFixed(1)}M · {floorLabel} · {dateStr}
+                    {projectId} · PLOT {plot_width.toFixed(1)}M × {plot_depth.toFixed(1)}M · {floorLabel} · {dateStr}
                   </text>
                 </g>
               );
