@@ -77,7 +77,7 @@ Read in this order. ★ marks the documents that are authoritative today.
 
 | # | Decision |
 |---|---|
-| D1 | Custom TypeScript backtracking constraint solver. **No** external CP library, WASM, Python service or ML model. |
+| D1 | Custom TypeScript backtracking constraint solver. **No** external CP library, WASM, Python service or ML model. **Amended 2026-10-06 (owner):** the search may also be seeded simulated annealing (gap-free layout). Still our own TypeScript, the same plan for the same seed, no ML or external library; D8 still holds. |
 | D2 | Axis-aligned rectangles on a grid. L-shaped rooms are out of scope for v1. |
 | D3 | 0.5 m grid via the single constant `GRID_RESOLUTION_M` (`solver/units.ts`). Never hardcode 0.5 elsewhere. |
 | D4 | The solver must return within its budget, with a best-effort status. |
@@ -154,6 +154,7 @@ Relaxation ladder, strictly in order: `RELAX-AREA-20` → `RELAX-SOFT-ADJ` (neve
 | **Sep 22** | Production outage fixed (`85ca6fc`). Feasibility gate, suite and ordering fixes, footprint portfolio and `solveLayoutVariants()`, multi-bay depth fix. hive-004/005 fixtures added. | `d0784dd`…`8cdfb63` |
 | **Oct 1–2** | Harness I1/I5 measured against the building, grid alignment, MRV + forward checking, room-type normalization, solver-placed circulation + I8. | `7b30722`…`b84c902` |
 
+10. **Gap-free layout approved 2026-10-06 (owner, all four decisions):** (1) every plan tiles one rectangle, as in the target drawing; built beside today's engine and swapped in only once it beats it on the 20-seed sweep; (2) D1 amended (above); (3) briefs no layout can meet keep the compromise policy (best clean plan, every miss flagged); (4) `78cdebb` pushed. Decision page: https://claude.ai/artifact/Kc4uzEM8axF43jQASTM8ZC. Next: engine parity (hive-001/002 20/20 clean, villas ≤ 2 flags, ≤ 3 s).
 9. Structural grid parked 2026-10-06 (§5). It can only be switched on when the conditions in `docs/design-references/pdfs/2026-10-06-structural-grid-design.md` §10 hold. hive-006's brief asks for a 10 m² lounge typed `living`, below the NBC 12 m² living minimum: should the solver flag it, or the Hive type it differently? (owner to decide)
 
 **Current status (Oct 2, 20 seeds, I1–I8):** hive-001 and hive-002 solve 20/20 with no rule violations. hive-004 solves 8/20. hive-005 solves 0/20. hive-003/101/102 are correctly rejected as unsolvable. Details are in the Oct 2 continuation plan.
