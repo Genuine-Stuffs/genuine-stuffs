@@ -18,7 +18,7 @@ import { PlacedRect, SolverConfig, RoomDimensionHint, ReservedRect } from './typ
 import { RoomGraph, Suite, deriveSuites, identifyHubs, AdjacencyPair, NO_WINDOW_TYPES, STREET_FRONT_TYPES } from '../graph';
 import { roomShapeOk } from './room_shape';
 import { BuildingFootprint } from '../shapes';
-import { RoomSpec, enumerateCandidates } from './candidates';
+import { RoomSpec, enumerateCandidates, enumerateDimensionPairs } from './candidates';
 import { insideFootprint } from './constraints';
 
 const RESERVED_IDX = 0xFFFE; // -> cell value 0xFFFF after +1 in grid.place(); never matches a real room index
@@ -406,8 +406,28 @@ export function search(
     // a running sum rather than a suffix array, since MRV (below) places
     // units in a dynamic order, not index order.
     const cellArea = GRID_RESOLUTION_M * GRID_RESOLUTION_M;
-    const minAreaCells = units.map(u =>
-        Math.floor((u.totalArea_m2 / cellArea) * (1 - config.areaTolerance)));
+
+    // ── Grid-first layout (bay_grid.ts) ─────────────────────────────────
+    // Rooms take whole bays: a rect whose edges lie on grid lines. Bays
+    // come in 0.5 m steps of 3.0–4.5 m, so a room's area can't be matched
+    // as closely as on the free 0.5 m grid; the window is 10 points wider
+    // below and 20 above. A room smaller than 60% of the smallest bay
+    // instead shares a bay: it sits in one of the bay's corners, the rest
+    // of the bay left to its neighbours (owner decision 2026-10-06).
+    // Circulation (shaped units) still places freely. A grid unit's list
+    // is complete at the root, so it only ever shrinks.
+    const bays = config.bays;
+    const gridUnit = units.map(u => !!bays && !u.shapes);
+    const GRID_LO = 1 - (config.areaTolerance + 0.10), GRID_HI = 1 + config.areaTolerance + 0.20;
+    const smallUnit = units.map(u => {
+        if (!bays || u.isSuite || u.shapes) return false;
+        let minBay = Infinity;
+        for (let i = 1; i < bays.xs.length; i++) for (let j = 1; j < bays.ys.length; j++)
+            minBay = Math.min(minBay, (bays.xs[i] - bays.xs[i - 1]) * (bays.ys[j] - bays.ys[j - 1]));
+        return u.totalArea_m2 / cellArea < 0.6 * minBay;
+    });
+    const minAreaCells = units.map((u, i) =>
+        Math.floor((u.totalArea_m2 / cellArea) * (gridUnit[i] && !smallUnit[i] ? GRID_LO : 1 - config.areaTolerance)));
     let unplacedMinArea = minAreaCells.reduce((s, a) => s + a, 0);
     let freeCells = grid.countFreeCells();
     const unplaced = new Set<number>(units.map((_, i) => i));
@@ -459,21 +479,71 @@ export function search(
      * with what's placed (`prefix`), and must-touch pairs with what's
      * placed. Candidates `skip` says were already generated are dropped. */
     function generate(u: number, anchorRects: RectCells[], boundary: boolean, prefix: Int32Array, skip?: (c: RectCells) => boolean): Cand[] {
-        const unit = units[u];
         const ctx = { placedRects: anchorRects, gridW_cells: grid.widthCells, gridH_cells: grid.heightCells, skipBoundary: !boundary };
         const out: Cand[] = [];
         for (const cand of enumerateCandidates(specs[u], ctx, config.areaTolerance)) {
+            if (skip?.(cand)) continue;
+            accept(u, cand, prefix, out);
+        }
+        return out;
+    }
+
+    /** Grid mode: every whole-bay rect (or bay-corner rect, for a small
+     * unit) for unit `u`, through the same checks as generate(). */
+    function generateGrid(u: number, prefix: Int32Array): Cand[] {
+        const { xs, ys } = bays!;
+        const out: Cand[] = [];
+        const target = units[u].totalArea_m2 / cellArea;
+        if (smallUnit[u]) {
+            const seen = new Set<string>();
+            const pairs = enumerateDimensionPairs(specs[u], config.areaTolerance);
+            for (let i = 1; i < xs.length; i++) for (let j = 1; j < ys.length; j++) {
+                const x0 = xs[i - 1], x1 = xs[i], y0 = ys[j - 1], y1 = ys[j];
+                for (const { w_cells: w, h_cells: h } of pairs) {
+                    if (w > x1 - x0 || h > y1 - y0) continue;
+                    for (const [x, y] of [[x0, y0], [x1 - w, y0], [x0, y1 - h], [x1 - w, y1 - h]]) {
+                        const k = `${x},${y},${w},${h}`;
+                        if (seen.has(k)) continue;
+                        seen.add(k);
+                        accept(u, { x_cells: x, y_cells: y, w_cells: w, h_cells: h }, prefix, out);
+                    }
+                }
+            }
+            return out;
+        }
+        const hint = units[u].ids.length === 1 ? dimensionHints.get(units[u].ids[0]) : undefined;
+        const hardW = hint?.mode === 'HARD' ? metersToCells(hint.width_m) : undefined;
+        for (let a = 0; a < xs.length - 1; a++) for (let b = a + 1; b < xs.length; b++) {
+            const w = xs[b] - xs[a];
+            // A room pinned to a structural width keeps it to within 1 m,
+            // unrotated (candidates.ts's HARD rule, loosened to the bays).
+            if (hardW !== undefined && Math.abs(w - hardW) > metersToCells(1.0)) continue;
+            for (let c = 0; c < ys.length - 1; c++) for (let d = c + 1; d < ys.length; d++) {
+                const h = ys[d] - ys[c];
+                if (w * h < GRID_LO * target || w * h > GRID_HI * target) continue;
+                if (Math.max(w, h) / Math.min(w, h) > 3.0) continue;
+                accept(u, { x_cells: xs[a], y_cells: ys[c], w_cells: w, h_cells: h }, prefix, out);
+            }
+        }
+        return out;
+    }
+
+    /** The checks every candidate passes, wherever it came from: footprint,
+     * I5 per room post-split, overlap with what's placed (`prefix`), and
+     * must-touch pairs with what's placed. Survivors are pushed to `out`. */
+    function accept(u: number, cand: RectCells, prefix: Int32Array, out: Cand[]): void {
+        const unit = units[u];
+        {
             // I5 pre-filter: if the unit's primary room needs an external
             // wall, only perimeter-touching outers are viable (the bedroom
             // lives inside the outer, so a non-touching outer can never
             // yield a touching bedroom).
-            if (unitNeedsExt[u] && !grid.touchesPerimeter(cand)) continue;
-            if (skip?.(cand)) continue;
+            if (unitNeedsExt[u] && !grid.touchesPerimeter(cand)) return;
             // Sub-rooms subdivide the outer rect, so an empty outer
             // implies empty subs — one O(1) check covers the whole unit.
-            if (!grid.isFreeIn(prefix, cand)) continue;
+            if (!grid.isFreeIn(prefix, cand)) return;
             const rect: PlacedRect = { id: unit.ids[0], x_m: cellsToMeters(cand.x_cells), y_m: cellsToMeters(cand.y_cells), w_m: cellsToMeters(cand.w_cells), h_m: cellsToMeters(cand.h_cells) };
-            if (!insideFootprint(rect, combinedW_m, combinedH_m).pass) continue;
+            if (!insideFootprint(rect, combinedW_m, combinedH_m).pass) return;
 
             const splits = unit.isSuite && unit.suite ? suiteSplits(cand, unit.suite, grid.widthCells, grid.heightCells) : [new Map([[unit.ids[0], cand]])];
             for (const subs of splits) {
@@ -495,7 +565,6 @@ export function search(
                 if (ok) out.push({ outer: cand, subs });
             }
         }
-        return out;
     }
 
     /**
@@ -530,7 +599,7 @@ export function search(
                 }
                 return true;
             });
-            if (unitNeedsExt[u]) return kept;
+            if (unitNeedsExt[u] || gridUnit[u]) return kept;
             const onWall = (c: RectCells) => c.x_cells === 0 || c.y_cells === 0 ||
                 c.x_cells + c.w_cells === grid.widthCells || c.y_cells + c.h_cells === grid.heightCells;
             return kept.concat(generate(u, newRects, false, prefix, c => onWall(c) || older.some(p => flush(c, p))));
@@ -685,7 +754,7 @@ export function search(
                 // otherwise deferred to last and refuted ~2000 times over.
                 // Any other interior unit may gain options from a later
                 // placement — defer it rather than declare the branch dead.
-                if (unitNeedsExt[i] || mustTouchPlaced(i)) return false;
+                if (unitNeedsExt[i] || gridUnit[i] || mustTouchPlaced(i)) return false;
                 continue;
             }
             if (bestIdx === -1 || viable.length < best.length || (viable.length === best.length && i < bestIdx)) {
@@ -715,7 +784,7 @@ export function search(
     }
 
     const rootPrefix = grid.occupiedPrefix();
-    const rootLists = units.map((_, u) => generate(u, unitNeedsExt[u] ? [] : reservedCells, true, rootPrefix));
+    const rootLists = units.map((_, u) => gridUnit[u] ? generateGrid(u, rootPrefix) : generate(u, unitNeedsExt[u] ? [] : reservedCells, true, rootPrefix));
     const solved = tryNext(rootLists);
     return {
         placed,

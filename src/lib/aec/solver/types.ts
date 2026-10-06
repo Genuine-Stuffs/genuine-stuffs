@@ -19,6 +19,9 @@ export interface SolverOptions {
     max_iterations?: number;
     floors_override?: number; // storeys from the brief, overriding the program's own
     seed?: number;            // fixes the footprint/candidate RNG; random when absent
+    /** 'grid' lays the ground floor out on a structural bay grid
+     * (prototype, 2026-10-06 design); 'free' (default) is the current solver. */
+    layoutMode?: 'grid' | 'free';
 }
 
 export interface InternalRoomNode {

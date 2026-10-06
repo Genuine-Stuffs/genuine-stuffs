@@ -13,6 +13,7 @@ import { buildFootprintGrid, buildUnits, orderUnits, SearchUnit, ReachRules } fr
 import { RectCells } from './grid';
 import { GRID_RESOLUTION_M, metersToCells } from './units';
 import { runWithRelaxation, runFallback } from './relax';
+import { chooseBayGrid } from './bay_grid';
 import { checkFeasibility } from './feasibility';
 import { validatePlacement, isConnectorType, isCorridorLike, isSubRoom, ValidationIssue } from '../placement_validator';
 import { PlacedRoom } from '../../../../../../supabase/functions/ai-studio/schema';
@@ -29,6 +30,9 @@ export interface CirculationOptions {
      * reachability become preferences; whatever the plan gives up comes
      * back as placement issues. */
     fallback?: boolean;
+    /** Lay this floor out on a structural bay grid (rectangular footprints
+     * only, for now): rooms take whole bays, small rooms share one. */
+    bayGrid?: boolean;
 }
 
 interface Circulation {
@@ -147,6 +151,9 @@ export function solvePlacement(
     options: CirculationOptions = {}
 ): SolveResult {
     const { grid, combinedW_m, combinedH_m } = buildFootprintGrid(footprint, reservedRects);
+    if (options.bayGrid && !footprint.secondary) {
+        config = { ...config, bays: chooseBayGrid(grid.widthCells, grid.heightCells, config.seed) };
+    }
     const suites = deriveSuites(graph, floorIndex);
     const suiteSubIds = new Set(suites.flatMap(s => s.subIds));
     const circulation = buildCirculation(graph, floorIndex, suiteSubIds, grid, reservedRects, options);

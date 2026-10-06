@@ -61,3 +61,26 @@ That's roughly 800× fewer choices per room before pruning, and every choice is 
 4. **Order:** prototype the ground floor first and measure it before doing the upper floor (proposed)?
 
 Estimated effort: the ground-floor prototype plus measurement takes one to two sessions; the upper floor and I10 one more.
+
+---
+
+## 7. Results: prototype step 1 (ground floor, whole-bay candidates), 2026-10-06
+
+**The prediction was wrong. Step 1 is worse than the current solver. The switch stays off.**
+
+20 seeds each. "Ground only" = same brief and storeys, upper-floor rooms removed, to isolate the ground floor.
+
+| | Free (current) | Grid step 1 |
+|---|---|---|
+| hive-007, ground only | 14 relaxed, 6 fallback, 6.7 s | **0 solved, 20 fallback**, 2.6 s |
+| hive-004/005/006, ground only | fallback 20/20 | fallback 20/20 (faster: 1.6–3.1 s) |
+| hive-001, full | 10 strict + 10 relaxed, 0.28 s | 12 strict + 6 relaxed + **2 fallback**, 2.07 s |
+| hive-002, full | 19 strict + 1 relaxed, 0.12 s | 0 strict + 20 relaxed, 0.53 s |
+| Villas, full: flags per plan | 12–15 | **16–20** |
+
+**Why (hive-007, candidate counts at the search root):** the strict search fails as UNSAT, not by timing out, because some rooms have **zero** candidates before the search starts:
+1. **Garage (HARD 9 m wide): 0 on most grids.** Bays were chosen from the footprint alone (e.g. 3.5/3.5/4/3.5 m); no run of bays is 9 ± 1 m. The grid must be chosen **from the program** (pinned widths: 9 = 4.5 + 4.5).
+2. **Guest-bedroom suite: 0.** One 4.5 m bay minus the 2.2 m bath strip leaves 2.3 m < the bedroom's 2.7 m minimum; two bays exceed the area window. A suite's bath needs to be able to cross a bay line (a partition, not a structural wall).
+3. **Wet kitchen (10 m²): 0.** Just above the small-room threshold (60% of the smallest bay), but below the area window of the smallest whole bay.
+
+**Next (each one change, measured alone, starting with the intermediate signal "every room has ≥1 candidate at the root"):** (a) program-aware bay choice, (b) suite baths may cross a bay line, (c) small-room threshold. Not yet started; owner to confirm direction.

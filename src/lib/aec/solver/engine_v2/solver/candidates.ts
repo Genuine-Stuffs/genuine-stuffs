@@ -30,7 +30,7 @@ export interface RoomSpec {
 const MAX_ASPECT = 3.0;
 const MAX_DIMENSION_PAIRS = 12;
 
-function enumerateDimensionPairs(
+export function enumerateDimensionPairs(
     room: RoomSpec, areaTolerance: number
 ): Array<{ w_cells: number; h_cells: number }> {
     if (room.shapes) return room.shapes;

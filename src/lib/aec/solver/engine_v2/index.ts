@@ -124,6 +124,7 @@ interface PreparedProgram {
     isDuplex: boolean;
     storeys: number;
     seedNum: number;
+    layoutMode: 'grid' | 'free';
 }
 
 function prepareProgram(program: SpatialProgram, options?: SolverOptions): PreparedProgram {
@@ -163,7 +164,7 @@ function prepareProgram(program: SpatialProgram, options?: SolverOptions): Prepa
     const isDuplex = storeys > 1 || hasUpperFloorRooms;
     const seedNum = options?.seed ?? Math.floor(Math.random() * 2 ** 31);
 
-    return { hiveRooms, graph, rooms, isDuplex, storeys, seedNum };
+    return { hiveRooms, graph, rooms, isDuplex, storeys, seedNum, layoutMode: options?.layoutMode ?? 'free' };
 }
 
 /** Attempt a full layout (every floor) against one specific candidate
@@ -218,7 +219,7 @@ function attemptWithFootprint(
 
         const config: SolverConfig = { budget_ms: budgetMsPerFloor, areaTolerance: 0.10, seed: attemptSeed + floorIndex };
         const result = solvePlacement(graph, footprint, floorIndex, hiveRooms, config, reservedRects,
-            { placeStairwell: floorIndex === 0 && isDuplex, fallback });
+            { placeStairwell: floorIndex === 0 && isDuplex, fallback, bayGrid: prepared.layoutMode === 'grid' && floorIndex === 0 });
 
         if (result.status === 'TIMEOUT') finalStatus = 'TIMEOUT';
         else if (result.status === 'UNSAT' && finalStatus !== 'TIMEOUT') finalStatus = 'UNSAT';

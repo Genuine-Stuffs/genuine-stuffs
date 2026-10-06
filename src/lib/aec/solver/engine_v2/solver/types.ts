@@ -29,6 +29,8 @@ export interface SolverConfig {
     budget_ms: number;      // default 6000 (D4)
     areaTolerance: number;  // default 0.10, relaxable to 0.20 (relax.ts, Session 3b)
     seed: number;           // passed through to shapes.ts's createRng
+    /** Grid-first layout (bay_grid.ts): when set, rooms take whole bays. */
+    bays?: import('./bay_grid').BayGrid;
 }
 
 export interface PlacedRect {
