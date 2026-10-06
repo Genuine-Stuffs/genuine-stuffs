@@ -2,6 +2,35 @@ import * as React from "react";
 
 import type { SolvedLayout, SpatialProgram } from "../../supabase/functions/ai-studio/schema";
 import type { PlotEnvelope, SolverOptions } from "@/lib/aec/solver/types";
+import { solveLayoutV2 } from "@/lib/aec/solver/engine_v2";
+
+/** solveLayoutV2() in a Web Worker, so the page stays responsive while a
+ * large brief solves (villas: ~9 s). Same arguments, same result. Where
+ * workers aren't available it runs inline, as it did before. */
+export function solveLayoutInWorker(
+  program: SpatialProgram, envelope: PlotEnvelope, options: SolverOptions,
+): Promise<SolvedLayout> {
+  if (typeof Worker === "undefined") return Promise.resolve(solveLayoutV2(program, envelope, options));
+  return new Promise((resolve, reject) => {
+    const worker = new Worker(
+      new URL("../lib/aec/solver/engine_v2/solve.worker.ts", import.meta.url),
+      { type: "module" },
+    );
+    worker.onmessage = (e: MessageEvent<{ ok: boolean; layout?: SolvedLayout; message?: string }>) => {
+      worker.terminate();
+      if (e.data.ok && e.data.layout) resolve(e.data.layout);
+      else reject(new Error(e.data.message ?? "solver worker failed"));
+    };
+    // The worker itself failed (didn't load, or crashed outside the
+    // solver): solve inline rather than lose the plan.
+    worker.onerror = (e) => {
+      worker.terminate();
+      console.warn("[SOLVER] worker unavailable, solving on the main thread:", e.message);
+      try { resolve(solveLayoutV2(program, envelope, options)); } catch (err) { reject(err); }
+    };
+    worker.postMessage({ program, envelope, options });
+  });
+}
 
 /** Identifies a layout by its geometry, so the plan already on screen can
  * be matched to the same plan in the options list, and so memoised views

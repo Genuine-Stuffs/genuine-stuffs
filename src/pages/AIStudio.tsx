@@ -64,8 +64,7 @@ import autoTable from 'jspdf-autotable';
 import AECFloorPlan from '@/components/aec/AECFloorPlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
-import { solveLayoutV2 } from '@/lib/aec/solver/engine_v2';
-import { useLayoutOptions, layoutSignature } from '@/hooks/use-layout-options';
+import { useLayoutOptions, layoutSignature, solveLayoutInWorker } from '@/hooks/use-layout-options';
 import { explainFailure } from '@/lib/aec/solver/engine_v2/failure_messages';
 import { ADVISORY_RULES } from '@/lib/aec/solver/engine_v2/placement_validator';
 import { runComplianceCheck, ComplianceReport } from '@/lib/aec/compliance_engine';
@@ -670,7 +669,7 @@ const AIStudio = () => {
                     // the same geometry as its entry in the options list.
                     const solverOptions = { floors_override: briefFloors, seed: Math.floor(Math.random() * 2 ** 31) };
                     const program = { ...finalDesignData };
-                    const solved = solveLayoutV2(finalDesignData, envelope, solverOptions);
+                    const solved = await solveLayoutInWorker(finalDesignData, envelope, solverOptions);
                     finalDesignData.solvedLayout = solved;
 
                     // Show this plan now; alternatives are computed off the
