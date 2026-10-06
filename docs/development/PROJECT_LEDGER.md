@@ -172,7 +172,7 @@ Assessed against the quality bar (`images/Screenshot 2026-06-25 at 10.18.16 AM.p
 | Unusable proportions (2 m bedroom, 1.5 × 7.5 m dining) | **Fixed** `b45cbde`: minimum width and maximum aspect per type |
 | Foyer mid-plan, no front door | **Fixed** `c4e648f`: entrance on the front (bottom) edge, I9 |
 | Shared bathroom placed twice, suites broken | **Fixed** `7269dc7` |
-| Garage not on the street front | Open (the same front-edge rule as the entrance would apply) |
+| Garage not on the street front | **Fixed** `95a9388`: 0–4/20 → 20/20 on every fixture with a garage |
 | Hall is a strip, not the connected space between rooms | Open |
 | No structural grid; upper walls don't stack on lower ones | Open (largest change) |
 | Fallback plans: up to ~12 missed adjacencies on villas | Open |
@@ -182,7 +182,7 @@ Assessed against the quality bar (`images/Screenshot 2026-06-25 at 10.18.16 AM.p
 | Gap | Status |
 |---|---|
 | No furniture | **Fixed** `f6c6e18` (keyed on type) |
-| Labels truncated ("3-Car Enclose…") | Open |
+| Labels truncated ("3-Car Enclose…") | **Fixed** `a1c969c`: wrap to two lines, then shrink; title block says PLOT (`3abba4d`) |
 | Thin walls instead of thick external/internal walls | Open |
 | No door/window tags (D1…, W1…) or schedule | Open |
 | Overall dimensions only, no per-bay chains or grid bubbles | Open |

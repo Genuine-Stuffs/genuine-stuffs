@@ -17,6 +17,8 @@
 
 ## 1b. ⚠️ FIRST ON MONDAY: the owner reports a breakage on the live site
 
+> **Resolved Tue 6 Oct.** The screenshots had reached the VM at 17:28 Friday (`images/Screenshot 2026-10-02 at 6.22.14 PM.png`, `6.25.33 PM.png`) but weren't looked at. The owner confirmed the "breakage" is the **compromise plan** on the villa brief: the fallback working as designed, exposing the layout quality on large villas (rooms scattered, garage mid-plan, no connected hall). Not a regression. Fixed the same day: garage on the street front (`95a9388`), labels that fit (`a1c969c`), "PLOT" in the title block (`3abba4d`). The remaining cause, the layout quality on villas, is the structural-grid work (§4 item 6), now proposed to come next.
+
 Reported Friday evening, after the 8-commit deploy (`f6c6e18`…`5642012`, pushed ~6 pm): "the current changes broke something". The owner took a screenshot and copied the browser console, but **neither had reached the VM at shutdown**, so the symptom is still unknown.
 
 **Investigated Friday night, once the console arrived** (the screenshot hadn't):
