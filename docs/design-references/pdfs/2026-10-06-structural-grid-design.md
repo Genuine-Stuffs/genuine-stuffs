@@ -1,7 +1,7 @@
 # Design for approval: lay out on a structural grid first
 
 **Date:** Tuesday 6 October 2026 · **Author of record:** Samuel Edu, with Claude (Opus 5.5)
-**Status:** PROPOSED. No code until the owner approves §6.
+**Status:** APPROVED by the owner 2026-10-06, with every recommendation in §6. Prototype: ground floor first, behind a flag.
 **Feasibility study:** pipeline step 2 (constraint layer: "structural grid"), step 5 (multi-floor coordination: "load-bearing walls align… where most tools cheat"), hard problem 2 (metric accuracy). Ledger §0 and §5b.
 
 ---
@@ -53,7 +53,7 @@ That's roughly 800× fewer choices per room before pruning, and every choice is 
 - **Stated prediction:** hive-001/002 unchanged; hive-007 strict/relaxed on ≥ 10/20; villa time under 3 s. If that's wrong, it gets reported as wrong.
 - Rendered and compared side by side with the target drawing before anything is pushed.
 
-## 6. Decisions needed from the owner
+## 6. Decisions (owner, 2026-10-06: all as recommended)
 
 1. **Bay size cap:** 4.5 m (NBC table, as proposed), or allow up to 6 m like the target drawing, with deeper beams?
 2. **Hall:** leftover cells (proposed), or always one dedicated hall bay down the middle, as in the target?
