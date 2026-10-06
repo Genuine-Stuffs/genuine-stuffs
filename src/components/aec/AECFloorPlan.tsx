@@ -377,8 +377,33 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     const minDim = Math.min(rw, rh);
     
     // Dynamic font: scales with room, hard floors to stay readable
-    const nameFontSize = Math.max(8, Math.min(14, minDim * 0.12));
+    const baseNameFontSize = Math.max(8, Math.min(14, minDim * 0.12));
     const dimFontSize  = Math.max(7, Math.min(11, minDim * 0.09));
+
+    // Fit the name to the room instead of cutting it at 14 characters
+    // ("3-Car Enclose…", "Wet Kitchen/P…" on the live villa): wrap onto two
+    // lines, then shrink down to 6px, and only cut with "…" past that.
+    // Width is estimated (heavy weight + 0.08em tracking ≈ 0.72em per char).
+    const { nameLines, nameFontSize } = (() => {
+      const avail = rw - 8;
+      const fits = (t: string, fs: number) => t.length * fs * 0.72 <= avail;
+      const wrap = (fs: number): string[] => {
+        const words = name.split(/\s+/).filter(Boolean);
+        const lines: string[] = [];
+        for (const w of words) {
+          const last = lines[lines.length - 1];
+          if (last !== undefined && fits(`${last} ${w}`, fs)) lines[lines.length - 1] = `${last} ${w}`;
+          else lines.push(w);
+        }
+        return lines;
+      };
+      for (let fs = baseNameFontSize; fs >= 6; fs -= 0.5) {
+        const lines = wrap(fs);
+        if (lines.length <= 2 && lines.every(l => fits(l, fs))) return { nameLines: lines, nameFontSize: fs };
+      }
+      const max = Math.max(1, Math.floor(avail / (6 * 0.72)) - 1);
+      return { nameLines: [name.length > max ? name.substring(0, max) + '…' : name], nameFontSize: 6 };
+    })();
     const lineHeight   = nameFontSize * 1.4;
 
     // Only show label if room is large enough to hold it
@@ -599,18 +624,21 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
         {/* ── Label ── */}
         {showLabel && (
           <text textAnchor="middle" style={{ pointerEvents: 'none' }}>
-            <tspan
-              x={rx + rw / 2}
-              y={ry + rh / 2 - lineHeight / 2}
-              style={{
-                fontSize: `${nameFontSize}px`,
-                fontWeight: 900,
-                letterSpacing: '0.08em',
-                fill: textColor,
-              }}
-            >
-              {name.length > 14 ? name.substring(0, 13) + '…' : name}
-            </tspan>
+            {nameLines.map((line, i) => (
+              <tspan
+                key={i}
+                x={rx + rw / 2}
+                y={ry + rh / 2 - (nameLines.length - i) * lineHeight + lineHeight / 2}
+                style={{
+                  fontSize: `${nameFontSize}px`,
+                  fontWeight: 900,
+                  letterSpacing: '0.08em',
+                  fill: textColor,
+                }}
+              >
+                {line}
+              </tspan>
+            ))}
             <tspan
               x={rx + rw / 2}
               y={ry + rh / 2 + lineHeight / 2}
