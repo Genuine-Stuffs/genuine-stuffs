@@ -152,7 +152,18 @@ export function solvePlacement(
 ): SolveResult {
     const { grid, combinedW_m, combinedH_m } = buildFootprintGrid(footprint, reservedRects);
     if (options.bayGrid && !footprint.secondary) {
-        config = { ...config, bays: chooseBayGrid(grid.widthCells, grid.heightCells, config.seed) };
+        // Bays chosen to fit the rooms pinned to structural dimensions:
+        // width as declared, depth from the declared area (candidates.ts).
+        const pinned = deriveDimensionHints(rawRooms.filter(r => r.floor === floorIndex))
+            .filter(h => h.mode === 'HARD')
+            .map(h => {
+                const area = graph.nodes.get(h.roomId)?.area ?? h.width_m * h.span_m;
+                return {
+                    w: metersToCells(h.width_m), d: metersToCells(area / Math.max(h.width_m, 0.1)),
+                    front: floorIndex === 0 && STREET_FRONT_TYPES.has(graph.nodes.get(h.roomId)?.type ?? ''),
+                };
+            });
+        config = { ...config, bays: chooseBayGrid(grid.widthCells, grid.heightCells, config.seed, pinned) };
     }
     const suites = deriveSuites(graph, floorIndex);
     const suiteSubIds = new Set(suites.flatMap(s => s.subIds));

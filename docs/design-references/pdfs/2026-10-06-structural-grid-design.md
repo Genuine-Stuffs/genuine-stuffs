@@ -84,3 +84,25 @@ Estimated effort: the ground-floor prototype plus measurement takes one to two s
 3. **Wet kitchen (10 m²): 0.** Just above the small-room threshold (60% of the smallest bay), but below the area window of the smallest whole bay.
 
 **Next (each one change, measured alone, starting with the intermediate signal "every room has ≥1 candidate at the root"):** (a) program-aware bay choice, (b) suite baths may cross a bay line, (c) small-room threshold. Not yet started; owner to confirm direction.
+
+## 8. Results: fix (a), bays chosen from the program, 2026-10-06
+
+Bays are now the split of each side (3.0–4.5 m) that fits the most pinned rooms (HARD width across, area-derived depth front to back, ending at the front edge for the garage/entrance); then the most even split. `bay_grid.ts`.
+
+**Intermediate signal: strict attempts in which every room has ≥ 1 candidate at the root** (ground floor, 20 seeds):
+
+| | Step 1 | Fix (a) |
+|---|---|---|
+| hive-004 | 72 / 480 | 234 / 480 |
+| hive-005 | 72 / 480 | 366 / 480 |
+| hive-007 | 88 / 480 | 390 / 480 |
+
+Garage, office and wet kitchen are no longer blockers; the guest suite still is (90–206), and hive-004's foyer is new (40).
+
+**Outcome (20 seeds):** hive-001 0 strict + 20 relaxed (free: 10 + 10), hive-002 17 strict + 3 relaxed (free: 19 + 1), **villa ground floors still 0/20** (free hive-007: 14 relaxed). **Prediction wrong again**: placeable rooms were necessary but not sufficient.
+
+**Why: switch one rule off at a time** (hive-007 ground, grid, 8 seeds): adjacency off → 8/8 strict; outside wall off → 8/8 relaxed; front edge off → 8/8 relaxed; reach off → 0. Dropping only the foyer's neighbours → 8/8; dropping only the living–dining–kitchen–pantry chain → 8/8. **The two together, with every room on an outside wall and the foyer + garage on the front, don't fit when every room is a whole bay**: a one-bay foyer has three free sides, and each whole-bay neighbour takes a whole side.
+
+**Diagnostic, not committed: partitions on bay midlines** (rooms may use the line through the middle of a bay too; structural lines unchanged), 8 seeds: hive-007 ground **5 relaxed / 3 fallback** (≈ free's 14/20); hive-004/005 still 0. **At best it matches the current solver on the ground floor; no evidence yet that it solves the villas.**
+
+**Assessment:** the grid's case for *solving* villas is not supported by these measurements. Its remaining case is structural and drawing quality (walls on beams, grid bubbles, dimension chains), which only pays off once it at least matches the free solver. Owner to decide the direction (see the session report).
