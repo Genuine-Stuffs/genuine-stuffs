@@ -6,7 +6,7 @@
  * ═══════════════════════════════════════════════════════════════════════
  */
 
-import { RoomGraph, HiveRoom, GraphNode, AdjacencyPair, identifyHubs, deriveSuites, findMustTouchPairs, suiteEdgeKeys, NO_WINDOW_TYPES, ENTRANCE_TYPES } from '../graph';
+import { RoomGraph, HiveRoom, GraphNode, AdjacencyPair, identifyHubs, deriveSuites, findMustTouchPairs, suiteEdgeKeys, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARAGE_TYPES } from '../graph';
 import { BuildingFootprint } from '../shapes';
 import { SolverConfig, SolveResult, deriveDimensionHints, PlacedRect, ReservedRect } from './types';
 import { buildFootprintGrid, buildUnits, orderUnits, SearchUnit, ReachRules } from './search';
@@ -248,8 +248,9 @@ function fallbackCompromises(
     }
     for (const p of placements) {
         const n = graph.nodes.get(p.id);
-        if (n && n.floor === 0 && ENTRANCE_TYPES.has(n.type) && Math.abs(p.y_m + p.h_m - buildingH_m) > eps) {
-            issues.push({ room_id: p.id, rule: 'NO_FRONT_ENTRANCE', detail: `${labelOf(p.id)} isn't on the front of the house, so there is no front door into it.` });
+        if (n && n.floor === 0 && STREET_FRONT_TYPES.has(n.type) && Math.abs(p.y_m + p.h_m - buildingH_m) > eps) {
+            const why = GARAGE_TYPES.has(n.type) ? 'cars cannot drive into it from the street' : 'there is no front door into it';
+            issues.push({ room_id: p.id, rule: 'NO_FRONT_ENTRANCE', detail: `${labelOf(p.id)} isn't on the front of the house, so ${why}.` });
         }
     }
     for (const p of pairs) {

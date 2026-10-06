@@ -20,7 +20,7 @@
  */
 
 import { SolvedLayout, PlacedRoom } from "../../../../../../supabase/functions/ai-studio/schema";
-import { RoomGraph, deriveSuites, identifyHubs, NO_WINDOW_TYPES, ENTRANCE_TYPES } from "../graph";
+import { RoomGraph, deriveSuites, identifyHubs, NO_WINDOW_TYPES, STREET_FRONT_TYPES } from "../graph";
 
 export interface AssertionResult {
     invariant: string;
@@ -281,7 +281,7 @@ export function assertI8_Reachable(layout: SolvedLayout): AssertionResult {
     };
 }
 
-// ── I9 — the ground-floor entrance room is on the front (bottom) edge ─────
+// ── I9 — the ground-floor entrance and garage are on the front (bottom) edge
 export function assertI9_FrontEntrance(
     layout: SolvedLayout,
     graph: RoomGraph,
@@ -290,13 +290,13 @@ export function assertI9_FrontEntrance(
     const violations: string[] = [];
     for (const r of layout.placed_rooms) {
         const node = graph.nodes.get(r.room_id);
-        if (!node || r.floor !== 0 || !ENTRANCE_TYPES.has(node.type)) continue;
+        if (!node || r.floor !== 0 || !STREET_FRONT_TYPES.has(node.type)) continue;
         if (Math.abs(r.y + r.depth - footprint.height) > 0.05) violations.push(`${r.room_id} (${node.label}): not on the front edge`);
     }
     return {
         invariant: "I9_FRONT_ENTRANCE",
         pass: violations.length === 0,
-        detail: violations.length === 0 ? "entrance room on the front edge (or none declared)" : violations.join("; "),
+        detail: violations.length === 0 ? "entrance and garage on the front edge (or none declared)" : violations.join("; "),
     };
 }
 

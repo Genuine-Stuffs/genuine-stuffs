@@ -15,7 +15,7 @@
 import { OccupancyGrid, RectCells } from './grid';
 import { GRID_RESOLUTION_M, metersToCells, metersToCellsFloor, cellsToMeters } from './units';
 import { PlacedRect, SolverConfig, RoomDimensionHint, ReservedRect } from './types';
-import { RoomGraph, Suite, deriveSuites, identifyHubs, AdjacencyPair, NO_WINDOW_TYPES, ENTRANCE_TYPES } from '../graph';
+import { RoomGraph, Suite, deriveSuites, identifyHubs, AdjacencyPair, NO_WINDOW_TYPES, STREET_FRONT_TYPES } from '../graph';
 import { roomShapeOk } from './room_shape';
 import { BuildingFootprint } from '../shapes';
 import { RoomSpec, enumerateCandidates } from './candidates';
@@ -418,8 +418,8 @@ export function search(
         if (!n) return false;
         return n.zone !== 'circ' && !NO_WINDOW_TYPES.has(n.type);
     };
-    // Ground-floor entrance rooms must sit on the front (bottom) edge.
-    const isEntrance = (id: string) => floorIndex === 0 && ENTRANCE_TYPES.has(graph.nodes.get(id)?.type ?? '');
+    // Ground-floor entrance and garage must sit on the front (bottom) edge.
+    const isEntrance = (id: string) => floorIndex === 0 && STREET_FRONT_TYPES.has(graph.nodes.get(id)?.type ?? '');
     const onFront = (r: RectCells) => r.y_cells + r.h_cells === grid.heightCells;
 
     // In fallback mode no unit is perimeter-bound; windows only rank.

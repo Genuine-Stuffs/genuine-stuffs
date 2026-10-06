@@ -245,6 +245,13 @@ export const NO_WINDOW_TYPES = new Set(['bathroom', 'wardrobe', 'dressing', 'sto
  * the street. Before this, the Grand Foyer could land mid-plan with no
  * outside wall, i.e. a house with no front door. */
 export const ENTRANCE_TYPES = new Set(['foyer', 'entrance', 'entry', 'entrance_hall', 'lobby', 'reception']);
+
+/** Rooms that face the street on the ground floor: the entrance, and the
+ * garage, which cars must drive straight into (both target drawings put
+ * the parking on the front). Before this the garage landed at the back
+ * on every seed of hive-001/002 and mid-plan on the villas. */
+export const GARAGE_TYPES = new Set(['garage', 'carport', 'parking']);
+export const STREET_FRONT_TYPES = new Set([...ENTRANCE_TYPES, ...GARAGE_TYPES]);
 const BEDROOM_TYPES  = new Set(['bedroom', 'master_bedroom']);
 
 /**
