@@ -154,6 +154,8 @@ Relaxation ladder, strictly in order: `RELAX-AREA-20` → `RELAX-SOFT-ADJ` (neve
 | **Sep 22** | Production outage fixed (`85ca6fc`). Feasibility gate, suite and ordering fixes, footprint portfolio and `solveLayoutVariants()`, multi-bay depth fix. hive-004/005 fixtures added. | `d0784dd`…`8cdfb63` |
 | **Oct 1–2** | Harness I1/I5 measured against the building, grid alignment, MRV + forward checking, room-type normalization, solver-placed circulation + I8. | `7b30722`…`b84c902` |
 
+9. Structural grid parked 2026-10-06 (§5). It can only be switched on when the conditions in `docs/design-references/pdfs/2026-10-06-structural-grid-design.md` §10 hold. hive-006's brief asks for a 10 m² lounge typed `living`, below the NBC 12 m² living minimum: should the solver flag it, or the Hive type it differently? (owner to decide)
+
 **Current status (Oct 2, 20 seeds, I1–I8):** hive-001 and hive-002 solve 20/20 with no rule violations. hive-004 solves 8/20. hive-005 solves 0/20. hive-003/101/102 are correctly rejected as unsolvable. Details are in the Oct 2 continuation plan.
 
 ---
@@ -197,6 +199,7 @@ Know these before citing the plan as fact.
 | Office window as an in-search preference (perimeter first, inside allowed anywhere), Oct 2 | hive-004 8/20 → 6/20, hive-005 0/20 → 0/20, and hive-002's office lost its window in 2/20 runs that had one before. More choices slowed the search, and the preference only holds locally. The office's window is **not** what blocks the villas. Patch not committed. | 20-seed sweep, 2026-10-02 |
 | Conflict-directed backjumping (Oct 2) | hive-004 8/20 → 7/20, hive-005 0/20 → 0/20, and the live 23-room villa brief still times out on 10/10 seeds. Diagnostics showed the dead ends are traceable (perimeter rooms losing their last wall spot), but jumping back to the cause doesn't find solutions within budget. The villa ground floors fail around the foyer hub 3–4 rooms deep. Patch not committed. | 20-seed sweep, 2026-10-02 |
 | Raising F-004 (degree > 6) for a degree-7 foyer | The live brief still times out on 10/10 seeds. The gate only makes it fail faster. Dropping the two one-sided links to the foyer (office, stair) doesn't help either. | 2026-10-02 |
+| Structural grid first, ground floor (Oct 6: whole bays, program-aware bays, midline partitions + NBC minimums) | Villas still fall back 20/20 on whole briefs, with more flagged compromises (18–21 against 12–16). hive-007 ground 1/20. Small houses improve (hive-001/002 20/20 strict). **Parked** behind `layoutMode: 'grid'`; switch-on conditions are in the grid design doc §10. | `2026-10-06-structural-grid-design.md` §7–§10 |
 | Free OpenRouter models | 429s. Paid models plus a fallback. | `5830729` |
 | Statically importing WASM/3D packages | Production builds hung | `2e8c66b` |
 

@@ -106,3 +106,47 @@ Garage, office and wet kitchen are no longer blockers; the guest suite still is 
 **Diagnostic, not committed: partitions on bay midlines** (rooms may use the line through the middle of a bay too; structural lines unchanged), 8 seeds: hive-007 ground **5 relaxed / 3 fallback** (≈ free's 14/20); hive-004/005 still 0. **At best it matches the current solver on the ground floor; no evidence yet that it solves the villas.**
 
 **Assessment:** the grid's case for *solving* villas is not supported by these measurements. Its remaining case is structural and drawing quality (walls on beams, grid bubbles, dimension chains), which only pays off once it at least matches the free solver. Owner to decide the direction (see the session report).
+
+## 9. Results: partitions on bay midlines (the capped last step), 2026-10-06
+
+Owner's direction: try partitions through the middle of bays, following the building code; if the grid doesn't then beat the current solver on whole briefs, park it.
+
+**Change (flag still off):** rooms not pinned to a structural width may also end on a bay's midline (a non-structural partition; `withMidlines`, `bay_grid.ts`). Structural lines are unchanged, so no beam spans more than 4.5 m. Because partitions can make narrower rooms, every room the grid places must also meet the NBC 2006 minimum area and width in `compliance_rules.json` (`meetsNbcMinimums`, `room_shape.ts`). Variants such as guest_bedroom, wet_kitchen and sunken_lounge count as their base type. The stair (a fixed shape, 1.2 m clear-width rule) and setbacks are untouched.
+
+**Prediction:** hive-007 ground 10–13/20 relaxed; hive-004/005 0/20; whole briefs no better than free.
+
+**Measurement note:** the first sweep ran 16 processes on 4 cores, and free mode (unchanged code) dropped from hive-002 19 strict to 5. That sweep was discarded and rerun 3 at a time; free then matched its earlier numbers.
+
+20 seeds:
+
+| | Free (current) | Grid + midlines |
+|---|---|---|
+| hive-007, ground only | (14 relaxed, §7) | **1 relaxed**, 19 fallback, 3.3 s |
+| hive-004/005/006, ground only | fallback 20/20 | fallback 20/20 |
+| hive-001, full | 9 strict + 11 relaxed, 0.31 s | **20 strict**, 0.04 s |
+| hive-002, full | 19 strict + 1 relaxed, 0.15 s | **20 strict**, 0.11 s |
+| Villas 004–007, full | fallback 20/20, 12–16 flags, 1.6–9.2 s | fallback 20/20, **18–21 flags**, 1.6–4.2 s |
+| Rooms under the NBC minimum | hive-006: 24 | hive-006: 22 (all the brief's 10 m² "Master Suite Lounge", typed living; NBC living ≥ 12 m²); 0 elsewhere |
+
+**Prediction wrong.** The earlier 8-seed diagnostic (5/8 on hive-007 ground) does not reproduce. Switching the NBC check off gives the identical 1/20, so the code check is not the cause. That diagnostic's exact variant wasn't kept.
+
+**Decision, per the owner's cap: the grid is parked.** It doesn't beat the free solver on any villa, and its fallback plans carry more compromises. The code stays in, behind `layoutMode: 'grid'` (default `free`).
+
+**One positive result:** on the small houses the grid solves strictly on 20/20, against free's 9 and 19 strict. It is also faster.
+
+## 10. What must be in place before the grid is switched on
+
+These are the §5 rules plus what this work showed. All must hold on a 20-seed sweep, run at most 3 at a time on this machine, with the harness first and last:
+
+| # | Condition | Status now |
+|---|---|---|
+| 1 | At least one villa (hive-004–007) solves strict or relaxed on ≥ 11/20 seeds on the **whole brief** | ✗ 0/20 on all four |
+| 2 | Villa fallback plans have no more flagged compromises than free's | ✗ 18–21 against 12–16 |
+| 3 | hive-001/002 solve 20/20, pass every rule, garage and foyer on the front | ✓ 20/20 strict |
+| 4 | Villa time ≤ ~9 s | ✓ 1.6–4.2 s |
+| 5 | **Upper floor on the same grid**, with harness check **I10_WALLS_ON_GRID** passing on every solved plan (upper walls on beams) | ✗ not built (grid is ground floor only) |
+| 6 | **Building code:** every room meets NBC minimum area/width (✓ enforced in grid mode); no structural span over 4.5 m (✓ by construction); stair ≥ 1.2 m clear (✓ unchanged); upper-floor partitions **off** the structural lines are non-load-bearing, i.e. lightweight block on the slab, and shown as such in the structural spec, or else upper-floor walls are kept to structural lines | Partly: the upper-floor rule is open, with #5 |
+| 7 | `structural.ts` places columns at grid intersections instead of deriving them after layout | ✗ not built |
+| 8 | Plans rendered side by side with the target drawing before anything is pushed | ✗ not done |
+
+**Partial option for the owner, not started:** use the grid only where it wins. Try grid first, and fall back to free if grid falls back. That would bank the small-house gain (#3/#4) without #1/#2, but it still needs #5–#8 for the structural benefit.

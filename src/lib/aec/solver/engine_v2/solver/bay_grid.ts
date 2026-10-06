@@ -88,3 +88,10 @@ export function chooseBayGrid(widthCells: number, heightCells: number, seed: num
         ys: toLines(bestSplit(heightCells, pinned.map(p => ({ size: p.d, atEnd: p.front })), seed >>> 1)),
     };
 }
+
+/** The grid's lines plus each bay's midline (rounded to the 0.5 m grid):
+ * where a non-structural partition may split a bay. */
+export function withMidlines(grid: BayGrid): BayGrid {
+    const mid = (l: number[]) => l.flatMap((v, i) => i === 0 ? [v] : [l[i - 1] + Math.round((v - l[i - 1]) / 2), v]);
+    return { xs: mid(grid.xs), ys: mid(grid.ys) };
+}

@@ -16,9 +16,10 @@ import { OccupancyGrid, RectCells } from './grid';
 import { GRID_RESOLUTION_M, metersToCells, metersToCellsFloor, cellsToMeters } from './units';
 import { PlacedRect, SolverConfig, RoomDimensionHint, ReservedRect } from './types';
 import { RoomGraph, Suite, deriveSuites, identifyHubs, AdjacencyPair, NO_WINDOW_TYPES, STREET_FRONT_TYPES } from '../graph';
-import { roomShapeOk } from './room_shape';
+import { roomShapeOk, meetsNbcMinimums } from './room_shape';
 import { BuildingFootprint } from '../shapes';
 import { RoomSpec, enumerateCandidates, enumerateDimensionPairs } from './candidates';
+import { withMidlines } from './bay_grid';
 import { insideFootprint } from './constraints';
 
 const RESERVED_IDX = 0xFFFE; // -> cell value 0xFFFF after +1 in grid.place(); never matches a real room index
@@ -513,16 +514,24 @@ export function search(
         }
         const hint = units[u].ids.length === 1 ? dimensionHints.get(units[u].ids[0]) : undefined;
         const hardW = hint?.mode === 'HARD' ? metersToCells(hint.width_m) : undefined;
-        for (let a = 0; a < xs.length - 1; a++) for (let b = a + 1; b < xs.length; b++) {
-            const w = xs[b] - xs[a];
+        // Rooms may also end on a bay's midline: a non-structural partition
+        // splitting the bay, as the target drawing does (bath + store in one
+        // bay). Structural lines stay <= 4.5 m apart, so no beam spans
+        // further. Rooms pinned to structural dimensions keep to the
+        // structural lines. With whole bays only, the foyer's neighbours
+        // and the living-dining-kitchen chain couldn't all fit (design
+        // doc §8).
+        const { xs: lx, ys: ly } = hardW !== undefined ? { xs, ys } : withMidlines(bays!);
+        for (let a = 0; a < lx.length - 1; a++) for (let b = a + 1; b < lx.length; b++) {
+            const w = lx[b] - lx[a];
             // A room pinned to a structural width keeps it to within 1 m,
             // unrotated (candidates.ts's HARD rule, loosened to the bays).
             if (hardW !== undefined && Math.abs(w - hardW) > metersToCells(1.0)) continue;
-            for (let c = 0; c < ys.length - 1; c++) for (let d = c + 1; d < ys.length; d++) {
-                const h = ys[d] - ys[c];
+            for (let c = 0; c < ly.length - 1; c++) for (let d = c + 1; d < ly.length; d++) {
+                const h = ly[d] - ly[c];
                 if (w * h < GRID_LO * target || w * h > GRID_HI * target) continue;
                 if (Math.max(w, h) / Math.min(w, h) > 3.0) continue;
-                accept(u, { x_cells: xs[a], y_cells: ys[c], w_cells: w, h_cells: h }, prefix, out);
+                accept(u, { x_cells: lx[a], y_cells: ly[c], w_cells: w, h_cells: h }, prefix, out);
             }
         }
         return out;
@@ -561,6 +570,9 @@ export function search(
                     const node = graph.nodes.get(id);
                     if (node && dimensionHints.get(id)?.mode !== 'HARD'
                         && !roomShapeOk(node, cellsToMeters(r.w_cells), cellsToMeters(r.h_cells))) { ok = false; break; }
+                    // Grid layout: partitions can make narrower rooms, so
+                    // every room is held to the NBC 2006 minimums too.
+                    if (node && gridUnit[u] && !meetsNbcMinimums(node, cellsToMeters(r.w_cells), cellsToMeters(r.h_cells))) { ok = false; break; }
                 }
                 if (ok) out.push({ outer: cand, subs });
             }
