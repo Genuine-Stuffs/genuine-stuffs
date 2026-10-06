@@ -5,12 +5,54 @@
 
 ---
 
+## 0. Progress against the feasibility study (reviewed 2026-10-06)
+
+Source: `AI-Floor-Plan-Platform-Feasibility.pdf`. Status words: **Done**, **Partial**, **Not started**. Update this table whenever an item moves.
+
+**The 8-step pipeline (study §4)**
+
+| # | Step | Status | Evidence / gap |
+|---|---|---|---|
+| 1 | Prompt understanding (LLM → spec + adjacency graph) | **Done** | `ai-studio` edge function emits the Hive room JSON; `graph.ts` normalizes it (D6) |
+| 2 | Constraint layer (plot, setbacks, min sizes, corridors, stairs, structural grid) | **Partial** | Setbacks, min width/aspect per type, outside walls, front entrance + garage, reachability. **No structural grid**; stair is a box |
+| 3 | Layout generation | **Partial** | Our own deterministic solver (D1: LLM never draws geometry, matching study problem 2). Small/medium houses 20/20; **villas always fall back** to scattered compromise plans |
+| 4 | Vectorisation + dimensioning + door/window schedule | **Partial** | Overall dimensions only. No per-bay chains, no D1/W1 tags or schedule (study deliverable #2) |
+| 5 | Multi-floor coordination (walls stack, stairs land) | **Partial** | Stair void mirrored (I7). **Upper walls don't stack on lower ones.** The study calls this "where most tools cheat" |
+| 6 | 3D + render consistent with the plan | **Partial** | `AECMassingView` massing + an image render call; consistency with the plan not verified |
+| 7 | Edit loop: a new prompt mutates the stored spec, re-renders only what changed | **Not started** | A follow-up regenerates from scratch with a new random seed (`AIStudio.tsx:671`), the "slot machine" the study warns against |
+| 8 | Export: DXF/DWG, IFC, PDF | **Partial** | PDF (jsPDF) and a basic DXF from SVG paths; `ifc/authoring.ts` exists; DWG none |
+
+**The 5 hard problems (study §5)**
+
+| Problem | Status |
+|---|---|
+| 1. Nigerian floor-plan dataset (the moat) | **Not started**: no collection or annotation of real drawings, prompts or edits as training data |
+| 2. Metric accuracy and buildability | **Partial**: valid geometry on a 0.5 m grid, hard invariants on every plan; no structural grid / wall stacking |
+| 3. Edit experience (surgical, not slot-machine) | **Not started**: see pipeline step 7 |
+| 4. Code compliance (NBC, setbacks, coverage) | **Partial**: deterministic `compliance_engine.ts` over `compliance_rules.json` (NBC 2006); per-element remediation messages for solver failures |
+| 5. 2D → consistent 3D | **Partial**: see pipeline step 6 |
+
+**Recommended path (study §9)**
+
+| Step | Status |
+|---|---|
+| 1. Lane 1: ship prompt → plan + render, capture real prompts/edits as data | **Partial**: shipped and live; prompts/edits are not yet captured as a dataset |
+| 2. Material takeoff on every plan, wired to the supplier network | **Partial**: `AECBillOfQuantities` exists but uses **hardcoded unit prices**, not the verified-supplier marketplace |
+| 3. Build the Nigerian dataset in parallel | **Not started** |
+| 4. Lane 2: fine-tune + persistent-spec edit loop | **Not started** |
+| 5. Architect in the loop; compliance as a checking layer | **Partial**: compliance layer exists; no architect sign-off flow |
+
+**Divergence to keep in view:** the study recommends *wrapping* existing generators (Lane 1) and says the defensible product is **data + compliance + the supplier layer, not the generator**. We chose to build our own deterministic generator (rebuild plan, D1–D8) for metric accuracy and trust, and most effort since July has gone into it. That choice stands, but the generator should be brought to "good enough on villas" and then effort should shift to steps 7 (edit loop) and §9.2 (takeoff → suppliers), and to capturing data.
+
+---
+
 ## 1. Where the records live
 
 Read in this order. ★ marks the documents that are authoritative today.
 
 | Document | What it is | State |
 |---|---|---|
+| ★ `docs/design-references/pdfs/AI-Floor-Plan-Platform-Feasibility.pdf` | **The founding document.** What the product must deliver (2D plans, door/window schedule, renders, metric accuracy), the 8-step pipeline, the 5 hard problems, and the recommended path. **Review it at the start of each session**; progress against it is tracked in §0. | Direction (owner, 2026-10-06) |
 | ★ `docs/design-references/pdfs/AI_STUDIO_REBUILD_PLAN.pdf` | Master plan v1.0 for the floor-plan solver: locked decisions D1–D8, session protocol, data contracts, error taxonomy, phases 0–7. It says it **wins over individual judgment**. | Authoritative, but the code has diverged in places (see §4) |
 | ★ `docs/design-references/pdfs/2026-10-02-solver-continuation-plan.md` | Latest session handoff: current pass rates, open problems, next steps. | Current |
 | `docs/design-references/pdfs/2026-09-22-solver-continuation-plan.md` | Previous handoff. Its §3–§4 analysis and "do not retry" list still hold. | Superseded |
