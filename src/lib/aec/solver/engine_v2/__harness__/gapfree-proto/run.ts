@@ -141,7 +141,7 @@ for (const f of files) {
         } else for (const [W, D] of fps) { keep(await tryFp(W, D, ITERS, 0)); if (best && best.cost < 1) break; }
         t += performance.now() - t0;
         if (!best) { tally.nogeom++; continue; }
-        if (process.env.HASH) console.log(`  seed ${s} plan ${createHash("sha1").update(JSON.stringify([best.W, best.D, [...best.rects.entries()]])).digest("hex").slice(0, 12)} ${((performance.now() - t0) / 1000).toFixed(2)}s`);
+        if (process.env.HASH) console.log(`  seed ${s} plan ${createHash("sha1").update(JSON.stringify([best.W, best.D, [...best.rects.entries()]])).digest("hex").slice(0, 12)} ${((performance.now() - t0) / 1000).toFixed(2)}s footprint ${fps.findIndex(([W, D]) => W === best!.W && D === best!.D)}/${fps.length} cost ${best.cost.toFixed(1)}`);
         const all = [...best.specs.entries()].flatMap(([fl, sp]) => violations(best!.rects.get(fl)!, sp));
         const relaxed = all.some(v => v.rule === "AREA_RELAXED" || v.rule === "ADJ_SOFT");
         const vs = all.filter(v => v.rule !== "AREA_RELAXED" && v.rule !== "ADJ_SOFT");
