@@ -25,6 +25,7 @@ import { fileURLToPath } from "url";
 import { solveLayoutV2 } from "../index";
 import { buildGraph, HiveRoom } from "../graph";
 import { runAllAssertions, runFallbackAssertions, AssertionResult } from "./assertions";
+import { structureOfLayout, formatStructure, StructureReport } from "./structure";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURES_DIR = join(__dirname, "..", "__fixtures__");
@@ -45,6 +46,7 @@ interface FixtureOutcome {
     compromises?: Record<string, number>;
     crashMessage?: string;
     results: AssertionResult[];
+    structure?: StructureReport | null; // I10, reported, not yet an invariant
     elapsed_ms: number;
 }
 
@@ -82,7 +84,8 @@ function runFixture(name: string, raw: any, seed: number): FixtureOutcome {
             fixture: name, loaded: true, crashed: false, isVacuous, solverStatus: layout.solver_status,
             fallback: layout.solver_fallback === true, compromises,
             unsatProven: layout.solver_unsat_proven === true,
-            results, elapsed_ms: performance.now() - start,
+            results, structure: isVacuous || layout.solver_status === 'UNSAT' ? null : structureOfLayout(layout),
+            elapsed_ms: performance.now() - start,
         };
     } catch (err: any) {
         return {
@@ -118,6 +121,7 @@ function printTable(outcomes: FixtureOutcome[]): void {
             const mark = r.pass ? "PASS" : "FAIL";
             console.log(`  [${mark}] ${r.invariant} — ${r.detail}`);
         }
+        if (o.structure) console.log(`  [INFO] I10_STRUCTURE (reported) — ${formatStructure(o.structure)}`);
     }
 
     const totalFixtures   = outcomes.length;
@@ -128,6 +132,9 @@ function printTable(outcomes: FixtureOutcome[]): void {
     console.log(`\n=== SUMMARY ===`);
     console.log(`Fixtures: ${totalFixtures} (${crashedFixtures} crashed)`);
     console.log(`Invariants: ${passedInvariants}/${totalInvariants} passed`);
+    const st = outcomes.map(o => o.structure).filter((s): s is StructureReport => !!s);
+    if (st.length) console.log(`I10 structure (reported, ${st.length} two-storey plans): ${(100 * st.reduce((a, s) => a + s.onStructure, 0) / st.length).toFixed(0)}% of upper walls on structure, ` +
+        `${(st.reduce((a, s) => a + s.columnsInRooms, 0) / st.length).toFixed(1)} columns inside rooms per plan; target drawing: 83%, 0`);
     console.log(`This is the baseline the Phase 3 constraint solver must beat.\n`);
 }
 
