@@ -59,6 +59,38 @@ function byId(rooms: PlacedRoom[]): Map<string, PlacedRoom> {
     return new Map(rooms.map(r => [r.room_id, r]));
 }
 
+// Accepted readings (owner, 2026-10-07). Test-only copies on purpose, like
+// the geometry helpers above.
+const ENTRANCE_TYPES = new Set(["foyer", "entrance", "entry", "entrance_hall", "lobby", "reception"]);
+const OPEN_AIR_TYPES = new Set(["balcony", "terrace", "veranda", "verandah", "patio"]);
+
+/** Circulation rooms on one floor grouped into connected halls (pieces that
+ * share >= 1 m of wall are one hall). Synthetic corridor_* / stairwell* rooms
+ * count, as do brief rooms in the circ zone. Returns room id -> hall index. */
+function hallsOnFloor(rooms: PlacedRoom[], graph: RoomGraph): Map<string, number> {
+    const isCirc = (r: PlacedRoom) => graph.nodes.get(r.room_id)?.zone === "circ"
+        || (!graph.nodes.has(r.room_id) && /^(corridor|stairwell)/.test(r.room_id));
+    const circ = rooms.filter(isCirc);
+    const hallOf = new Map<string, number>();
+    let next = 0;
+    for (const start of circ) {
+        if (hallOf.has(start.room_id)) continue;
+        const stack = [start];
+        hallOf.set(start.room_id, next);
+        while (stack.length) {
+            const r = stack.pop()!;
+            for (const o of circ) {
+                if (!hallOf.has(o.room_id) && sharedWallLength(r, o) >= WALL_TOL_M) {
+                    hallOf.set(o.room_id, next);
+                    stack.push(o);
+                }
+            }
+        }
+        next++;
+    }
+    return hallOf;
+}
+
 // ── I1 — every placed room inside the building footprint ─────────────────
 
 export function assertI1_InsideFootprint(
@@ -125,6 +157,7 @@ export function assertI3_AdjacencySatisfied(
     hubEdgesOnly = false
 ): AssertionResult {
     const violations: string[] = [];
+    const viaHall: string[] = [];
     const placed = byId(layout.placed_rooms);
     const seen = new Set<string>();
     const hubIds = new Set<string>();
@@ -146,9 +179,18 @@ export function assertI3_AdjacencySatisfied(
             if (!b || a.floor !== b.floor) continue;
             if (hubEdgesOnly && !hubIds.has(node.id) && !hubIds.has(neighborId)) continue;
             const shared = sharedWallLength(a, b);
-            if (shared < WALL_TOL_M) {
-                violations.push(`${node.id}<->${neighborId}: ${shared.toFixed(2)}m shared wall (need ${WALL_TOL_M}m)`);
+            if (shared >= WALL_TOL_M) continue;
+            // FOYER_VIA_HALL: a foyer link is met when both rooms open onto the same hall.
+            if (ENTRANCE_TYPES.has(node.type) || ENTRANCE_TYPES.has(graph.nodes.get(neighborId)?.type ?? "")) {
+                const floorRooms = layout.placed_rooms.filter(r => r.floor === a.floor);
+                const halls = hallsOnFloor(floorRooms, graph);
+                const hallsTouching = (r: PlacedRoom) => new Set(floorRooms
+                    .filter(h => halls.has(h.room_id) && h.room_id !== r.room_id && sharedWallLength(r, h) >= WALL_TOL_M)
+                    .map(h => halls.get(h.room_id)!));
+                const viaA = hallsTouching(a), viaB = hallsTouching(b);
+                if ([...viaA].some(h => viaB.has(h))) { viaHall.push(`${node.id}<->${neighborId}`); continue; }
             }
+            violations.push(`${node.id}<->${neighborId}: ${shared.toFixed(2)}m shared wall (need ${WALL_TOL_M}m)`);
         }
     }
     return {
@@ -156,6 +198,7 @@ export function assertI3_AdjacencySatisfied(
         pass: violations.length === 0,
         detail: violations.length === 0
             ? (hubEdgesOnly ? "all hub adjacencies satisfied (soft edges relaxed)" : "all declared adjacencies satisfied")
+                + (viaHall.length ? `; met through the hall: ${viaHall.join(", ")}` : "")
             : violations.join("; "),
     };
 }
@@ -204,6 +247,7 @@ export function assertI5_ExternalWall(
     envelope: { width: number; height: number }
 ): AssertionResult {
     const violations: string[] = [];
+    const viaTerrace: string[] = [];
     const touchesPerimeter = (r: PlacedRoom, tol = 0.5) =>
         r.x <= tol || r.y <= tol ||
         (r.x + r.width)  >= envelope.width  - tol ||
@@ -214,14 +258,21 @@ export function assertI5_ExternalWall(
         // Synthetic rooms (corridor/stairwell) not in graph — not subject to this rule
         if (!node) continue;
         if (node.zone === "circ" || NO_WINDOW_TYPES.has(node.type)) continue;
-        if (!touchesPerimeter(r)) {
-            violations.push(`${r.room_id} (${node.label}): no perimeter wall`);
-        }
+        if (touchesPerimeter(r)) continue;
+        // TERRACE_LIGHT: opening onto an open-air terrace on an upper floor that
+        // itself reaches the perimeter gives the room daylight.
+        const terrace = layout.placed_rooms.find(t => t.floor === r.floor && t.floor > 0 && t !== r
+            && (OPEN_AIR_TYPES.has(graph.nodes.get(t.room_id)?.type ?? "") || (!graph.nodes.has(t.room_id) && t.room_id.startsWith("terrace_")))
+            && touchesPerimeter(t) && sharedWallLength(r, t) >= WALL_TOL_M);
+        if (terrace) { viaTerrace.push(`${r.room_id}->${terrace.room_id}`); continue; }
+        violations.push(`${r.room_id} (${node.label}): no perimeter wall`);
     }
     return {
         invariant: "I5_EXTERNAL_WALL",
         pass: violations.length === 0,
-        detail: violations.length === 0 ? "all habitable rooms reach the perimeter" : violations.join("; "),
+        detail: violations.length === 0
+            ? "all habitable rooms reach the perimeter" + (viaTerrace.length ? ` (via an open terrace: ${viaTerrace.join(", ")})` : "")
+            : violations.join("; "),
     };
 }
 
