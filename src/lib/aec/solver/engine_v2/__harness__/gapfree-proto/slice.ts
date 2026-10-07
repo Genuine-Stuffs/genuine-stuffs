@@ -229,31 +229,36 @@ export function anneal(spec: FloorSpec, seed: number, iters: number, stackW = 0)
     let cur: number[] = [rest[0]];
     for (let i = 1; i < rest.length; i++) cur.push(rest[i], R() < 0.5 ? H : V);
     if (frontIdx.length) { cur.push(frontIdx[0]); for (let i = 1; i < frontIdx.length; i++) cur.push(frontIdx[i], V); cur.push(H); }
-    let co: number[] = cur.map(() => 0);
+    // Allocation-free loop: the candidate is built in scratch buffers (nx, no)
+    // copied from the current plan, and buffers are swapped on acceptance.
+    // Same random draws and decisions as before, so the same plans.
+    const L = cur.length;
+    let cE = Int32Array.from(cur), cO = new Int32Array(L), nx = new Int32Array(L), no = new Int32Array(L);
+    const bestE = cE.slice(), bestO = cO.slice(), opsB = new Int32Array(L);
     const ctx = FAST && !spec.fixed ? makeCtx(spec) : null;
-    const costF = ctx ? (e: number[], o: number[]) => fastLayout(ctx, e, o) ? fastCost(ctx, stackW) : 1e9 : (e: number[], o: number[]) => cost(e, o, spec, stackW);
-    let cc = costF(cur, co), best = cur.slice(), bo = co.slice(), bc = cc;
+    const costF = ctx ? (e: ArrayLike<number>, o: ArrayLike<number>) => fastLayout(ctx, e as any, o as any) ? fastCost(ctx, stackW) : 1e9 : (e: ArrayLike<number>, o: ArrayLike<number>) => cost(e as any, o as any, spec, stackW);
+    let cc = costF(cE, cO), bc = cc;
     const REPAIR_P = Number(process.env.REPAIR_P ?? 0.25);
-    const viols = (e: number[], o: number[]) => { if (!REPAIR_P) return []; const r = layout(e, spec, o); return r ? violations(r, spec).filter(v => v.rule !== "AREA_RELAXED") : []; };
-    let curV = viols(cur, co);
+    const viols = (e: ArrayLike<number>, o: ArrayLike<number>) => { if (!REPAIR_P) return []; const r = layout(e as any, spec, o as any); return r ? violations(r, spec).filter(v => v.rule !== "AREA_RELAXED") : []; };
+    let curV = viols(cE, cO);
     let T = 50;
     const cool = Math.pow(0.05 / T, 1 / iters);
     for (let it = 0; it < iters && bc > 0; it++, T *= cool) {
-        const nx = cur.slice(), no = co.slice();
+        nx.set(cE); no.set(cO);
         const m = R();
-        const ops = nx.map((t, i) => t >= 0 ? i : -1).filter(i => i >= 0);
+        let nOps = 0;
+        for (let i = 0; i < L; i++) if (nx[i] >= 0) opsB[nOps++] = i;
         if (m < REPAIR_P && curV.length) { // repair: act on one current violation
             const v = curV[Math.floor(R() * curV.length)];
             const pos = (leaf: number) => nx.indexOf(leaf);
-            const ops = nx.map((t, i) => t >= 0 ? i : -1).filter(i => i >= 0);
             if ((v.rule === "ADJACENCY" || v.rule === "ADJ_SOFT") && v.other !== undefined) {
                 // make b the operand right after a (siblings under one cut)
-                const pa = pos(v.leaf), k = ops.indexOf(pa), pb = pos(v.other);
-                const tgt = ops[k + 1] ?? ops[k - 1];
-                if (tgt !== undefined && tgt !== pb) { [nx[tgt], nx[pb]] = [nx[pb], nx[tgt]]; }
+                const pa = pos(v.leaf), k = opsB.subarray(0, nOps).indexOf(pa), pb = pos(v.other);
+                const tgt = k + 1 < nOps ? opsB[k + 1] : k - 1 >= 0 ? opsB[k - 1] : undefined;
+                if (tgt !== undefined && tgt !== pb) { const t = nx[tgt]; nx[tgt] = nx[pb]; nx[pb] = t; }
             } else {
                 // swap the room with a random room that currently satisfies the rule
-                const rects = layout(cur, spec, co);
+                const rects = layout(cE as any, spec, cO as any);
                 if (!rects) continue;
                 const good = spec.leaves.map((_, i) => i).filter(i => i !== v.leaf && (
                     v.rule === "FRONT" ? rects[i].y + rects[i].h === spec.D :
@@ -261,29 +266,32 @@ export function anneal(spec: FloorSpec, seed: number, iters: number, stackW = 0)
                     true));
                 if (!good.length) continue;
                 const j = good[Math.floor(R() * good.length)], pa = pos(v.leaf), pj = pos(j);
-                [nx[pa], nx[pj]] = [nx[pj], nx[pa]];
+                const t = nx[pa]; nx[pa] = nx[pj]; nx[pj] = t;
             }
         } else if (m < REPAIR_P + 0.15) { // nudge one cut by a cell (area tolerance)
-            let i = Math.floor(R() * nx.length); while (nx[i] >= 0) i = (i + 1) % nx.length;
+            let i = Math.floor(R() * L); while (nx[i] >= 0) i = (i + 1) % L;
             no[i] = Math.max(-2, Math.min(2, no[i] + (R() < 0.5 ? -1 : 1)));
         } else if (m < REPAIR_P + 0.4) { // swap two operands
-            const a = ops[Math.floor(R() * ops.length)], b = ops[Math.floor(R() * ops.length)];
-            [nx[a], nx[b]] = [nx[b], nx[a]];
+            const a = opsB[Math.floor(R() * nOps)], b = opsB[Math.floor(R() * nOps)];
+            const t = nx[a]; nx[a] = nx[b]; nx[b] = t;
         } else if (m < REPAIR_P + 0.6) { // complement an operator chain
-            let i = Math.floor(R() * nx.length); while (nx[i] >= 0) i = (i + 1) % nx.length;
-            while (i < nx.length && nx[i] < 0) { nx[i] = nx[i] === H ? V : H; i++; }
+            let i = Math.floor(R() * L); while (nx[i] >= 0) i = (i + 1) % L;
+            while (i < L && nx[i] < 0) { nx[i] = nx[i] === H ? V : H; i++; }
         } else { // swap adjacent operand/operator, keeping the expression valid
-            const i = Math.floor(R() * (nx.length - 1));
+            const i = Math.floor(R() * (L - 1));
             if ((nx[i] >= 0) === (nx[i + 1] >= 0)) continue;
-            [nx[i], nx[i + 1]] = [nx[i + 1], nx[i]]; [no[i], no[i + 1]] = [no[i + 1], no[i]];
+            let t = nx[i]; nx[i] = nx[i + 1]; nx[i + 1] = t; t = no[i]; no[i] = no[i + 1]; no[i + 1] = t;
             let operands = 0, okExpr = true;
-            for (const t of nx) { operands += t >= 0 ? 1 : -1; if (operands < 1) { okExpr = false; break; } }
+            for (let q = 0; q < L; q++) { operands += nx[q] >= 0 ? 1 : -1; if (operands < 1) { okExpr = false; break; } }
             if (!okExpr) continue;
         }
         const nc = costF(nx, no);
-        if (nc <= cc || R() < Math.exp((cc - nc) / T)) { cur = nx; co = no; cc = nc; curV = viols(cur, co); if (cc < bc) { bc = cc; best = cur.slice(); bo = co.slice(); } }
+        if (nc <= cc || R() < Math.exp((cc - nc) / T)) {
+            let t = cE; cE = nx; nx = t; t = cO; cO = no; no = t; cc = nc; curV = viols(cE, cO);
+            if (cc < bc) { bc = cc; bestE.set(cE); bestO.set(cO); }
+        }
     }
-    return { expr: best, offs: bo, cost: bc };
+    return { expr: Array.from(bestE), offs: Array.from(bestO), cost: bc };
 }
 
 /** Rebuild plan Phase 2 hub rule: ONE hub per floor, the eligible room
