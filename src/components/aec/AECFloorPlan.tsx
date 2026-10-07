@@ -114,6 +114,8 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
 
   const resolveRoomName = (room_id: string): string => {
     if (room_id === 'stairwell_void') return 'STAIR VOID';
+    // gap-free engine: the open roof of the floor below
+    if (room_id.startsWith('terrace_f')) return 'Terrace';
     const match = sourceRooms.find(
       r => r.room_id === room_id || r.id === room_id
     );
@@ -126,6 +128,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   const resolveRoomType = (room_id: string): string => {
     if (room_id === 'stairwell' || room_id === 'stairwell_void') return 'stairwell';
     if (room_id.startsWith('corridor_floor')) return 'circulation';
+    if (room_id.startsWith('terrace_f')) return 'balcony';
     const match = sourceRooms.find(r => r.room_id === room_id || r.id === room_id);
     return match?.type ?? 'unknown';
   };

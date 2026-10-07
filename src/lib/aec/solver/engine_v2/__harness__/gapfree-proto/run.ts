@@ -157,6 +157,7 @@ for (const f of files) {
         }));
         const typeOf = (id: string) => graph.nodes.get(id)?.type ?? (id.startsWith("stair") ? "stairwell" : id.startsWith("corridor") ? "circulation" : "balcony");
         const issues = floorIds.flatMap(fl => { const subs = new Set(deriveSuites(graph, fl).flatMap(x => x.subIds)); return validatePlacement(placed.filter(p => p.floor === fl), typeOf, id => id, best!.W * C, best!.D * C, fl, subs); });
+        if (process.env.HASH) console.log(`  seed ${s} placed ${createHash("sha1").update(JSON.stringify(placed)).digest("hex").slice(0, 12)}`);
         const L: any = { placed_rooms: placed, building_width: best.W * C, building_depth: best.D * C, solver_status: vs.length === 0 ? (relaxed ? "SOLVED_RELAXED" : "SOLVED") : "FALLBACK", placement_issues: issues };
         if (vs.length === 0) {
             tally.solved++; if (relaxed) tally.relaxed = (tally.relaxed ?? 0) + 1;

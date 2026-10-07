@@ -64,7 +64,7 @@ import autoTable from 'jspdf-autotable';
 import AECFloorPlan from '@/components/aec/AECFloorPlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
-import { useLayoutOptions, layoutSignature, solveLayoutInWorker } from '@/hooks/use-layout-options';
+import { useLayoutOptions, layoutSignature, solveLayoutInWorker, layoutModeSetting } from '@/hooks/use-layout-options';
 import { explainFailure } from '@/lib/aec/solver/engine_v2/failure_messages';
 import { ADVISORY_RULES } from '@/lib/aec/solver/engine_v2/placement_validator';
 import { runComplianceCheck, ComplianceReport } from '@/lib/aec/compliance_engine';
@@ -667,7 +667,7 @@ const AIStudio = () => {
                     const envelope = { width: plotWidth, depth: plotDepth, setbacks: { front: 6, rear: 3, left: 3, right: 3 } };
                     // One seed for both runs, so the plan shown first is
                     // the same geometry as its entry in the options list.
-                    const solverOptions = { floors_override: briefFloors, seed: Math.floor(Math.random() * 2 ** 31) };
+                    const solverOptions = { floors_override: briefFloors, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting() };
                     const program = { ...finalDesignData };
                     const solved = await solveLayoutInWorker(finalDesignData, envelope, solverOptions);
                     finalDesignData.solvedLayout = solved;
@@ -677,7 +677,9 @@ const AIStudio = () => {
                     // user is still looking at this same plan.
                     // A fallback plan means nothing solved strictly: the worker
                     // would only repeat that search, so don't offer options.
-                    if ((solved.solver_status === 'SOLVED' || solved.solver_status === 'SOLVED_RELAXED') && !solved.solver_fallback) {
+                    // The gap-free engine already compares every footprint and
+                    // returns its best plan; it has no options list yet.
+                    if ((solved.solver_status === 'SOLVED' || solved.solver_status === 'SOLVED_RELAXED') && !solved.solver_fallback && solverOptions.layoutMode !== 'gapfree') {
                         const shownSig = layoutSignature(solved);
                         layoutOptions.request({ program, envelope, options: solverOptions }, (variants) => {
                             setDesignPackage((prev: any) => {

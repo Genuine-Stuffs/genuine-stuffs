@@ -73,7 +73,8 @@ function runFixture(name: string, raw: any, seed: number): FixtureOutcome {
     };
 
     try {
-        const layout = solveLayoutV2(raw, envelope, { floors_override: floors, seed });
+        // LAYOUT_MODE=gapfree runs the gap-free engine through the same checks.
+        const layout = solveLayoutV2(raw, envelope, { floors_override: floors, seed, layoutMode: (process.env.LAYOUT_MODE as any) ?? 'free' });
         const graph  = buildGraph((raw.rooms ?? []) as HiveRoom[]);
         const isVacuous = layout.solver_status === 'TIMEOUT';
         const evaluate = layout.solver_fallback ? runFallbackAssertions : runAllAssertions;

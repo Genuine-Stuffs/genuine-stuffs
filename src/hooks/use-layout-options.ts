@@ -3,14 +3,31 @@ import * as React from "react";
 import type { SolvedLayout, SpatialProgram } from "../../supabase/functions/ai-studio/schema";
 import type { PlotEnvelope, SolverOptions } from "@/lib/aec/solver/types";
 import { solveLayoutV2 } from "@/lib/aec/solver/engine_v2";
+import { solveGapfreeInPool } from "@/lib/aec/solver/engine_v2/gapfree/pool";
 
 /** solveLayoutV2() in a Web Worker, so the page stays responsive while a
  * large brief solves (villas: ~9 s). Same arguments, same result. Where
- * workers aren't available it runs inline, as it did before. */
+ * workers aren't available it runs inline, as it did before. The gap-free
+ * engine (layoutMode 'gapfree') runs on a pool of workers instead. */
 export function solveLayoutInWorker(
   program: SpatialProgram, envelope: PlotEnvelope, options: SolverOptions,
 ): Promise<SolvedLayout> {
   if (typeof Worker === "undefined") return Promise.resolve(solveLayoutV2(program, envelope, options));
+  // Gap-free engine: its restarts run on a pool of workers (one per core).
+  // If the pool can't run, the single-worker path below solves the same
+  // plan, just more slowly.
+  if (options.layoutMode === "gapfree") {
+    return solveGapfreeInPool(program, envelope, options).catch((err) => {
+      console.warn("[SOLVER] worker pool failed, solving in one worker:", err);
+      return solveInOneWorker(program, envelope, options);
+    });
+  }
+  return solveInOneWorker(program, envelope, options);
+}
+
+function solveInOneWorker(
+  program: SpatialProgram, envelope: PlotEnvelope, options: SolverOptions,
+): Promise<SolvedLayout> {
   return new Promise((resolve, reject) => {
     const worker = new Worker(
       new URL("../lib/aec/solver/engine_v2/solve.worker.ts", import.meta.url),
@@ -30,6 +47,21 @@ export function solveLayoutInWorker(
     };
     worker.postMessage({ program, envelope, options });
   });
+}
+
+/** Which layout engine AI Studio uses: `?layoutMode=gapfree` in the URL
+ * (side-by-side testing), else the VITE_LAYOUT_MODE build setting, else
+ * today's engine ('free'). The gap-free engine is switched on for everyone
+ * by setting VITE_LAYOUT_MODE=gapfree once it passes the switch-on gate
+ * (ledger §3). */
+export function layoutModeSetting(): SolverOptions["layoutMode"] {
+  const ok = (v: string | null | undefined) => v === "gapfree" || v === "free" || v === "grid";
+  try {
+    const fromUrl = typeof window !== "undefined" ? new URLSearchParams(window.location.search).get("layoutMode") : null;
+    if (ok(fromUrl)) return fromUrl as SolverOptions["layoutMode"];
+  } catch { /* no URL: fall through */ }
+  const fromEnv = import.meta.env.VITE_LAYOUT_MODE as string | undefined;
+  return ok(fromEnv) ? (fromEnv as SolverOptions["layoutMode"]) : "free";
 }
 
 /** Identifies a layout by its geometry, so the plan already on screen can

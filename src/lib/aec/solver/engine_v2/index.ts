@@ -47,6 +47,7 @@ import { solvePlacement } from "./solver";
 import { SolverConfig, ReservedRect } from "./solver/types";
 import { GRID_RESOLUTION_M } from "./solver/units";
 import { ValidationIssue } from "./placement_validator";
+import { solveGapfree } from "./gapfree/solve";
 
 // Per attempt, per floor. Kept short deliberately — trying several
 // candidates only pays off if each one is cheap enough that the total
@@ -124,7 +125,7 @@ interface PreparedProgram {
     isDuplex: boolean;
     storeys: number;
     seedNum: number;
-    layoutMode: 'grid' | 'free';
+    layoutMode: 'grid' | 'free' | 'gapfree';
 }
 
 function prepareProgram(program: SpatialProgram, options?: SolverOptions): PreparedProgram {
@@ -422,6 +423,7 @@ export function solveLayoutV2(
     envelope: PlotEnvelope,
     options?: SolverOptions
 ): SolvedLayout {
+    if (options?.layoutMode === 'gapfree') return solveGapfree(program, envelope, options);
     const { successes, lastAttempt } = solveLayoutCandidates(program, envelope, options, /* stopAtFirstSuccess */ true);
     return successes[0] ?? lastAttempt;
 }
@@ -439,6 +441,9 @@ export function solveLayoutVariants(
     options?: SolverOptions,
     maxVariants: number = 4
 ): SolvedLayout[] {
+    // The gap-free engine returns its one best plan (its search already
+    // compares every footprint); no separate options list yet.
+    if (options?.layoutMode === 'gapfree') return [solveGapfree(program, envelope, options)];
     const { successes, lastAttempt, graph } = solveLayoutCandidates(program, envelope, options, /* stopAtFirstSuccess */ false);
     if (successes.length === 0) return [lastAttempt];
     return successes
