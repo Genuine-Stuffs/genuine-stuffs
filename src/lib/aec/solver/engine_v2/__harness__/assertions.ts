@@ -20,7 +20,7 @@
  */
 
 import { SolvedLayout, PlacedRoom } from "../../../../../../supabase/functions/ai-studio/schema";
-import { RoomGraph, deriveSuites, identifyHubs, NO_WINDOW_TYPES, STREET_FRONT_TYPES } from "../graph";
+import { RoomGraph, deriveSuites, specHub, NO_WINDOW_TYPES, STREET_FRONT_TYPES } from "../graph";
 
 export interface AssertionResult {
     invariant: string;
@@ -163,7 +163,7 @@ export function assertI3_AdjacencySatisfied(
     const hubIds = new Set<string>();
     if (hubEdgesOnly) {
         for (const floorIndex of graph.floors.keys()) {
-            for (const h of identifyHubs(graph, floorIndex)) hubIds.add(h.id);
+            for (const h of specHub(graph, floorIndex)) hubIds.add(h);
         }
     }
 

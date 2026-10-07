@@ -216,6 +216,19 @@ export function identifyHubs(
         .sort((a, b) => b.degree - a.degree);
 }
 
+/** The floor's one hub (rebuild plan Phase 2; accepted as SPEC_HUB by the
+ * owner 2026-10-07): the living/family room, hall or foyer with the most
+ * links (at least 2), ties to the larger room; failing that, the room with
+ * the most links. identifyHubs above makes every room with 3+ links a hub. */
+export function specHub(graph: RoomGraph, floorIndex: number): string[] {
+    const nodes = (graph.floors.get(floorIndex) ?? []).map(id => graph.nodes.get(id)!)
+        .filter(n => !/stair/i.test(n.label) && n.type !== 'stairwell');
+    const eligible = nodes.filter(n => ['living_room', 'family_room', 'circulation', 'foyer'].includes(n.type) && n.degree >= 2);
+    const pool = eligible.length ? eligible : nodes;
+    pool.sort((a, b) => b.degree - a.degree || b.area - a.area);
+    return pool.length ? [pool[0].id] : [];
+}
+
 // ──────────────────────────────────────────────────────────────────────────
 // Suite derivation — from real edges, not name matching
 // ──────────────────────────────────────────────────────────────────────────
