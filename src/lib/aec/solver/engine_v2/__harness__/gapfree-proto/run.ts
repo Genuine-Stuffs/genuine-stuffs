@@ -8,6 +8,7 @@ import { fileURLToPath } from "url";
 import { buildGraph, HiveRoom, deriveSuites } from "../../graph";
 import { runAllAssertions } from "../assertions";
 import { validatePlacement } from "../../placement_validator";
+import { structure } from "../structure";
 import { anneal, annealJoint, jointCost, layout, violations, floorLeaves, unsupportedWall, FloorSpec, Rect, Leaf, STAIR_IN_HALL, placeStair, hallPieces } from "./slice";
 
 const FIX = fileURLToPath(new URL("../../__fixtures__", import.meta.url));
@@ -55,6 +56,7 @@ for (const f of files) {
     const tally: Record<string, number> = { solved: 0, compromise: 0, nogeom: 0, clean: 0 };
     const ruleCount: Record<string, number> = {};
     let t = 0, stackSum = 0, stackN = 0;
+    const stS = { on: 0, off: 0, cols: 0, n: 0, solvedN: 0, solvedNoCol: 0 };
     let sample: any = null;
     for (let s = 1; s <= N; s++) {
         const t0 = performance.now();
@@ -126,8 +128,13 @@ for (const f of files) {
             if (res.every(r => r.pass)) tally.clean++; else console.log(`  seed ${s} harness:`, res.filter(r => !r.pass).map(r => `${r.invariant}: ${r.detail}`).join(" | "));
         } else { tally.compromise++; tally.hardMisses = (tally.hardMisses ?? 0) + vs.length; }
         if (best.specs.has(1)) { stackSum += unsupportedWall(best.rects.get(1)!, { ...best.specs.get(1)!, below: best.rects.get(0)! }); stackN++; }
+        if (best.specs.has(1) && best.specs.has(0)) {
+            const st = structure(best.rects.get(1)!, best.rects.get(0)!, best.W, best.D);
+            stS.on += st.onStructure; stS.off += st.offM; stS.cols += st.columnsInRooms; stS.n++;
+            if (vs.length === 0) { stS.solvedN++; if (st.columnsInRooms === 0) stS.solvedNoCol++; }
+        }
         if (!sample || (process.env.DUMP_FAIL ? vs.length > 0 && sample.status !== "FALLBACK" : vs.length === 0 && sample.status !== "SOLVED")) sample = { fixture: f, seed: s, status: L.solver_status, W: best.W * C, D: best.D * C, placed, labels: Object.fromEntries([...graph.nodes.values()].map(n => [n.id, n.label])), violations: [...best.specs.entries()].flatMap(([fl, sp]) => violations(best!.rects.get(fl)!, sp).map(v => ({ floor: fl, rule: v.rule, room: sp.leaves[v.leaf]?.id, other: v.other !== undefined ? sp.leaves[v.other]?.id : undefined, amount: +v.amount.toFixed(2) }))) };
     }
     writeFileSync(`${process.env.OUT ?? "."}/sample_${f.slice(0, 8)}.json`, JSON.stringify(sample));
-    console.log(`${f.padEnd(44)} solved ${tally.solved} (relaxed ${tally.relaxed ?? 0}, harness-clean ${tally.clean}) compromise ${tally.compromise} nogeom ${tally.nogeom} | upper walls unsupported ${stackN ? (100 * stackSum / stackN).toFixed(0) + "%" : "-"} | hard misses/compromise plan ${tally.compromise ? ((tally.hardMisses ?? 0) / tally.compromise).toFixed(1) : "-"} | avg ${(t / N / 1000).toFixed(2)}s | misses ${JSON.stringify(ruleCount)}`);
+    console.log(`${f.padEnd(44)} solved ${tally.solved} (relaxed ${tally.relaxed ?? 0}, harness-clean ${tally.clean}) compromise ${tally.compromise} nogeom ${tally.nogeom} | upper walls unsupported ${stackN ? (100 * stackSum / stackN).toFixed(0) + "%" : "-"} | I10 on-structure ${stS.n ? (100 * stS.on / stS.n).toFixed(0) + "%" : "-"} off ${stS.n ? (stS.off / stS.n).toFixed(1) + "m" : "-"} cols-in-rooms ${stS.n ? (stS.cols / stS.n).toFixed(1) : "-"} (solved w/o: ${stS.solvedNoCol}/${stS.solvedN}) | hard misses/compromise plan ${tally.compromise ? ((tally.hardMisses ?? 0) / tally.compromise).toFixed(1) : "-"} | avg ${(t / N / 1000).toFixed(2)}s | misses ${JSON.stringify(ruleCount)}`);
 }
