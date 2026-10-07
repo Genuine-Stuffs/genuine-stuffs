@@ -1,18 +1,16 @@
-// PROTOTYPE (scratch, not product code): slicing-tree floor layout.
+// Gap-free layout engine (layoutMode 'gapfree'): slicing-tree floor layout.
 // The footprint rectangle is cut recursively (normalized Polish expression,
 // Wong–Liu); every room is a leaf; one "hall" leaf takes the remainder.
 // Gap-free, overlap-free, inside the footprint by construction. Searched by
 // seeded simulated annealing over the expression; cost = rule violations.
-import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, deriveSuites, identifyHubs } from "../../graph";
-import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../../solver/room_shape";
-import { isConnectorType, isSubRoom } from "../../placement_validator";
+import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, deriveSuites, identifyHubs, specHub } from "../graph";
+import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
+import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
+import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P } from "./config";
 
 const CELL = 0.5;
-export const STAIR_IN_HALL = !!process.env.STAIR_IN_HALL;
-const FAST = !!process.env.FAST;
-export const FOYER_VIA_HALL = !!process.env.FOYER_VIA_HALL;
-export const TERRACE_LIGHT = !!process.env.TERRACE_LIGHT;
+export { STAIR_IN_HALL, FOYER_VIA_HALL, TERRACE_LIGHT };
 export const ENTRANCE = new Set(["foyer", "entrance", "entry", "entrance_hall", "lobby", "reception"]);
 const H = -1, V = -2; // H: stacked (horizontal cut), V: side by side (vertical cut)
 
@@ -125,7 +123,7 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
             }
         } else {
             // a stair is sized by STAIR_SIZE; SMALL_TOL (experiment): rooms under 6 m² may be ±1 m²
-            const dev = l.stair ? 0 : (process.env.SMALL_TOL && l.area < 6 && Math.abs(a - l.area) <= 1.0001) ? 0 : Math.abs(a - l.area) / l.area;
+            const dev = l.stair ? 0 : (SMALL_TOL && l.area < 6 && Math.abs(a - l.area) <= 1.0001) ? 0 : Math.abs(a - l.area) / l.area;
             // Ladder: within ±10% is strict; within ±20% is RELAX-AREA-20.
             if (dev > 0.20) v.push({ rule: "AREA", leaf: i, amount: 1 + 5 * (dev - 0.20) });
             else if (dev > 0.10) v.push({ rule: "AREA_RELAXED", leaf: i, amount: dev - 0.10 });
@@ -238,7 +236,6 @@ export function anneal(spec: FloorSpec, seed: number, iters: number, stackW = 0)
     const ctx = FAST && !spec.fixed ? makeCtx(spec) : null;
     const costF = ctx ? (e: ArrayLike<number>, o: ArrayLike<number>) => fastLayout(ctx, e as any, o as any) ? fastCost(ctx, stackW) : 1e9 : (e: ArrayLike<number>, o: ArrayLike<number>) => cost(e as any, o as any, spec, stackW);
     let cc = costF(cE, cO), bc = cc;
-    const REPAIR_P = Number(process.env.REPAIR_P ?? 0.25);
     const viols = (e: ArrayLike<number>, o: ArrayLike<number>) => { if (!REPAIR_P) return []; const r = layout(e as any, spec, o as any); return r ? violations(r, spec).filter(v => v.rule !== "AREA_RELAXED") : []; };
     let curV = viols(cE, cO);
     let T = 50;
@@ -294,17 +291,6 @@ export function anneal(spec: FloorSpec, seed: number, iters: number, stackW = 0)
     return { expr: Array.from(bestE), offs: Array.from(bestO), cost: bc };
 }
 
-/** Rebuild plan Phase 2 hub rule: ONE hub per floor, the eligible room
- * (living/family room, corridor; here also the foyer) with the most links,
- * ties to the larger; none eligible -> the highest-degree room. */
-function specHub(graph: RoomGraph, floor: number): string[] {
-    const nodes = (graph.floors.get(floor) ?? []).map(id => graph.nodes.get(id)!).filter(n => !/stair/i.test(n.label) && n.type !== "stairwell");
-    const eligible = nodes.filter(n => ["living_room", "family_room", "circulation", "foyer"].includes(n.type) && n.degree >= 2);
-    const pool = eligible.length ? eligible : nodes;
-    pool.sort((a, b) => b.degree - a.degree || b.area - a.area);
-    return pool.length ? [pool[0].id] : [];
-}
-
 /** Leaves for one floor of the brief: rooms (circulation merged into one
  * hall leaf that takes the footprint's remainder). */
 export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: number, extraStair: boolean): { leaves: Leaf[]; pairs: Array<[number, number]>; soft: Set<string> } | null {
@@ -352,7 +338,7 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
         }
     }
     // As the engine: only edges at a hub room are never dropped.
-    const hubs = new Set(process.env.SPEC_HUB ? specHub(graph, floor) : identifyHubs(graph, floor).map(h => h.id));
+    const hubs = new Set(SPEC_HUB ? specHub(graph, floor) : identifyHubs(graph, floor).map(h => h.id));
     const soft = new Set<string>();
     // Circulation pairs are never hub edges in the engine (buildCirculation).
     const circ = (i: number) => !!(leaves[i].hall || leaves[i].stair);

@@ -1,7 +1,8 @@
 // Fast scorer: the same weighted cost as cost() in slice.ts, without
 // allocating. Rules that depend only on a room's own size are memoised per
 // (leaf, w, h); positions are scored on preallocated typed arrays.
-import { FloorSpec, Rect, violations, WEIGHT, placeStair, hallPieces, unsupportedWall, FOYER_VIA_HALL, ENTRANCE, TERRACE_LIGHT } from "./slice";
+import { FloorSpec, Rect, violations, WEIGHT, placeStair, hallPieces, unsupportedWall, ENTRANCE } from "./slice";
+import { FOYER_VIA_HALL, TERRACE_LIGHT } from "./config";
 
 const DOOR = 2, PASSAGE = 3;
 

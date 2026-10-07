@@ -11,7 +11,7 @@ import { buildGraph, HiveRoom, deriveSuites } from "../../graph";
 import { runAllAssertions } from "../assertions";
 import { validatePlacement } from "../../placement_validator";
 import { structure } from "../structure";
-import { anneal, annealJoint, jointCost, layout, violations, floorLeaves, unsupportedWall, FloorSpec, Rect, Leaf, STAIR_IN_HALL, placeStair, hallPieces } from "./slice";
+import { anneal, annealJoint, jointCost, layout, violations, floorLeaves, unsupportedWall, FloorSpec, Rect, Leaf, STAIR_IN_HALL, placeStair, hallPieces } from "../../gapfree/slice";
 
 const FIX = fileURLToPath(new URL("../../__fixtures__", import.meta.url));
 const SET = { front: 6, rear: 3, left: 3, right: 3 };

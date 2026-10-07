@@ -1,7 +1,7 @@
 // Search-power test: briefs made from random gap-free plans (so a perfect
 // layout is known to exist); how often does the annealer find one?
 // Usage: tsx power.ts <rooms> <briefs> <iters> <restarts>
-import { anneal, layout, violations, FloorSpec, Leaf, Rect, shared } from "./slice";
+import { anneal, layout, violations, FloorSpec, Leaf, Rect, shared } from "../../gapfree/slice";
 
 const n = Number(process.argv[2] ?? 12), B = Number(process.argv[3] ?? 20);
 const ITERS = Number(process.argv[4] ?? 80000), RESTARTS = Number(process.argv[5] ?? 8);

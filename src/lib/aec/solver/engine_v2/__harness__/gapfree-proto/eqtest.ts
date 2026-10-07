@@ -1,7 +1,7 @@
 import { readFileSync } from "fs";
 import { buildGraph } from "../../graph";
-import { floorLeaves, layout, cost, placeStair, FloorSpec } from "./slice";
-import { makeCtx, fastLayout, fastCost } from "./fast";
+import { floorLeaves, layout, cost, placeStair, FloorSpec } from "../../gapfree/slice";
+import { makeCtx, fastLayout, fastCost } from "../../gapfree/fast";
 let s0 = 99; const R = () => { s0 ^= s0 << 13; s0 >>>= 0; s0 ^= s0 >>> 17; s0 ^= s0 << 5; s0 >>>= 0; return s0 / 4294967296; };
 const rand = (n: number) => { const e = [0]; for (let i = 1; i < n; i++) e.push(i, R() < 0.5 ? -1 : -2); for (let k = 0; k < 3 * n; k++) { const a = e.indexOf(Math.floor(R() * n)), b = e.indexOf(Math.floor(R() * n)); [e[a], e[b]] = [e[b], e[a]]; } return e; };
 let worst = 0, N = 0, tSlow = 0, tFast = 0;
