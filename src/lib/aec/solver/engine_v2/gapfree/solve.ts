@@ -104,13 +104,22 @@ function specFor(graph: RoomGraph, floor: number, W: number, D: number, duplex: 
     return { leaves, W, D, pairs, floor, soft };
 }
 
-/** Candidate footprints (cells): two sizes × three proportions. */
+/** Candidate footprints (cells): two sizes × three proportions. A side
+ * longer than the buildable area is cut to it and the other side lengthened
+ * to keep the area (a 15 m × 30 m plot builds 9 m wide), so no footprint is
+ * dropped while the area fits at all. */
 function footprints(p: Prepared): Array<[number, number]> {
     const fps: Array<[number, number]> = [];
+    const maxW = Math.floor(p.be.width / CELL + 1e-9), maxD = Math.floor(p.be.height / CELL + 1e-9);
     for (const slack of [1.12, 1.2]) for (const ar of [0.8, 1.0, 1.25]) {
         const A = p.need * slack, Wm = Math.sqrt(A * ar), Dm = A / Wm;
-        const W = Math.round(Wm / CELL), D = Math.round(Dm / CELL);
-        if (W * CELL <= p.be.width && D * CELL <= p.be.height) fps.push([W, D]);
+        let W = Math.round(Wm / CELL), D = Math.round(Dm / CELL);
+        const cut = W > maxW || D > maxD;
+        if (W > maxW) { W = maxW; D = Math.ceil(A / (W * CELL * CELL)); }
+        else if (D > maxD) { D = maxD; W = Math.ceil(A / (D * CELL * CELL)); }
+        // proportions cut to the same size are one footprint, searched once
+        if (cut && fps.some(([w, d]) => w === W && d === D)) continue;
+        if (W <= maxW && D <= maxD) fps.push([W, D]);
     }
     return fps;
 }
