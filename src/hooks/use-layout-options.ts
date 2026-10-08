@@ -49,11 +49,11 @@ function solveInOneWorker(
   });
 }
 
-/** Which layout engine AI Studio uses: `?layoutMode=gapfree` in the URL
- * (side-by-side testing), else the VITE_LAYOUT_MODE build setting, else
- * today's engine ('free'). The gap-free engine is switched on for everyone
- * by setting VITE_LAYOUT_MODE=gapfree once it passes the switch-on gate
- * (ledger §3). */
+/** Which layout engine AI Studio uses: `?layoutMode=free|gapfree|grid` in
+ * the URL (side-by-side testing), else the VITE_LAYOUT_MODE build setting,
+ * else the gap-free engine. It became the default once it passed the
+ * switch-on gate in a real browser (ledger §3); `?layoutMode=free` still
+ * runs the previous engine for comparison. */
 export function layoutModeSetting(): SolverOptions["layoutMode"] {
   const ok = (v: string | null | undefined) => v === "gapfree" || v === "free" || v === "grid";
   try {
@@ -61,7 +61,7 @@ export function layoutModeSetting(): SolverOptions["layoutMode"] {
     if (ok(fromUrl)) return fromUrl as SolverOptions["layoutMode"];
   } catch { /* no URL: fall through */ }
   const fromEnv = import.meta.env.VITE_LAYOUT_MODE as string | undefined;
-  return ok(fromEnv) ? (fromEnv as SolverOptions["layoutMode"]) : "free";
+  return ok(fromEnv) ? (fromEnv as SolverOptions["layoutMode"]) : "gapfree";
 }
 
 /** Identifies a layout by its geometry, so the plan already on screen can
