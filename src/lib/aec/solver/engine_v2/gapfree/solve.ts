@@ -223,9 +223,10 @@ function toLayout(p: Prepared, best: Fp): SolvedLayout {
         return validatePlacement(placed.filter(q => q.floor === fl), typeOf, id => id, best.W * CELL, best.D * CELL, fl, subs);
     });
     const solved = hard.length === 0;
-    // A fallback plan must flag every miss (compromise policy): add any the
-    // validator didn't, by the same rules the harness checks (I3, I5).
-    if (!solved) issues.push(...unflaggedMisses(p, placed, best, issues));
+    // Every plan lists every miss, by the same rules the harness checks (I3,
+    // I5): a fallback by the compromise policy, a solved plan because the
+    // relaxation ladder may have dropped room links (RELAX-SOFT-ADJ).
+    issues.push(...unflaggedMisses(p, placed, best, issues));
     if (!solved) console.warn(`[SOLVER_GAPFREE] no plan met every rule; best plan with ${hard.length} miss(es), flagged`);
     return {
         program_reference: p.program, plot_width: p.envelope.width, plot_depth: p.envelope.depth,
@@ -273,8 +274,9 @@ function unflaggedMisses(p: Prepared, placed: PlacedRoom[], best: Fp, issues: Va
                 const halls = placed.filter(h => h.floor === a.floor && isHall(h));
                 if (halls.some(h => sharedM(a, h) >= 1.0) && halls.some(h => sharedM(b, h) >= 1.0)) continue;
             }
-            if (!has("ADJACENCY_MISSED", n.id) && !has("ADJACENCY_MISSED", m))
-                out.push({ room_id: n.id, rule: "ADJACENCY_MISSED", detail: `${label(n.id)} doesn't share a wall with ${label(m)}.` });
+            const detail = `${label(n.id)} doesn't share a wall with ${label(m)}.`; // one line per missed link
+            if (![...issues, ...out].some(i => i.rule === "ADJACENCY_MISSED" && i.detail === detail))
+                out.push({ room_id: n.id, rule: "ADJACENCY_MISSED", detail });
         }
     }
     for (const [fl, sp] of best.specs) for (const l of sp.leaves) {
