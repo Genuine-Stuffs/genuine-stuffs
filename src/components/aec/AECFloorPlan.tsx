@@ -367,6 +367,24 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     return furniture.length > 0 ? <g key="furniture" opacity={0.75}>{furniture}</g> : null;
   };
 
+  // The solver's circulation comes in pieces (corridor_floorN_i) that read
+  // as one open hall, as on the target drawing: name it once per floor, on
+  // its largest piece, with no strip dimensions.
+  const hallPieces = activeRooms.filter(r => r.room_id.startsWith('corridor_floor'));
+  const hallLabelId = hallPieces.reduce<any>((a, r) => (!a || r.width * r.depth > a.width * a.depth ? r : a), null)?.room_id;
+
+  // A name short enough for a small room, so no room goes unlabelled.
+  const shortName = (room_id: string, name: string): string => {
+    const t = resolveRoomType(room_id).toLowerCase();
+    if (/toilet|wc|powder/.test(t) || /toilet|\bwc\b/i.test(name)) return 'WC';
+    if (/bath|ensuite|shower/.test(t) || /bath/i.test(name)) return 'Bath';
+    if (/wardrobe|closet/.test(t) || /wardrobe|closet/i.test(name)) return 'Ward.';
+    if (t === 'stairwell') return 'Stair';
+    // Otherwise the room's own first word: the Hive's type can be loose
+    // (a generator house typed "store").
+    return name.split(/\s+/)[0];
+  };
+
   const renderRoom = (room: any, idx: number) => {
     if (isNaN(room.x) || isNaN(room.y) || isNaN(room.width) || isNaN(room.depth) ||
         room.width <= 0 || room.depth <= 0) return null;
@@ -376,7 +394,11 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     const rw = room.width * scale;
     const rh = room.depth * scale;
 
-    const name = resolveRoomName(room.room_id);
+    const isHallPiece = room.room_id.startsWith('corridor_floor');
+    const fullName = isHallPiece ? (activeFloor === 0 ? 'HALL' : 'LANDING') : resolveRoomName(room.room_id);
+    // Too small for the full name: the short one, without dimensions.
+    const compact = !isHallPiece && !(rw > 40 && rh > 30);
+    const name = compact ? shortName(room.room_id, fullName) : fullName;
     const minDim = Math.min(rw, rh);
     
     // Dynamic font: scales with room, hard floors to stay readable
@@ -409,8 +431,11 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     })();
     const lineHeight   = nameFontSize * 1.4;
 
-    // Only show label if room is large enough to hold it
-    const showLabel = rw > 40 && rh > 30;
+    // Hall pieces: only the largest carries the hall's name. Small rooms
+    // show their short name if it fits at all.
+    const showLabel = isHallPiece ? room.room_id === hallLabelId && rw > 24 && rh > 14
+      : compact ? rw > 16 && rh > 12 : true;
+    const showDims = !isHallPiece && !compact;
 
     const { fill, stroke, textColor } = getRoomFill(room.room_id, resolveRoomType(room.room_id));
     const rType = resolveRoomType(room.room_id);
@@ -642,7 +667,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
                 {line}
               </tspan>
             ))}
-            <tspan
+            {showDims && <tspan
               x={rx + rw / 2}
               y={ry + rh / 2 + lineHeight / 2}
               style={{
@@ -652,7 +677,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
               }}
             >
               {room.width.toFixed(1)}M × {room.depth.toFixed(1)}M
-            </tspan>
+            </tspan>}
           </text>
         )}
       </g>
