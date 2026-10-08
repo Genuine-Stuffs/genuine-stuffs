@@ -66,6 +66,7 @@ import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { useLayoutOptions, layoutSignature, solveLayoutInWorker, layoutModeSetting } from '@/hooks/use-layout-options';
 import { explainFailure } from '@/lib/aec/solver/engine_v2/failure_messages';
+import { plotSize } from '@/lib/aec/solver/engine_v2/plot';
 import { ADVISORY_RULES } from '@/lib/aec/solver/engine_v2/placement_validator';
 import { runComplianceCheck, ComplianceReport } from '@/lib/aec/compliance_engine';
 
@@ -653,9 +654,11 @@ const AIStudio = () => {
             // Run deterministic client-side solver if spatial program intent is provided
             if (hasDesignData && finalDesignData.rooms) {
                 try {
-                    // Assume standard 15x30m plot if unspecified
-                    const plotWidth = finalDesignData.brief_reference?.plot_size_sqm ? Math.sqrt(finalDesignData.brief_reference.plot_size_sqm) : 15;
-                    const plotDepth = finalDesignData.brief_reference?.plot_size_sqm ? (finalDesignData.brief_reference.plot_size_sqm / plotWidth) : 30;
+                    // The plot's width x depth from the user's words ("a 15m × 30m plot");
+                    // else the square of the stated area; else a standard 15x30m plot.
+                    const { width: plotWidth, depth: plotDepth } = plotSize(
+                        updatedMessages.filter(m => m.role === 'user').map(m => String(m.content ?? '')),
+                        finalDesignData.brief_reference?.plot_size_sqm);
                     
                     // Pass brief_reference floors to solver so duplex upper floor packs correctly.
                     // Guard both field names (floors / storeys) for schema compatibility.
