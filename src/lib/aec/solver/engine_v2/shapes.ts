@@ -127,9 +127,13 @@ export function generateFootprintCandidates(
     // building, so a 150 m² ground floor came back half empty. The first
     // footprint that solves wins, so plans are as compact as the rooms
     // allow, and the plot-based shapes stay as the reliable fallback.
+    // On a small plot (15 m x 30 m) the plot-based box is the 8 m minimum and
+    // can't hold the program, so the program-sized boxes, which stay within
+    // the buildable area, are kept even when they are the larger.
+    const plotBoxTooSmall = !!programArea_m2 && buildW * buildD * PROGRAM_FILL_RATIOS[0] < programArea_m2;
     const sized = programArea_m2 && programArea_m2 > 0
         ? PROGRAM_FILL_RATIOS.map(fill => programRectangle(programArea_m2 / fill, bW, bD))
-            .filter(r => r.primary.width < buildW - 0.25 || r.primary.height < buildD - 0.25)
+            .filter(r => plotBoxTooSmall || r.primary.width < buildW - 0.25 || r.primary.height < buildD - 0.25)
         : [];
 
     const candidates: BuildingFootprint[] = [...sized, rectangle(0, 0, buildW, buildD)];
