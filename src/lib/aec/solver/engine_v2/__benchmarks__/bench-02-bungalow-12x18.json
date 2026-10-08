@@ -1,0 +1,161 @@
+{
+  "brief_reference": {
+    "plot_size_sqm": 216,
+    "floors": 1,
+    "project_id": "GS-BENCH-02-BUNGALOW-12x18"
+  },
+  "rooms": [
+    {
+      "room_id": "b01",
+      "name": "Master Bedroom",
+      "type": "bedroom",
+      "floor": 0,
+      "area_m2": 14,
+      "width_m": 3.5,
+      "span_m": 4,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "b02",
+        "b10"
+      ]
+    },
+    {
+      "room_id": "b02",
+      "name": "Master En-suite",
+      "type": "bathroom",
+      "floor": 0,
+      "area_m2": 4,
+      "width_m": 1.8,
+      "span_m": 2.2,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "b01"
+      ]
+    },
+    {
+      "room_id": "b03",
+      "name": "Bedroom 2",
+      "type": "bedroom",
+      "floor": 0,
+      "area_m2": 11,
+      "width_m": 3.2,
+      "span_m": 3.5,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "b10"
+      ]
+    },
+    {
+      "room_id": "b04",
+      "name": "Bedroom 3",
+      "type": "bedroom",
+      "floor": 0,
+      "area_m2": 11,
+      "width_m": 3.2,
+      "span_m": 3.5,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "b10"
+      ]
+    },
+    {
+      "room_id": "b05",
+      "name": "Common Bathroom",
+      "type": "bathroom",
+      "floor": 0,
+      "area_m2": 4,
+      "width_m": 1.8,
+      "span_m": 2.2,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "b10"
+      ]
+    },
+    {
+      "room_id": "b06",
+      "name": "Living and Dining (open plan)",
+      "type": "living",
+      "floor": 0,
+      "area_m2": 28,
+      "width_m": 5,
+      "span_m": 5.6,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "b07",
+        "b08",
+        "b09",
+        "b10"
+      ]
+    },
+    {
+      "room_id": "b07",
+      "name": "Kitchen",
+      "type": "kitchen",
+      "floor": 0,
+      "area_m2": 9,
+      "width_m": 3,
+      "span_m": 3,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "b06",
+        "b11"
+      ]
+    },
+    {
+      "room_id": "b08",
+      "name": "Visitors' Toilet",
+      "type": "toilet",
+      "floor": 0,
+      "area_m2": 2,
+      "width_m": 1.2,
+      "span_m": 1.7,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "b06"
+      ]
+    },
+    {
+      "room_id": "b09",
+      "name": "Front Veranda",
+      "type": "veranda",
+      "floor": 0,
+      "area_m2": 6,
+      "width_m": 3,
+      "span_m": 2,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "b06"
+      ]
+    },
+    {
+      "room_id": "b10",
+      "name": "Bedroom Corridor",
+      "type": "corridor",
+      "floor": 0,
+      "area_m2": 5,
+      "width_m": 1.2,
+      "span_m": 4,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "b01",
+        "b03",
+        "b04",
+        "b05",
+        "b06"
+      ]
+    },
+    {
+      "room_id": "b11",
+      "name": "Kitchen Store",
+      "type": "store",
+      "floor": 0,
+      "area_m2": 3,
+      "width_m": 1.5,
+      "span_m": 2,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "b07"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,352 @@
+{
+  "brief_reference": {
+    "plot_size_sqm": 450,
+    "floors": 2,
+    "project_id": "GS-BENCH-01-DUPLEX-15x30"
+  },
+  "rooms": [
+    {
+      "room_id": "r01",
+      "name": "Sitting Room",
+      "type": "living",
+      "floor": 0,
+      "area_m2": 25,
+      "width_m": 5,
+      "span_m": 5,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r02",
+        "r09",
+        "r12"
+      ]
+    },
+    {
+      "room_id": "r02",
+      "name": "Dining",
+      "type": "dining",
+      "floor": 0,
+      "area_m2": 14,
+      "width_m": 3.5,
+      "span_m": 4,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r01",
+        "r06"
+      ]
+    },
+    {
+      "room_id": "r03",
+      "name": "Visitors' Toilet",
+      "type": "toilet",
+      "floor": 0,
+      "area_m2": 2.5,
+      "width_m": 1.5,
+      "span_m": 1.7,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r12"
+      ]
+    },
+    {
+      "room_id": "r04",
+      "name": "Guest Bedroom",
+      "type": "bedroom",
+      "floor": 0,
+      "area_m2": 14,
+      "width_m": 3.5,
+      "span_m": 4,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r05",
+        "r12"
+      ]
+    },
+    {
+      "room_id": "r05",
+      "name": "Guest En-suite",
+      "type": "bathroom",
+      "floor": 0,
+      "area_m2": 4.5,
+      "width_m": 1.8,
+      "span_m": 2.5,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r04"
+      ]
+    },
+    {
+      "room_id": "r06",
+      "name": "Kitchen",
+      "type": "kitchen",
+      "floor": 0,
+      "area_m2": 12,
+      "width_m": 3,
+      "span_m": 4,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r02",
+        "r07"
+      ]
+    },
+    {
+      "room_id": "r07",
+      "name": "Boys' Quarter (self-contained)",
+      "type": "bq",
+      "floor": 0,
+      "area_m2": 16,
+      "width_m": 4,
+      "span_m": 4,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r06"
+      ]
+    },
+    {
+      "room_id": "r08",
+      "name": "Car Porch (2 cars)",
+      "type": "carport",
+      "floor": 0,
+      "area_m2": 33,
+      "width_m": 6,
+      "span_m": 5.5,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r09"
+      ]
+    },
+    {
+      "room_id": "r09",
+      "name": "Entrance Porch",
+      "type": "foyer",
+      "floor": 0,
+      "area_m2": 6,
+      "width_m": 2,
+      "span_m": 3,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r01",
+        "r08"
+      ]
+    },
+    {
+      "room_id": "r10",
+      "name": "Stairwell",
+      "type": "stairwell",
+      "floor": 0,
+      "area_m2": 8.64,
+      "width_m": 2.4,
+      "span_m": 3.6,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r12"
+      ]
+    },
+    {
+      "room_id": "r11",
+      "name": "Gen House",
+      "type": "gen_house",
+      "floor": 0,
+      "area_m2": 6,
+      "width_m": 2.5,
+      "span_m": 2.4,
+      "uses_intermediate_columns": false,
+      "adjacencies": []
+    },
+    {
+      "room_id": "r12",
+      "name": "Ground Floor Hall",
+      "type": "corridor",
+      "floor": 0,
+      "area_m2": 6,
+      "width_m": 1.5,
+      "span_m": 4,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r01",
+        "r03",
+        "r04",
+        "r10"
+      ]
+    },
+    {
+      "room_id": "r21",
+      "name": "Master Bedroom",
+      "type": "bedroom",
+      "floor": 1,
+      "area_m2": 20,
+      "width_m": 4.5,
+      "span_m": 4.5,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r22",
+        "r23",
+        "r24",
+        "r33"
+      ]
+    },
+    {
+      "room_id": "r22",
+      "name": "Master En-suite",
+      "type": "bathroom",
+      "floor": 1,
+      "area_m2": 6,
+      "width_m": 2.4,
+      "span_m": 2.5,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r21"
+      ]
+    },
+    {
+      "room_id": "r23",
+      "name": "Master Walk-in Closet",
+      "type": "wardrobe",
+      "floor": 1,
+      "area_m2": 5,
+      "width_m": 2,
+      "span_m": 2.5,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r21"
+      ]
+    },
+    {
+      "room_id": "r24",
+      "name": "Master Private Balcony",
+      "type": "balcony",
+      "floor": 1,
+      "area_m2": 6,
+      "width_m": 3,
+      "span_m": 2,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r21"
+      ]
+    },
+    {
+      "room_id": "r25",
+      "name": "Bedroom 2",
+      "type": "bedroom",
+      "floor": 1,
+      "area_m2": 14,
+      "width_m": 3.5,
+      "span_m": 4,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r26",
+        "r33"
+      ]
+    },
+    {
+      "room_id": "r26",
+      "name": "Bedroom 2 En-suite",
+      "type": "bathroom",
+      "floor": 1,
+      "area_m2": 4.5,
+      "width_m": 1.8,
+      "span_m": 2.5,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r25"
+      ]
+    },
+    {
+      "room_id": "r27",
+      "name": "Bedroom 3",
+      "type": "bedroom",
+      "floor": 1,
+      "area_m2": 14,
+      "width_m": 3.5,
+      "span_m": 4,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r28",
+        "r33"
+      ]
+    },
+    {
+      "room_id": "r28",
+      "name": "Bedroom 3 En-suite",
+      "type": "bathroom",
+      "floor": 1,
+      "area_m2": 4.5,
+      "width_m": 1.8,
+      "span_m": 2.5,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r27"
+      ]
+    },
+    {
+      "room_id": "r29",
+      "name": "Bedroom 4",
+      "type": "bedroom",
+      "floor": 1,
+      "area_m2": 14,
+      "width_m": 3.5,
+      "span_m": 4,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r30",
+        "r33"
+      ]
+    },
+    {
+      "room_id": "r30",
+      "name": "Bedroom 4 En-suite",
+      "type": "bathroom",
+      "floor": 1,
+      "area_m2": 4.5,
+      "width_m": 1.8,
+      "span_m": 2.5,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r29"
+      ]
+    },
+    {
+      "room_id": "r31",
+      "name": "Family Lounge",
+      "type": "living",
+      "floor": 1,
+      "area_m2": 18,
+      "width_m": 4,
+      "span_m": 4.5,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r32",
+        "r33"
+      ]
+    },
+    {
+      "room_id": "r32",
+      "name": "Stairwell Void",
+      "type": "corridor",
+      "floor": 1,
+      "area_m2": 8.64,
+      "width_m": 2.4,
+      "span_m": 3.6,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r31"
+      ]
+    },
+    {
+      "room_id": "r33",
+      "name": "First Floor Landing",
+      "type": "corridor",
+      "floor": 1,
+      "area_m2": 6,
+      "width_m": 1.5,
+      "span_m": 4,
+      "uses_intermediate_columns": false,
+      "adjacencies": [
+        "r21",
+        "r25",
+        "r27",
+        "r29",
+        "r31"
+      ]
+    }
+  ]
+}
