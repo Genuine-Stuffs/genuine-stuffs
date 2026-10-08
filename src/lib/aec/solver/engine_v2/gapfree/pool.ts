@@ -8,6 +8,9 @@ import type { SpatialProgram, SolvedLayout } from '../../../../../../supabase/fu
 import type { PlotEnvelope, SolverOptions } from '../../types';
 import { solveGapfreeAsync, AnnealResult, RestartBatch } from './solve';
 
+/** Stands in for a restart that was skipped; never picked (pickWinner). */
+const SKIPPED: AnnealResult = { expr: [], offs: [], cost: Infinity };
+
 export function poolSize(): number {
     const cores = typeof navigator !== 'undefined' ? navigator.hardwareConcurrency || 4 : 4;
     return Math.max(1, Math.min(8, cores));
@@ -37,18 +40,25 @@ export async function solveGapfreeInPool(
             pending.clear();
         };
     }
-    const run = (spec: RestartBatch['spec'], seed: number, iters: number, sw: number) => new Promise<AnnealResult>((resolve, reject) => {
+    const run = (spec: RestartBatch['spec'], seed: number, iters: number, sw: number, skip: () => boolean) => new Promise<AnnealResult>((resolve, reject) => {
         const go = () => {
             if (failed) return reject(failed);
+            if (skip()) { resolve(SKIPPED); queue.shift()?.(); return; }
             const w = idle.pop()!, id = nextId++;
             pending.set(id, { resolve, reject });
             w.postMessage({ id, spec, seed, iters, sw });
         };
         if (idle.length) go(); else queue.push(go);
     });
+    // Once restart k is perfect (cost 0) pickWinner can only choose k or an
+    // earlier one, so restarts after k that haven't started are skipped.
+    const runAll = (b: RestartBatch) => {
+        let firstPerfect = Infinity;
+        return Promise.all(b.seeds.map((seed, k) => run(b.spec, seed, b.iters, b.sw, () => k > firstPerfect)
+            .then(r => { if (r.cost === 0) firstPerfect = Math.min(firstPerfect, k); return r; })));
+    };
     try {
-        return await solveGapfreeAsync(program, envelope, options,
-            b => Promise.all(b.seeds.map(seed => run(b.spec, seed, b.iters, b.sw))));
+        return await solveGapfreeAsync(program, envelope, options, runAll);
     } finally {
         for (const w of workers) w.terminate();
     }
