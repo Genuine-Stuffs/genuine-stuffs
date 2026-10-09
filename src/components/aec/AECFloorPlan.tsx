@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { SolvedLayout } from 'supabase/functions/ai-studio/schema';
 import { computePlacement, DoorSpec, WindowSpec, WallSide } from '@/lib/aec/solver/engine_v2/doors';
 import { structuralEngine } from '@/lib/aec/solver/structural';
+import { computeWalls, WALL_THICKNESS, WallRoomKind } from './walls';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Ruler, ShieldAlert, Layers } from 'lucide-react';
@@ -385,7 +386,40 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     return name.split(/\s+/)[0];
   };
 
-  const renderRoom = (room: any, idx: number) => {
+  // ── Walls: one band per wall line, built from the plan's own room edges ──
+  // Hall, landing and void are open to each other; a terrace is outside.
+  const wallKindOf = (room: any): WallRoomKind => {
+    const t = resolveRoomType(room.room_id);
+    if (t === 'balcony' || t === 'terrace') return 'outside';
+    if (t === 'circulation' || t === 'hall' || t === 'landing' || t === 'void' ||
+        room.room_id === 'stairwell_void') return 'open';
+    return 'room';
+  };
+  const wallSegments = computeWalls(activeRooms
+    .filter(r => !isNaN(r.x) && !isNaN(r.y) && r.width > 0 && r.depth > 0)
+    .map(r => ({ x: r.x, y: r.y, width: r.width, depth: r.depth, kind: wallKindOf(r) })));
+  const WALL_PX = { ext: WALL_THICKNESS.ext * scale, int: WALL_THICKNESS.int * scale };
+
+  const renderWalls = () => (
+    <g opacity={showStructure ? 0.4 : 1}>
+      {wallSegments.map((w, i) => {
+        const t = WALL_THICKNESS[w.kind] * scale;
+        // Run each band half a thickness past its ends so corners close.
+        const ext = w.kind === 'rail' ? 0 : WALL_THICKNESS[w.kind] / 2;
+        const horizontal = w.y0 === w.y1;
+        const x = xOffset + (horizontal ? w.x0 - ext : w.x0) * scale - (horizontal ? 0 : t / 2);
+        const y = yOffset + (horizontal ? w.y0 : w.y0 - ext) * scale - (horizontal ? t / 2 : 0);
+        const len = ((horizontal ? w.x1 - w.x0 : w.y1 - w.y0) + ext * 2) * scale;
+        return w.kind === 'rail'
+          ? <rect key={i} x={x} y={y} width={horizontal ? len : t} height={horizontal ? t : len}
+              fill="#ffffff" stroke="#1e293b" strokeWidth={0.8} />
+          : <rect key={i} x={x} y={y} width={horizontal ? len : t} height={horizontal ? t : len}
+              fill="#1e293b" />;
+      })}
+    </g>
+  );
+
+  const renderRoom = (room: any, idx: number, layer: 'base' | 'over') => {
     if (isNaN(room.x) || isNaN(room.y) || isNaN(room.width) || isNaN(room.depth) ||
         room.width <= 0 || room.depth <= 0) return null;
 
@@ -444,25 +478,14 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
                              room.room_id.startsWith('corridor_floor');
 
     const edges = getExternalEdges(room);
-    // Wall band thickness in px: external=5, internal=2
-    const EXT_W = 5;
-    const INT_W = 1.5;
     // Window symbol constants
     const WIN_INSET = 8;   // px inset from room corner
     const WIN_LEN   = Math.min(rw * 0.45, 40); // window length along wall
-    const WIN_DEPTH = 5;   // px depth of window recess symbol
+    const WIN_DEPTH = WALL_PX.ext; // window sits in the external wall
     // Door arc radius in px
     const DOOR_R = Math.min(rw * 0.18, 16);
 
-    // Door placement: open toward building interior (bottom or right edge of room)
-    // If room touches bottom of building, door opens upward from top internal edge
-    // Otherwise door opens from bottom internal edge
-    const doorOnTop    = edges.bottom && !edges.top;
-    const doorOnLeft   = edges.right  && !edges.left;
-    const doorX = doorOnLeft ? rx + INT_W : rx + INT_W;
-    const doorY = doorOnTop  ? ry + INT_W : ry + rh - DOOR_R - INT_W;
-
-    return (
+    if (layer === 'base') return (
       <g key={`room-${idx}`} filter="url(#blueprint-shadow)">
 
         {/* ── Room fill (no stroke — walls drawn as explicit bands below) ── */}
@@ -494,95 +517,38 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
         {/* ── Furniture ── */}
         {!showStructure && rw > 35 && rh > 28 && renderFurniture(room, rx, ry, rw, rh)}
 
-        {/* ── Wall bands — drawn as filled rectangles per edge ── */}
-        {!isCorridorOrVoid && (() => {
-          const tw = edges.top    ? EXT_W : INT_W;
-          const bw = edges.bottom ? EXT_W : INT_W;
-          const lw = edges.left   ? EXT_W : INT_W;
-          const rw2 = edges.right  ? EXT_W : INT_W;
-          const wallColor = '#1e293b';
-          return (
-            <g opacity={showStructure ? 0.4 : 1}>
-              {/* Top wall */}
-              <rect x={rx} y={ry} width={rw} height={tw} fill={wallColor} />
-              {/* Bottom wall */}
-              <rect x={rx} y={ry + rh - bw} width={rw} height={bw} fill={wallColor} />
-              {/* Left wall */}
-              <rect x={rx} y={ry} width={lw} height={rh} fill={wallColor} />
-              {/* Right wall */}
-              <rect x={rx + rw - rw2} y={ry} width={rw2} height={rh} fill={wallColor} />
-            </g>
-          );
-        })()}
+      </g>
+    );
 
+    return (
+      <g key={`over-${idx}`}>
         {/* ── Window symbols on external walls ── */}
-        {!isCorridorOrVoid && !showStructure && rw > 40 && rh > 30 && (() => {
+        {!isCorridorOrVoid && wallKindOf(room) === 'room' && !showStructure && rw > 40 && rh > 30 && (() => {
           const wins: React.ReactNode[] = [];
           const wc = '#0EA5E9'; // window colour
-          // Top external wall window
-          if (edges.top && rw > WIN_INSET * 2 + WIN_LEN) {
-            const wx = rx + (rw - WIN_LEN) / 2;
-            wins.push(
-              <g key="win-top">
-                <rect x={wx} y={ry} width={WIN_LEN} height={WIN_DEPTH}
-                  fill="white" stroke={wc} strokeWidth={0.8} />
-                <line x1={wx} y1={ry} x2={wx} y2={ry + WIN_DEPTH}
-                  stroke={wc} strokeWidth={0.6} />
-                <line x1={wx + WIN_LEN / 2} y1={ry} x2={wx + WIN_LEN / 2} y2={ry + WIN_DEPTH}
-                  stroke={wc} strokeWidth={0.6} />
-                <line x1={wx + WIN_LEN} y1={ry} x2={wx + WIN_LEN} y2={ry + WIN_DEPTH}
-                  stroke={wc} strokeWidth={0.6} />
+          // A gap in the external wall with two glazing lines, centred on the
+          // wall line like the template's W tags.
+          const win = (k: string, horizontal: boolean, x: number, y: number) => {
+            const w = horizontal ? WIN_LEN : WIN_DEPTH, h = horizontal ? WIN_DEPTH : WIN_LEN;
+            const g = WIN_DEPTH / 3;
+            return (
+              <g key={k}>
+                <rect x={x} y={y} width={w} height={h} fill="white" stroke={wc} strokeWidth={0.8} />
+                {horizontal
+                  ? [g, 2 * g].map(o => <line key={o} x1={x} y1={y + o} x2={x + w} y2={y + o} stroke={wc} strokeWidth={0.6} />)
+                  : [g, 2 * g].map(o => <line key={o} x1={x + o} y1={y} x2={x + o} y2={y + h} stroke={wc} strokeWidth={0.6} />)}
               </g>
             );
-          }
-          // Bottom external wall window
-          if (edges.bottom && rw > WIN_INSET * 2 + WIN_LEN) {
-            const wx = rx + (rw - WIN_LEN) / 2;
-            wins.push(
-              <g key="win-bot">
-                <rect x={wx} y={ry + rh - WIN_DEPTH} width={WIN_LEN} height={WIN_DEPTH}
-                  fill="white" stroke={wc} strokeWidth={0.8} />
-                <line x1={wx} y1={ry + rh - WIN_DEPTH} x2={wx} y2={ry + rh}
-                  stroke={wc} strokeWidth={0.6} />
-                <line x1={wx + WIN_LEN / 2} y1={ry + rh - WIN_DEPTH} x2={wx + WIN_LEN / 2} y2={ry + rh}
-                  stroke={wc} strokeWidth={0.6} />
-                <line x1={wx + WIN_LEN} y1={ry + rh - WIN_DEPTH} x2={wx + WIN_LEN} y2={ry + rh}
-                  stroke={wc} strokeWidth={0.6} />
-              </g>
-            );
-          }
-          // Left external wall window
-          if (edges.left && rh > WIN_INSET * 2 + WIN_LEN) {
-            const wy = ry + (rh - WIN_LEN) / 2;
-            wins.push(
-              <g key="win-left">
-                <rect x={rx} y={wy} width={WIN_DEPTH} height={WIN_LEN}
-                  fill="white" stroke={wc} strokeWidth={0.8} />
-                <line x1={rx} y1={wy} x2={rx + WIN_DEPTH} y2={wy}
-                  stroke={wc} strokeWidth={0.6} />
-                <line x1={rx} y1={wy + WIN_LEN / 2} x2={rx + WIN_DEPTH} y2={wy + WIN_LEN / 2}
-                  stroke={wc} strokeWidth={0.6} />
-                <line x1={rx} y1={wy + WIN_LEN} x2={rx + WIN_DEPTH} y2={wy + WIN_LEN}
-                  stroke={wc} strokeWidth={0.6} />
-              </g>
-            );
-          }
-          // Right external wall window
-          if (edges.right && rh > WIN_INSET * 2 + WIN_LEN) {
-            const wy = ry + (rh - WIN_LEN) / 2;
-            wins.push(
-              <g key="win-right">
-                <rect x={rx + rw - WIN_DEPTH} y={wy} width={WIN_DEPTH} height={WIN_LEN}
-                  fill="white" stroke={wc} strokeWidth={0.8} />
-                <line x1={rx + rw - WIN_DEPTH} y1={wy} x2={rx + rw} y2={wy}
-                  stroke={wc} strokeWidth={0.6} />
-                <line x1={rx + rw - WIN_DEPTH} y1={wy + WIN_LEN / 2} x2={rx + rw} y2={wy + WIN_LEN / 2}
-                  stroke={wc} strokeWidth={0.6} />
-                <line x1={rx + rw - WIN_DEPTH} y1={wy + WIN_LEN} x2={rx + rw} y2={wy + WIN_LEN}
-                  stroke={wc} strokeWidth={0.6} />
-              </g>
-            );
-          }
+          };
+          const half = WIN_DEPTH / 2;
+          if (edges.top && rw > WIN_INSET * 2 + WIN_LEN)
+            wins.push(win('win-top', true, rx + (rw - WIN_LEN) / 2, ry - half));
+          if (edges.bottom && rw > WIN_INSET * 2 + WIN_LEN)
+            wins.push(win('win-bot', true, rx + (rw - WIN_LEN) / 2, ry + rh - half));
+          if (edges.left && rh > WIN_INSET * 2 + WIN_LEN)
+            wins.push(win('win-left', false, rx - half, ry + (rh - WIN_LEN) / 2));
+          if (edges.right && rh > WIN_INSET * 2 + WIN_LEN)
+            wins.push(win('win-right', false, rx + rw - half, ry + (rh - WIN_LEN) / 2));
           return wins.length > 0 ? <g opacity={0.9}>{wins}</g> : null;
         })()}
 
@@ -599,12 +565,17 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
                          room.room_id.toLowerCase().includes('wc') ||
                          room.room_id.toLowerCase().includes('toilet');
           const actualR = (isBath || isInteriorDoor) ? Math.min(dR, 10) : dR;
+          // The opening: cut the wall band the width of the leaf.
+          const t = (edges[doorWall] ? WALL_PX.ext : WALL_PX.int) + 1;
+          const cut = (x: number, y: number, w: number, h: number) =>
+            <rect x={x} y={y} width={w} height={h} fill="white" />;
 
           if (doorWall === 'bottom') {
             const dx = rx + rw * 0.25;
             const dy = ry + rh;
             return (
-              <g opacity={0.75}>
+              <g>
+                {cut(dx, dy - t / 2, actualR, t)}
                 <line x1={dx} y1={dy} x2={dx} y2={dy - actualR}
                   stroke={wallColor} strokeWidth={1.5} />
                 <path d={`M ${dx} ${dy - actualR} A ${actualR} ${actualR} 0 0 1 ${dx + actualR} ${dy}`}
@@ -616,7 +587,8 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
             const dx = rx + rw * 0.25;
             const dy = ry;
             return (
-              <g opacity={0.75}>
+              <g>
+                {cut(dx, dy - t / 2, actualR, t)}
                 <line x1={dx} y1={dy} x2={dx} y2={dy + actualR}
                   stroke={wallColor} strokeWidth={1.5} />
                 <path d={`M ${dx} ${dy + actualR} A ${actualR} ${actualR} 0 0 0 ${dx + actualR} ${dy}`}
@@ -628,7 +600,8 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
             const dx = rx + rw;
             const dy = ry + rh * 0.25;
             return (
-              <g opacity={0.75}>
+              <g>
+                {cut(dx - t / 2, dy, t, actualR)}
                 <line x1={dx} y1={dy} x2={dx - actualR} y2={dy}
                   stroke={wallColor} strokeWidth={1.5} />
                 <path d={`M ${dx - actualR} ${dy} A ${actualR} ${actualR} 0 0 1 ${dx} ${dy + actualR}`}
@@ -640,7 +613,8 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
           const dx = rx;
           const dy = ry + rh * 0.25;
           return (
-            <g opacity={0.75}>
+            <g>
+              {cut(dx - t / 2, dy, t, actualR)}
               <line x1={dx} y1={dy} x2={dx + actualR} y2={dy}
                 stroke={wallColor} strokeWidth={1.5} />
               <path d={`M ${dx + actualR} ${dy} A ${actualR} ${actualR} 0 0 0 ${dx} ${dy + actualR}`}
@@ -981,7 +955,9 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
             })()}
 
             {/* Rooms */}
-            {activeRooms.map((room, idx) => renderRoom(room, idx))}
+            {activeRooms.map((room, idx) => renderRoom(room, idx, 'base'))}
+            {renderWalls()}
+            {activeRooms.map((room, idx) => renderRoom(room, idx, 'over'))}
 
             {/* Structure overlay */}
             {renderStructure()}
