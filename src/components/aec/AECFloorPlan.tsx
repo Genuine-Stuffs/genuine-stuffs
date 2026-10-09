@@ -392,7 +392,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     const t = resolveRoomType(room.room_id);
     if (t === 'balcony' || t === 'terrace') return 'outside';
     if (t === 'circulation' || t === 'hall' || t === 'landing' || t === 'void' ||
-        room.room_id === 'stairwell_void') return 'open';
+        t === 'stairwell') return 'open';
     return 'room';
   };
   const wallSegments = computeWalls(activeRooms
@@ -418,6 +418,69 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
       })}
     </g>
   );
+
+  // ── Stair: one straight flight along the stairwell's long side, starting
+  // at the end that opens onto the hall. Upstairs the void shows the same
+  // flight with DN from its top end.
+  const TREAD = 0.28; // metres
+  const isStair = (room: any) => room.room_id === 'stairwell' || room.room_id === 'stairwell_void';
+  const groundStair = placed_rooms.find(r => r.floor === 0 && r.room_id === 'stairwell');
+  const stairStartsAtMin = (st: any): boolean => {
+    const floorRooms = placed_rooms.filter(r => r.floor === st.floor && r !== st);
+    const alongX = st.width > st.depth;
+    const openAt = (atMin: boolean) => floorRooms
+      .filter(r => wallKindOf(r) === 'open')
+      .reduce((sum, r) => {
+        const touches = alongX
+          ? Math.abs((atMin ? st.x : st.x + st.width) - (atMin ? r.x + r.width : r.x)) < 0.01
+          : Math.abs((atMin ? st.y : st.y + st.depth) - (atMin ? r.y + r.depth : r.y)) < 0.01;
+        const overlap = alongX
+          ? Math.min(st.y + st.depth, r.y + r.depth) - Math.max(st.y, r.y)
+          : Math.min(st.x + st.width, r.x + r.width) - Math.max(st.x, r.x);
+        return touches && overlap > 0 ? sum + overlap : sum;
+      }, 0);
+    const atMin = openAt(true), atMax = openAt(false);
+    // No hall at either end: start at the front (bottom / right), where the
+    // entrance is drawn.
+    return atMin !== atMax ? atMin > atMax : false;
+  };
+
+  const renderStair = (room: any, rx: number, ry: number, rw: number, rh: number) => {
+    const alongX = room.width > room.depth;
+    const up = room.room_id === 'stairwell';
+    // The void repeats the ground flight; DN runs from the flight's top end.
+    const base = up ? room : (groundStair ?? room);
+    const startAtMin = stairStartsAtMin(base) === up;
+    const run = alongX ? rw : rh;
+    const n = Math.max(2, Math.round((alongX ? room.width : room.depth) / TREAD));
+    const step = run / n;
+    const c = '#334155';
+    const treads = Array.from({ length: n - 1 }, (_, i) => {
+      const o = (i + 1) * step;
+      return alongX
+        ? <line key={i} x1={rx + o} y1={ry} x2={rx + o} y2={ry + rh} stroke={c} strokeWidth={0.7} />
+        : <line key={i} x1={rx} y1={ry + o} x2={rx + rw} y2={ry + o} stroke={c} strokeWidth={0.7} />;
+    });
+    // Arrow along the centre line, from the start end to the far end.
+    const m = step * 0.6;
+    const [ax0, ay0, ax1, ay1] = alongX
+      ? (startAtMin ? [rx + m, ry + rh / 2, rx + rw - m, ry + rh / 2] : [rx + rw - m, ry + rh / 2, rx + m, ry + rh / 2])
+      : (startAtMin ? [rx + rw / 2, ry + m, rx + rw / 2, ry + rh - m] : [rx + rw / 2, ry + rh - m, rx + rw / 2, ry + m]);
+    const dx = Math.sign(ax1 - ax0), dy = Math.sign(ay1 - ay0), h = Math.min(6, step * 1.2);
+    const head = `M ${ax1} ${ay1} L ${ax1 - dx * h - dy * h * 0.6} ${ay1 - dy * h - dx * h * 0.6} L ${ax1 - dx * h + dy * h * 0.6} ${ay1 - dy * h + dx * h * 0.6} Z`;
+    return (
+      <g opacity={up ? 1 : 0.6} style={{ pointerEvents: 'none' }}>
+        {treads}
+        <line x1={ax0} y1={ay0} x2={ax1} y2={ay1} stroke={c} strokeWidth={1} />
+        <path d={head} fill={c} />
+        <text x={ax0 + (alongX ? dx * 4 : 6)} y={ay0 + (alongX ? -4 : dy * 9)}
+          textAnchor={alongX && dx < 0 ? 'end' : 'start'}
+          style={{ fontSize: '8px', fontWeight: 900, fill: c, letterSpacing: '0.08em' }}>
+          {up ? 'UP' : 'DN'}
+        </text>
+      </g>
+    );
+  };
 
   const renderRoom = (room: any, idx: number, layer: 'base' | 'over') => {
     if (isNaN(room.x) || isNaN(room.y) || isNaN(room.width) || isNaN(room.depth) ||
@@ -552,8 +615,11 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
           return wins.length > 0 ? <g opacity={0.9}>{wins}</g> : null;
         })()}
 
+        {/* ── Stair: treads and arrow instead of a door and a name ── */}
+        {isStair(room) && !showStructure && renderStair(room, rx, ry, rw, rh)}
+
         {/* ── Door symbol — placed on wall facing corridor/circulation ── */}
-        {!isCorridorOrVoid && rw > 30 && rh > 24 && (() => {
+        {!isCorridorOrVoid && !isStair(room) && rw > 30 && rh > 24 && (() => {
           // Prefer solver-derived door wall; fall back to heuristic
           const doorWall = getSolverDoorWall(room.room_id) ?? getDoorWall(room);
           const isInteriorDoor = isSolverInteriorDoor(room.room_id);
@@ -624,7 +690,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
         })()}
 
         {/* ── Label ── */}
-        {showLabel && (
+        {showLabel && !isStair(room) && (
           <text textAnchor="middle" style={{ pointerEvents: 'none' }}>
             {nameLines.map((line, i) => (
               <tspan
