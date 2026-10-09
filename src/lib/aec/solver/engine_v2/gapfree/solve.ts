@@ -23,6 +23,7 @@
 import type { SpatialProgram, SolvedLayout, PlacedRoom } from "../../../../../../supabase/functions/ai-studio/schema";
 import type { PlotEnvelope, SolverOptions } from "../../types";
 import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
+import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, FloorSpec, Rect, Leaf } from "./slice";
 import { TERRACE_LIGHT, FOYER_VIA_HALL } from "./config";
@@ -67,20 +68,13 @@ function prepare(program: SpatialProgram, envelope: PlotEnvelope, options?: Solv
     const raw: any = program;
     const br = raw.brief_reference ?? {};
     const storeys = options?.floors_override ?? br.floors ?? br.storeys ?? 1;
-    const hive: HiveRoom[] = (raw.rooms ?? []).map((r: any, i: number) => ({
-        room_id: r.room_id ?? r.id ?? `room_${i}`, name: r.name ?? r.room_name ?? r.room_type ?? r.category, type: r.type,
-        floor: r.floor ?? r.target_floor ?? 0, area_m2: r.area_m2 ?? r.min_area_sqm ?? 9, width_m: r.width_m, span_m: r.span_m,
-        adjacencies: r.adjacencies ?? r.adjacent_to ?? [], uses_intermediate_columns: r.uses_intermediate_columns,
-    }));
-    const graph = buildGraph(hive);
+    const graph = buildGraph(hiveRooms(raw));
     const floorIds = [...graph.floors.keys()].sort();
     const duplex = storeys > 1 || floorIds.length > 1;
-    const areaOf = (fl: number) => (graph.floors.get(fl) ?? []).reduce((s, id) => s + graph.nodes.get(id)!.area, 0)
-        + (duplex && !(graph.floors.get(fl) ?? []).some(id => /stair/i.test(graph.nodes.get(id)!.label)) ? 10 : 0);
     const s = envelope.setbacks;
     return {
         program, envelope, graph, floorIds, duplex,
-        need: Math.max(...floorIds.map(areaOf)),
+        need: graphNeed(graph, duplex),
         seed: options?.seed ?? Math.floor(Math.random() * 2 ** 31),
         be: { width: Math.max(envelope.width - s.left - s.right, 8), height: Math.max(envelope.depth - s.front - s.rear, 8) },
     };

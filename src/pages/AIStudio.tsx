@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
+    Ruler,
     Calculator,
     BookOpen,
     Sparkles,
@@ -67,6 +68,7 @@ import AECMassingView from '@/components/aec/AECMassingView';
 import { useLayoutOptions, layoutSignature, solveLayoutInWorker, layoutModeSetting } from '@/hooks/use-layout-options';
 import { explainFailure } from '@/lib/aec/solver/engine_v2/failure_messages';
 import { plotSize } from '@/lib/aec/solver/engine_v2/plot';
+import { readSetbackIntent, defaultChoice, setbackStudy, SetbackChoice, SetbackStudy } from '@/lib/aec/setbacks';
 import { ADVISORY_RULES } from '@/lib/aec/solver/engine_v2/placement_validator';
 import { runComplianceCheck, ComplianceReport } from '@/lib/aec/compliance_engine';
 
@@ -123,6 +125,7 @@ const AIStudio = () => {
     const [designPackage, setDesignPackage] = useState<any | null>(null);
     const layoutOptions = useLayoutOptions();
     const [complianceReport, setComplianceReport] = useState<ComplianceReport | null>(null);
+    const [replanning, setReplanning] = useState(false);
     const [promptText, setPromptText] = useState("");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
@@ -656,9 +659,8 @@ const AIStudio = () => {
                 try {
                     // The plot's width x depth from the user's words ("a 15m × 30m plot");
                     // else the square of the stated area; else a standard 15x30m plot.
-                    const { width: plotWidth, depth: plotDepth } = plotSize(
-                        updatedMessages.filter(m => m.role === 'user').map(m => String(m.content ?? '')),
-                        finalDesignData.brief_reference?.plot_size_sqm);
+                    const userTexts = updatedMessages.filter(m => m.role === 'user').map(m => String(m.content ?? ''));
+                    const { width: plotWidth, depth: plotDepth } = plotSize(userTexts, finalDesignData.brief_reference?.plot_size_sqm);
                     
                     // Pass brief_reference floors to solver so duplex upper floor packs correctly.
                     // Guard both field names (floors / storeys) for schema compatibility.
@@ -667,7 +669,14 @@ const AIStudio = () => {
                         ?? 1;
 
                     console.log("[SOLVER_DEBUG] Raw rooms from Hive:", JSON.stringify(finalDesignData.rooms, null, 2));
-                    const envelope = { width: plotWidth, depth: plotDepth, setbacks: { front: 6, rear: 3, left: 3, right: 3 } };
+                    // Setbacks: the law the user names (or the recommended
+                    // default), with any figures they state; a clash is
+                    // reported with their options, never bent silently.
+                    const setbackIntent = readSetbackIntent(userTexts);
+                    const setback = setbackStudy(defaultChoice(setbackIntent), { width: plotWidth, depth: plotDepth },
+                        setbackIntent.stated, finalDesignData, briefFloors);
+                    finalDesignData.setback = setback;
+                    const envelope = { width: plotWidth, depth: plotDepth, setbacks: setback.plan.setbacks };
                     // One seed for both runs, so the plan shown first is
                     // the same geometry as its entry in the options list.
                     const solverOptions = { floors_override: briefFloors, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting() };
@@ -799,6 +808,29 @@ const AIStudio = () => {
 
     // Geometry signature, not just plot size + room count: options for the
     // same brief share both, and switching between them must re-render.
+    // The user picks the setback law: re-plan the same brief under it
+    // (no new AI call), replacing the plan and its setback study.
+    const replanSetbacks = async (choice: SetbackChoice) => {
+        const study: SetbackStudy | undefined = designPackage?.setback;
+        if (!designPackage?.rooms || !study || replanning) return;
+        const setback = setbackStudy(choice, study.plot, {}, designPackage, study.storeys);
+        setReplanning(true);
+        try {
+            const envelope = { width: study.plot.width, depth: study.plot.depth, setbacks: setback.plan.setbacks };
+            const solved = await solveLayoutInWorker(
+                designPackage, envelope,
+                { floors_override: study.storeys, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting() });
+            setDesignPackage((prev: any) => prev ? { ...prev, setback, solvedLayout: solved, solvedLayoutOptions: undefined } : prev);
+            toast.success(`Re-planned under ${setback.plan.label}`);
+        } catch (err) {
+            console.error('Re-plan under new setbacks failed:', err);
+            toast.error('Could not re-plan under those setbacks.');
+        } finally {
+            setReplanning(false);
+        }
+    };
+    const setback: SetbackStudy | undefined = designPackage?.setback;
+
     const layoutKey = layoutSignature(designPackage?.solvedLayout);
     const layoutChoices: any[] = designPackage?.solvedLayoutOptions ?? [];
 
@@ -1398,9 +1430,9 @@ const AIStudio = () => {
 
                                                                 {/* Setback summary */}
                                                                 <div className="flex gap-4 text-[9px] text-slate-400 font-bold uppercase tracking-wider border-t border-white/5 pt-3">
-                                                                    <span>Front setback: {complianceReport.setback_summary.front_m}m</span>
-                                                                    <span>Rear: {complianceReport.setback_summary.rear_m}m</span>
-                                                                    <span>Side: {complianceReport.setback_summary.side_m}m</span>
+                                                                    <span>Front setback: {setback?.plan.setbacks.front ?? complianceReport.setback_summary.front_m}m</span>
+                                                                    <span>Rear: {setback?.plan.setbacks.rear ?? complianceReport.setback_summary.rear_m}m</span>
+                                                                    <span>Side: {setback ? `${setback.plan.setbacks.left}/${setback.plan.setbacks.right}` : complianceReport.setback_summary.side_m}m</span>
                                                                     <span>Slab: {complianceReport.structural_summary.slab_thickness_mm}mm</span>
                                                                     <span>Live load: {complianceReport.structural_summary.live_load_kN_per_m2} kN/m²</span>
                                                                 </div>
@@ -1408,6 +1440,49 @@ const AIStudio = () => {
                                                                 {/* Disclaimer */}
                                                                 <p className="text-[8px] text-slate-500 leading-relaxed border-t border-white/5 pt-3">
                                                                     {complianceReport.disclaimer}
+                                                                </p>
+                                                            </div>
+                                                        )}
+
+                                                        {/* ── SETBACKS — the law in force, clashes and the user's choice ── */}
+                                                        {setback && (
+                                                            <div className={`p-6 rounded-2xl border flex flex-col gap-4 shadow-2xl ${
+                                                                setback.advice ? 'bg-amber-950 border-amber-800' : 'bg-slate-900 border-slate-800'
+                                                            }`}>
+                                                                <div className="flex items-center gap-4">
+                                                                    <Ruler className={`w-6 h-6 ${setback.advice ? 'text-amber-400' : 'text-slate-500'}`} />
+                                                                    <div>
+                                                                        <h4 className="text-[11px] font-black uppercase tracking-widest text-white">
+                                                                            Setbacks{setback.advice ? ' — check before you build' : ''}
+                                                                        </h4>
+                                                                        <p className="text-[9px] text-slate-400">
+                                                                            {setback.plan.label} · front {setback.plan.setbacks.front} m · rear {setback.plan.setbacks.rear} m · sides {setback.plan.setbacks.left} / {setback.plan.setbacks.right} m
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                                {setback.advice && (
+                                                                    <div className="space-y-2">
+                                                                        <p className="px-3 py-2 rounded-lg text-[10px] bg-amber-900/40 text-amber-200">{setback.advice.message}</p>
+                                                                        {setback.advice.other.map((o, i) => (
+                                                                            <p key={i} className="px-3 text-[10px] text-amber-200/80">• {o}</p>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                                {setback.options.length > 0 && (
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        {setback.options.map((o, i) => (
+                                                                            <Button key={i} size="sm" variant="outline" disabled={replanning}
+                                                                                onClick={() => replanSetbacks(o.choice)}
+                                                                                className={`bg-transparent rounded-xl text-[9px] font-black uppercase tracking-widest h-auto py-2 px-3 whitespace-normal text-left ${
+                                                                                    o.fits ? 'text-emerald-200 border-emerald-700 hover:bg-emerald-900/40' : 'text-slate-300 border-white/10 hover:bg-white/5'
+                                                                                }`}>
+                                                                                Re-plan: {o.label} · {Math.round(o.area)} m² {o.fits ? '(fits)' : '(too small)'}
+                                                                            </Button>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                                <p className="text-[8px] text-slate-500 leading-relaxed border-t border-white/5 pt-3">
+                                                                    You choose the law: name it in your brief (e.g. "Lagos", "Abuja", "NBC high density", "corner plot", "4.5m front setback") or re-plan above. Confirm setbacks with your planning authority before submission.
                                                                 </p>
                                                             </div>
                                                         )}
