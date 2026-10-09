@@ -1210,9 +1210,12 @@ const AIStudio = () => {
                                                         </div>
                                                         <div className="flex-1 pt-1 min-w-0">
                                                             <div className="w-full text-slate-700 dark:text-slate-300 text-[14px] md:text-[15px] leading-[1.8] font-medium">
-                                                                <ReactMarkdown remarkPlugins={[remarkGfm]} className="prose prose-slate dark:prose-invert max-w-none">
-                                                                    {sanitizeResultText(msg.content) || ""}
-                                                                </ReactMarkdown>
+                                                                {/* react-markdown 10 takes no className (dev builds throw on it) */}
+                                                                <div className="prose prose-slate dark:prose-invert max-w-none">
+                                                                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                                                        {sanitizeResultText(msg.content) || ""}
+                                                                    </ReactMarkdown>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
