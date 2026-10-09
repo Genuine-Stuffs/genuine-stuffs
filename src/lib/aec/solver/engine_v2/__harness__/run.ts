@@ -68,8 +68,8 @@ function runFixture(name: string, raw: any, seed: number): FixtureOutcome {
 
     const envelope = { width: plotWidth, depth: plotDepth, setbacks: SETBACKS };
     const buildableEnvelope = {
-        width:  Math.max(plotWidth  - SETBACKS.left  - SETBACKS.right, 8),
-        height: Math.max(plotDepth - SETBACKS.front - SETBACKS.rear,  8),
+        width:  Math.max(plotWidth  - SETBACKS.left  - SETBACKS.right, 0),
+        height: Math.max(plotDepth - SETBACKS.front - SETBACKS.rear,  0),
     };
 
     try {

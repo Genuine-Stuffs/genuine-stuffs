@@ -76,7 +76,9 @@ function prepare(program: SpatialProgram, envelope: PlotEnvelope, options?: Solv
         program, envelope, graph, floorIds, duplex,
         need: graphNeed(graph, duplex),
         seed: options?.seed ?? Math.floor(Math.random() * 2 ** 31),
-        be: { width: Math.max(envelope.width - s.left - s.right, 8), height: Math.max(envelope.depth - s.front - s.rear, 8) },
+        // the setbacks' own buildable area: never widened, a brief that
+        // doesn't fit is reported (the page offers the user's options)
+        be: { width: Math.max(envelope.width - s.left - s.right, 0), height: Math.max(envelope.depth - s.front - s.rear, 0) },
     };
 }
 
