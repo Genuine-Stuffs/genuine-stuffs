@@ -3,7 +3,9 @@
 // skeleton, the overlay and the drawing use):
 //   - one grid per footprint, bays 3.0–6.0 m, the same lines on both floors;
 //   - an upper wall is on structure when it stands on a grid beam line or on
-//     a wall below; anything else must be a lightweight partition on the slab;
+//     a wall below; anything else is carried by a secondary beam across the grid
+//     bay (owner, 2026-10-10), so the share is how much of the plan the grid
+//     carries by itself;
 //   - a column stands at every grid intersection, so an intersection inside
 //     a room (on no wall) is a column in the middle of that room.
 // The grid is the one that best fits the plan, so the numbers say how close

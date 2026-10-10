@@ -8,8 +8,11 @@
  * into 3–6 m bays is searched:
  *   1. fewest columns standing inside rooms (an intersection on no wall);
  *   2. most upper-floor wall standing on a grid beam line or on a wall below
- *      (I10: anything else must be a lightweight partition on the slab);
+ *      (I10);
  *   3. most wall on the grid lines.
+ * An upper wall on neither is carried by a secondary beam along its line,
+ * spanning the grid bay between the two grid beams it crosses (owner,
+ * 2026-10-10), so no span passes 6 m and every wall has a load path.
  * The skeleton (columns, beams), the structural overlay, the bill of
  * quantities, the IFC export, the harness's I10 measure and the drawing's
  * grid bubbles all read this one grid.
@@ -32,6 +35,12 @@ export interface GridFit {
      * (1 for one storey), and the metres that are not. */
     onStructure: number; offM: number;
 }
+
+/** A secondary beam under an upper wall that stands on no grid line and no
+ * wall below: along the wall's line, from one grid line across to the next.
+ * Cells; `floor` is the storey whose top the beam sits at (one below the
+ * wall it carries). */
+export interface SecondarySpan { floor: number; vertical: boolean; at: number; from: number; to: number }
 
 /** Interior wall cells: vx[x*S+y] a vertical wall at x over cell row y, hy a
  * horizontal wall at y over cell column x. */
@@ -142,10 +151,33 @@ export function fitGrid(floors: Rect[][], W: number, D: number): GridFit {
     return { xs, ys, columnsInRooms, onStructure: tot ? ok / tot : 1, offM: (tot - ok) * CELL };
 }
 
+/** One secondary beam for each grid bay that an unsupported upper wall
+ * crosses (any length of it), on every floor above the ground. */
+export function secondarySpans(floors: Rect[][], W: number, D: number, xs: number[], ys: number[]): SecondarySpan[] {
+    const S = D + 1, F = floors.map(f => walls(f, W, D)), out: SecondarySpan[] = [];
+    const onX = new Set(xs), onY = new Set(ys);
+    for (let f = 1; f < F.length; f++) {
+        const U = F[f], B = F[f - 1];
+        for (let x = 1; x < W; x++) if (!onX.has(x)) for (let j = 0; j + 1 < ys.length; j++) {
+            let need = false;
+            for (let y = ys[j]; y < ys[j + 1] && !need; y++) need = !!U.vx[x * S + y] && !B.vx[x * S + y];
+            if (need) out.push({ floor: f - 1, vertical: true, at: x, from: ys[j], to: ys[j + 1] });
+        }
+        for (let y = 1; y < D; y++) if (!onY.has(y)) for (let i = 0; i + 1 < xs.length; i++) {
+            let need = false;
+            for (let x = xs[i]; x < xs[i + 1] && !need; x++) need = !!U.hy[x * S + y] && !B.hy[x * S + y];
+            if (need) out.push({ floor: f - 1, vertical: false, at: y, from: xs[i], to: xs[i + 1] });
+        }
+    }
+    return out;
+}
+
 export interface StructuralGrid extends Omit<GridFit, "xs" | "ys"> {
     /** Grid lines in metres from the building's origin. */
     xs: number[]; ys: number[];
     floors: number;
+    /** Secondary beams in metres (start and end on the grid beams). */
+    secondary: Array<{ floor: number; x1: number; y1: number; x2: number; y2: number }>;
 }
 
 /** Each floor's rooms in cells, clipped to the footprint. */
@@ -168,7 +200,10 @@ export function structuralGridOf(layout: SolvedLayout): StructuralGrid | null {
     let g: StructuralGrid | null = null;
     if (W && D && floors.some(f => f.length)) {
         const fit = fitGrid(floors, W, D);
-        g = { ...fit, xs: fit.xs.map(v => v * CELL), ys: fit.ys.map(v => v * CELL), floors: floors.length };
+        const secondary = secondarySpans(floors, W, D, fit.xs, fit.ys).map(b => b.vertical
+            ? { floor: b.floor, x1: b.at * CELL, y1: b.from * CELL, x2: b.at * CELL, y2: b.to * CELL }
+            : { floor: b.floor, x1: b.from * CELL, y1: b.at * CELL, x2: b.to * CELL, y2: b.at * CELL });
+        g = { ...fit, xs: fit.xs.map(v => v * CELL), ys: fit.ys.map(v => v * CELL), floors: floors.length, secondary };
     }
     gridCache.set(layout, g);
     return g;

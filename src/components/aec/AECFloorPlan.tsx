@@ -745,7 +745,9 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
               y={y - (beam.end_y === beam.start_y ? halfCol : 0)}
               width={w}
               height={h}
-              className="fill-blue-500/20 stroke-blue-600 stroke-[2] stroke-dasharray-4"
+              className={beam.kind === 'secondary'
+                ? "fill-amber-500/20 stroke-amber-600 stroke-[1.5]"
+                : "fill-blue-500/20 stroke-blue-600 stroke-[2] stroke-dasharray-4"}
             />
           );
         })}
