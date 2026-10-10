@@ -78,10 +78,11 @@ async function runIntegrationTest() {
 
         console.log(`✓ Concrete Volume generated: ${concreteVol.toFixed(2)} m3`);
 
-        if (maxFoundSpan > 4.5) {
-            console.error(`X Structural Failure: A beam span exceeded the 4.5m NBC limit! Found span: ${maxFoundSpan}m`);
+        const { MAX_BAY_M } = await import("./solver/structural_grid");
+        if (maxFoundSpan > MAX_BAY_M) {
+            console.error(`X Structural Failure: A beam span exceeded the ${MAX_BAY_M}m grid bay! Found span: ${maxFoundSpan}m`);
         } else {
-            console.log(`✓ Structural Compliance passed. Maximum beam span is ${maxFoundSpan.toFixed(2)}m (≤ 4.5m limit).`);
+            console.log(`✓ Structural Compliance passed. Maximum beam span is ${maxFoundSpan.toFixed(2)}m (≤ ${MAX_BAY_M}m grid bay).`);
         }
 
         // 6. Duplex Stairwell Alignment Test (Phase 3)
