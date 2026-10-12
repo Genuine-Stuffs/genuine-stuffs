@@ -15,6 +15,7 @@
 // it, any other room crossing costs STRADDLE_W.
 // Usage: tsx run.ts <fixture-substr> [seeds] [firstSeed]
 import { readdirSync, readFileSync } from "fs";
+import { Worker } from "worker_threads";
 import { fileURLToPath } from "url";
 import { buildGraph } from "../../graph";
 import { hiveRooms, graphNeed } from "../../gapfree/need";
@@ -48,6 +49,40 @@ function specFor(graph: any, floor: number, W: number, D: number): FloorSpec | n
     const surplus = W * D * C * C - hall.area - rooms;
     if (floor > 0 && surplus > 4) leaves.push({ id: `terrace_f${floor}`, type: "balcony", area: surplus, needsExt: true, front: false, connector: false } as Leaf);
     return { leaves, W, D, pairs, floor, soft, ...(floor === 0 ? { stairCells: STAIR } : {}) };
+}
+
+/** Scratch for placeFast: one tree node per expression token. */
+interface Scratch { area: Float64Array; nA: Float64Array; nL: Int32Array; nR: Int32Array; nOp: Int32Array; nOff: Int32Array; leaf: Int32Array; stk: Int32Array; rx: Int32Array; ry: Int32Array; rw: Int32Array; rh: Int32Array }
+const scratch = (n: number, area: ArrayLike<number>): Scratch => { const m = 2 * n + 2; return { area: Float64Array.from(area), nA: new Float64Array(m), nL: new Int32Array(m), nR: new Int32Array(m), nOp: new Int32Array(m), nOff: new Int32Array(m), leaf: new Int32Array(m), stk: new Int32Array(m), rx: new Int32Array(m), ry: new Int32Array(m), rw: new Int32Array(m), rh: new Int32Array(m) }; };
+
+/** place() without allocating: the region's rooms straight into X/Y/Wd/Ht. */
+function placeFast(z: Scratch, expr: number[], offs: number[], x0: number, y0: number, w0: number, h0: number, X: Int32Array, Y: Int32Array, Wd: Int32Array, Ht: Int32Array): boolean {
+    let sp = 0;
+    for (let k = 0; k < expr.length; k++) {
+        const t = expr[k];
+        if (t >= 0) { z.nOp[k] = 0; z.leaf[k] = t; z.nA[k] = z.area[t]; }
+        else { const b = z.stk[--sp], a = z.stk[--sp]; z.nOp[k] = t; z.nL[k] = a; z.nR[k] = b; z.nOff[k] = offs[k]; z.nA[k] = z.nA[a] + z.nA[b]; }
+        z.stk[sp++] = k;
+    }
+    const root = z.stk[0];
+    z.rx[root] = x0; z.ry[root] = y0; z.rw[root] = w0; z.rh[root] = h0;
+    sp = 0; z.stk[sp++] = root;
+    while (sp) {
+        const k = z.stk[--sp], x = z.rx[k], y = z.ry[k], w = z.rw[k], h = z.rh[k];
+        if (z.nOp[k] === 0) { const l = z.leaf[k]; X[l] = x; Y[l] = y; Wd[l] = w; Ht[l] = h; continue; }
+        const a = z.nL[k], b = z.nR[k], f = z.nA[a] / (z.nA[a] + z.nA[b]);
+        if (z.nOp[k] === V) {
+            if (w < 2) return false;
+            const wl = Math.min(w - 1, Math.max(1, Math.round(w * f) + z.nOff[k]));
+            z.rx[a] = x; z.ry[a] = y; z.rw[a] = wl; z.rh[a] = h; z.rx[b] = x + wl; z.ry[b] = y; z.rw[b] = w - wl; z.rh[b] = h;
+        } else {
+            if (h < 2) return false;
+            const hl = Math.min(h - 1, Math.max(1, Math.round(h * f) + z.nOff[k]));
+            z.rx[a] = x; z.ry[a] = y; z.rw[a] = w; z.rh[a] = hl; z.rx[b] = x; z.ry[b] = y + hl; z.rw[b] = w; z.rh[b] = h - hl;
+        }
+        z.stk[sp++] = a; z.stk[sp++] = b;
+    }
+    return true;
 }
 
 /** One bay's slicing tree laid out in rect r (cells), into out[]. */
@@ -147,12 +182,18 @@ function anneal(spec: FloorSpec, a: number, seed: number, iters: number): { s: S
     // a ground floor with a garage starts with a full-width block deep enough for cars
     const garage = spec.floor === 0 && spec.leaves.some(l => l.garage);
     let cur: State = { e: es, o: es.map(e => e.map(() => 0)), g: Math.min(gMax, garage ? 13 : BLOCK0), side: garage || hub >= 0 ? 2 : Math.floor(R() * 3) };
+    const z = scratch(n, spec.leaves.map(l => l.area));
     const costOf = (s: State) => {
-        const r = rectsOf(s, spec, a);
-        if (!r) return 1e9;
-        for (let i = 0; i < n; i++) { ctx.X[i] = r[i].x; ctx.Y[i] = r[i].y; ctx.Wd[i] = r[i].w; ctx.Ht[i] = r[i].h; }
+        // regions() inlined: left bay, right bay, block; the spine is the hall
+        const D = spec.D, W = spec.W, top = D - s.g, side = s.side;
+        ctx.X[hall] = a; ctx.Y[hall] = 0; ctx.Wd[hall] = SPINE; ctx.Ht[hall] = top;
+        if (!s.e[0].length || !s.e[1].length || !s.e[2].length) return 1e9;
+        if (!placeFast(z, s.e[0], s.o[0], 0, 0, a, side === 1 ? D : top, ctx.X, ctx.Y, ctx.Wd, ctx.Ht)) return 1e9;
+        if (!placeFast(z, s.e[1], s.o[1], a + SPINE, 0, W - a - SPINE, side === 0 ? D : top, ctx.X, ctx.Y, ctx.Wd, ctx.Ht)) return 1e9;
+        const bx = side === 1 ? a : 0, bw = side === 0 ? a + SPINE : side === 1 ? W - a : W;
+        if (!placeFast(z, s.e[2], s.o[2], bx, top, bw, s.g, ctx.X, ctx.Y, ctx.Wd, ctx.Ht)) return 1e9;
         let x = fastCost(ctx, 0);
-        for (let i = 0; i < n; i++) if (!free[i]) for (const L of inner) if (r[i].x < L && r[i].x + r[i].w > L) x += STRADDLE_W;
+        for (let i = 0; i < n; i++) if (!free[i]) for (const L of inner) if (ctx.X[i] < L && ctx.X[i] + ctx.Wd[i] > L) x += STRADDLE_W;
         return x;
     };
     let cc = costOf(cur), best = cur, bc = cc, T = 50;
@@ -230,6 +271,26 @@ function designedGrid(floors: Rect[][], W: number, D: number, xs: number[], spec
 export { specFor, rectsOf, regions, anneal, place, SPINE, STAIR, BLOCK0 };
 export type { State };
 const MAIN = (process.argv[1] ?? "").endsWith("spine-proto/run.ts");
+// PAR=n: each floor's restarts on n worker threads; the winner is picked in
+// seed order as the sequential loop does, so plans are the same.
+const PAR = MAIN ? Number(process.env.PAR ?? 4) : 0;
+const WURL = new URL("./worker.ts", import.meta.url).href;
+const workers = [...Array(PAR)].map(() => new Worker(`import("tsx/esm/api").then(m => { m.register(); return import(${JSON.stringify(WURL)}); });`, { eval: true }));
+const idle = [...workers], waiting: Array<() => void> = [], pend = new Map<number, (r: any) => void>();
+let nid = 0;
+for (const w of workers) w.on("message", (m: any) => { pend.get(m.id)!(m.r); pend.delete(m.id); idle.push(w); waiting.shift()?.(); });
+const onWorker = (spec: FloorSpec, a: number, seed: number, iters: number) => new Promise<{ s: State; cost: number }>(res => {
+    const go = () => { const w = idle.pop()!, id = nid++; pend.set(id, res); w.postMessage({ id, spec, a, seed, iters }); };
+    if (idle.length) go(); else waiting.push(go);
+});
+async function restarts(spec: FloorSpec, a: number, base: number): Promise<{ s: State; cost: number }> {
+    const seeds = [...Array(RESTARTS).keys()].map(k => base + k * 1000003), it = ITERS / RESTARTS;
+    if (!PAR) { let res = anneal(spec, a, seeds[0], it); for (let k = 1; k < RESTARTS && res.cost > 0; k++) { const r2 = anneal(spec, a, seeds[k], it); if (r2.cost < res.cost) res = r2; } return res; }
+    let firstPerfect = Infinity;
+    const rs = await Promise.all(seeds.map((sd, k) => k > firstPerfect ? Promise.resolve({ s: null as any, cost: Infinity }) : onWorker(spec, a, sd, it).then(r => { if (r.cost === 0) firstPerfect = Math.min(firstPerfect, k); return r; })));
+    let res = rs[0]; for (let k = 1; k < RESTARTS && res.cost > 0; k++) if (rs[k].cost < res.cost) res = rs[k];
+    return res;
+}
 const files = MAIN ? readdirSync(FIX).filter(f => f.endsWith(".json") && f.includes(want)).sort() : [];
 for (const f of files) {
     const raw = JSON.parse(readFileSync(`${FIX}/${f}`, "utf-8"));
@@ -255,8 +316,7 @@ for (const f of files) {
             for (const sp of specs as FloorSpec[]) {
                 if (sp.floor > 0) sp.voidRect = { x: bay, y: 0, w: STAIR[0], h: STAIR[1] };
                 const base = s * 7919 + sp.floor * 104729 + W * 31 + D;
-                let res = anneal(sp, bay, base, ITERS / RESTARTS);
-                for (let k = 1; k < RESTARTS && res.cost > 0; k++) { const r2 = anneal(sp, bay, base + k * 1000003, ITERS / RESTARTS); if (r2.cost < res.cost) res = r2; }
+                const res = await restarts(sp, bay, base);
                 const r = rectsOf(res.s, sp, bay)!;
                 rects.push(r); states.push(res.s);
                 const vs = violations(r, sp), h = vs.filter(v => !SOFT.has(v.rule));
@@ -278,5 +338,6 @@ for (const f of files) {
         console.log(`  seed ${s}: ${best.hard ? "fallback" : "solved"} ${best.W * C}x${best.D * C} m sides ${best.bay * C}+${(best.W - best.bay - SPINE) * C} block ${blocks} | fitGrid ${(100 * g.onStructure).toFixed(0)}% ${g.columnsInRooms} cols | spine grid ${(100 * d.on).toFixed(0)}% ${d.cols} cols (+${d.allowed} allowed) | ${((performance.now() - t0) / 1000).toFixed(1)}s ${misses.join(" ")}`);
     }
     const n = tally.solved + tally.fallback;
-    console.log(`spine ${f.padEnd(42)} solved ${tally.solved}/${n} | hard/fallback ${tally.fallback ? (tally.hard / tally.fallback).toFixed(1) : "-"} | fitGrid ${(100 * tally.on / n).toFixed(0)}% ${(tally.cols / n).toFixed(1)} cols | spine grid ${(100 * tally.gon / n).toFixed(0)}% ${(tally.gcols / n).toFixed(1)} cols (+${(tally.allowed / n).toFixed(1)} allowed) | avg ${(tally.t / n / 1000).toFixed(1)}s (1 thread)`);
+    console.log(`spine ${f.padEnd(42)} solved ${tally.solved}/${n} | hard/fallback ${tally.fallback ? (tally.hard / tally.fallback).toFixed(1) : "-"} | fitGrid ${(100 * tally.on / n).toFixed(0)}% ${(tally.cols / n).toFixed(1)} cols | spine grid ${(100 * tally.gon / n).toFixed(0)}% ${(tally.gcols / n).toFixed(1)} cols (+${(tally.allowed / n).toFixed(1)} allowed) | avg ${(tally.t / n / 1000).toFixed(1)}s (${PAR || 1} threads)`);
 }
+for (const w of workers) w.terminate();
