@@ -26,7 +26,7 @@ import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, FloorSpec, Rect, Leaf } from "./slice";
-import { TERRACE_LIGHT, FOYER_VIA_HALL, SPINE_FIRST, SPINE_BUDGET } from "./config";
+import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET } from "./config";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
 
@@ -299,7 +299,8 @@ function sharedM(a: PlacedRoom, b: PlacedRoom): number {
 
 /** Misses of a fallback plan that `issues` doesn't flag yet: declared links
  * without a 1 m shared wall (a foyer link met through the hall counts as
- * met), and rooms needing a window with no outside wall (or open terrace). */
+ * met, and upstairs any link met through the landing), and rooms needing a
+ * window with no outside wall (or open terrace). */
 function unflaggedMisses(p: Prepared, placed: PlacedRoom[], best: Fp, issues: ValidationIssue[]): ValidationIssue[] {
     const out: ValidationIssue[] = [];
     const byId = new Map(placed.map(r => [r.room_id, r]));
@@ -317,7 +318,7 @@ function unflaggedMisses(p: Prepared, placed: PlacedRoom[], best: Fp, issues: Va
             seen.add(key);
             const b = byId.get(m);
             if (!b || a.floor !== b.floor || sharedM(a, b) >= 1.0) continue;
-            if (FOYER_VIA_HALL && (ENTRANCE.has(n.type) || ENTRANCE.has(p.graph.nodes.get(m)?.type ?? ""))) {
+            if ((FOYER_VIA_HALL && (ENTRANCE.has(n.type) || ENTRANCE.has(p.graph.nodes.get(m)?.type ?? ""))) || (LANDING_VIA_HALL && a.floor > 0)) {
                 const halls = placed.filter(h => h.floor === a.floor && isHall(h));
                 if (halls.some(h => sharedM(a, h) >= 1.0) && halls.some(h => sharedM(b, h) >= 1.0)) continue;
             }

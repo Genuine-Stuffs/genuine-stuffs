@@ -2,7 +2,7 @@
 // allocating. Rules that depend only on a room's own size are memoised per
 // (leaf, w, h); positions are scored on preallocated typed arrays.
 import { FloorSpec, Rect, violations, WEIGHT, placeStair, hallPieces, unsupportedWall, ENTRANCE } from "./slice";
-import { FOYER_VIA_HALL, TERRACE_LIGHT } from "./config";
+import { FOYER_VIA_HALL, TERRACE_LIGHT, LANDING_VIA_HALL } from "./config";
 
 const DOOR = 2, PASSAGE = 3;
 
@@ -10,7 +10,7 @@ export interface Ctx {
     spec: FloorSpec; n: number; W: number; D: number;
     area: Float64Array; X: Int32Array; Y: Int32Array; Wd: Int32Array; Ht: Int32Array;
     needsExt: Uint8Array; terrace: Uint8Array; front: Uint8Array; conn: Uint8Array; reachVia: Int32Array; hall: number;
-    pa: Int32Array; pb: Int32Array; pw: Float64Array; pf: Int32Array; // pf: the pair's foyer end, or -1
+    pa: Int32Array; pb: Int32Array; pw: Float64Array; pf: Int32Array; // pf: the pair's foyer end (upstairs: either end), or -1
     intrinsic: Float64Array; // n × (W+1) × (D+1), NaN = not computed
     // layout scratch (2n-1 nodes)
     nArea: Float64Array; nL: Int32Array; nR: Int32Array; nOp: Int32Array; nOff: Int32Array; stk: Int32Array;
@@ -33,7 +33,7 @@ export function makeCtx(spec: FloorSpec): Ctx {
         hall: spec.leaves.findIndex(l => l.hall),
         pa: Int32Array.from(pairs.map(p => p[0])), pb: Int32Array.from(pairs.map(p => p[1])),
         pw: Float64Array.from(pairs.map(([a, b]) => spec.soft?.has(`${a}|${b}`) ? WEIGHT.ADJ_SOFT : WEIGHT.ADJACENCY)),
-        pf: Int32Array.from(pairs.map(([a, b]) => ENTRANCE.has(spec.leaves[a].type) ? a : ENTRANCE.has(spec.leaves[b].type) ? b : -1)),
+        pf: Int32Array.from(pairs.map(([a, b]) => ENTRANCE.has(spec.leaves[a].type) || (LANDING_VIA_HALL && spec.floor > 0) ? a : ENTRANCE.has(spec.leaves[b].type) ? b : -1)),
         intrinsic: new Float64Array(n * (spec.W + 1) * (spec.D + 1)).fill(NaN),
         nArea: new Float64Array(m), nL: new Int32Array(m), nR: new Int32Array(m), nOp: new Int32Array(m), nOff: new Int32Array(m), stk: new Int32Array(m),
         rx: new Int32Array(m), ry: new Int32Array(m), rw: new Int32Array(m), rh: new Int32Array(m), leafOf: new Int32Array(m),

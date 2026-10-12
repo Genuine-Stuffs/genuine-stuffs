@@ -15,6 +15,9 @@ export const STAIR_IN_HALL = flag("STAIR_IN_HALL", true);
 export const FAST = flag("FAST", true);
 /** A foyer link is met through the hall the foyer opens onto (soft). */
 export const FOYER_VIA_HALL = flag("FOYER_VIA_HALL", true);
+/** Upstairs, a link is met when both rooms open onto the landing (soft,
+ * direct preferred), as a foyer link is downstairs (owner, 2026-10-12). */
+export const LANDING_VIA_HALL = flag("LANDING_VIA_HALL", true);
 /** Opening onto an open-air terrace counts as an outside wall. */
 export const TERRACE_LIGHT = flag("TERRACE_LIGHT", true);
 /** One hub per floor (rebuild plan Phase 2), not every room with 3+ links. */

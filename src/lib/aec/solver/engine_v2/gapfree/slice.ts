@@ -7,7 +7,7 @@ import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, deriveSuites
 import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
 import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
-import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P } from "./config";
+import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P } from "./config";
 
 const CELL = 0.5;
 export { STAIR_IN_HALL, FOYER_VIA_HALL, TERRACE_LIGHT };
@@ -154,7 +154,8 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
             v.push({ rule: "STAIR_ALIGN", leaf: i, amount: 1 + (Math.abs(fx.x - r.x) + Math.abs(fx.y - r.y) + Math.abs(fx.w - r.w) + Math.abs(fx.h - r.h)) / 4 });
     });
     const hallI = spec.leaves.findIndex(l => l.hall);
-    const isFoyer = (i: number) => ENTRANCE.has(spec.leaves[i].type);
+    // upstairs every link may be met through the landing (LANDING_VIA_HALL)
+    const isFoyer = (i: number) => ENTRANCE.has(spec.leaves[i].type) || (LANDING_VIA_HALL && spec.floor > 0);
     for (const [a, b] of spec.pairs) {
         let s = shared(rects[a], rects[b]);
         // FOYER_VIA_HALL (experiment): a foyer link is met through the hall the foyer opens onto

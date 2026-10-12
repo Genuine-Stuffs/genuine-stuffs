@@ -62,6 +62,7 @@ function byId(rooms: PlacedRoom[]): Map<string, PlacedRoom> {
 // Accepted readings (owner, 2026-10-07). Test-only copies on purpose, like
 // the geometry helpers above.
 const ENTRANCE_TYPES = new Set(["foyer", "entrance", "entry", "entrance_hall", "lobby", "reception"]);
+const LANDING_VIA_HALL = !(typeof process !== "undefined" && process.env?.LANDING_VIA_HALL === "0");
 const OPEN_AIR_TYPES = new Set(["balcony", "terrace", "veranda", "verandah", "patio"]);
 
 /** Circulation rooms on one floor grouped into connected halls (pieces that
@@ -180,8 +181,9 @@ export function assertI3_AdjacencySatisfied(
             if (hubEdgesOnly && !hubIds.has(node.id) && !hubIds.has(neighborId)) continue;
             const shared = sharedWallLength(a, b);
             if (shared >= WALL_TOL_M) continue;
-            // FOYER_VIA_HALL: a foyer link is met when both rooms open onto the same hall.
-            if (ENTRANCE_TYPES.has(node.type) || ENTRANCE_TYPES.has(graph.nodes.get(neighborId)?.type ?? "")) {
+            // FOYER_VIA_HALL: a foyer link is met when both rooms open onto the same hall;
+            // LANDING_VIA_HALL: upstairs, any link is.
+            if (ENTRANCE_TYPES.has(node.type) || ENTRANCE_TYPES.has(graph.nodes.get(neighborId)?.type ?? "") || (LANDING_VIA_HALL && a.floor > 0)) {
                 const floorRooms = layout.placed_rooms.filter(r => r.floor === a.floor);
                 const halls = hallsOnFloor(floorRooms, graph);
                 const hallsTouching = (r: PlacedRoom) => new Set(floorRooms
