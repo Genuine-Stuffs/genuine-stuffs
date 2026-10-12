@@ -40,13 +40,13 @@ export async function solveGapfreeInPool(
             pending.clear();
         };
     }
-    const run = (spec: RestartBatch['spec'], seed: number, iters: number, sw: number, skip: () => boolean) => new Promise<AnnealResult>((resolve, reject) => {
+    const run = (spec: RestartBatch['spec'], seed: number, iters: number, sw: number, spineA: number | undefined, skip: () => boolean) => new Promise<AnnealResult>((resolve, reject) => {
         const go = () => {
             if (failed) return reject(failed);
             if (skip()) { resolve(SKIPPED); queue.shift()?.(); return; }
             const w = idle.pop()!, id = nextId++;
             pending.set(id, { resolve, reject });
-            w.postMessage({ id, spec, seed, iters, sw });
+            w.postMessage({ id, spec, seed, iters, sw, spineA });
         };
         if (idle.length) go(); else queue.push(go);
     });
@@ -54,7 +54,7 @@ export async function solveGapfreeInPool(
     // earlier one, so restarts after k that haven't started are skipped.
     const runAll = (b: RestartBatch) => {
         let firstPerfect = Infinity;
-        return Promise.all(b.seeds.map((seed, k) => run(b.spec, seed, b.iters, b.sw, () => k > firstPerfect)
+        return Promise.all(b.seeds.map((seed, k) => run(b.spec, seed, b.iters, b.sw, b.spineA, () => k > firstPerfect)
             .then(r => { if (r.cost === 0) firstPerfect = Math.min(firstPerfect, k); return r; })));
     };
     try {

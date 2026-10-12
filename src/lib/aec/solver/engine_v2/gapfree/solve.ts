@@ -26,7 +26,8 @@ import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, FloorSpec, Rect, Leaf } from "./slice";
-import { TERRACE_LIGHT, FOYER_VIA_HALL } from "./config";
+import { TERRACE_LIGHT, FOYER_VIA_HALL, SPINE_FIRST, SPINE_BUDGET } from "./config";
+import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
 
 export const CELL = 0.5;
@@ -35,10 +36,20 @@ export const RESTARTS = 64;
 export const ITERS = 1_280_000;
 const STACK_W = 30;
 const SEED_STRIDE = 1000003;
+/** Bay-and-spine search budget per floor per footprint (a quarter of the gap-free one). */
+const SPINE_RESTARTS = 32, SPINE_ITERS = ITERS * SPINE_BUDGET;
 
-export type AnnealResult = { expr: number[]; offs: number[]; cost: number };
-/** One floor's restarts: anneal(spec, seeds[k], iters, sw) for every k. */
-export interface RestartBatch { spec: FloorSpec; seeds: number[]; iters: number; sw: number }
+export type AnnealResult = { expr: number[]; offs: number[]; cost: number; spine?: SpineState };
+/** One floor's restarts: anneal(spec, seeds[k], iters, sw) for every k, or
+ * annealSpine(spec, spineA, seeds[k], iters) for a bay-and-spine floor. */
+export interface RestartBatch { spec: FloorSpec; seeds: number[]; iters: number; sw: number; spineA?: number }
+
+/** One restart of a batch (sequential search, or a pool worker). */
+export function runRestart(spec: FloorSpec, seed: number, iters: number, sw: number, spineA?: number): AnnealResult {
+    if (spineA === undefined) return anneal(spec, seed, iters, sw);
+    const r = annealSpine(spec, spineA, seed, iters);
+    return { expr: [], offs: [], cost: r.cost, spine: r.spine };
+}
 
 /** The winner among a batch's results, in seed order: the first restart
  * that lowers the best cost, stopping at a perfect one (cost 0). */
@@ -50,9 +61,9 @@ export function pickWinner(results: AnnealResult[]): AnnealResult {
 
 /** Sequential restarts, stopping once one is perfect (same winner as pickWinner over all). */
 function runBatch(b: RestartBatch): AnnealResult {
-    let res = anneal(b.spec, b.seeds[0], b.iters, b.sw);
+    let res = runRestart(b.spec, b.seeds[0], b.iters, b.sw, b.spineA);
     for (let k = 1; k < b.seeds.length && res.cost > 0; k++) {
-        const r2 = anneal(b.spec, b.seeds[k], b.iters, b.sw);
+        const r2 = runRestart(b.spec, b.seeds[k], b.iters, b.sw, b.spineA);
         if (r2.cost < res.cost) res = r2;
     }
     return res;
@@ -64,7 +75,7 @@ interface Prepared {
     be: { width: number; height: number };
 }
 
-function prepare(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Prepared {
+export function prepare(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Prepared {
     const raw: any = program;
     const br = raw.brief_reference ?? {};
     const storeys = options?.floors_override ?? br.floors ?? br.storeys ?? 1;
@@ -167,9 +178,49 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
     return toLayout(p, best);
 }
 
+/** Bay-and-spine plans (spine.ts) for a multi-storey brief: the best over
+ * the spine footprints, or null when every one leaves a hard miss. Fewer
+ * iterations than the gap-free search: when it plans the brief at all it
+ * does so quickly, and a miss hands over to the gap-free search. */
+export function* spineDriver(p: Prepared): Generator<RestartBatch, SolvedLayout | null, AnnealResult> {
+    if (!p.duplex || p.floorIds.length < 2) return null;
+    const fps = spineFootprints(p.need, Math.floor(p.be.width / CELL + 1e-9), Math.floor(p.be.height / CELL + 1e-9));
+    let best: (Fp & { hard: number }) | null = null;
+    for (const { W, D, a } of fps) {
+        const specs = new Map<number, FloorSpec>(), rects = new Map<number, Rect[]>();
+        let total = 0, hard = 0, ok = true;
+        for (const fl of p.floorIds) {
+            const spec = spineSpec(p.graph, fl, W, D);
+            if (!spec) { ok = false; break; }
+            if (fl > p.floorIds[0]) spec.voidRect = { x: a, y: 0, w: SPINE_STAIR[0], h: SPINE_STAIR[1] };
+            const base = p.seed * 7919 + fl * 104729 + W * 31 + D + a * 7;
+            const res: AnnealResult = yield { spec, seeds: [...Array(SPINE_RESTARTS).keys()].map(k => base + k * SEED_STRIDE), iters: SPINE_ITERS / SPINE_RESTARTS, sw: 0, spineA: a };
+            const r = res.spine && spineRects(res.spine, spec, a);
+            if (!r) { ok = false; break; }
+            specs.set(fl, spec); rects.set(fl, r);
+            const vs = violations(r, spec), h = vs.filter(v => v.rule !== "AREA_RELAXED" && v.rule !== "ADJ_SOFT").length;
+            hard += h; total += h * 100 + vs.length;
+            if (h) { ok = false; break; } // only a plan with no hard miss is used: skip the other floors
+        }
+        if (ok && (!best || total < best.cost)) best = { cost: total, rects, specs, W, D, hard };
+        if (best && best.cost < 1) break;
+    }
+    if (best) console.info(`[SOLVER_SPINE] bay-and-spine plan, ${best.W * CELL} × ${best.D * CELL} m`);
+    return best ? toLayout(p, best) : null;
+}
+
+/** The whole plan: bay-and-spine first (multi-storey), else the gap-free search. */
+export function* planDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
+    if (SPINE_FIRST) {
+        const L = yield* spineDriver(prepare(program, envelope, options));
+        if (L) return L;
+    }
+    return yield* gapfreeDriver(program, envelope, options);
+}
+
 /** Run the search with restarts one after the other. */
 export function solveGapfree(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): SolvedLayout {
-    const gen = gapfreeDriver(program, envelope, options);
+    const gen = planDriver(program, envelope, options);
     for (let step = gen.next(); ;) {
         if (step.done) return step.value as SolvedLayout;
         step = gen.next(runBatch(step.value as RestartBatch)); // not done: a batch
@@ -182,7 +233,7 @@ export async function solveGapfreeAsync(
     program: SpatialProgram, envelope: PlotEnvelope, options: SolverOptions | undefined,
     runAll: (b: RestartBatch) => Promise<AnnealResult[]>,
 ): Promise<SolvedLayout> {
-    const gen = gapfreeDriver(program, envelope, options);
+    const gen = planDriver(program, envelope, options);
     for (let step = gen.next(); ;) {
         if (step.done) return step.value as SolvedLayout;
         step = gen.next(pickWinner(await runAll(step.value as RestartBatch))); // not done: a batch

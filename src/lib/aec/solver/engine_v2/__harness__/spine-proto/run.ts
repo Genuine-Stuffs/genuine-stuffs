@@ -19,7 +19,7 @@ import { Worker } from "worker_threads";
 import { fileURLToPath } from "url";
 import { buildGraph } from "../../graph";
 import { hiveRooms, graphNeed } from "../../gapfree/need";
-import { floorLeaves, violations, placeStair, FloorSpec, Rect, Leaf } from "../../gapfree/slice";
+import { floorLeaves, violations, placeStair, shared, FloorSpec, Rect, Leaf } from "../../gapfree/slice";
 import { makeCtx, fastCost } from "../../gapfree/fast";
 import { fitGrid } from "../../../structural_grid";
 
@@ -34,6 +34,11 @@ const BLOCK0 = 12, BLOCK_MIN = 6, SPINE_MIN = STAIR[1] + 3; // cells: typical bl
 const STRADDLE_W = Number(process.env.STRADDLE_W ?? 15);
 // [left, right] side widths in cells: two single bays, or a wide side of two bays
 const SIDES: Array<[number, number]> = JSON.parse(process.env.SIDES ?? "[[10,10],[12,12],[16,12],[18,12]]");
+// HUB_VIA_HALL=1 (measurement for the owner, 2026-10-12): an upper floor's
+// hard links count as met when both rooms open onto the landing (as
+// FOYER_VIA_HALL downstairs); a direct wall is still preferred (soft).
+const HUB_VIA_HALL = process.env.HUB_VIA_HALL === "1";
+const DOOR = 2;
 const SLACKS = (process.env.SLACKS ?? "1.0,1.06").split(",").map(Number);
 const SOFT = new Set(["AREA_RELAXED", "ADJ_SOFT"]);
 
@@ -48,7 +53,9 @@ function specFor(graph: any, floor: number, W: number, D: number): FloorSpec | n
     const rooms = leaves.filter(l => !l.hall).reduce((s, l) => s + l.area, 0);
     const surplus = W * D * C * C - hall.area - rooms;
     if (floor > 0 && surplus > 4) leaves.push({ id: `terrace_f${floor}`, type: "balcony", area: surplus, needsExt: true, front: false, connector: false } as Leaf);
-    return { leaves, W, D, pairs, floor, soft, ...(floor === 0 ? { stairCells: STAIR } : {}) };
+    const viaHall: Array<[number, number]> = [];
+    if (HUB_VIA_HALL && floor > 0) for (const [a, b] of pairs) if (!soft.has(`${a}|${b}`)) { soft.add(`${a}|${b}`); viaHall.push([a, b]); }
+    return { leaves, W, D, pairs, floor, soft, viaHall, ...(floor === 0 ? { stairCells: STAIR } : {}) } as FloorSpec;
 }
 
 /** Scratch for placeFast: one tree node per expression token. */
@@ -173,7 +180,8 @@ function anneal(spec: FloorSpec, a: number, seed: number, iters: number): { s: S
     const ids = [...Array(n).keys()].filter(i => i !== hall);
     const gMax = spec.D - SPINE_MIN;
     // the upper floor's hub (most hard links) sits in the block, across the spine, to reach both sides
-    const hardDeg = spec.leaves.map((_, i) => spec.pairs.filter(([x, y]) => (x === i || y === i) && !spec.soft?.has(`${x}|${y}`)).length);
+    const vhk = new Set(((spec as any).viaHall ?? []).map(([x, y]: number[]) => `${x}|${y}`));
+    const hardDeg = spec.leaves.map((_, i) => spec.pairs.filter(([x, y]) => (x === i || y === i) && (!spec.soft?.has(`${x}|${y}`) || vhk.has(`${x}|${y}`))).length);
     const hub = spec.floor > 0 ? hardDeg.indexOf(Math.max(...hardDeg)) : -1;
     const side = ids.map(i => (spec.floor === 0 && spec.leaves[i].front) || i === hub ? 2 : Math.floor(R() * 3));
     for (let k = 0; k < 3; k++) if (!side.includes(k)) side[Math.floor(R() * side.length)] = k;
@@ -183,6 +191,8 @@ function anneal(spec: FloorSpec, a: number, seed: number, iters: number): { s: S
     const garage = spec.floor === 0 && spec.leaves.some(l => l.garage);
     let cur: State = { e: es, o: es.map(e => e.map(() => 0)), g: Math.min(gMax, garage ? 13 : BLOCK0), side: garage || hub >= 0 ? 2 : Math.floor(R() * 3) };
     const z = scratch(n, spec.leaves.map(l => l.area));
+    const vh: Array<[number, number]> = (spec as any).viaHall ?? [];
+    const sh = (p: number, q: number) => shared({ x: ctx.X[p], y: ctx.Y[p], w: ctx.Wd[p], h: ctx.Ht[p] }, { x: ctx.X[q], y: ctx.Y[q], w: ctx.Wd[q], h: ctx.Ht[q] });
     const costOf = (s: State) => {
         // regions() inlined: left bay, right bay, block; the spine is the hall
         const D = spec.D, W = spec.W, top = D - s.g, side = s.side;
@@ -193,6 +203,7 @@ function anneal(spec: FloorSpec, a: number, seed: number, iters: number): { s: S
         const bx = side === 1 ? a : 0, bw = side === 0 ? a + SPINE : side === 1 ? W - a : W;
         if (!placeFast(z, s.e[2], s.o[2], bx, top, bw, s.g, ctx.X, ctx.Y, ctx.Wd, ctx.Ht)) return 1e9;
         let x = fastCost(ctx, 0);
+        for (const [p, q] of vh) if (sh(p, q) < DOOR && !(sh(p, hall) >= DOOR && sh(q, hall) >= DOOR)) x += 15;
         for (let i = 0; i < n; i++) if (!free[i]) for (const L of inner) if (ctx.X[i] < L && ctx.X[i] + ctx.Wd[i] > L) x += STRADDLE_W;
         return x;
     };
@@ -319,7 +330,9 @@ for (const f of files) {
                 const res = await restarts(sp, bay, base);
                 const r = rectsOf(res.s, sp, bay)!;
                 rects.push(r); states.push(res.s);
-                const vs = violations(r, sp), h = vs.filter(v => !SOFT.has(v.rule));
+                const vs = violations(r, sp), hi = sp.leaves.findIndex(l => l.hall);
+                for (const [p, q] of (sp as any).viaHall ?? []) if (shared(r[p], r[q]) < DOOR && !(shared(r[p], r[hi]) >= DOOR && shared(r[q], r[hi]) >= DOOR)) vs.push({ rule: "HUB_LINK", leaf: p, other: q, amount: 1 });
+                const h = vs.filter(v => !SOFT.has(v.rule));
                 hard += h.length; total += h.length * 100 + vs.length;
                 if (vs.some(v => (v.rule === "REACH" && sp.leaves[v.leaf].reachVia !== undefined) || v.rule === "STAIR_ALIGN" || v.rule === "STAIR_FIT")) total += 1e6;
             }
@@ -333,7 +346,7 @@ for (const f of files) {
         const d = designedGrid(best.rects, best.W, best.D, [0, best.bay, best.bay + SPINE, best.W, ...innerLines(best.bay, best.W)].sort((p, q) => p - q), best.specs);
         const blocks = best.states.map((st: State) => `${["L", "R", "full"][st.side]}${st.g * C}`).join("/");
         tally.cols += g.columnsInRooms; tally.on += g.onStructure; tally.gcols += d.cols; tally.allowed += d.allowed; tally.gon += d.on;
-        const misses = best.specs.flatMap((sp: FloorSpec, k: number) => violations(best.rects[k], sp).filter(v => !SOFT.has(v.rule)).map(v => `f${sp.floor}:${v.rule}:${sp.leaves[v.leaf].id}${v.other !== undefined ? "-" + sp.leaves[v.other].id : ""}`));
+        const misses = best.specs.flatMap((sp: FloorSpec, k: number) => [...violations(best.rects[k], sp), ...((sp as any).viaHall ?? []).filter(([p, q]: number[]) => { const r = best.rects[k], hi = sp.leaves.findIndex(l => l.hall); return shared(r[p], r[q]) < DOOR && !(shared(r[p], r[hi]) >= DOOR && shared(r[q], r[hi]) >= DOOR); }).map(([p, q]: number[]) => ({ rule: "HUB_LINK", leaf: p, other: q, amount: 1 }))].filter(v => !SOFT.has(v.rule)).map(v => `f${sp.floor}:${v.rule}:${sp.leaves[v.leaf].id}${v.other !== undefined ? "-" + sp.leaves[v.other].id : ""}`));
         if (process.env.DEBUG) best.specs.forEach((sp: FloorSpec, k: number) => { console.log(`   floor ${sp.floor}:`); sp.leaves.forEach((l, i) => { const r = best.rects[k][i]; console.log(`     ${l.id.padEnd(22)} ${(l.node?.label ?? l.type).slice(0, 22).padEnd(22)} want ${l.area.toFixed(1)} got ${(r.w * r.h * C * C).toFixed(1)} at ${r.x * C},${r.y * C} ${r.w * C}x${r.h * C}`); }); for (const v of violations(best.rects[k], sp)) console.log(`     ! ${v.rule} ${sp.leaves[v.leaf].id}${v.other !== undefined ? "-" + sp.leaves[v.other].id : ""} ${v.amount.toFixed(2)}`); });
         console.log(`  seed ${s}: ${best.hard ? "fallback" : "solved"} ${best.W * C}x${best.D * C} m sides ${best.bay * C}+${(best.W - best.bay - SPINE) * C} block ${blocks} | fitGrid ${(100 * g.onStructure).toFixed(0)}% ${g.columnsInRooms} cols | spine grid ${(100 * d.on).toFixed(0)}% ${d.cols} cols (+${d.allowed} allowed) | ${((performance.now() - t0) / 1000).toFixed(1)}s ${misses.join(" ")}`);
     }

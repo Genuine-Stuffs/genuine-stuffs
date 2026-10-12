@@ -23,3 +23,8 @@ export const SPEC_HUB = flag("SPEC_HUB", true);
 export const SMALL_TOL = flag("SMALL_TOL", false);
 /** Share of annealing moves that repair a current violation (0 = off). */
 export const REPAIR_P = Number(env.REPAIR_P ?? 0);
+/** Multi-storey plans try the bay-and-spine layout first (spine.ts; owner,
+ * 2026-10-12), the gap-free search when it leaves a hard miss. */
+export const SPINE_FIRST = flag("SPINE_FIRST", true);
+/** Bay-and-spine budget as a share of the gap-free search's. */
+export const SPINE_BUDGET = Number(env.SPINE_BUDGET ?? 0.25);
