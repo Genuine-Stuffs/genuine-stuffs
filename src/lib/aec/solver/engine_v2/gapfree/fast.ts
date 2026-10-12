@@ -109,7 +109,7 @@ export function fastCost(c: Ctx, stackW: number): number {
         const x = c.X[i], y = c.Y[i], w = c.Wd[i], h = c.Ht[i];
         s += intrinsicCost(c, i, w, h);
         let lit = false;
-        if (TERRACE_LIGHT && c.needsExt[i] && !c.terrace[i] && i !== c.hall) for (let j = 0; j < n && !lit; j++) if (j !== i && c.terrace[j] && sharedC(c, i, j) >= DOOR) lit = true;
+        if (TERRACE_LIGHT && c.spec.floor > 0 && c.needsExt[i] && !c.terrace[i] && i !== c.hall) for (let j = 0; j < n && !lit; j++) if (j !== i && c.terrace[j] && sharedC(c, i, j) >= DOOR) lit = true;
         if (c.needsExt[i] && !lit && !(x === 0 || y === 0 || x + w === W || y + h === D))
             s += WEIGHT.EXTERNAL_WALL * (1 + Math.min(x, y, W - x - w, D - y - h) / 4);
         if (c.front[i] && y + h !== D) s += WEIGHT.FRONT * (1 + (D - y - h) / 4);

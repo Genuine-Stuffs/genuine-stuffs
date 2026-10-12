@@ -26,7 +26,7 @@ import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, FloorSpec, Rect, Leaf } from "./slice";
-import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET } from "./config";
+import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP } from "./config";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
 
@@ -102,7 +102,7 @@ function specFor(graph: RoomGraph, floor: number, W: number, D: number, duplex: 
         .filter(n => n.zone === "circ" && !/stair/i.test(n.label) && n.type !== "stairwell").reduce((s, n) => s + n.area, 0);
     // the hall also holds the stair module (or its void) when stairs sit in the hall
     const hallTarget = Math.max(declared, 0.12 * W * D * CELL * CELL) + (STAIR_IN_HALL && duplex ? 5 * 8 * CELL * CELL : 0);
-    if (hall.area > hallTarget * 1.6 && floor > 0) {
+    if (HALL_CAP ? hall.area - hallTarget > 4 : hall.area > hallTarget * 1.6 && floor > 0) {
         // Upper floor smaller than the footprint: the surplus is an open terrace.
         const terrace: Leaf = { id: `terrace_f${floor}`, type: "balcony", area: hall.area - hallTarget, needsExt: true, front: false, connector: false };
         hall.area = hallTarget;

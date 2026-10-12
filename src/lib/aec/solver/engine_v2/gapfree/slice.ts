@@ -136,8 +136,8 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
             // Cars drive in from the front: frontage per the brief's width (-1 m), >= 5.5 m deep.
             if (l.garage && (r.h * CELL < 5.5 || r.w * CELL < (l.node?.width ?? 3) - 1)) v.push({ rule: "GARAGE_SIZE", leaf: i, amount: 1 + Math.max(0, 5.5 - r.h * CELL) + Math.max(0, (l.node?.width ?? 3) - 1 - r.w * CELL) });
         }
-        // TERRACE_LIGHT (experiment): opening onto an open terrace counts as an outside wall
-        const lit = TERRACE_LIGHT && spec.leaves.some((m, j) => j !== i && m.type === "balcony" && !l.hall && l.type !== "balcony" && shared(r, rects[j]) >= DOOR);
+        // TERRACE_LIGHT: opening onto an open terrace upstairs counts as an outside wall (not a ground-floor porch, as I5)
+        const lit = TERRACE_LIGHT && spec.floor > 0 && spec.leaves.some((m, j) => j !== i && m.type === "balcony" && !l.hall && l.type !== "balcony" && shared(r, rects[j]) >= DOOR);
         if (l.needsExt && !lit && !onPerimeter(r, spec)) v.push({ rule: "EXTERNAL_WALL", leaf: i, amount: 1 + perimDist(r, spec) / 4 });
         if (l.front && spec.floor === 0 && r.y + r.h !== spec.D) v.push({ rule: "FRONT", leaf: i, amount: 1 + (spec.D - r.y - r.h) / 4 });
         if (!l.connector && !l.hall) {
