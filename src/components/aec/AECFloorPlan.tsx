@@ -774,8 +774,8 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     );
   };
 
-  // Safe total area — guard NaN per room
-  const totalArea = activeRooms.reduce((acc, r) => {
+  // Safe total area — guard NaN per room (outbuildings count on the ground floor)
+  const totalArea = [...activeRooms, ...outbuildings.flatMap(b => b.rooms)].reduce((acc, r) => {
     const area = r.width * r.depth;
     return acc + (isNaN(area) ? 0 : area);
   }, 0);

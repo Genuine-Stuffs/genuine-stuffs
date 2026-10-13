@@ -115,7 +115,8 @@ async function mountThreeViewer(
   gridHelper.position.y = -0.04;
   scene.add(gridHelper);
 
-  const { placed_rooms } = layout;
+  // the house and its outbuildings (BQ, generator house) behind it
+  const placed_rooms = [...layout.placed_rooms, ...(layout.outbuildings ?? []).flatMap(b => b.rooms)];
   const sourceRooms: any[] = layout.program_reference?.rooms ?? [];
   const FLOOR_H = 3.2;
   const WALL_T  = 0.12;

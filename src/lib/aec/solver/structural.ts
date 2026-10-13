@@ -41,6 +41,8 @@ export interface StructuralSkeleton {
     beams: Beam[];
     /** The building's grid (shared by every floor); null without a footprint. */
     grid: StructuralGrid | null;
+    /** Each outbuilding's own grid, at its place in the house's frame. */
+    outbuildings: Array<{ id: string; x: number; y: number; grid: StructuralGrid | null }>;
 }
 
 export class StructuralEngine {
@@ -57,7 +59,24 @@ export class StructuralEngine {
         const columns: Column[] = [];
         const beams: Beam[] = [];
         const grid = structuralGridOf(layout);
-        if (!grid) return { columns, beams, grid };
+        // Each outbuilding (BQ, generator house) is its own one-storey
+        // building on its own grid, framed alone and moved into place.
+        const obColumns: Column[] = [], obBeams: Beam[] = [];
+        const outbuildings = (layout.outbuildings ?? []).map(b => {
+            const own: SolvedLayout = {
+                ...layout, outbuildings: undefined, building_width: b.width, building_depth: b.depth,
+                placed_rooms: b.rooms.map(r => ({ ...r, x: r.x - b.x, y: r.y - b.y })),
+            };
+            const sk = this.generateSkeleton(own);
+            const at = (id: string) => `${b.id}_${id}`;
+            obColumns.push(...sk.columns.map(c => ({ ...c, id: at(c.id), x: c.x + b.x, y: c.y + b.y })));
+            obBeams.push(...sk.beams.map(e => ({
+                ...e, id: at(e.id), start_support_id: at(e.start_support_id), end_support_id: at(e.end_support_id),
+                start_x: e.start_x + b.x, start_y: e.start_y + b.y, end_x: e.end_x + b.x, end_y: e.end_y + b.y,
+            })));
+            return { id: b.id, x: b.x, y: b.y, grid: sk.grid };
+        });
+        if (!grid) return { columns: obColumns, beams: obBeams, grid, outbuildings };
 
         const structParams = complianceRules.structural_parameters;
         const colWidth = structParams.beam_design.beam_width_mm / 1000;
@@ -96,7 +115,8 @@ export class StructuralEngine {
         }
 
         console.log(`[Structural Engine] Grid x ${xs.join('/')} m, y ${ys.join('/')} m: ${columns.length} columns and ${beams.length} beams (${grid.secondary.length} secondary) across ${grid.floors} floor(s).`);
-        return { columns, beams, grid };
+        // the outbuildings' members after the house's, so house ids are unchanged
+        return { columns: [...columns, ...obColumns], beams: [...beams, ...obBeams], grid, outbuildings };
     }
 }
 

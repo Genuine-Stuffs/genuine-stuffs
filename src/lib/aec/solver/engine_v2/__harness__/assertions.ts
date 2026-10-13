@@ -405,7 +405,43 @@ export function runFallbackAssertions(
     const get = (id: string) => all.find(r => r.invariant.startsWith(id))!;
     // I3 in full (not hub-only): every declared pair the plan misses must be flagged.
     const i3 = assertI3_AdjacencySatisfied(layout, graph, false);
-    return [get("I1"), get("I2"), get("I4"), get("I6"), get("I7"), assertCompromisesFlagged(i3, get("I5"), layout, get("I9"))];
+    return [get("I1"), get("I2"), get("I4"), get("I6"), get("I7"), assertCompromisesFlagged(i3, get("I5"), layout, get("I9")), get("I11")];
+}
+
+/** I11: outbuildings (owner 2026-10-13) are whole separate buildings: each
+ * brief room stands once, in the house or one outbuilding; an outbuilding's
+ * rooms tile it, each with an outside wall; it stands 3 m behind the house
+ * (rear wall y = 0), within the house's width (the side setbacks), 3 m from
+ * the next, and on the plot. Passes trivially without outbuildings. */
+export function assertI11_Outbuildings(layout: SolvedLayout, graph: RoomGraph): AssertionResult {
+    const obs = layout.outbuildings ?? [];
+    if (!obs.length) return { invariant: "I11_OUTBUILDINGS", pass: true, detail: "no outbuildings" };
+    const bad: string[] = [], E = 1e-6, GAP = 3;
+    const W = layout.building_width ?? Infinity;
+    const ids = [...layout.placed_rooms.map(r => r.room_id), ...obs.flatMap(b => b.rooms.map(r => r.room_id))];
+    // (circulation rooms are the engine's own hall and stair, not placed by id)
+    for (const n of graph.nodes.values()) if (n.zone !== "circ" && ids.filter(x => x === n.id).length !== 1) bad.push(`${n.id} placed ${ids.filter(x => x === n.id).length}×`);
+    obs.forEach((b, k) => {
+        const area = b.rooms.reduce((a, r) => a + r.width * r.depth, 0);
+        if (Math.abs(area - b.width * b.depth) > 0.01) bad.push(`${b.id}: rooms ${area.toFixed(2)} m² ≠ ${(b.width * b.depth).toFixed(2)} m²`);
+        for (const r of b.rooms) {
+            if (r.x < b.x - E || r.y < b.y - E || r.x + r.width > b.x + b.width + E || r.y + r.depth > b.y + b.depth + E) bad.push(`${r.room_id} outside ${b.id}`);
+            const outside = r.x <= b.x + E || r.y <= b.y + E || r.x + r.width >= b.x + b.width - E || r.y + r.depth >= b.y + b.depth - E;
+            if (!outside) bad.push(`${r.room_id} has no outside wall`);
+        }
+        for (let i = 0; i < b.rooms.length; i++) for (let j = i + 1; j < b.rooms.length; j++) {
+            const p = b.rooms[i], q = b.rooms[j];
+            if (Math.min(p.x + p.width, q.x + q.width) - Math.max(p.x, q.x) > E && Math.min(p.y + p.depth, q.y + q.depth) - Math.max(p.y, q.y) > E) bad.push(`${p.room_id} overlaps ${q.room_id}`);
+        }
+        if (b.y + b.depth > -GAP + E) bad.push(`${b.id} ${(-(b.y + b.depth)).toFixed(2)} m from the house (need ${GAP})`);
+        if (b.x < -E || b.x + b.width > W + E) bad.push(`${b.id} outside the house's width`);
+        if (layout.site_offset && b.y + layout.site_offset.y < -E) bad.push(`${b.id} off the plot`);
+        for (const c of obs.slice(k + 1)) {
+            const gx = Math.max(c.x - (b.x + b.width), b.x - (c.x + c.width)), gy = Math.max(c.y - (b.y + b.depth), b.y - (c.y + c.depth));
+            if (Math.max(gx, gy) < GAP - E) bad.push(`${b.id} ${Math.max(gx, gy).toFixed(2)} m from ${c.id} (need ${GAP})`);
+        }
+    });
+    return { invariant: "I11_OUTBUILDINGS", pass: bad.length === 0, detail: bad.length ? bad.join("; ") : `${obs.length} outbuilding(s), whole and 3 m clear` };
 }
 
 // ── Aggregate runner ────────────────────────────────────────────────────────
@@ -434,5 +470,6 @@ export function runAllAssertions(
         assertI7_StairwellMirrored(layout),
         assertI8_Reachable(layout),
         assertI9_FrontEntrance(layout, graph, footprint),
+        assertI11_Outbuildings(layout, graph),
     ];
 }

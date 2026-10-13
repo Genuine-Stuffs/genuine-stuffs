@@ -21,8 +21,8 @@ export const LANDING_VIA_HALL = flag("LANDING_VIA_HALL", true);
 /** A balcony shares a wall with the room it serves: its links are hard and
  * never met through the hall or landing (template step (i), 2026-10-13). */
 export const BALCONY_SERVED = flag("BALCONY_SERVED", true);
-/** BQ and generator house as separate buildings behind the house (step (k), off until the page draws them). */
-export const OUTBUILDINGS = flag("OUTBUILDINGS", false);
+/** BQ and generator house as separate buildings behind the house (step (k), owner 2026-10-13). */
+export const OUTBUILDINGS = flag("OUTBUILDINGS", true);
 /** Opening onto an open-air terrace counts as an outside wall. */
 export const TERRACE_LIGHT = flag("TERRACE_LIGHT", true);
 /** One hub per floor (rebuild plan Phase 2), not every room with 3+ links. */
