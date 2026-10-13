@@ -7,11 +7,14 @@ import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, deriveSuites
 import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
 import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
-import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P } from "./config";
+import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P } from "./config";
 
 const CELL = 0.5;
 export { STAIR_IN_HALL, FOYER_VIA_HALL, TERRACE_LIGHT };
 export const ENTRANCE = new Set(["foyer", "entrance", "entry", "entrance_hall", "lobby", "reception"]);
+export const OPEN_AIR = new Set(["balcony", "terrace", "veranda", "verandah", "patio"]);
+/** A link to an open-air room is reached through the room it serves (BALCONY_SERVED). */
+export const servedLink = (ta: string, tb: string) => BALCONY_SERVED && (OPEN_AIR.has(ta) || OPEN_AIR.has(tb));
 const H = -1, V = -2; // H: stacked (horizontal cut), V: side by side (vertical cut)
 
 export interface Leaf {
@@ -159,7 +162,7 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
     for (const [a, b] of spec.pairs) {
         let s = shared(rects[a], rects[b]);
         // FOYER_VIA_HALL (experiment): a foyer link is met through the hall the foyer opens onto
-        if (FOYER_VIA_HALL && s < DOOR && hallI >= 0 && (isFoyer(a) || isFoyer(b))) {
+        if (FOYER_VIA_HALL && s < DOOR && hallI >= 0 && (isFoyer(a) || isFoyer(b)) && !servedLink(spec.leaves[a].type, spec.leaves[b].type)) {
             const f = isFoyer(a) ? a : b, o = f === a ? b : a;
             if (shared(rects[f], rects[hallI]) >= DOOR && shared(rects[o], rects[hallI]) >= DOOR) {
                 v.push({ rule: "ADJ_SOFT", leaf: a, other: b, amount: 1 }); // met through the hall: allowed, direct preferred
@@ -343,7 +346,7 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
     const soft = new Set<string>();
     // Circulation pairs are never hub edges in the engine (buildCirculation).
     const circ = (i: number) => !!(leaves[i].hall || leaves[i].stair);
-    for (const [a, b] of pairs) if (circ(a) || circ(b) || (!hubs.has(leaves[a].id) && !hubs.has(leaves[b].id))) soft.add(`${a}|${b}`);
+    for (const [a, b] of pairs) if (!servedLink(leaves[a].type, leaves[b].type) && (circ(a) || circ(b) || (!hubs.has(leaves[a].id) && !hubs.has(leaves[b].id)))) soft.add(`${a}|${b}`);
     return { leaves, pairs, soft };
 }
 

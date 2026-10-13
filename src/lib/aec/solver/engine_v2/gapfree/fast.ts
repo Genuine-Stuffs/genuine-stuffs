@@ -1,7 +1,7 @@
 // Fast scorer: the same weighted cost as cost() in slice.ts, without
 // allocating. Rules that depend only on a room's own size are memoised per
 // (leaf, w, h); positions are scored on preallocated typed arrays.
-import { FloorSpec, Rect, violations, WEIGHT, placeStair, hallPieces, unsupportedWall, ENTRANCE } from "./slice";
+import { FloorSpec, Rect, violations, WEIGHT, placeStair, hallPieces, unsupportedWall, ENTRANCE, servedLink } from "./slice";
 import { FOYER_VIA_HALL, TERRACE_LIGHT, LANDING_VIA_HALL } from "./config";
 
 const DOOR = 2, PASSAGE = 3;
@@ -33,7 +33,7 @@ export function makeCtx(spec: FloorSpec): Ctx {
         hall: spec.leaves.findIndex(l => l.hall),
         pa: Int32Array.from(pairs.map(p => p[0])), pb: Int32Array.from(pairs.map(p => p[1])),
         pw: Float64Array.from(pairs.map(([a, b]) => spec.soft?.has(`${a}|${b}`) ? WEIGHT.ADJ_SOFT : WEIGHT.ADJACENCY)),
-        pf: Int32Array.from(pairs.map(([a, b]) => ENTRANCE.has(spec.leaves[a].type) || (LANDING_VIA_HALL && spec.floor > 0) ? a : ENTRANCE.has(spec.leaves[b].type) ? b : -1)),
+        pf: Int32Array.from(pairs.map(([a, b]) => servedLink(spec.leaves[a].type, spec.leaves[b].type) ? -1 : ENTRANCE.has(spec.leaves[a].type) || (LANDING_VIA_HALL && spec.floor > 0) ? a : ENTRANCE.has(spec.leaves[b].type) ? b : -1)),
         intrinsic: new Float64Array(n * (spec.W + 1) * (spec.D + 1)).fill(NaN),
         nArea: new Float64Array(m), nL: new Int32Array(m), nR: new Int32Array(m), nOp: new Int32Array(m), nOff: new Int32Array(m), stk: new Int32Array(m),
         rx: new Int32Array(m), ry: new Int32Array(m), rw: new Int32Array(m), rh: new Int32Array(m), leafOf: new Int32Array(m),

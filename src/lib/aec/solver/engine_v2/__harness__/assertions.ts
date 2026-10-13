@@ -64,6 +64,7 @@ function byId(rooms: PlacedRoom[]): Map<string, PlacedRoom> {
 const ENTRANCE_TYPES = new Set(["foyer", "entrance", "entry", "entrance_hall", "lobby", "reception"]);
 const LANDING_VIA_HALL = !(typeof process !== "undefined" && process.env?.LANDING_VIA_HALL === "0");
 const OPEN_AIR_TYPES = new Set(["balcony", "terrace", "veranda", "verandah", "patio"]);
+const BALCONY_SERVED = !(typeof process !== "undefined" && process.env?.BALCONY_SERVED === "0");
 
 /** Circulation rooms on one floor grouped into connected halls (pieces that
  * share >= 1 m of wall are one hall). Synthetic corridor_* / stairwell* rooms
@@ -178,12 +179,14 @@ export function assertI3_AdjacencySatisfied(
             const b = placed.get(neighborId);
             // Skip cross-floor edges (e.g. stairwells) — checked by I7
             if (!b || a.floor !== b.floor) continue;
-            if (hubEdgesOnly && !hubIds.has(node.id) && !hubIds.has(neighborId)) continue;
+            // BALCONY_SERVED: a balcony link is never relaxed, nor met through a hall.
+            const served = BALCONY_SERVED && (OPEN_AIR_TYPES.has(node.type) || OPEN_AIR_TYPES.has(graph.nodes.get(neighborId)?.type ?? ""));
+            if (hubEdgesOnly && !served && !hubIds.has(node.id) && !hubIds.has(neighborId)) continue;
             const shared = sharedWallLength(a, b);
             if (shared >= WALL_TOL_M) continue;
             // FOYER_VIA_HALL: a foyer link is met when both rooms open onto the same hall;
             // LANDING_VIA_HALL: upstairs, any link is.
-            if (ENTRANCE_TYPES.has(node.type) || ENTRANCE_TYPES.has(graph.nodes.get(neighborId)?.type ?? "") || (LANDING_VIA_HALL && a.floor > 0)) {
+            if (!served && (ENTRANCE_TYPES.has(node.type) || ENTRANCE_TYPES.has(graph.nodes.get(neighborId)?.type ?? "") || (LANDING_VIA_HALL && a.floor > 0))) {
                 const floorRooms = layout.placed_rooms.filter(r => r.floor === a.floor);
                 const halls = hallsOnFloor(floorRooms, graph);
                 const hallsTouching = (r: PlacedRoom) => new Set(floorRooms

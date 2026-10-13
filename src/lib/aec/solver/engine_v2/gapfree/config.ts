@@ -18,6 +18,9 @@ export const FOYER_VIA_HALL = flag("FOYER_VIA_HALL", true);
 /** Upstairs, a link is met when both rooms open onto the landing (soft,
  * direct preferred), as a foyer link is downstairs (owner, 2026-10-12). */
 export const LANDING_VIA_HALL = flag("LANDING_VIA_HALL", true);
+/** A balcony shares a wall with the room it serves: its links are hard and
+ * never met through the hall or landing (template step (i), 2026-10-13). */
+export const BALCONY_SERVED = flag("BALCONY_SERVED", true);
 /** Opening onto an open-air terrace counts as an outside wall. */
 export const TERRACE_LIGHT = flag("TERRACE_LIGHT", true);
 /** One hub per floor (rebuild plan Phase 2), not every room with 3+ links. */

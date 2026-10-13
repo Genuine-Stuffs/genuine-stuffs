@@ -25,7 +25,7 @@ import type { PlotEnvelope, SolverOptions } from "../../types";
 import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
-import { anneal, layout, violations, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, FloorSpec, Rect, Leaf } from "./slice";
+import { anneal, layout, violations, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
 import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP } from "./config";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
@@ -318,7 +318,7 @@ function unflaggedMisses(p: Prepared, placed: PlacedRoom[], best: Fp, issues: Va
             seen.add(key);
             const b = byId.get(m);
             if (!b || a.floor !== b.floor || sharedM(a, b) >= 1.0) continue;
-            if ((FOYER_VIA_HALL && (ENTRANCE.has(n.type) || ENTRANCE.has(p.graph.nodes.get(m)?.type ?? ""))) || (LANDING_VIA_HALL && a.floor > 0)) {
+            if (((FOYER_VIA_HALL && (ENTRANCE.has(n.type) || ENTRANCE.has(p.graph.nodes.get(m)?.type ?? ""))) || (LANDING_VIA_HALL && a.floor > 0)) && !servedLink(n.type, p.graph.nodes.get(m)?.type ?? "")) {
                 const halls = placed.filter(h => h.floor === a.floor && isHall(h));
                 if (halls.some(h => sharedM(a, h) >= 1.0) && halls.some(h => sharedM(b, h) >= 1.0)) continue;
             }
