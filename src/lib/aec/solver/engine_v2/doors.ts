@@ -104,7 +104,15 @@ function sharedWall(
 
 // ── Wall priority scoring ──────────────────────────────────────────────────
 
-function wallScore(neighbourType: string, currentType: string): number {
+const isOpenAir  = (type: string) => ['balcony', 'terrace', 'veranda', 'verandah', 'patio'].includes(type);
+
+function wallScore(neighbourType: string, currentType: string, currentId = ''): number {
+    // A declared balcony opens from the room it serves (template step (i));
+    // the hall-surplus terrace (terrace_f*) stays on the hall.
+    if (isOpenAir(currentType) && !currentId.startsWith('terrace_f')) {
+        if (isBedroom(neighbourType)) return 120;
+        if (['living_room', 'family_room', 'dining_room'].includes(neighbourType)) return 110;
+    }
     if (isCorridor(neighbourType) || isStair(neighbourType)) return 100;
     if (neighbourType === 'foyer')                            return 80;
     if (['living_room', 'dining_room', 'family_room'].includes(neighbourType)) return 60;
@@ -165,7 +173,7 @@ export function computePlacement(
                 if (neighbour.room_id === id) continue;
                 const wall = sharedWall(room, neighbour);
                 if (!wall) continue;
-                const score = wallScore(neighbour.type, type);
+                const score = wallScore(neighbour.type, type, id);
                 wallScores[wall] = Math.max(wallScores[wall] ?? 0, score);
             }
 
