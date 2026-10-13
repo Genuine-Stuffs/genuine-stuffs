@@ -810,16 +810,18 @@ const AIStudio = () => {
     // same brief share both, and switching between them must re-render.
     // The user picks the setback law: re-plan the same brief under it
     // (no new AI call), replacing the plan and its setback study.
-    const replanSetbacks = async (choice: SetbackChoice) => {
+    const replanSetbacks = async (picked: SetbackChoice) => {
         const study: SetbackStudy | undefined = designPackage?.setback;
         if (!designPackage?.rooms || !study || replanning) return;
+        // a change of law keeps the user's outbuilding choice
+        const choice = { ...picked, outbuildingsInRear: picked.outbuildingsInRear ?? study.plan.choice.outbuildingsInRear };
         const setback = setbackStudy(choice, study.plot, {}, designPackage, study.storeys);
         setReplanning(true);
         try {
             const envelope = { width: study.plot.width, depth: study.plot.depth, setbacks: setback.plan.setbacks };
             const solved = await solveLayoutInWorker(
                 designPackage, envelope,
-                { floors_override: study.storeys, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting() });
+                { floors_override: study.storeys, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting(), outbuildings_in_rear_setback: !!choice.outbuildingsInRear });
             setDesignPackage((prev: any) => prev ? { ...prev, setback, solvedLayout: solved, solvedLayoutOptions: undefined } : prev);
             toast.success(`Re-planned under ${setback.plan.label}`);
         } catch (err) {
@@ -1467,6 +1469,19 @@ const AIStudio = () => {
                                                                             <p key={i} className="px-3 text-[10px] text-amber-200/80">• {o}</p>
                                                                         ))}
                                                                     </div>
+                                                                )}
+                                                                {/* Outbuildings that don't fit inside the setbacks: the user may allow the rear setback */}
+                                                                {!setback.plan.choice.outbuildingsInRear && placementIssues.some(i => i.rule === 'OUTBUILDING_NO_FIT') && (
+                                                                    <Button size="sm" variant="outline" disabled={replanning}
+                                                                        onClick={() => replanSetbacks({ ...setback.plan.choice, outbuildingsInRear: true })}
+                                                                        className="bg-transparent rounded-xl text-[9px] font-black uppercase tracking-widest h-auto py-2 px-3 whitespace-normal text-left text-amber-200 border-amber-700 hover:bg-amber-900/40 self-start">
+                                                                        Re-plan: allow the BQ / generator house in the rear setback
+                                                                    </Button>
+                                                                )}
+                                                                {(stableLayout?.outbuildings ?? []).some((b: any) => b.in_rear_setback) && (
+                                                                    <p className="px-3 py-2 rounded-lg text-[10px] bg-amber-900/40 text-amber-200">
+                                                                        At your choice, {(stableLayout?.outbuildings ?? []).filter((b: any) => b.in_rear_setback).map((b: any) => b.label).join(' and ')} stand{(stableLayout?.outbuildings ?? []).filter((b: any) => b.in_rear_setback).length > 1 ? '' : 's'} in the rear setback, 3 m behind the house. Confirm with your planning authority.
+                                                                    </p>
                                                                 )}
                                                                 {setback.options.length > 0 && (
                                                                     <div className="flex flex-wrap gap-2">

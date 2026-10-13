@@ -32,6 +32,9 @@ export interface SetbackChoice {
     use: BuildingUse;
     density: Density;   // NBC only
     corner: boolean;
+    /** The user allows the BQ and generator house in the rear setback when
+     * they don't fit inside the setbacks (owner, 2026-10-13). */
+    outbuildingsInRear?: boolean;
 }
 
 /** What the user's own words fix. */
@@ -117,7 +120,7 @@ export function lawSetbacks(c: SetbackChoice, plot: Plot): Setbacks {
 export function choiceLabel(c: SetbackChoice): string {
     const law = c.law === 'lagos_2019' ? 'Lagos Planning Permit Regulations 2019' : 'National Building Code 2006';
     const band = c.law === 'nbc_2006' && c.use === 'residential' ? `, ${c.density} density` : c.use !== 'residential' ? `, ${c.use}` : '';
-    return `${law}${band}${c.corner ? ', corner plot' : ''}`;
+    return `${law}${band}${c.corner ? ', corner plot' : ''}${c.outbuildingsInRear ? ', outbuildings in the rear setback' : ''}`;
 }
 
 const fmt = (s: Setbacks) => `front ${s.front} m, rear ${s.rear} m, sides ${s.left} m / ${s.right} m`;

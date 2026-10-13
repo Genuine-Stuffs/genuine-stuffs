@@ -26,7 +26,8 @@ import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
-import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP } from "./config";
+import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS } from "./config";
+import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP } from "./outbuildings";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
 
@@ -209,13 +210,38 @@ export function* spineDriver(p: Prepared): Generator<RestartBatch, SolvedLayout 
     return best ? toLayout(p, best) : null;
 }
 
-/** The whole plan: bay-and-spine first (multi-storey), else the gap-free search. */
-export function* planDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
+/** The house: bay-and-spine first (multi-storey), else the gap-free search. */
+function* houseDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
     if (SPINE_FIRST) {
         const L = yield* spineDriver(prepare(program, envelope, options));
         if (L) return L;
     }
     return yield* gapfreeDriver(program, envelope, options);
+}
+
+/** The whole plan. Outbuildings (OUTBUILDINGS) take a strip behind the
+ * house, 3 m from it: the house is planned on the envelope less that strip
+ * (the rear setback counts when the user allows it). When they don't fit,
+ * the house keeps them inside, as before, and the plan says why. */
+export function* planDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
+    const ob = OUTBUILDINGS ? splitOutbuildings(program) : null;
+    if (!ob?.units.length) return yield* houseDriver(program, envelope, options);
+    const be = prepare(program, envelope, options).be, s = envelope.setbacks;
+    const rear = options?.outbuildings_in_rear_setback ? s.rear : 0;
+    const d = outbuildingDepth(ob.units, be.width);
+    const houseDepth = d === null ? 0 : envelope.depth - OB_GAP - d + rear;
+    if (d !== null && houseDepth - s.front - s.rear > 0) {
+        const L = yield* houseDriver(ob.house, { ...envelope, depth: houseDepth }, options);
+        const placed = L.solver_status !== "UNSAT" && placeOutbuildings(ob.units, d, L.building_width ?? 0, L.placed_rooms, du => (L.building_depth ?? 0) + OB_GAP + du > be.height + 1e-9);
+        // the house front on the front setback line, centred across the buildable width
+        const site_offset = { x: s.left + (be.width - (L.building_width ?? 0)) / 2, y: envelope.depth - s.front - (L.building_depth ?? 0) };
+        if (placed) return { ...L, program_reference: program, plot_depth: envelope.depth, outbuildings: placed, site_offset };
+    }
+    const L = yield* houseDriver(program, envelope, options);
+    const names = ob.units.map(u => u.label).join(" and ");
+    const why = rear ? "even with the rear setback allowed" : "inside the setbacks";
+    const detail = `${names} can't stand as separate buildings 3 m behind the house ${why}, so they are inside the house. Options: ${rear ? "" : "allow them in the rear setback, "}a deeper plot, or a smaller ground floor.`;
+    return L.solver_status === "UNSAT" ? L : { ...L, placement_issues: [...(L.placement_issues ?? []), { room_id: ob.units[0].id, rule: "OUTBUILDING_NO_FIT", detail }] };
 }
 
 /** Run the search with restarts one after the other. */

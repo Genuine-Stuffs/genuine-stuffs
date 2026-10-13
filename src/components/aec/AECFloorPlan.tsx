@@ -83,6 +83,10 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
 
   // Filter rooms by active floor
   const activeRooms = placed_rooms.filter(r => r.floor === activeFloor);
+  // Outbuildings (BQ, generator house) stand behind the house on the ground
+  // floor; their rooms have y < 0 in the house's frame.
+  const outbuildings = activeFloor === 0 ? (layout.outbuildings ?? []) : [];
+  const obTop = Math.max(0, ...outbuildings.map(b => -b.y));
 
   // ── BUILDING BOUNDING BOX ─────────────────────────────────────────────────
   // Scale the SVG to the building footprint, not the full plot boundary.
@@ -95,11 +99,11 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
 
   const padding = 2;
   const viewWidth  = buildingW + padding * 2;
-  const viewHeight = buildingH + padding * 2;
+  const viewHeight = buildingH + obTop + padding * 2;
   const scale = Math.min(620 / viewWidth, 420 / viewHeight);
 
   const xOffset = (720 - (buildingW * scale)) / 2;
-  const yOffset = (480 - (buildingH * scale)) / 2;
+  const yOffset = (480 - ((buildingH + obTop) * scale)) / 2 + obTop * scale;
 
   // Generate structural skeleton
   const skeleton = useMemo(() => structuralEngine.generateSkeleton(layout), [layout]);
@@ -400,9 +404,9 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     .map(r => ({ x: r.x, y: r.y, width: r.width, depth: r.depth, kind: wallKindOf(r) })));
   const WALL_PX = { ext: WALL_THICKNESS.ext * scale, int: WALL_THICKNESS.int * scale };
 
-  const renderWalls = () => (
+  const renderWalls = (segments = wallSegments) => (
     <g opacity={showStructure ? 0.4 : 1}>
-      {wallSegments.map((w, i) => {
+      {segments.map((w, i) => {
         const t = WALL_THICKNESS[w.kind] * scale;
         // Run each band half a thickness past its ends so corners close.
         const ext = w.kind === 'rail' ? 0 : WALL_THICKNESS[w.kind] / 2;
@@ -891,8 +895,8 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
 
             {/* Plot boundary — faint context outline; scale to plot ratio vs building */}
             <rect
-              x={xOffset - ((plot_width  - buildingW) / 2) * scale}
-              y={yOffset - ((plot_depth - buildingH) / 2) * scale}
+              x={xOffset - (layout.site_offset ? layout.site_offset.x : (plot_width  - buildingW) / 2) * scale}
+              y={yOffset - (layout.site_offset ? layout.site_offset.y : (plot_depth - buildingH) / 2) * scale}
               width={plot_width  * scale}
               height={plot_depth * scale}
               fill="none"
@@ -1026,6 +1030,52 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
             {activeRooms.map((room, idx) => renderRoom(room, idx, 'base'))}
             {renderWalls()}
             {activeRooms.map((room, idx) => renderRoom(room, idx, 'over'))}
+
+            {/* Outbuildings: each its own walls, rooms, door towards the house and the 3 m gap */}
+            {outbuildings.map(b => {
+              const segs = computeWalls(b.rooms.map(r => ({ x: r.x, y: r.y, width: r.width, depth: r.depth, kind: 'room' as WallRoomKind })));
+              const head = b.rooms[0];
+              const door = Math.min(0.9, head.width - 0.4) * scale;
+              const dx = xOffset + (head.x + head.width / 2) * scale - door / 2, dy = yOffset + (head.y + head.depth) * scale;
+              const gx = xOffset + (b.x + b.width / 2) * scale;
+              return (
+                <g key={b.id}>
+                  {b.rooms.map(r => (
+                    <rect key={r.room_id} x={xOffset + r.x * scale} y={yOffset + r.y * scale}
+                      width={r.width * scale} height={r.depth * scale} fill="#f8fafc" />
+                  ))}
+                  {renderWalls(segs)}
+                  {/* door opening on the wall facing the house */}
+                  <rect x={dx} y={dy - WALL_PX.ext / 2 - 0.5} width={door} height={WALL_PX.ext + 1} fill="#ffffff" />
+                  <path d={`M ${dx} ${dy} L ${dx} ${dy - door} A ${door} ${door} 0 0 1 ${dx + door} ${dy}`}
+                    fill="none" stroke="#1e293b" strokeWidth={0.8} />
+                  {b.rooms.map(r => {
+                    // short name (brackets dropped), shrunk to the room's width
+                    const name = resolveRoomName(r.room_id).replace(/\s*\(.*\)\s*/g, ' ').trim();
+                    const fs = Math.max(4, Math.min(7, (r.width * scale - 4) / (name.length * 0.6)));
+                    return (
+                    <g key={`${r.room_id}-label`}>
+                      <text x={xOffset + (r.x + r.width / 2) * scale} y={yOffset + (r.y + r.depth / 2) * scale - 3}
+                        textAnchor="middle" style={{ fontSize: `${fs}px`, fontWeight: 800, fill: '#1e293b' }}>
+                        {name}
+                      </text>
+                      <text x={xOffset + (r.x + r.width / 2) * scale} y={yOffset + (r.y + r.depth / 2) * scale + 7}
+                        textAnchor="middle" style={{ fontSize: '6px', fontWeight: 600, fill: '#64748b' }}>
+                        {r.width.toFixed(1)}M × {r.depth.toFixed(1)}M
+                      </text>
+                    </g>
+                    );
+                  })}
+                  {/* gap to the house */}
+                  <line x1={gx} y1={yOffset + (b.y + b.depth) * scale} x2={gx} y2={yOffset}
+                    stroke="#64748b" strokeWidth={0.6} strokeDasharray="2 2" />
+                  <text x={gx + 3} y={yOffset + (b.y + b.depth) * scale + 9}
+                    style={{ fontSize: '6px', fontWeight: 700, fill: '#64748b' }}>
+                    {(-(b.y + b.depth)).toFixed(1)}M
+                  </text>
+                </g>
+              );
+            })}
 
             {/* Structure overlay */}
             {renderStructure()}

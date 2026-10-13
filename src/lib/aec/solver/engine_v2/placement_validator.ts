@@ -50,7 +50,7 @@ export interface ValidationIssue {
  * with no window. Shared with the UI's WARN/REVIEW split. ADJACENCY_MISSED
  * and AREA_ADJUSTED come only from fallback plans. */
 export const ADVISORY_RULES: ReadonlySet<ValidationIssue['rule']> =
-    new Set(['BATH_VENTILATION', 'ADJACENCY_MISSED', 'AREA_ADJUSTED']);
+    new Set(['BATH_VENTILATION', 'ADJACENCY_MISSED', 'AREA_ADJUSTED', 'OUTBUILDING_NO_FIT']);
 
 function sharesWall(a: PlacedRoom, b: PlacedRoom): boolean {
     const aR = a.x + a.width, aB = a.y + a.depth;

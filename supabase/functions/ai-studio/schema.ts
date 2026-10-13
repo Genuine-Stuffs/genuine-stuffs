@@ -50,6 +50,14 @@ export interface PlacedRoom {
     depth: number; // Depth (Y-axis length) in meters
 }
 
+export interface Outbuilding {
+    id: string;
+    label: string;
+    x: number; y: number; width: number; depth: number; // house frame, metres
+    in_rear_setback: boolean; // the user allowed it into the rear setback
+    rooms: PlacedRoom[];      // ground floor, same frame
+}
+
 export interface ValidationIssue {
     room_id: string;
     rule: string;
@@ -79,6 +87,13 @@ export interface SolvedLayout {
     building_width?: number;
     building_depth?: number;
     placed_rooms: PlacedRoom[];
+    // Separate buildings behind the house (BQ, generator house), in the
+    // house's frame: its rear wall is y = 0, so these have y < 0. Optional;
+    // readers that ignore it see the house alone.
+    outbuildings?: Outbuilding[];
+    // Where the house frame's origin (its rear-left corner) sits on the plot,
+    // measured from the plot's rear-left corner. Set with outbuildings.
+    site_offset?: { x: number; y: number };
     solver_iterations_used: number;
     is_fully_connected: boolean;
     solver_status?: 'SOLVED' | 'SOLVED_RELAXED' | 'TIMEOUT' | 'UNSAT';

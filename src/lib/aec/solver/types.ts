@@ -24,6 +24,9 @@ export interface SolverOptions {
      * rectangle (engine_v2/gapfree, off until it passes the switch-on gate);
      * 'free' (default) is the current solver. */
     layoutMode?: 'grid' | 'free' | 'gapfree';
+    /** The user allows outbuildings (BQ, generator house) in the rear
+     * setback when they don't fit inside the setbacks (owner, 2026-10-13). */
+    outbuildings_in_rear_setback?: boolean;
 }
 
 export interface InternalRoomNode {
