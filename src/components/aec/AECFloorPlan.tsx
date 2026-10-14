@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { SolvedLayout } from 'supabase/functions/ai-studio/schema';
-import { computePlacement, DoorSpec, WindowSpec, WallSide } from '@/lib/aec/solver/engine_v2/doors';
 import { structuralEngine } from '@/lib/aec/solver/structural';
 import { computeWalls, WALL_THICKNESS, WallRoomKind } from './walls';
+import { planOpenings, openingSchedule, roomTypeOf, externalEdges, DOOR_ROOM, type OpeningType } from './openings';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Ruler, ShieldAlert, Layers } from 'lucide-react';
@@ -80,11 +80,13 @@ interface FloorDrawingProps {
   showPlot: boolean;
   /** The floor's name under its drawing, as on the template's sheet. */
   captionY?: number;
+  /** D1…/W1… for an opening type, the same on every floor (openings.ts). */
+  tagOf: (t: OpeningType) => string;
 }
 
 const FloorDrawing: React.FC<FloorDrawingProps> = ({
   layout, floor: activeFloor, scale, xOffset, yOffset, showStructure, skeleton,
-  plot_width, plot_depth, showPlot, captionY,
+  plot_width, plot_depth, showPlot, captionY, tagOf,
 }) => {
   const { placed_rooms } = layout;
   const activeRooms = placed_rooms.filter(r => r.floor === activeFloor);
@@ -113,134 +115,21 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
     return match?.name ?? room_id.replace(/_/g, ' ').toUpperCase();
   };
 
-  // Synthetic solver-placed rooms (corridor bands, stairwell) aren't Hive
-  // rooms — matched by exact id since these are solver-generated constants,
-  // not label guesses. Everything else defers to the Hive's own `type`.
-  const resolveRoomType = (room_id: string): string => {
-    if (room_id === 'stairwell' || room_id === 'stairwell_void') return 'stairwell';
-    if (room_id.startsWith('corridor_floor')) return 'circulation';
-    if (room_id.startsWith('terrace_f')) return 'balcony';
-    const match = sourceRooms.find(r => r.room_id === room_id || r.id === room_id);
-    return match?.type ?? 'unknown';
-  };
+  // Synthetic solver-placed rooms (corridor bands, stairwell) by id; the
+  // rest by the Hive's own `type` (openings.ts).
+  const resolveRoomType = (room_id: string): string => roomTypeOf(layout, room_id);
 
-  // ── Neighbour wall detection ──────────────────────────────────────────────
-  // For a given room, finds which of its four walls is shared with a corridor,
-  // circulation space, or another room — and returns that wall as the door wall.
-  // Priority: corridor > stairwell > any adjacent room > fallback to non-external.
-  const TOLERANCE_PX = 0.3; // metres — shared wall detection threshold
+  // ── Doors and windows: decided once for the floor (openings.ts) ──────
+  const openings = planOpenings(layout, activeFloor);
+  const getExternalEdges = (room: any) => externalEdges(room, buildingW, buildingH);
 
-  const getDoorWall = (room: any): 'top' | 'bottom' | 'left' | 'right' => {
-    const roomRight  = room.x + room.width;
-    const roomBottom = room.y + room.depth;
-
-    // Score each wall by what's on the other side
-    // Higher score = better door position
-    const scores = { top: 0, bottom: 0, left: 0, right: 0 };
-
-    for (const neighbour of activeRooms) {
-      if (neighbour.room_id === room.room_id) continue;
-      const nRight  = neighbour.x + neighbour.width;
-      const nBottom = neighbour.y + neighbour.depth;
-
-      const nType = resolveRoomType(neighbour.room_id);
-      const currentType = resolveRoomType(room.room_id);
-
-      const isCorridor = ['circulation', 'hall', 'landing', 'stairwell'].includes(nType);
-
-      const isLivingNeighbour =
-        ['living_room', 'dining_room', 'family_room'].includes(nType);
-
-      const isServiceNeighbour =
-        ['bathroom', 'wardrobe', 'dressing', 'store', 'garage'].includes(nType);
-
-      // Bathrooms open into their parent bedroom (score 9), not toward corridor
-      const isBedroomNeighbour = ['bedroom', 'master_bedroom'].includes(nType);
-      const currentRoomIsBath  = currentType === 'bathroom';
-
-      const score = isCorridor ? 10
-        : (currentRoomIsBath && isBedroomNeighbour) ? 9
-        : isLivingNeighbour ? 8
-        : isServiceNeighbour ? 0
-        : 1;
-
-      // Check if neighbour shares the bottom wall
-      if (Math.abs(roomBottom - neighbour.y) < TOLERANCE_PX &&
-          room.x < nRight - TOLERANCE_PX && roomRight > neighbour.x + TOLERANCE_PX) {
-        scores.bottom += score;
-      }
-      // Check if neighbour shares the top wall
-      if (Math.abs(room.y - nBottom) < TOLERANCE_PX &&
-          room.x < nRight - TOLERANCE_PX && roomRight > neighbour.x + TOLERANCE_PX) {
-        scores.top += score;
-      }
-      // Check if neighbour shares the right wall
-      if (Math.abs(roomRight - neighbour.x) < TOLERANCE_PX &&
-          room.y < nBottom - TOLERANCE_PX && roomBottom > neighbour.y + TOLERANCE_PX) {
-        scores.right += score;
-      }
-      // Check if neighbour shares the left wall
-      if (Math.abs(room.x - nRight) < TOLERANCE_PX &&
-          room.y < nBottom - TOLERANCE_PX && roomBottom > neighbour.y + TOLERANCE_PX) {
-        scores.left += score;
-      }
-    }
-
-    // Pick the wall with the highest score that is also not external
-    const edges = getExternalEdges(room);
-    const candidates: Array<'top' | 'bottom' | 'left' | 'right'> = ['bottom', 'right', 'top', 'left'];
-    const ranked = candidates
-      .filter(w => !edges[w]) // exclude external walls
-      .sort((a, b) => scores[b] - scores[a]);
-
-    // Return best non-external wall with highest neighbour score
-    if (ranked.length > 0) return ranked[0];
-
-    // Absolute fallback: first non-external wall regardless of score
-    if (!edges.bottom) return 'bottom';
-    if (!edges.right)  return 'right';
-    if (!edges.top)    return 'top';
-    if (!edges.left)   return 'left';
-    return 'bottom'; // all walls external (tiny room) — place anyway
-  };
-
-  // ── Solver-derived door + window placement ────────────────────────────
-  // computePlacement() runs once per floor change (memoised).
-  // When USE_SOLVER_V2 is true, door walls come from the solver graph.
-  // When false, getDoorWall() above is used (existing behaviour).
-  const solverPlacement = useMemo(() => {
-    if (activeRooms.length === 0) return null;
-    const rects = activeRooms.map(r => ({
-      room_id: r.room_id,
-      type: resolveRoomType(r.room_id),
-      x: r.x, y: r.y, width: r.width, depth: r.depth,
-    }));
-    return computePlacement(rects, buildingW, buildingH);
-  }, [activeRooms, buildingW, buildingH, sourceRooms]);
-
-  const getSolverDoorWall = (room_id: string): WallSide | null => {
-    const spec = solverPlacement?.doors.find(d => d.room_id === room_id);
-    return spec?.wall ?? null;
-  };
-
-  const isSolverInteriorDoor = (room_id: string): boolean => {
-    return solverPlacement?.doors.find(d => d.room_id === room_id)?.interior ?? false;
-  };
-
-  // ── External edge detection ───────────────────────────────────────────────
-  // Returns which specific edges of a room touch the building boundary.
-  // Used to render perimeter wall bands and place window symbols.
-  const EDGE_TOLERANCE = 0.5; // metres
-  const getExternalEdges = (room: any) => ({
-    left:   room.x <= EDGE_TOLERANCE,
-    top:    room.y <= EDGE_TOLERANCE,
-    right:  (room.x + room.width) >= (buildingW - EDGE_TOLERANCE),
-    bottom: (room.y + room.depth) >= (buildingH - EDGE_TOLERANCE),
-  });
-  const isExternalWall = (room: any) => {
-    const e = getExternalEdges(room);
-    return e.left || e.top || e.right || e.bottom;
-  };
+  // A tag as on the template: the type's name in a small circle.
+  const renderTag = (tag: string, x: number, y: number) => tag ? (
+    <g data-tag={tag} style={{ pointerEvents: 'none' }}>
+      <circle cx={x} cy={y} r={7} fill="white" stroke="#1e293b" strokeWidth={0.6} />
+      <text x={x} y={y + 2.2} textAnchor="middle" style={{ fontSize: '6px', fontWeight: 700, fill: '#1e293b' }}>{tag}</text>
+    </g>
+  ) : null;
 
   const renderFurniture = (room: any, rx: number, ry: number, rw: number, rh: number) => {
     // Keyed on the room's TYPE, not its id: Hive ids are opaque (r01, r11…),
@@ -535,12 +424,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                              room.room_id.startsWith('corridor_floor');
 
     const edges = getExternalEdges(room);
-    // Window symbol constants
-    const WIN_INSET = 8;   // px inset from room corner
-    const WIN_LEN   = Math.min(rw * 0.45, 40); // window length along wall
     const WIN_DEPTH = WALL_PX.ext; // window sits in the external wall
-    // Door arc radius in px
-    const DOOR_R = Math.min(rw * 0.18, 16);
 
     if (layer === 'base') return (
       <g key={`room-${idx}`} filter="url(#blueprint-shadow)">
@@ -579,59 +463,55 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
 
     return (
       <g key={`over-${idx}`}>
-        {/* ── Window symbols on external walls ── */}
-        {!isCorridorOrVoid && wallKindOf(room) === 'room' && !showStructure && rw > 40 && rh > 30 && (() => {
-          const wins: React.ReactNode[] = [];
+        {/* ── Windows at their real width, centred on each external wall,
+            tagged outside it ── */}
+        {!showStructure && openings.windows.filter(wd => wd.room_id === room.room_id).map(wd => {
           const wc = '#0EA5E9'; // window colour
-          // A gap in the external wall with two glazing lines, centred on the
-          // wall line like the template's W tags.
-          const win = (k: string, horizontal: boolean, x: number, y: number) => {
-            const w = horizontal ? WIN_LEN : WIN_DEPTH, h = horizontal ? WIN_DEPTH : WIN_LEN;
-            const g = WIN_DEPTH / 3;
-            return (
-              <g key={k}>
-                <rect x={x} y={y} width={w} height={h} fill="white" stroke={wc} strokeWidth={0.8} />
-                {horizontal
-                  ? [g, 2 * g].map(o => <line key={o} x1={x} y1={y + o} x2={x + w} y2={y + o} stroke={wc} strokeWidth={0.6} />)
-                  : [g, 2 * g].map(o => <line key={o} x1={x + o} y1={y} x2={x + o} y2={y + h} stroke={wc} strokeWidth={0.6} />)}
-              </g>
-            );
-          };
-          const half = WIN_DEPTH / 2;
-          if (edges.top && rw > WIN_INSET * 2 + WIN_LEN)
-            wins.push(win('win-top', true, rx + (rw - WIN_LEN) / 2, ry - half));
-          if (edges.bottom && rw > WIN_INSET * 2 + WIN_LEN)
-            wins.push(win('win-bot', true, rx + (rw - WIN_LEN) / 2, ry + rh - half));
-          if (edges.left && rh > WIN_INSET * 2 + WIN_LEN)
-            wins.push(win('win-left', false, rx - half, ry + (rh - WIN_LEN) / 2));
-          if (edges.right && rh > WIN_INSET * 2 + WIN_LEN)
-            wins.push(win('win-right', false, rx + rw - half, ry + (rh - WIN_LEN) / 2));
-          return wins.length > 0 ? <g opacity={0.9}>{wins}</g> : null;
-        })()}
+          const L = wd.type.w * scale, half = WIN_DEPTH / 2, g = WIN_DEPTH / 3;
+          const horizontal = wd.wall === 'top' || wd.wall === 'bottom';
+          // A gap in the external wall with two glazing lines.
+          const x = horizontal ? rx + (rw - L) / 2 : (wd.wall === 'left' ? rx : rx + rw) - half;
+          const y = horizontal ? (wd.wall === 'top' ? ry : ry + rh) - half : ry + (rh - L) / 2;
+          const w = horizontal ? L : WIN_DEPTH, h = horizontal ? WIN_DEPTH : L;
+          const out = 16;
+          const [tx, ty] = wd.wall === 'top' ? [rx + rw / 2, ry - out] : wd.wall === 'bottom' ? [rx + rw / 2, ry + rh + out]
+            : wd.wall === 'left' ? [rx - out, ry + rh / 2] : [rx + rw + out, ry + rh / 2];
+          return (
+            <g key={`win-${wd.wall}`} opacity={0.9}>
+              <rect x={x} y={y} width={w} height={h} fill="white" stroke={wc} strokeWidth={0.8} />
+              {horizontal
+                ? [g, 2 * g].map(o => <line key={o} x1={x} y1={y + o} x2={x + w} y2={y + o} stroke={wc} strokeWidth={0.6} />)
+                : [g, 2 * g].map(o => <line key={o} x1={x + o} y1={y} x2={x + o} y2={y + h} stroke={wc} strokeWidth={0.6} />)}
+              {renderTag(tagOf(wd.type), tx, ty)}
+            </g>
+          );
+        })}
 
         {/* ── Stair: treads and arrow instead of a door and a name ── */}
         {isStair(room) && !showStructure && renderStair(room, rx, ry, rw, rh)}
 
-        {/* ── Door symbol — placed on wall facing corridor/circulation ── */}
-        {!isCorridorOrVoid && !isStair(room) && rw > 30 && rh > 24 && (() => {
-          // Prefer solver-derived door wall; fall back to heuristic
-          const doorWall = getSolverDoorWall(room.room_id) ?? getDoorWall(room);
-          const isInteriorDoor = isSolverInteriorDoor(room.room_id);
-          const dR = DOOR_R;
+        {/* ── Door at its real width, a quarter along its wall, tagged
+            beside its swing inside the room ── */}
+        {(() => {
+          const door = openings.doors.get(room.room_id);
+          if (!door) return null;
+          const doorWall = door.wall;
+          const actualR = door.type.w * scale;
           const wallColor = '#475569';
-
-          // For bathrooms opening into their parent bedroom, use a smaller arc
-          const isBath = room.room_id.toLowerCase().includes('bath') ||
-                         room.room_id.toLowerCase().includes('wc') ||
-                         room.room_id.toLowerCase().includes('toilet');
-          const actualR = (isBath || isInteriorDoor) ? Math.min(dR, 10) : dR;
+          const horizontal = doorWall === 'top' || doorWall === 'bottom';
+          const along = horizontal ? rw : rh;
+          const start = Math.max(0, Math.min(along * 0.25, along - actualR - 2));
           // The opening: cut the wall band the width of the leaf.
           const t = (edges[doorWall] ? WALL_PX.ext : WALL_PX.int) + 1;
           const cut = (x: number, y: number, w: number, h: number) =>
             <rect x={x} y={y} width={w} height={h} fill="white" />;
+          // The tag past the leaf's free end, or before it when that's outside the room.
+          const tagAt = (s0: number) => s0 + actualR + 9 <= along - 7 ? s0 + actualR + 9 : Math.max(7, s0 - 9);
+          const inset = Math.min(9, (horizontal ? rh : rw) / 2);
+          const tag = tagOf(door.type);
 
           if (doorWall === 'bottom') {
-            const dx = rx + rw * 0.25;
+            const dx = rx + start;
             const dy = ry + rh;
             return (
               <g>
@@ -640,11 +520,12 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                   stroke={wallColor} strokeWidth={1.5} />
                 <path d={`M ${dx} ${dy - actualR} A ${actualR} ${actualR} 0 0 1 ${dx + actualR} ${dy}`}
                   fill="none" stroke={wallColor} strokeWidth={0.8} />
+                {renderTag(tag, rx + tagAt(start), dy - inset)}
               </g>
             );
           }
           if (doorWall === 'top') {
-            const dx = rx + rw * 0.25;
+            const dx = rx + start;
             const dy = ry;
             return (
               <g>
@@ -653,12 +534,13 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                   stroke={wallColor} strokeWidth={1.5} />
                 <path d={`M ${dx} ${dy + actualR} A ${actualR} ${actualR} 0 0 0 ${dx + actualR} ${dy}`}
                   fill="none" stroke={wallColor} strokeWidth={0.8} />
+                {renderTag(tag, rx + tagAt(start), dy + inset)}
               </g>
             );
           }
           if (doorWall === 'right') {
             const dx = rx + rw;
-            const dy = ry + rh * 0.25;
+            const dy = ry + start;
             return (
               <g>
                 {cut(dx - t / 2, dy, t, actualR)}
@@ -666,12 +548,13 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                   stroke={wallColor} strokeWidth={1.5} />
                 <path d={`M ${dx - actualR} ${dy} A ${actualR} ${actualR} 0 0 1 ${dx} ${dy + actualR}`}
                   fill="none" stroke={wallColor} strokeWidth={0.8} />
+                {renderTag(tag, dx - inset, ry + tagAt(start))}
               </g>
             );
           }
           // left wall
           const dx = rx;
-          const dy = ry + rh * 0.25;
+          const dy = ry + start;
           return (
             <g>
               {cut(dx - t / 2, dy, t, actualR)}
@@ -679,6 +562,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                 stroke={wallColor} strokeWidth={1.5} />
               <path d={`M ${dx + actualR} ${dy} A ${actualR} ${actualR} 0 0 0 ${dx} ${dy + actualR}`}
                 fill="none" stroke={wallColor} strokeWidth={0.8} />
+              {renderTag(tag, dx + inset, ry + tagAt(start))}
             </g>
           );
         })()}
@@ -797,7 +681,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
             {(() => {
               const g = skeleton.grid;
               const xs = g?.xs ?? [0, buildingW], ys = g?.ys ?? [0, buildingH];
-              const ink = '#475569', red = '#b91c1c', R = 8, AT = 60;
+              const ink = '#475569', red = '#b91c1c', R = 8, AT = 70;
               const fmt = (m: number) => `${+m.toFixed(2)}m`;
               const X = (m: number) => xOffset + m * scale, Y = (m: number) => yOffset + m * scale;
               const bot = Y(buildingH), left = X(0);
@@ -840,10 +724,10 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                       {bubble(left - AT, Y(y), String(i + 1))}
                     </g>
                   ))}
-                  {chain(xs, 20, true, 'bays-x')}
-                  {xs.length > 2 && chain(extent(xs), 36, true, 'total-x')}
-                  {chain(ys, 20, false, 'bays-y')}
-                  {ys.length > 2 && chain(extent(ys), 36, false, 'total-y')}
+                  {chain(xs, 36, true, 'bays-x')}
+                  {xs.length > 2 && chain(extent(xs), 52, true, 'total-x')}
+                  {chain(ys, 36, false, 'bays-y')}
+                  {ys.length > 2 && chain(extent(ys), 52, false, 'total-y')}
                 </g>
               );
             })()}
@@ -864,7 +748,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
             {outbuildings.map(b => {
               const segs = computeWalls(b.rooms.map(r => ({ x: r.x, y: r.y, width: r.width, depth: r.depth, kind: 'room' as WallRoomKind })));
               const head = b.rooms[0];
-              const door = Math.min(0.9, head.width - 0.4) * scale;
+              const door = DOOR_ROOM.w * scale;
               const dx = xOffset + (head.x + head.width / 2) * scale - door / 2, dy = yOffset + (head.y + head.depth) * scale;
               const gx = xOffset + (b.x + b.width / 2) * scale;
               return (
@@ -878,6 +762,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                   <rect x={dx} y={dy - WALL_PX.ext / 2 - 0.5} width={door} height={WALL_PX.ext + 1} fill="#ffffff" />
                   <path d={`M ${dx} ${dy} L ${dx} ${dy - door} A ${door} ${door} 0 0 1 ${dx + door} ${dy}`}
                     fill="none" stroke="#1e293b" strokeWidth={0.8} />
+                  {renderTag(tagOf(DOOR_ROOM), dx + door + 9, dy - 9)}
                   {b.rooms.map(r => {
                     // short name (brackets dropped), shrunk to the room's width
                     const name = resolveRoomName(r.room_id).replace(/\s*\(.*\)\s*/g, ' ').trim();
@@ -971,10 +856,15 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   const xOffsetOf = (k: number) => (sheetW - metres * scale - gutters) / 2
     + bounds.slice(0, k).reduce((s, b) => s + b.w * scale + GUTTER * 2, 0) + GUTTER;
   const bottom = yOffset + maxH * scale;
-  // Under the drawings: the chains and bubbles (to +68), on the sheet the
-  // floor names, then north arrow, scale bar and title block.
-  const below = sheet ? 116 : 96;
-  const sheetH = bottom + below + 30;
+  // Under the drawings: window tags (to +23), the chains and bubbles (to
+  // +78), on the sheet the floor names, then north arrow, scale bar, title
+  // block and the door and window schedule.
+  const below = sheet ? 124 : 104;
+  const schedule = openingSchedule(layout);
+  const SCHED_ROW = 16;
+  const schedRows = Math.max(...(['D', 'W'] as const).map(k => schedule.rows.filter(r => r.type.kind === k).length), 0);
+  const schedY = bottom + below + 42;
+  const sheetH = schedY + schedRows * SCHED_ROW + 20;
 
   // Generate structural skeleton
   const skeleton = useMemo(() => structuralEngine.generateSkeleton(layout), [layout]);
@@ -1109,7 +999,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
               <FloorDrawing key={f} layout={layout} floor={f} scale={scale}
                 xOffset={xOffsetOf(k)} yOffset={yOffset} showStructure={showStructure}
                 skeleton={skeleton} plot_width={plot_width} plot_depth={plot_depth}
-                showPlot={!sheet} captionY={sheet ? bottom + 88 : undefined} />
+                showPlot={!sheet} captionY={sheet ? bottom + 96 : undefined} tagOf={schedule.tagOf} />
             ))}
 
             {/* North arrow — bottom-left */}
@@ -1168,6 +1058,35 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
                   </text>
                 </g>
               );
+            })()}
+
+            {/* Door and window schedule, as on the template: each tag's size */}
+            {(() => {
+              const cx = sheetW / 2;
+              const col = (k: 'D' | 'W', x: number, title: string) => (
+                <g key={k}>
+                  <text x={x} y={schedY - 12} style={{ fontSize: '7px', fontWeight: 900, fill: '#64748b', letterSpacing: '0.15em' }}>{title}</text>
+                  {schedule.rows.filter(r => r.type.kind === k).map((r, i) => {
+                    const y = schedY + i * SCHED_ROW;
+                    return (
+                      <g key={r.tag} data-schedule-row={r.tag}>
+                        <circle cx={x + 7} cy={y} r={7} fill="white" stroke="#1e293b" strokeWidth={0.6} />
+                        <text x={x + 7} y={y + 2.2} textAnchor="middle" style={{ fontSize: '6px', fontWeight: 700, fill: '#1e293b' }}>{r.tag}</text>
+                        <text x={x + 20} y={y + 3} style={{ fontSize: '8px', fontWeight: 600, fill: '#1e293b' }}>
+                          {r.type.w} × {r.type.h} m
+                        </text>
+                        <text x={x + 82} y={y + 3} style={{ fontSize: '7px', fontWeight: 600, fill: '#64748b' }}>× {r.count}</text>
+                      </g>
+                    );
+                  })}
+                </g>
+              );
+              return schedule.rows.length ? (
+                <g className="opening-schedule">
+                  {col('D', cx - 130, 'DOORS')}
+                  {col('W', cx + 20, 'WINDOWS')}
+                </g>
+              ) : null;
             })()}
           </svg>
 

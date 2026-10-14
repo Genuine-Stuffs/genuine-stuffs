@@ -1,0 +1,142 @@
+/**
+ * Doors and windows of a plan, decided once (template step (e)): which wall
+ * each room's door is on and what it is, which external walls get a window
+ * and what size, and the D1…/W1… tags and schedule that name them. The floor
+ * drawing draws exactly these; the schedule lists exactly these.
+ *
+ * Sizes are real (width × height, metres) from a short residential catalogue,
+ * so the drawing shows a 0.9 m door as 0.9 m whatever the scale.
+ */
+import type { SolvedLayout, PlacedRoom } from 'supabase/functions/ai-studio/schema';
+import { computePlacement, type WallSide } from '@/lib/aec/solver/engine_v2/doors';
+
+export interface OpeningType { kind: 'D' | 'W'; w: number; h: number }
+
+/** Room door; bath, WC and wardrobe door (opens inside the suite). */
+export const DOOR_ROOM: OpeningType = { kind: 'D', w: 0.9, h: 2.1 };
+export const DOOR_SERVICE: OpeningType = { kind: 'D', w: 0.8, h: 2.1 };
+const WIN_LARGE: OpeningType = { kind: 'W', w: 1.8, h: 1.2 };
+const WIN_ROOM: OpeningType = { kind: 'W', w: 1.2, h: 1.2 };
+const WIN_SMALL: OpeningType = { kind: 'W', w: 0.6, h: 0.6 };
+
+const LARGE_ROOMS = /^(living(_room)?|family(_room)?|dining(_room)?|lounge|sitting_room|master_bedroom)$/;
+const SMALL_ROOMS = /^(bathroom|toilet|wc|ensuite|shower|laundry|store|storage|wardrobe|dressing|pantry)$/;
+const SERVICE_ROOMS = /^(bathroom|toilet|wc|ensuite|shower|wardrobe|dressing)$/;
+/** Clear wall each side: a door needs 0.1 m, a window 0.3 m. */
+const DOOR_CLEAR = 0.2, WIN_CLEAR = 0.6;
+const EDGE_TOLERANCE = 0.5; // metres
+// Briefs write types loosely ("living", "master bedroom", "wet-kitchen").
+const norm = (t: string) => t.toLowerCase().replace(/[\s-]+/g, '_');
+
+/** The room's type: synthetic solver rooms by id, the rest from the brief. */
+export function roomTypeOf(layout: SolvedLayout, room_id: string): string {
+  if (room_id === 'stairwell' || room_id === 'stairwell_void') return 'stairwell';
+  if (room_id.startsWith('corridor_floor')) return 'circulation';
+  if (room_id.startsWith('terrace_f')) return 'balcony';
+  const rooms: any[] = layout.program_reference?.rooms ?? [];
+  return rooms.find(r => r.room_id === room_id || r.id === room_id)?.type ?? 'unknown';
+}
+
+const isOpen = (t: string) => t === 'circulation' || t === 'hall' || t === 'landing' || t === 'void';
+const isOutside = (t: string) => t === 'balcony' || t === 'terrace';
+
+/** Which of the room's walls are on the building's outline. */
+export const externalEdges = (r: PlacedRoom, W: number, D: number): Record<WallSide, boolean> => ({
+  left:   r.x <= EDGE_TOLERANCE,
+  top:    r.y <= EDGE_TOLERANCE,
+  right:  r.x + r.width >= W - EDGE_TOLERANCE,
+  bottom: r.y + r.depth >= D - EDGE_TOLERANCE,
+});
+
+const TOLERANCE = 0.3; // metres — shared wall detection threshold
+
+/** The renderer's own door wall when the solver gives none (the garage):
+ * the internal wall with the best neighbour (corridor > bath's bedroom >
+ * living > any room > service room). */
+function heuristicDoorWall(room: PlacedRoom, rooms: PlacedRoom[], typeOf: (id: string) => string, ext: Record<WallSide, boolean>): WallSide {
+  const roomRight = room.x + room.width, roomBottom = room.y + room.depth;
+  const scores: Record<WallSide, number> = { top: 0, bottom: 0, left: 0, right: 0 };
+  const currentType = typeOf(room.room_id);
+  for (const n of rooms) {
+    if (n.room_id === room.room_id) continue;
+    const nRight = n.x + n.width, nBottom = n.y + n.depth;
+    const nType = typeOf(n.room_id);
+    const score = ['circulation', 'hall', 'landing', 'stairwell'].includes(nType) ? 10
+      : (currentType === 'bathroom' && ['bedroom', 'master_bedroom'].includes(nType)) ? 9
+      : ['living_room', 'dining_room', 'family_room'].includes(nType) ? 8
+      : ['bathroom', 'wardrobe', 'dressing', 'store', 'garage'].includes(nType) ? 0
+      : 1;
+    const xOver = room.x < nRight - TOLERANCE && roomRight > n.x + TOLERANCE;
+    const yOver = room.y < nBottom - TOLERANCE && roomBottom > n.y + TOLERANCE;
+    if (Math.abs(roomBottom - n.y) < TOLERANCE && xOver) scores.bottom += score;
+    if (Math.abs(room.y - nBottom) < TOLERANCE && xOver) scores.top += score;
+    if (Math.abs(roomRight - n.x) < TOLERANCE && yOver) scores.right += score;
+    if (Math.abs(room.x - nRight) < TOLERANCE && yOver) scores.left += score;
+  }
+  const ranked = (['bottom', 'right', 'top', 'left'] as WallSide[]).filter(w => !ext[w]).sort((a, b) => scores[b] - scores[a]);
+  return ranked[0] ?? 'bottom';
+}
+
+export interface PlannedDoor { room_id: string; wall: WallSide; type: OpeningType }
+export interface PlannedWindow { room_id: string; wall: WallSide; type: OpeningType }
+export interface FloorOpenings { doors: Map<string, PlannedDoor>; windows: PlannedWindow[] }
+
+const wallLength = (r: PlacedRoom, wall: WallSide) => wall === 'top' || wall === 'bottom' ? r.width : r.depth;
+
+/** One floor's doors (one per room, where it fits) and windows (one per
+ * external wall of a room, the largest of its sizes that fits). */
+export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings {
+  const rooms = layout.placed_rooms.filter(r => r.floor === floor
+    && !isNaN(r.x) && !isNaN(r.y) && r.width > 0 && r.depth > 0);
+  const W = rooms.reduce((m, r) => Math.max(m, r.x + r.width), 0);
+  const D = rooms.reduce((m, r) => Math.max(m, r.y + r.depth), 0);
+  const typeOf = (id: string) => roomTypeOf(layout, id);
+  const placement = rooms.length ? computePlacement(rooms.map(r => ({
+    room_id: r.room_id, type: typeOf(r.room_id), x: r.x, y: r.y, width: r.width, depth: r.depth,
+  })), W, D) : null;
+  const doors = new Map<string, PlannedDoor>();
+  const windows: PlannedWindow[] = [];
+  for (const r of rooms) {
+    const t = norm(typeOf(r.room_id));
+    if (isOpen(t) || r.room_id.startsWith('corridor_floor')) continue;
+    const ext = externalEdges(r, W, D);
+    if (t !== 'stairwell') {
+      const spec = placement?.doors.find(d => d.room_id === r.room_id);
+      const wall = spec?.wall ?? heuristicDoorWall(r, rooms, typeOf, ext);
+      const type = spec?.interior || SERVICE_ROOMS.test(t) ? DOOR_SERVICE : DOOR_ROOM;
+      if (wallLength(r, wall) >= type.w + DOOR_CLEAR) doors.set(r.room_id, { room_id: r.room_id, wall, type });
+    }
+    if (t === 'stairwell' || isOutside(t)) continue;
+    const sizes = LARGE_ROOMS.test(t) ? [WIN_LARGE, WIN_ROOM, WIN_SMALL]
+      : SMALL_ROOMS.test(t) ? [WIN_SMALL] : [WIN_ROOM, WIN_SMALL];
+    for (const wall of ['top', 'bottom', 'left', 'right'] as WallSide[]) {
+      if (!ext[wall]) continue;
+      const type = sizes.find(s => wallLength(r, wall) >= s.w + WIN_CLEAR);
+      if (type) windows.push({ room_id: r.room_id, wall, type });
+    }
+  }
+  return { doors, windows };
+}
+
+export interface ScheduleRow { tag: string; type: OpeningType; count: number }
+
+/** The plan's opening types, tagged as on the template: doors D1… widest
+ * first, windows W1… largest first, over every floor and outbuilding, so a
+ * tag means the same in every view. */
+export function openingSchedule(layout: SolvedLayout): { tagOf: (t: OpeningType) => string; rows: ScheduleRow[] } {
+  const floors = [...new Set(layout.placed_rooms.map(r => r.floor))];
+  const used = new Map<OpeningType, number>();
+  const add = (t: OpeningType) => used.set(t, (used.get(t) ?? 0) + 1);
+  for (const f of floors) {
+    const o = planOpenings(layout, f);
+    o.doors.forEach(d => add(d.type));
+    o.windows.forEach(w => add(w.type));
+  }
+  (layout.outbuildings ?? []).forEach(() => add(DOOR_ROOM));
+  const kind = (k: 'D' | 'W') => [...used.keys()].filter(t => t.kind === k)
+    .sort((a, b) => b.w * b.h - a.w * a.h || b.w - a.w);
+  const rows: ScheduleRow[] = [];
+  for (const k of ['D', 'W'] as const)
+    kind(k).forEach((type, i) => rows.push({ tag: `${k}${i + 1}`, type, count: used.get(type)! }));
+  return { tagOf: t => rows.find(r => r.type === t)?.tag ?? '', rows };
+}
