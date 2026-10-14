@@ -62,6 +62,28 @@ const floorBounds = (layout: SolvedLayout, floor: number, plot_width: number, pl
   return { w: right > 0 ? right : plot_width, h: bottom > 0 ? bottom : plot_depth };
 };
 
+interface Box { x: number; y: number; w: number; h: number }
+const overlapArea = (a: Box, b: Box) =>
+  Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) *
+  Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+
+/** The boxes of a furniture group's shapes, from their own attributes. */
+const furnitureBoxes = (group: React.ReactNode): Box[] => {
+  if (!React.isValidElement(group)) return [];
+  const { children } = (group as React.ReactElement<{ children?: React.ReactNode }>).props;
+  return React.Children.toArray(children).flatMap((el): Box[] => {
+    if (!React.isValidElement(el)) return [];
+    const p = el.props as Record<string, number>;
+    switch (el.type) {
+      case 'rect': return [{ x: p.x, y: p.y, w: p.width, h: p.height }];
+      case 'circle': return [{ x: p.cx - p.r, y: p.cy - p.r, w: 2 * p.r, h: 2 * p.r }];
+      case 'ellipse': return [{ x: p.cx - p.rx, y: p.cy - p.ry, w: 2 * p.rx, h: 2 * p.ry }];
+      case 'line': return [{ x: Math.min(p.x1, p.x2), y: Math.min(p.y1, p.y2), w: Math.abs(p.x2 - p.x1), h: Math.abs(p.y2 - p.y1) }];
+      default: return [];
+    }
+  });
+};
+
 const floorName = (f: number) => `${['GROUND', 'FIRST', 'SECOND', 'THIRD'][f] ?? `LEVEL ${f}`} FLOOR`;
 
 /** One floor's drawing in the sheet's frame: the building's rear-left corner
@@ -260,6 +282,9 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
     if (/bath|ensuite|shower/.test(t) || /bath/i.test(name)) return 'Bath';
     if (/wardrobe|closet/.test(t) || /wardrobe|closet/i.test(name)) return 'Ward.';
     if (t === 'stairwell') return 'Stair';
+    // "Master Private Balcony" is a balcony, not a "Master"
+    if (/balcony|terrace|veranda|patio/.test(t) || /balcony|terrace|veranda|patio/i.test(name))
+      return (name.match(/balcony|terrace|veranda|patio/i)?.[0] ?? 'Balcony').replace(/^./, c => c.toUpperCase());
     // Otherwise the room's own first word: the Hive's type can be loose
     // (a generator house typed "store").
     return name.split(/\s+/)[0];
@@ -426,6 +451,88 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
     const edges = getExternalEdges(room);
     const WIN_DEPTH = WALL_PX.ext; // window sits in the external wall
 
+    // The door: a quarter along its wall at its real width, swinging into the
+    // room; its tag past the leaf's free end, or before it when that's
+    // outside the room.
+    const dg = (() => {
+      const door = openings.doors.get(room.room_id);
+      if (!door) return null;
+      const R = door.type.w * scale;
+      const wall = door.wall;
+      const horizontal = wall === 'top' || wall === 'bottom';
+      const along = horizontal ? rw : rh;
+      const start = Math.max(0, Math.min(along * 0.25, along - R - 2));
+      const tagAt = start + R + 9 <= along - 7 ? start + R + 9 : Math.max(7, start - 9);
+      const inset = Math.min(9, (horizontal ? rh : rw) / 2);
+      const dx = wall === 'right' ? rx + rw : wall === 'left' ? rx : rx + start;
+      const dy = wall === 'bottom' ? ry + rh : wall === 'top' ? ry : ry + start;
+      const [tagX, tagY] = wall === 'bottom' ? [rx + tagAt, dy - inset] : wall === 'top' ? [rx + tagAt, dy + inset]
+        : wall === 'right' ? [dx - inset, ry + tagAt] : [dx + inset, ry + tagAt];
+      const swing: Box = wall === 'bottom' ? { x: dx, y: dy - R, w: R, h: R } : wall === 'top' ? { x: dx, y: dy, w: R, h: R }
+        : wall === 'right' ? { x: dx - R, y: dy, w: R, h: R } : { x: dx, y: dy, w: R, h: R };
+      return { door, R, wall, dx, dy, tagX, tagY, swing, tag: { x: tagX - 7, y: tagY - 7, w: 14, h: 14 } };
+    })();
+
+    // ── Label place: the spot nearest the room's centre that is clear of
+    // its furniture, door swing and door tag (least overlap when none is),
+    // as the template sets names in the open floor beside the furniture.
+    const dimsText = `${room.width.toFixed(1)}M × ${room.depth.toFixed(1)}M`;
+    // A crowded room's last resort, as the template labels small baths: its
+    // short name without dimensions ("Bath").
+    const short = fitName(shortName(room.room_id, fullName));
+    const variants = [
+      { lines: nameLines, fs: nameFontSize, dims: showDims },
+      ...(!isHallPiece && !compact ? [{ lines: short.nameLines, fs: short.nameFontSize, dims: false }] : []),
+    ];
+    const label = (() => {
+      const cx = rx + rw / 2, cy = ry + rh / 2;
+      const centre = { x: cx, y: cy, k: 1, v: variants[0], cost: 0 };
+      if (isHallPiece) return centre;
+      const obstacles: Box[] = [
+        ...(rw > 35 && rh > 28 ? furnitureBoxes(renderFurniture(room, rx, ry, rw, rh)) : []),
+        ...(dg ? [dg.swing, dg.tag] : []),
+      ].map(b => ({ x: b.x - 2, y: b.y - 2, w: b.w + 4, h: b.h + 4 }));
+      if (!obstacles.length) return centre;
+      const range = (lo: number, hi: number, mid: number) => {
+        if (hi < lo) return [mid];
+        const out: number[] = [];
+        for (let v = lo; v <= hi + 1e-6; v += 3) out.push(v);
+        return out;
+      };
+      // Full size first; smaller (never under 6 units) only where that is
+      // what clears it, as the template sets small rooms' names small.
+      const place = (v: typeof variants[0], k: number) => {
+        const fs = v.fs * k, dfs = dimFontSize * k, lh = v.fs * 1.4 * k;
+        const bw = Math.max(...v.lines.map(l => l.length * fs * 0.72), v.dims ? dimsText.length * dfs * 0.62 : 0);
+        // the text block about its anchor: name lines above, dimensions below
+        const up = (v.lines.length - 0.5) * lh + fs * 0.95; // a line's box: 0.95 em above its baseline
+        const down = v.dims ? lh / 2 + dfs * 0.25 : -lh / 2 + fs * 0.25;
+        let best = { ...centre, k, v, cost: Infinity };
+        for (const x of range(rx + bw / 2 + 3, rx + rw - bw / 2 - 3, cx))
+          for (const y of range(ry + up + 3, ry + rh - down - 3, cy)) {
+            const b = { x: x - bw / 2, y: y - up, w: bw, h: up + down };
+            const overlap = obstacles.reduce((a, o) => a + overlapArea(b, o), 0);
+            const cost = overlap * 100 + Math.hypot(x - cx, y - (up - down) / 2 - cy);
+            if (cost < best.cost) best = { x, y, k, v, cost };
+          }
+        return best;
+      };
+      // nothing clears it: the full name where it is least covered
+      const first = place(variants[0], 1);
+      if (first.cost < 100) return first;
+      let least = first;
+      for (const v of variants)
+        for (const k of [1, 0.85, 0.72].filter(k => v.fs * k >= 6)) {
+          if (v === variants[0] && k === 1) continue;
+          const p = place(v, k);
+          if (p.cost < 100) return p;
+          if (v === variants[0] && p.cost < least.cost) least = p;
+        }
+      return least;
+    })();
+    const { x: labelX, y: labelY, k: labelK } = label;
+    const labelLines = label.v.lines, labelFs = label.v.fs, labelDims = label.v.dims;
+
     if (layer === 'base') return (
       <g key={`room-${idx}`} filter="url(#blueprint-shadow)">
 
@@ -492,69 +599,46 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
 
         {/* ── Door at its real width, a quarter along its wall, tagged
             beside its swing inside the room ── */}
-        {(() => {
-          const door = openings.doors.get(room.room_id);
-          if (!door) return null;
-          const doorWall = door.wall;
-          const actualR = door.type.w * scale;
+        {dg && (() => {
+          const { R: actualR, wall: doorWall, dx, dy } = dg;
           const wallColor = '#475569';
-          const horizontal = doorWall === 'top' || doorWall === 'bottom';
-          const along = horizontal ? rw : rh;
-          const start = Math.max(0, Math.min(along * 0.25, along - actualR - 2));
           // The opening: cut the wall band the width of the leaf.
           const t = (edges[doorWall] ? WALL_PX.ext : WALL_PX.int) + 1;
           const cut = (x: number, y: number, w: number, h: number) =>
             <rect x={x} y={y} width={w} height={h} fill="white" />;
-          // The tag past the leaf's free end, or before it when that's outside the room.
-          const tagAt = (s0: number) => s0 + actualR + 9 <= along - 7 ? s0 + actualR + 9 : Math.max(7, s0 - 9);
-          const inset = Math.min(9, (horizontal ? rh : rw) / 2);
-          const tag = tagOf(door.type);
+          const tag = renderTag(tagOf(dg.door.type), dg.tagX, dg.tagY);
 
-          if (doorWall === 'bottom') {
-            const dx = rx + start;
-            const dy = ry + rh;
-            return (
-              <g>
-                {cut(dx, dy - t / 2, actualR, t)}
-                <line x1={dx} y1={dy} x2={dx} y2={dy - actualR}
-                  stroke={wallColor} strokeWidth={1.5} />
-                <path d={`M ${dx} ${dy - actualR} A ${actualR} ${actualR} 0 0 1 ${dx + actualR} ${dy}`}
-                  fill="none" stroke={wallColor} strokeWidth={0.8} />
-                {renderTag(tag, rx + tagAt(start), dy - inset)}
-              </g>
-            );
-          }
-          if (doorWall === 'top') {
-            const dx = rx + start;
-            const dy = ry;
-            return (
-              <g>
-                {cut(dx, dy - t / 2, actualR, t)}
-                <line x1={dx} y1={dy} x2={dx} y2={dy + actualR}
-                  stroke={wallColor} strokeWidth={1.5} />
-                <path d={`M ${dx} ${dy + actualR} A ${actualR} ${actualR} 0 0 0 ${dx + actualR} ${dy}`}
-                  fill="none" stroke={wallColor} strokeWidth={0.8} />
-                {renderTag(tag, rx + tagAt(start), dy + inset)}
-              </g>
-            );
-          }
-          if (doorWall === 'right') {
-            const dx = rx + rw;
-            const dy = ry + start;
-            return (
-              <g>
-                {cut(dx - t / 2, dy, t, actualR)}
-                <line x1={dx} y1={dy} x2={dx - actualR} y2={dy}
-                  stroke={wallColor} strokeWidth={1.5} />
-                <path d={`M ${dx - actualR} ${dy} A ${actualR} ${actualR} 0 0 1 ${dx} ${dy + actualR}`}
-                  fill="none" stroke={wallColor} strokeWidth={0.8} />
-                {renderTag(tag, dx - inset, ry + tagAt(start))}
-              </g>
-            );
-          }
+          if (doorWall === 'bottom') return (
+            <g>
+              {cut(dx, dy - t / 2, actualR, t)}
+              <line x1={dx} y1={dy} x2={dx} y2={dy - actualR}
+                stroke={wallColor} strokeWidth={1.5} />
+              <path d={`M ${dx} ${dy - actualR} A ${actualR} ${actualR} 0 0 1 ${dx + actualR} ${dy}`}
+                fill="none" stroke={wallColor} strokeWidth={0.8} />
+              {tag}
+            </g>
+          );
+          if (doorWall === 'top') return (
+            <g>
+              {cut(dx, dy - t / 2, actualR, t)}
+              <line x1={dx} y1={dy} x2={dx} y2={dy + actualR}
+                stroke={wallColor} strokeWidth={1.5} />
+              <path d={`M ${dx} ${dy + actualR} A ${actualR} ${actualR} 0 0 0 ${dx + actualR} ${dy}`}
+                fill="none" stroke={wallColor} strokeWidth={0.8} />
+              {tag}
+            </g>
+          );
+          if (doorWall === 'right') return (
+            <g>
+              {cut(dx - t / 2, dy, t, actualR)}
+              <line x1={dx} y1={dy} x2={dx - actualR} y2={dy}
+                stroke={wallColor} strokeWidth={1.5} />
+              <path d={`M ${dx - actualR} ${dy} A ${actualR} ${actualR} 0 0 1 ${dx} ${dy + actualR}`}
+                fill="none" stroke={wallColor} strokeWidth={0.8} />
+              {tag}
+            </g>
+          );
           // left wall
-          const dx = rx;
-          const dy = ry + start;
           return (
             <g>
               {cut(dx - t / 2, dy, t, actualR)}
@@ -562,7 +646,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                 stroke={wallColor} strokeWidth={1.5} />
               <path d={`M ${dx + actualR} ${dy} A ${actualR} ${actualR} 0 0 0 ${dx} ${dy + actualR}`}
                 fill="none" stroke={wallColor} strokeWidth={0.8} />
-              {renderTag(tag, dx + inset, ry + tagAt(start))}
+              {tag}
             </g>
           );
         })()}
@@ -570,13 +654,13 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
         {/* ── Label ── */}
         {showLabel && !isStair(room) && (
           <text textAnchor="middle" style={{ pointerEvents: 'none' }}>
-            {nameLines.map((line, i) => (
+            {labelLines.map((line, i) => (
               <tspan
                 key={i}
-                x={rx + rw / 2}
-                y={ry + rh / 2 - (nameLines.length - i) * lineHeight + lineHeight / 2}
+                x={labelX}
+                y={labelY - ((labelLines.length - i) - 0.5) * labelFs * 1.4 * labelK}
                 style={{
-                  fontSize: `${nameFontSize}px`,
+                  fontSize: `${labelFs * labelK}px`,
                   fontWeight: 900,
                   letterSpacing: '0.08em',
                   fill: textColor,
@@ -585,16 +669,16 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                 {line}
               </tspan>
             ))}
-            {showDims && <tspan
-              x={rx + rw / 2}
-              y={ry + rh / 2 + lineHeight / 2}
+            {labelDims && <tspan
+              x={labelX}
+              y={labelY + labelFs * 0.7 * labelK}
               style={{
-                fontSize: `${dimFontSize}px`,
+                fontSize: `${dimFontSize * labelK}px`,
                 fontWeight: 700,
                 fill: stroke,
               }}
             >
-              {room.width.toFixed(1)}M × {room.depth.toFixed(1)}M
+              {dimsText}
             </tspan>}
           </text>
         )}
