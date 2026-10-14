@@ -84,6 +84,9 @@ const furnitureBoxes = (group: React.ReactNode): Box[] => {
   });
 };
 
+/** Grid line letters: A…Z, then AA, AB… */
+const gridLetter = (i: number): string => (i >= 26 ? gridLetter(Math.floor(i / 26) - 1) : '') + String.fromCharCode(65 + (i % 26));
+
 const floorName = (f: number) => `${['GROUND', 'FIRST', 'SECOND', 'THIRD'][f] ?? `LEVEL ${f}`} FLOOR`;
 
 /** One floor's drawing in the sheet's frame: the building's rear-left corner
@@ -799,7 +802,6 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               const fmt = (m: number) => `${+m.toFixed(2)}m`;
               const X = (m: number) => xOffset + m * scale, Y = (m: number) => yOffset + m * scale;
               const bot = Y(buildingH), left = X(0);
-              const letter = (i: number): string => (i >= 26 ? letter(Math.floor(i / 26) - 1) : '') + String.fromCharCode(65 + (i % 26));
               const text = { fontSize: '8px', fontWeight: 700, fill: '#1e293b' } as const;
               const chain = (ps: number[], off: number, horizontal: boolean, key: string) => (
                 <g key={key}>
@@ -827,9 +829,9 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               return (
                 <g className="grid-dimensions">
                   {g && xs.map((x, i) => (
-                    <g key={`gx${i}`} data-bubble={letter(i)}>
+                    <g key={`gx${i}`} data-bubble={gridLetter(i)}>
                       <line x1={X(x)} y1={bot} x2={X(x)} y2={bot + AT - R} stroke="#94a3b8" strokeWidth={0.5} strokeDasharray="6 2 1 2" />
-                      {bubble(X(x), bot + AT, letter(i))}
+                      {bubble(X(x), bot + AT, gridLetter(i))}
                     </g>
                   ))}
                   {g && ys.map((y, i) => (
@@ -926,6 +928,50 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               );
             })}
 
+            {/* Outbuildings' own grids: bubbles carrying on the house's series
+                (letters above each, numbers on its left), a chain of its bays */}
+            {activeFloor === 0 && (() => {
+              let nx = skeleton.grid?.xs.length ?? 0, ny = skeleton.grid?.ys.length ?? 0;
+              const ink = '#475569', red = '#b91c1c', R = 8;
+              const text = { fontSize: '8px', fontWeight: 700, fill: '#1e293b' } as const;
+              return skeleton.outbuildings.map(o => {
+                if (!o.grid) return null;
+                const xs = o.grid.xs.map(v => xOffset + (o.x + v) * scale), ys = o.grid.ys.map(v => yOffset + (o.y + v) * scale);
+                const top = ys[0], left = xs[0];
+                const lx = nx, ly = ny;
+                nx += xs.length; ny += ys.length;
+                const bubble = (cx: number, cy: number, label: string) => (
+                  <g key={label} data-bubble={label}>
+                    <circle cx={cx} cy={cy} r={R} fill="white" stroke={red} strokeWidth={0.8} />
+                    <text x={cx} y={cy + 3} textAnchor="middle" style={{ fontSize: '8px', fontWeight: 700, fill: red }}>{label}</text>
+                  </g>
+                );
+                return (
+                  <g key={o.id} className="grid-dimensions" data-outbuilding={o.id}>
+                    {xs.map((x, i) => (
+                      <g key={`x${i}`}>
+                        <line x1={x} y1={top} x2={x} y2={top - 40 + R} stroke="#94a3b8" strokeWidth={0.5} strokeDasharray="6 2 1 2" />
+                        {bubble(x, top - 40, gridLetter(lx + i))}
+                      </g>
+                    ))}
+                    {ys.map((y, i) => (
+                      <g key={`y${i}`}>
+                        <line x1={left} y1={y} x2={left - 24 + R} y2={y} stroke="#94a3b8" strokeWidth={0.5} strokeDasharray="6 2 1 2" />
+                        {bubble(left - 24, y, String(ly + i + 1))}
+                      </g>
+                    ))}
+                    <line x1={xs[0]} y1={top - 16} x2={xs[xs.length - 1]} y2={top - 16} stroke={ink} strokeWidth={0.6} />
+                    {xs.map((x, i) => <line key={`t${i}`} x1={x - 3} y1={top - 13} x2={x + 3} y2={top - 19} stroke={ink} strokeWidth={1} />)}
+                    {xs.slice(1).map((x, i) => (
+                      <text key={`d${i}`} x={(xs[i] + x) / 2} y={top - 19} textAnchor="middle" style={text}>
+                        {`${+((x - xs[i]) / scale).toFixed(2)}m`}
+                      </text>
+                    ))}
+                  </g>
+                );
+              });
+            })()}
+
             {/* Structure overlay */}
             {renderStructure()}
           </g>
@@ -987,7 +1033,8 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   const gutters = shown.length * GUTTER * 2;
   const scale = Math.min(MAX_SCALE, ((sheet ? SHEET_W : PANEL_W) - gutters) / metres);
   const sheetW = Math.max(PANEL_W, metres * scale + gutters);
-  const yOffset = top * scale + 40;
+  // room above for the outbuildings' bubbles
+  const yOffset = top * scale + (top > 0 ? 60 : 40);
   const xOffsetOf = (k: number) => (sheetW - metres * scale - gutters) / 2
     + bounds.slice(0, k).reduce((s, b) => s + b.w * scale + GUTTER * 2, 0) + GUTTER;
   const bottom = yOffset + maxH * scale;
