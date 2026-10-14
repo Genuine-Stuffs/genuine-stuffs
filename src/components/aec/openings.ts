@@ -15,6 +15,8 @@ export interface OpeningType { kind: 'D' | 'W'; w: number; h: number }
 /** Room door; bath, WC and wardrobe door (opens inside the suite). */
 export const DOOR_ROOM: OpeningType = { kind: 'D', w: 0.9, h: 2.1 };
 export const DOOR_SERVICE: OpeningType = { kind: 'D', w: 0.8, h: 2.1 };
+/** The front door, the template's own D1. */
+export const DOOR_ENTRANCE: OpeningType = { kind: 'D', w: 0.9, h: 2.5 };
 const WIN_LARGE: OpeningType = { kind: 'W', w: 1.8, h: 1.2 };
 const WIN_ROOM: OpeningType = { kind: 'W', w: 1.2, h: 1.2 };
 const WIN_SMALL: OpeningType = { kind: 'W', w: 0.6, h: 0.6 };
@@ -79,7 +81,37 @@ function heuristicDoorWall(room: PlacedRoom, rooms: PlacedRoom[], typeOf: (id: s
 
 export interface PlannedDoor { room_id: string; wall: WallSide; type: OpeningType }
 export interface PlannedWindow { room_id: string; wall: WallSide; type: OpeningType }
-export interface FloorOpenings { doors: Map<string, PlannedDoor>; windows: PlannedWindow[] }
+/** The front door: on the street wall (the floor's bottom edge, y = D) of
+ * the room it opens into, centred on that room's street frontage. */
+export interface PlannedEntrance { room_id: string; type: OpeningType; x: number; y: number }
+export interface FloorOpenings { doors: Map<string, PlannedDoor>; windows: PlannedWindow[]; entrance: PlannedEntrance | null }
+
+const ENTRY_NAME = /foyer|entrance|entry|lobby|porch/i;
+
+/** The ground floor's front door: into the foyer (or entrance, lobby,
+ * porch) where one touches the street, else the hall, else the living
+ * room, else another day room; the widest frontage of the first kind
+ * found. None when only bedrooms, baths, stores or the garage face it. */
+function frontEntrance(layout: SolvedLayout, rooms: PlacedRoom[], D: number, typeOf: (id: string) => string): PlannedEntrance | null {
+  const onStreet = rooms.filter(r => Math.abs(r.y + r.depth - D) < EDGE_TOLERANCE && r.width >= DOOR_ENTRANCE.w + DOOR_CLEAR);
+  const brief: Array<{ room_id?: string; id?: string; name?: string }> = layout.program_reference?.rooms ?? [];
+  const named = (id: string) => brief.find(r => r.room_id === id || r.id === id)?.name ?? '';
+  const kinds: Array<(r: PlacedRoom) => boolean> = [
+    // a car porch is no entrance
+    r => !/^(garage|carport|car_porch)$/.test(norm(typeOf(r.room_id))) && !/\bcar\b/i.test(named(r.room_id))
+      && (norm(typeOf(r.room_id)) === 'foyer' || ENTRY_NAME.test(named(r.room_id))),
+    r => r.room_id.startsWith('corridor_floor') || /^(hall|circulation)$/.test(norm(typeOf(r.room_id))),
+    r => /^(living(_room)?|lounge|sitting_room)$/.test(norm(typeOf(r.room_id))),
+    // no foyer, hall or lounge on the street: any day room there, never a
+    // bedroom, bath, store or garage
+    r => !/bed|bath|toilet|wc|ensuite|shower|wardrobe|dressing|store|storage|garage|carport|balcony|terrace|stair/.test(norm(typeOf(r.room_id))),
+  ];
+  for (const kind of kinds) {
+    const r = onStreet.filter(kind).sort((a, b) => b.width - a.width)[0];
+    if (r) return { room_id: r.room_id, type: DOOR_ENTRANCE, x: r.x + r.width / 2, y: r.y + r.depth };
+  }
+  return null;
+}
 
 const wallLength = (r: PlacedRoom, wall: WallSide) => wall === 'top' || wall === 'bottom' ? r.width : r.depth;
 
@@ -115,7 +147,9 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
       if (type) windows.push({ room_id: r.room_id, wall, type });
     }
   }
-  return { doors, windows };
+  // The front door takes the place of the window on its wall.
+  const entrance = floor === 0 ? frontEntrance(layout, rooms, D, typeOf) : null;
+  return { doors, windows: entrance ? windows.filter(w => !(w.room_id === entrance.room_id && w.wall === 'bottom')) : windows, entrance };
 }
 
 export interface ScheduleRow { tag: string; type: OpeningType; count: number }
@@ -133,6 +167,8 @@ export function openingSchedule(layout: SolvedLayout): { tagOf: (t: OpeningType)
     o.windows.forEach(w => add(w.type));
   }
   (layout.outbuildings ?? []).forEach(() => add(DOOR_ROOM));
+  const front = planOpenings(layout, 0).entrance;
+  if (front) add(front.type);
   const kind = (k: 'D' | 'W') => [...used.keys()].filter(t => t.kind === k)
     .sort((a, b) => b.w * b.h - a.w * a.h || b.w - a.w);
   const rows: ScheduleRow[] = [];

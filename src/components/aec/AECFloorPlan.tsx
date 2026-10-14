@@ -145,6 +145,14 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
   const openings = planOpenings(layout, activeFloor);
   const getExternalEdges = (room: any) => externalEdges(room, buildingW, buildingH);
 
+  // The front door in sheet units: centred on the entry room's street
+  // frontage, swinging in from the street.
+  const entrance = openings.entrance && (() => {
+    const e = openings.entrance, R = e.type.w * scale;
+    const x0 = xOffset + e.x * scale - R / 2, y = yOffset + e.y * scale;
+    return { ...e, R, x0, y, swing: { x: x0, y: y - R, w: R, h: R } as Box };
+  })();
+
   // A tag as on the template: the type's name in a small circle.
   const renderTag = (tag: string, x: number, y: number) => tag ? (
     <g data-tag={tag} style={{ pointerEvents: 'none' }}>
@@ -491,6 +499,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
       const obstacles: Box[] = [
         ...(rw > 35 && rh > 28 ? furnitureBoxes(renderFurniture(room, rx, ry, rw, rh)) : []),
         ...(dg ? [dg.swing, dg.tag] : []),
+        ...(entrance?.room_id === room.room_id ? [entrance.swing] : []),
       ].map(b => ({ x: b.x - 2, y: b.y - 2, w: b.w + 4, h: b.h + 4 }));
       if (!obstacles.length) return centre;
       const range = (lo: number, hi: number, mid: number) => {
@@ -827,6 +836,17 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
             {activeRooms.map((room, idx) => renderRoom(room, idx, 'base'))}
             {renderWalls()}
             {activeRooms.map((room, idx) => renderRoom(room, idx, 'over'))}
+
+            {/* Front door: a gap in the street wall, the leaf swinging in, its tag outside */}
+            {entrance && !showStructure && (
+              <g data-entrance={entrance.room_id}>
+                <rect x={entrance.x0} y={entrance.y - WALL_PX.ext / 2 - 0.5} width={entrance.R} height={WALL_PX.ext + 1} fill="white" />
+                <line x1={entrance.x0} y1={entrance.y} x2={entrance.x0} y2={entrance.y - entrance.R} stroke="#1e293b" strokeWidth={1.5} />
+                <path d={`M ${entrance.x0} ${entrance.y - entrance.R} A ${entrance.R} ${entrance.R} 0 0 1 ${entrance.x0 + entrance.R} ${entrance.y}`}
+                  fill="none" stroke="#1e293b" strokeWidth={0.8} />
+                {renderTag(tagOf(entrance.type), entrance.x0 + entrance.R / 2, entrance.y + 16)}
+              </g>
+            )}
 
             {/* Outbuildings: each its own walls, rooms, door towards the house and the 3 m gap */}
             {outbuildings.map(b => {
