@@ -54,59 +54,45 @@ interface AECFloorPlanProps {
   layout?: SolvedLayout;
 }
 
-const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
-  const [showStructure, setShowStructure] = useState(false);
-  const [activeFloor, setActiveFloor] = useState(0);
+/** A floor's building extent in metres (the plot when it has no rooms). */
+const floorBounds = (layout: SolvedLayout, floor: number, plot_width: number, plot_depth: number) => {
+  const rooms = layout.placed_rooms.filter(r => r.floor === floor);
+  const right  = rooms.reduce((max, r) => Math.max(max, r.x + r.width), 0);
+  const bottom = rooms.reduce((max, r) => Math.max(max, r.y + r.depth), 0);
+  return { w: right > 0 ? right : plot_width, h: bottom > 0 ? bottom : plot_depth };
+};
 
-  if (!layout || !layout.placed_rooms || layout.placed_rooms.length === 0) return null;
+const floorName = (f: number) => `${['GROUND', 'FIRST', 'SECOND', 'THIRD'][f] ?? `LEVEL ${f}`} FLOOR`;
 
-  // ── BUG 1 FIX: plot_width / plot_depth ──────────────────────────────────────
-  // The solver attaches these directly to solvedLayout. Guard against undefined
-  // by falling back to derivation from brief_reference.plot_size_sqm.
-  const plotSqm = layout.program_reference?.brief_reference?.plot_size_sqm ?? 2000;
-  const plot_width  = (typeof layout.plot_width  === 'number' && !isNaN(layout.plot_width))
-    ? layout.plot_width
-    : Math.sqrt(plotSqm);
-  const plot_depth  = (typeof layout.plot_depth  === 'number' && !isNaN(layout.plot_depth))
-    ? layout.plot_depth
-    : plotSqm / plot_width;
+/** One floor's drawing in the sheet's frame: the building's rear-left corner
+ * at (xOffset, yOffset), `scale` sheet units per metre. */
+interface FloorDrawingProps {
+  layout: SolvedLayout;
+  floor: number;
+  scale: number;
+  xOffset: number;
+  yOffset: number;
+  showStructure: boolean;
+  skeleton: ReturnType<typeof structuralEngine.generateSkeleton>;
+  plot_width: number;
+  plot_depth: number;
+  /** On the sheet the plot outline would run into the next floor's drawing. */
+  showPlot: boolean;
+  /** The floor's name under its drawing, as on the template's sheet. */
+  captionY?: number;
+}
 
+const FloorDrawing: React.FC<FloorDrawingProps> = ({
+  layout, floor: activeFloor, scale, xOffset, yOffset, showStructure, skeleton,
+  plot_width, plot_depth, showPlot, captionY,
+}) => {
   const { placed_rooms } = layout;
-
-  // ── BUG 2 FIX: storeys path ──────────────────────────────────────────────────
-  // Old path: layout.program_reference.brief_reference.storeys
-  // New Hive schema: layout.program_reference.brief_reference.floors
-  // Guard both so this works with either schema version.
-  const briefRef = layout.program_reference?.brief_reference ?? {};
-  const storeys = (briefRef as any).storeys ?? (briefRef as any).floors ?? 1;
-  const isDuplex = storeys > 1;
-
-  // Filter rooms by active floor
   const activeRooms = placed_rooms.filter(r => r.floor === activeFloor);
   // Outbuildings (BQ, generator house) stand behind the house on the ground
   // floor; their rooms have y < 0 in the house's frame.
   const outbuildings = activeFloor === 0 ? (layout.outbuildings ?? []) : [];
-  const obTop = Math.max(0, ...outbuildings.map(b => -b.y));
+  const { w: buildingW, h: buildingH } = floorBounds(layout, activeFloor, plot_width, plot_depth);
 
-  // ── BUILDING BOUNDING BOX ─────────────────────────────────────────────────
-  // Scale the SVG to the building footprint, not the full plot boundary.
-  // The plot boundary renders as a faint context outline behind the rooms.
-  // This keeps land parcel data intact while filling the canvas with building.
-  const buildingRight  = activeRooms.reduce((max, r) => Math.max(max, r.x + r.width), 0);
-  const buildingBottom = activeRooms.reduce((max, r) => Math.max(max, r.y + r.depth), 0);
-  const buildingW = buildingRight  > 0 ? buildingRight  : plot_width;
-  const buildingH = buildingBottom > 0 ? buildingBottom : plot_depth;
-
-  const padding = 2;
-  const viewWidth  = buildingW + padding * 2;
-  const viewHeight = buildingH + obTop + padding * 2;
-  const scale = Math.min(620 / viewWidth, 420 / viewHeight);
-
-  const xOffset = (720 - (buildingW * scale)) / 2;
-  const yOffset = (480 - ((buildingH + obTop) * scale)) / 2 + obTop * scale;
-
-  // Generate structural skeleton
-  const skeleton = useMemo(() => structuralEngine.generateSkeleton(layout), [layout]);
   const activeBeams = skeleton.beams.filter(b => b.floor === activeFloor);
   const activeCols  = skeleton.columns.filter(c => c.floor === activeFloor);
 
@@ -774,137 +760,22 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     );
   };
 
-  // Safe total area — guard NaN per room (outbuildings count on the ground floor)
-  const totalArea = [...activeRooms, ...outbuildings.flatMap(b => b.rooms)].reduce((acc, r) => {
-    const area = r.width * r.depth;
-    return acc + (isNaN(area) ? 0 : area);
-  }, 0);
-
   return (
-    <Card className="mt-8 border-slate-200 dark:border-white/10 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] group bg-[#f8fafc] dark:bg-[#0a0c10]">
-      <CardHeader className="bg-slate-900 dark:bg-black py-5 border-b dark:border-white/5 flex flex-row items-center justify-between px-8">
-        <div className="flex items-center gap-4">
-          <div className="p-2.5 rounded-xl bg-primary/20 text-primary border border-primary/20 shadow-inner">
-            <Ruler className="w-5 h-5" />
-          </div>
-          <div>
-            <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white flex items-center gap-3">
-              Derived Floor Plan (Solver Output)
-              {isDuplex && (
-                <div className="flex bg-white/10 rounded-full p-0.5 ml-2">
-                  <button
-                    onClick={() => setActiveFloor(0)}
-                    className={`px-3 py-1 rounded-full text-[9px] font-bold tracking-widest transition-all ${
-                      activeFloor === 0
-                        ? 'bg-white text-black shadow-sm'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    GROUND FL.
-                  </button>
-                  <button
-                    onClick={() => setActiveFloor(1)}
-                    className={`px-3 py-1 rounded-full text-[9px] font-bold tracking-widest transition-all ${
-                      activeFloor === 1
-                        ? 'bg-white text-black shadow-sm'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    UPPER FL.
-                  </button>
-                </div>
-              )}
-              <button
-                onClick={() => setShowStructure(!showStructure)}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] transition-all ${
-                  showStructure
-                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                    : 'bg-white/10 text-slate-400 hover:bg-white/20'
-                }`}
-              >
-                <Layers className="w-3 h-3" />
-                {showStructure ? 'STRUCTURAL GRID ON' : 'STRUCTURAL GRID OFF'}
-              </button>
-            </CardTitle>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
-                Procedurally Generated • Elev +{activeFloor * 3.0}m
-              </span>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <Badge className="bg-emerald-600 text-white border-none text-[9px] font-black px-4 py-1.5 shadow-lg shadow-emerald-900/20">
-            <CheckCircle2 className="w-3 h-3 mr-1.5" /> COMPILED
-          </Badge>
-        </div>
-      </CardHeader>
-
-      <CardContent className="p-0">
-        <div className="relative bg-[#ffffff] dark:bg-[#0d0f14] p-12 md:p-20 flex items-center justify-center overflow-hidden min-h-[650px]">
-          <div 
-            className="absolute inset-0 opacity-[0.03] pointer-events-none"
-            style={{
-              backgroundImage: `
-                linear-gradient(rgba(200,210,220,0.15) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(200,210,220,0.15) 1px, transparent 1px)
-              `,
-              backgroundSize: '20px 20px',
-              backgroundColor: '#f8f9fa'
-            }}
-          />
-
-          <svg
-            viewBox="0 0 720 580"
-            className="w-full h-auto max-w-[900px] drop-shadow-[0_40px_80px_rgba(0,0,0,0.2)] relative z-10"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <defs>
-              <pattern id="arch-grid" width={1 * scale} height={1 * scale} patternUnits="userSpaceOnUse">
-                <path
-                  d={`M ${1 * scale} 0 L 0 0 0 ${1 * scale}`}
-                  fill="none" stroke="currentColor" strokeWidth="0.5"
-                  className="text-slate-200 dark:text-white/10"
-                />
-              </pattern>
-              <filter id="blueprint-shadow" x="-20%" y="-20%" width="140%" height="140%">
-                <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
-                <feOffset dx="2" dy="2" result="offsetblur" />
-                <feComponentTransfer>
-                  <feFuncA type="linear" slope="0.15" />
-                </feComponentTransfer>
-                <feMerge>
-                  <feMergeNode />
-                  <feMergeNode in="SourceGraphic" />
-                </feMerge>
-              </filter>
-              {/* Material hatching patterns */}
-              <pattern id="hatch-concrete" width={6} height={6} patternUnits="userSpaceOnUse">
-                <circle cx={3} cy={3} r={0.8} fill="#94a3b8" opacity={0.5} />
-              </pattern>
-              <pattern id="hatch-tile" width={8} height={8} patternUnits="userSpaceOnUse">
-                <rect x={0} y={0} width={8} height={8} fill="none" stroke="#7dd3fc" strokeWidth={0.5} />
-              </pattern>
-              <pattern id="hatch-wood" width={6} height={3} patternUnits="userSpaceOnUse">
-                <line x1={0} y1={1.5} x2={6} y2={1.5} stroke="#d97706" strokeWidth={0.4} opacity={0.4} />
-              </pattern>
-            </defs>
-
-            {/* Background 1m grid */}
-            <rect x="0" y="0" width="720" height="520" fill="url(#arch-grid)" />
-
+          <g data-floor={activeFloor}>
             {/* Plot boundary — faint context outline; scale to plot ratio vs building */}
-            <rect
-              x={xOffset - (layout.site_offset ? layout.site_offset.x : (plot_width  - buildingW) / 2) * scale}
-              y={yOffset - (layout.site_offset ? layout.site_offset.y : (plot_depth - buildingH) / 2) * scale}
-              width={plot_width  * scale}
-              height={plot_depth * scale}
-              fill="none"
-              stroke="#93C5FD"
-              strokeWidth={1}
-              strokeDasharray="6 4"
-              opacity={0.3}
-            />
+            {showPlot && (
+              <rect
+                x={xOffset - (layout.site_offset ? layout.site_offset.x : (plot_width  - buildingW) / 2) * scale}
+                y={yOffset - (layout.site_offset ? layout.site_offset.y : (plot_depth - buildingH) / 2) * scale}
+                width={plot_width  * scale}
+                height={plot_depth * scale}
+                fill="none"
+                stroke="#93C5FD"
+                strokeWidth={1}
+                strokeDasharray="6 4"
+                opacity={0.3}
+              />
+            )}
             {/* Building footprint boundary */}
             <rect
               x={xOffset} y={yOffset}
@@ -969,62 +840,12 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
               </text>
             </g>
 
-            {/* North arrow — bottom-left */}
-            <g transform={`translate(${xOffset + 12}, ${yOffset + buildingH * scale + 36})`}>
-              <circle cx={0} cy={0} r={14} fill="white" stroke="#475569" strokeWidth={1} opacity={0.9} />
-              {/* Arrow shaft */}
-              <line x1={0} y1={-10} x2={0} y2={10} stroke="#1e293b" strokeWidth={1.5} />
-              {/* Arrow north head (filled) */}
-              <polygon points="0,-10 -4,-2 4,-2" fill="#1e293b" />
-              {/* Arrow south head (open) */}
-              <polygon points="0,10 -4,2 4,2" fill="white" stroke="#1e293b" strokeWidth={0.8} />
-              <text x={0} y={-14} textAnchor="middle"
-                style={{ fontSize: '7px', fontWeight: 900, fill: '#1e293b', letterSpacing: '0.1em' }}>
-                N
+            {captionY !== undefined && (
+              <text x={xOffset + (buildingW * scale) / 2} y={captionY} textAnchor="middle"
+                style={{ fontSize: '11px', fontWeight: 800, fill: '#1e293b', letterSpacing: '0.12em' }}>
+                {floorName(activeFloor)} PLAN
               </text>
-            </g>
-
-            {/* Scale bar — bottom-right, shows 0–5m */}
-            {(() => {
-              const barM = 5; // metres represented
-              const barPx = barM * scale;
-              const barX = xOffset + buildingW * scale - barPx - 4;
-              const barY = yOffset + buildingH * scale + 36;
-              return (
-                <g transform={`translate(${barX}, ${barY})`}>
-                  {/* Alternating segments */}
-                  <rect x={0}           y={-4} width={barPx / 2} height={6} fill="#1e293b" />
-                  <rect x={barPx / 2}   y={-4} width={barPx / 2} height={6} fill="white" stroke="#1e293b" strokeWidth={0.8} />
-                  {/* End ticks */}
-                  <line x1={0}     y1={-6} x2={0}     y2={4} stroke="#1e293b" strokeWidth={1} />
-                  <line x1={barPx} y1={-6} x2={barPx} y2={4} stroke="#1e293b" strokeWidth={1} />
-                  {/* Labels */}
-                  <text x={0}     y={-8} textAnchor="middle"
-                    style={{ fontSize: '7px', fontWeight: 700, fill: '#1e293b' }}>0</text>
-                  <text x={barPx} y={-8} textAnchor="middle"
-                    style={{ fontSize: '7px', fontWeight: 700, fill: '#1e293b' }}>5m</text>
-                </g>
-              );
-            })()}
-
-            {/* Title block — below scale bar */}
-            {(() => {
-              const tbX = xOffset + buildingW * scale / 2;
-              const tbY = yOffset + buildingH * scale + 52;
-              const projectId = (layout as any).program_reference?.brief_reference?.project_id
-                ?? (layout as any).program_reference?.brief_reference?.id
-                ?? 'GS-PROJ';
-              const floorLabel = activeFloor === 0 ? 'GROUND FLOOR' : 'UPPER FLOOR';
-              const dateStr = new Date().toISOString().slice(0, 10);
-              return (
-                <g>
-                  <text x={tbX} y={tbY} textAnchor="middle"
-                    style={{ fontSize: '8px', fontWeight: 900, fill: '#1e293b', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
-                    {projectId} · PLOT {plot_width.toFixed(1)}M × {plot_depth.toFixed(1)}M · {floorLabel} · {dateStr}
-                  </text>
-                </g>
-              );
-            })()}
+            )}
 
             {/* Rooms */}
             {activeRooms.map((room, idx) => renderRoom(room, idx, 'base'))}
@@ -1079,6 +900,272 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
 
             {/* Structure overlay */}
             {renderStructure()}
+          </g>
+  );
+};
+
+// A floor shown alone gets a panel this wide (sheet units).
+const PANEL_W = 720;
+const SHEET_W = 1080, SHEET_MAX_SCALE = 30;
+
+const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
+  const [showStructure, setShowStructure] = useState(false);
+  // 'sheet': every floor side by side at one scale, as on the template's
+  // sheet; a number: that floor alone.
+  const [view, setView] = useState<'sheet' | number>('sheet');
+
+  if (!layout || !layout.placed_rooms || layout.placed_rooms.length === 0) return null;
+
+  // ── BUG 1 FIX: plot_width / plot_depth ──────────────────────────────────────
+  // The solver attaches these directly to solvedLayout. Guard against undefined
+  // by falling back to derivation from brief_reference.plot_size_sqm.
+  const plotSqm = layout.program_reference?.brief_reference?.plot_size_sqm ?? 2000;
+  const plot_width  = (typeof layout.plot_width  === 'number' && !isNaN(layout.plot_width))
+    ? layout.plot_width
+    : Math.sqrt(plotSqm);
+  const plot_depth  = (typeof layout.plot_depth  === 'number' && !isNaN(layout.plot_depth))
+    ? layout.plot_depth
+    : plotSqm / plot_width;
+
+  const { placed_rooms } = layout;
+
+  // ── BUG 2 FIX: storeys path ──────────────────────────────────────────────────
+  // Old path: layout.program_reference.brief_reference.storeys
+  // New Hive schema: layout.program_reference.brief_reference.floors
+  // Guard both so this works with either schema version.
+  const briefRef = layout.program_reference?.brief_reference ?? {};
+  const storeys = (briefRef as any).storeys ?? (briefRef as any).floors ?? 1;
+  const isDuplex = storeys > 1;
+
+  const floors = isDuplex
+    ? [...new Set(placed_rooms.map(r => r.floor))].sort((a, b) => a - b)
+    : [0];
+  const shown = view === 'sheet' || !isDuplex ? floors : [view];
+  const sheet = shown.length > 1;
+
+  // ── One frame for every floor shown: the same scale, rear walls on one line
+  // (the BQ strip above the ground floor counts for all). Each floor in its
+  // own panel; with one floor this is the single-floor frame as before.
+  const padding = 2;
+  const obTop = (f: number) => f === 0 ? Math.max(0, ...(layout.outbuildings ?? []).map(b => -b.y)) : 0;
+  const bounds = shown.map(f => floorBounds(layout, f, plot_width, plot_depth));
+  const maxH = Math.max(...bounds.map(b => b.h));
+  const top = Math.max(...shown.map(obTop));
+  // On the sheet each panel is its drawing plus a margin for the dimension
+  // lines, so the floors stand close together as on the template. The sheet
+  // grows downwards as far as it needs: its scale fills SHEET_W, up to
+  // SHEET_MAX_SCALE (the labels are sized for 20–27 units a metre), and it is
+  // never narrower than one floor's panel, so text never shows larger than
+  // in the single-floor view.
+  const margin = 2.5;
+  const across = bounds.reduce((s, b) => s + b.w + margin * 2, 0);
+  const scale = sheet
+    ? Math.min(SHEET_MAX_SCALE, SHEET_W / across)
+    : Math.min(...bounds.map(b =>
+        Math.min(620 / (b.w + padding * 2), 420 / (maxH + top + padding * 2))));
+  const sheetW = sheet ? Math.max(PANEL_W, across * scale) : PANEL_W;
+  const yOffset = sheet ? top * scale + 40 : (480 - ((maxH + top) * scale)) / 2 + top * scale;
+  const xOffsetOf = (k: number) => sheet
+    ? (sheetW - across * scale) / 2 + bounds.slice(0, k).reduce((s, b) => s + (b.w + margin * 2) * scale, 0) + margin * scale
+    : k * PANEL_W + (PANEL_W - bounds[k].w * scale) / 2;
+  const bottom = yOffset + maxH * scale;
+  // On the sheet the floor names sit under the drawings, the rest below them.
+  const below = sheet ? 60 : 36;
+  const sheetH = sheet ? bottom + below + 30 : 580;
+
+  // Generate structural skeleton
+  const skeleton = useMemo(() => structuralEngine.generateSkeleton(layout), [layout]);
+
+  const sourceRooms: any[] = layout.program_reference?.rooms ?? [];
+  const resolveRoomName = (room_id: string): string => {
+    if (room_id === 'stairwell_void') return 'STAIR VOID';
+    if (room_id.startsWith('terrace_f')) return 'Terrace';
+    const match = sourceRooms.find(r => r.room_id === room_id || r.id === room_id);
+    return match?.name ?? room_id.replace(/_/g, ' ').toUpperCase();
+  };
+
+  const shownRooms = placed_rooms.filter(r => shown.includes(r.floor));
+  // Safe total area — guard NaN per room (outbuildings count on the ground floor)
+  const totalArea = [...shownRooms, ...(shown.includes(0) ? (layout.outbuildings ?? []).flatMap(b => b.rooms) : [])].reduce((acc, r) => {
+    const area = r.width * r.depth;
+    return acc + (isNaN(area) ? 0 : area);
+  }, 0);
+
+  const viewButton = (v: 'sheet' | number, label: string) => (
+    <button
+      key={String(v)}
+      onClick={() => setView(v)}
+      className={`px-3 py-1 rounded-full text-[9px] font-bold tracking-widest transition-all ${
+        view === v
+          ? 'bg-white text-black shadow-sm'
+          : 'text-slate-400 hover:text-white'
+      }`}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <Card className="mt-8 border-slate-200 dark:border-white/10 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] group bg-[#f8fafc] dark:bg-[#0a0c10]">
+      <CardHeader className="bg-slate-900 dark:bg-black py-5 border-b dark:border-white/5 flex flex-row items-center justify-between px-8">
+        <div className="flex items-center gap-4">
+          <div className="p-2.5 rounded-xl bg-primary/20 text-primary border border-primary/20 shadow-inner">
+            <Ruler className="w-5 h-5" />
+          </div>
+          <div>
+            <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white flex items-center gap-3">
+              Derived Floor Plan (Solver Output)
+              {isDuplex && (
+                <div className="flex bg-white/10 rounded-full p-0.5 ml-2">
+                  {viewButton('sheet', 'SHEET')}
+                  {viewButton(0, 'GROUND FL.')}
+                  {viewButton(1, 'UPPER FL.')}
+                </div>
+              )}
+              <button
+                onClick={() => setShowStructure(!showStructure)}
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] transition-all ${
+                  showStructure
+                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                    : 'bg-white/10 text-slate-400 hover:bg-white/20'
+                }`}
+              >
+                <Layers className="w-3 h-3" />
+                {showStructure ? 'STRUCTURAL GRID ON' : 'STRUCTURAL GRID OFF'}
+              </button>
+            </CardTitle>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
+                Procedurally Generated • Elev {shown.map(f => `+${f * 3.0}m`).join(' / ')}
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          <Badge className="bg-emerald-600 text-white border-none text-[9px] font-black px-4 py-1.5 shadow-lg shadow-emerald-900/20">
+            <CheckCircle2 className="w-3 h-3 mr-1.5" /> COMPILED
+          </Badge>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-0">
+        <div className={`relative bg-[#ffffff] dark:bg-[#0d0f14] ${sheet ? 'p-4 md:p-8 pb-20 md:pb-20' : 'p-12 md:p-20 min-h-[650px]'} flex items-center justify-center overflow-hidden`}>
+          <div 
+            className="absolute inset-0 opacity-[0.03] pointer-events-none"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(200,210,220,0.15) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(200,210,220,0.15) 1px, transparent 1px)
+              `,
+              backgroundSize: '20px 20px',
+              backgroundColor: '#f8f9fa'
+            }}
+          />
+
+          <svg
+            viewBox={`0 0 ${sheetW} ${sheetH}`}
+            className="w-full h-auto drop-shadow-[0_40px_80px_rgba(0,0,0,0.2)] relative z-10"
+            style={{ maxWidth: sheet ? undefined : 900 }}
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <defs>
+              <pattern id="arch-grid" width={1 * scale} height={1 * scale} patternUnits="userSpaceOnUse">
+                <path
+                  d={`M ${1 * scale} 0 L 0 0 0 ${1 * scale}`}
+                  fill="none" stroke="currentColor" strokeWidth="0.5"
+                  className="text-slate-200 dark:text-white/10"
+                />
+              </pattern>
+              <filter id="blueprint-shadow" x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur in="SourceAlpha" stdDeviation="3" />
+                <feOffset dx="2" dy="2" result="offsetblur" />
+                <feComponentTransfer>
+                  <feFuncA type="linear" slope="0.15" />
+                </feComponentTransfer>
+                <feMerge>
+                  <feMergeNode />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              {/* Material hatching patterns */}
+              <pattern id="hatch-concrete" width={6} height={6} patternUnits="userSpaceOnUse">
+                <circle cx={3} cy={3} r={0.8} fill="#94a3b8" opacity={0.5} />
+              </pattern>
+              <pattern id="hatch-tile" width={8} height={8} patternUnits="userSpaceOnUse">
+                <rect x={0} y={0} width={8} height={8} fill="none" stroke="#7dd3fc" strokeWidth={0.5} />
+              </pattern>
+              <pattern id="hatch-wood" width={6} height={3} patternUnits="userSpaceOnUse">
+                <line x1={0} y1={1.5} x2={6} y2={1.5} stroke="#d97706" strokeWidth={0.4} opacity={0.4} />
+              </pattern>
+            </defs>
+
+            {/* Background 1m grid */}
+            <rect x="0" y="0" width={sheetW} height={sheet ? sheetH : 520} fill="url(#arch-grid)" />
+
+            {shown.map((f, k) => (
+              <FloorDrawing key={f} layout={layout} floor={f} scale={scale}
+                xOffset={xOffsetOf(k)} yOffset={yOffset} showStructure={showStructure}
+                skeleton={skeleton} plot_width={plot_width} plot_depth={plot_depth}
+                showPlot={!sheet} captionY={sheet ? bottom + 30 : undefined} />
+            ))}
+
+            {/* North arrow — bottom-left */}
+            <g transform={`translate(${xOffsetOf(0) + 12}, ${bottom + below})`}>
+              <circle cx={0} cy={0} r={14} fill="white" stroke="#475569" strokeWidth={1} opacity={0.9} />
+              {/* Arrow shaft */}
+              <line x1={0} y1={-10} x2={0} y2={10} stroke="#1e293b" strokeWidth={1.5} />
+              {/* Arrow north head (filled) */}
+              <polygon points="0,-10 -4,-2 4,-2" fill="#1e293b" />
+              {/* Arrow south head (open) */}
+              <polygon points="0,10 -4,2 4,2" fill="white" stroke="#1e293b" strokeWidth={0.8} />
+              <text x={0} y={-14} textAnchor="middle"
+                style={{ fontSize: '7px', fontWeight: 900, fill: '#1e293b', letterSpacing: '0.1em' }}>
+                N
+              </text>
+            </g>
+
+            {/* Scale bar — bottom-right, shows 0–5m */}
+            {(() => {
+              const barM = 5; // metres represented
+              const barPx = barM * scale;
+              const last = shown.length - 1;
+              const barX = xOffsetOf(last) + bounds[last].w * scale - barPx - 4;
+              const barY = bottom + below;
+              return (
+                <g transform={`translate(${barX}, ${barY})`}>
+                  {/* Alternating segments */}
+                  <rect x={0}           y={-4} width={barPx / 2} height={6} fill="#1e293b" />
+                  <rect x={barPx / 2}   y={-4} width={barPx / 2} height={6} fill="white" stroke="#1e293b" strokeWidth={0.8} />
+                  {/* End ticks */}
+                  <line x1={0}     y1={-6} x2={0}     y2={4} stroke="#1e293b" strokeWidth={1} />
+                  <line x1={barPx} y1={-6} x2={barPx} y2={4} stroke="#1e293b" strokeWidth={1} />
+                  {/* Labels */}
+                  <text x={0}     y={-8} textAnchor="middle"
+                    style={{ fontSize: '7px', fontWeight: 700, fill: '#1e293b' }}>0</text>
+                  <text x={barPx} y={-8} textAnchor="middle"
+                    style={{ fontSize: '7px', fontWeight: 700, fill: '#1e293b' }}>5m</text>
+                </g>
+              );
+            })()}
+
+            {/* Title block — below scale bar */}
+            {(() => {
+              const tbX = sheet ? sheetW / 2 : xOffsetOf(0) + bounds[0].w * scale / 2;
+              const tbY = bottom + below + 16;
+              const projectId = (layout as any).program_reference?.brief_reference?.project_id
+                ?? (layout as any).program_reference?.brief_reference?.id
+                ?? 'GS-PROJ';
+              const floorLabel = shown.map(floorName).join(' & ');
+              const dateStr = new Date().toISOString().slice(0, 10);
+              return (
+                <g>
+                  <text x={tbX} y={tbY} textAnchor="middle"
+                    style={{ fontSize: '8px', fontWeight: 900, fill: '#1e293b', letterSpacing: '0.15em', textTransform: 'uppercase' }}>
+                    {projectId} · PLOT {plot_width.toFixed(1)}M × {plot_depth.toFixed(1)}M · {floorLabel} · {dateStr}
+                  </text>
+                </g>
+              );
+            })()}
           </svg>
 
           <div className="absolute bottom-10 right-10">
@@ -1093,7 +1180,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
         {/* Footer info */}
         <div className="p-8 border-t dark:border-white/5 bg-slate-50/50 dark:bg-slate-950/40 grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2 grid grid-cols-2 gap-4">
-            {activeRooms.slice(0, 6).map(room => {
+            {placed_rooms.filter(r => r.floor === shown[0]).slice(0, 6).map(room => {
               const name    = resolveRoomName(room.room_id);
               const area    = room.width * room.depth;
               const safeArea = isNaN(area) ? 0 : area;
