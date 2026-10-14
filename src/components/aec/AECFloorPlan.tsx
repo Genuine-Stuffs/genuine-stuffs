@@ -496,7 +496,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
     // ("3-Car Enclose…", "Wet Kitchen/P…" on the live villa): wrap onto two
     // lines, then shrink down to 6px, and only cut with "…" past that.
     // Width is estimated (heavy weight + 0.08em tracking ≈ 0.72em per char).
-    const { nameLines, nameFontSize } = (() => {
+    const fitName = (name: string) => {
       const avail = rw - 8;
       const fits = (t: string, fs: number) => t.length * fs * 0.72 <= avail;
       const wrap = (fs: number): string[] => {
@@ -511,11 +511,15 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
       };
       for (let fs = baseNameFontSize; fs >= 6; fs -= 0.5) {
         const lines = wrap(fs);
-        if (lines.length <= 2 && lines.every(l => fits(l, fs))) return { nameLines: lines, nameFontSize: fs };
+        if (lines.length <= 2 && lines.every(l => fits(l, fs))) return { nameLines: lines, nameFontSize: fs, cut: false };
       }
       const max = Math.max(1, Math.floor(avail / (6 * 0.72)) - 1);
-      return { nameLines: [name.length > max ? name.substring(0, max) + '…' : name], nameFontSize: 6 };
-    })();
+      return { nameLines: [name.length > max ? name.substring(0, max) + '…' : name], nameFontSize: 6, cut: name.length > max };
+    };
+    // A full name that only fits cut ("Master…" for a master bathroom): the
+    // short name instead ("Bath").
+    const full = fitName(name);
+    const { nameLines, nameFontSize } = full.cut && !compact ? fitName(shortName(room.room_id, fullName)) : full;
     const lineHeight   = nameFontSize * 1.4;
 
     // Hall pieces: only the largest carries the hall's name. Small rooms
