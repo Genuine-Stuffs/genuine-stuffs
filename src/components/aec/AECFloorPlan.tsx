@@ -153,6 +153,24 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
     return { ...e, R, x0, y, swing: { x: x0, y: y - R, w: R, h: R } as Box };
   })();
 
+  // The kitchen's yard door in sheet units: its leaf `at` along the outside
+  // wall, swinging in, its tag outside.
+  const yard = openings.yard && (() => {
+    const d = openings.yard, r = activeRooms.find(q => q.room_id === d.room_id);
+    if (!r) return null;
+    // (WALL_PX is set further down)
+    const T = WALL_THICKNESS.ext * scale;
+    const R = d.type.w * scale, rx = xOffset + r.x * scale, ry = yOffset + r.y * scale;
+    if (d.wall === 'top') {
+      const x0 = rx + d.at * scale;
+      return { ...d, R, leaf: [x0, ry, x0, ry + R], arc: `M ${x0} ${ry + R} A ${R} ${R} 0 0 0 ${x0 + R} ${ry}`,
+        gap: { x: x0, y: ry - T / 2 - 0.5, w: R, h: T + 1 }, tag: [x0 + R / 2, ry - 16], swing: { x: x0, y: ry, w: R, h: R } as Box };
+    }
+    const x = d.wall === 'left' ? rx : rx + r.width * scale, y0 = ry + d.at * scale, s = d.wall === 'left' ? 1 : -1;
+    return { ...d, R, leaf: [x, y0, x + s * R, y0], arc: `M ${x + s * R} ${y0} A ${R} ${R} 0 0 ${s > 0 ? 0 : 1} ${x} ${y0 + R}`,
+      gap: { x: x - T / 2 - 0.5, y: y0, w: T + 1, h: R }, tag: [x - s * 16, y0 + R / 2], swing: { x: s > 0 ? x : x - R, y: y0, w: R, h: R } as Box };
+  })();
+
   // A tag as on the template: the type's name in a small circle.
   const renderTag = (tag: string, x: number, y: number) => tag ? (
     <g data-tag={tag} style={{ pointerEvents: 'none' }}>
@@ -500,6 +518,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
         ...(rw > 35 && rh > 28 ? furnitureBoxes(renderFurniture(room, rx, ry, rw, rh)) : []),
         ...(dg ? [dg.swing, dg.tag] : []),
         ...(entrance?.room_id === room.room_id ? [entrance.swing] : []),
+        ...(yard?.room_id === room.room_id ? [yard.swing] : []),
       ].map(b => ({ x: b.x - 2, y: b.y - 2, w: b.w + 4, h: b.h + 4 }));
       if (!obstacles.length) return centre;
       const range = (lo: number, hi: number, mid: number) => {
@@ -586,12 +605,14 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
           const L = wd.type.w * scale, half = WIN_DEPTH / 2, g = WIN_DEPTH / 3;
           const horizontal = wd.wall === 'top' || wd.wall === 'bottom';
           // A gap in the external wall with two glazing lines.
-          const x = horizontal ? rx + (rw - L) / 2 : (wd.wall === 'left' ? rx : rx + rw) - half;
-          const y = horizontal ? (wd.wall === 'top' ? ry : ry + rh) - half : ry + (rh - L) / 2;
+          // centred, or where the yard door leaves room for it
+          const mid = wd.at !== undefined ? wd.at * scale : (horizontal ? rw : rh) / 2;
+          const x = horizontal ? rx + mid - L / 2 : (wd.wall === 'left' ? rx : rx + rw) - half;
+          const y = horizontal ? (wd.wall === 'top' ? ry : ry + rh) - half : ry + mid - L / 2;
           const w = horizontal ? L : WIN_DEPTH, h = horizontal ? WIN_DEPTH : L;
           const out = 16;
-          const [tx, ty] = wd.wall === 'top' ? [rx + rw / 2, ry - out] : wd.wall === 'bottom' ? [rx + rw / 2, ry + rh + out]
-            : wd.wall === 'left' ? [rx - out, ry + rh / 2] : [rx + rw + out, ry + rh / 2];
+          const [tx, ty] = wd.wall === 'top' ? [rx + mid, ry - out] : wd.wall === 'bottom' ? [rx + mid, ry + rh + out]
+            : wd.wall === 'left' ? [rx - out, ry + mid] : [rx + rw + out, ry + mid];
           return (
             <g key={`win-${wd.wall}`} opacity={0.9}>
               <rect x={x} y={y} width={w} height={h} fill="white" stroke={wc} strokeWidth={0.8} />
@@ -845,6 +866,16 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                 <path d={`M ${entrance.x0} ${entrance.y - entrance.R} A ${entrance.R} ${entrance.R} 0 0 1 ${entrance.x0 + entrance.R} ${entrance.y}`}
                   fill="none" stroke="#1e293b" strokeWidth={0.8} />
                 {renderTag(tagOf(entrance.type), entrance.x0 + entrance.R / 2, entrance.y + 16)}
+              </g>
+            )}
+
+            {/* Kitchen yard door: a gap in the outside wall, the leaf swinging in, its tag outside */}
+            {yard && !showStructure && (
+              <g data-yard={yard.room_id} data-wall={yard.wall}>
+                <rect x={yard.gap.x} y={yard.gap.y} width={yard.gap.w} height={yard.gap.h} fill="white" />
+                <line x1={yard.leaf[0]} y1={yard.leaf[1]} x2={yard.leaf[2]} y2={yard.leaf[3]} stroke="#1e293b" strokeWidth={1.5} />
+                <path d={yard.arc} fill="none" stroke="#1e293b" strokeWidth={0.8} />
+                {renderTag(tagOf(yard.type), yard.tag[0], yard.tag[1])}
               </g>
             )}
 

@@ -80,11 +80,54 @@ function heuristicDoorWall(room: PlacedRoom, rooms: PlacedRoom[], typeOf: (id: s
 }
 
 export interface PlannedDoor { room_id: string; wall: WallSide; type: OpeningType }
-export interface PlannedWindow { room_id: string; wall: WallSide; type: OpeningType }
+/** `at`: the window's centre along its wall (m from the wall's start, x for
+ * top/bottom, y for left/right); centred when absent. */
+export interface PlannedWindow { room_id: string; wall: WallSide; type: OpeningType; at?: number }
 /** The front door: on the street wall (the floor's bottom edge, y = D) of
  * the room it opens into, centred on that room's street frontage. */
 export interface PlannedEntrance { room_id: string; type: OpeningType; x: number; y: number }
-export interface FloorOpenings { doors: Map<string, PlannedDoor>; windows: PlannedWindow[]; entrance: PlannedEntrance | null }
+/** The kitchen's door to the yard: on an outside wall, never the street's;
+ * `at` is where its leaf starts along the wall (m from the wall's start). */
+export interface PlannedYardDoor { room_id: string; wall: WallSide; type: OpeningType; at: number }
+export interface FloorOpenings { doors: Map<string, PlannedDoor>; windows: PlannedWindow[]; entrance: PlannedEntrance | null; yard: PlannedYardDoor | null }
+
+const KITCHENS = /^(kitchen|wet_kitchen|kitchenette|outdoor_kitchen|dirty_kitchen)$/;
+const YARD_END = 0.3; // the yard door's leaf starts this far from the wall's end
+
+/** The ground floor's yard door, as Lagos houses have it: from a kitchen
+ * through an outside wall to the back yard, facing the BQ where there is
+ * one. The rear wall first, then the kitchen nearest an outbuilding, then
+ * a wet kitchen; at the wall's end nearer the outbuilding (or the rear),
+ * the wall's window moved into the rest of the wall, dropped only when
+ * nothing fits there. */
+function yardDoor(layout: SolvedLayout, rooms: PlacedRoom[], W: number, D: number, typeOf: (id: string) => string, windows: PlannedWindow[]): PlannedYardDoor | null {
+  const obs = (layout.outbuildings ?? []).map(b => ({ x: b.x + b.width / 2, y: b.y + b.depth / 2 }));
+  const target = (r: PlacedRoom) => obs.length
+    ? obs.reduce((a, b) => Math.hypot(b.x - r.x - r.width / 2, b.y) < Math.hypot(a.x - r.x - r.width / 2, a.y) ? b : a)
+    : { x: r.x + r.width / 2, y: -1 };
+  const options = rooms.filter(r => KITCHENS.test(norm(typeOf(r.room_id)))).flatMap(r => {
+    const ext = externalEdges(r, W, D);
+    return (['top', 'left', 'right'] as WallSide[]).filter(w => ext[w] && wallLength(r, w) >= DOOR_ROOM.w + YARD_END * 2).map(wall => {
+      const t = target(r);
+      return { r, wall, rank: [wall === 'top' ? 0 : 1, obs.length ? Math.hypot(t.x - r.x - r.width / 2, t.y - r.y) : 0, /wet|dirty|outdoor/.test(norm(typeOf(r.room_id))) ? 0 : 1] };
+    });
+  }).sort((a, b) => a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1] || a.rank[2] - b.rank[2]);
+  const best = options[0];
+  if (!best) return null;
+  const { r, wall } = best, L = wallLength(r, wall), t = target(r);
+  // the end nearer the outbuilding (or, on a side wall, the rear)
+  const along = wall === 'top' ? t.x - r.x : t.y - r.y;
+  const at = along > L / 2 ? L - YARD_END - DOOR_ROOM.w : YARD_END;
+  // the wall's window into the rest of the wall
+  const i = windows.findIndex(w => w.room_id === r.room_id && w.wall === wall);
+  if (i >= 0) {
+    const [lo, hi] = at === YARD_END ? [at + DOOR_ROOM.w + YARD_END, L - YARD_END] : [YARD_END, at - YARD_END];
+    const type = [windows[i].type, WIN_ROOM, WIN_SMALL].filter(s => s.w <= windows[i].type.w).find(s => hi - lo >= s.w);
+    if (type) windows[i] = { ...windows[i], type, at: (lo + hi) / 2 };
+    else windows.splice(i, 1);
+  }
+  return { room_id: r.room_id, wall, type: DOOR_ROOM, at };
+}
 
 const ENTRY_NAME = /foyer|entrance|entry|lobby|porch/i;
 
@@ -149,7 +192,9 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
   }
   // The front door takes the place of the window on its wall.
   const entrance = floor === 0 ? frontEntrance(layout, rooms, D, typeOf) : null;
-  return { doors, windows: entrance ? windows.filter(w => !(w.room_id === entrance.room_id && w.wall === 'bottom')) : windows, entrance };
+  const kept = entrance ? windows.filter(w => !(w.room_id === entrance.room_id && w.wall === 'bottom')) : windows;
+  const yard = floor === 0 ? yardDoor(layout, rooms, W, D, typeOf, kept) : null;
+  return { doors, windows: kept, entrance, yard };
 }
 
 export interface ScheduleRow { tag: string; type: OpeningType; count: number }
@@ -167,8 +212,9 @@ export function openingSchedule(layout: SolvedLayout): { tagOf: (t: OpeningType)
     o.windows.forEach(w => add(w.type));
   }
   (layout.outbuildings ?? []).forEach(() => add(DOOR_ROOM));
-  const front = planOpenings(layout, 0).entrance;
-  if (front) add(front.type);
+  const ground = planOpenings(layout, 0);
+  if (ground.entrance) add(ground.entrance.type);
+  if (ground.yard) add(ground.yard.type);
   const kind = (k: 'D' | 'W') => [...used.keys()].filter(t => t.kind === k)
     .sort((a, b) => b.w * b.h - a.w * a.h || b.w - a.w);
   const rows: ScheduleRow[] = [];
