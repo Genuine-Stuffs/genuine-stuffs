@@ -790,59 +790,63 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               opacity={0.4}
             />
 
-            {/* Dimension lines — building width (top) and building depth (left) */}
-            <g className="dimension-lines" opacity={0.7}>
-              {/* Top dimension — building width */}
-              <line
-                x1={xOffset} y1={yOffset - 20}
-                x2={xOffset + buildingW * scale} y2={yOffset - 20}
-                stroke="#475569" strokeWidth={0.8}
-              />
-              <line x1={xOffset} y1={yOffset - 25} x2={xOffset} y2={yOffset - 15}
-                stroke="#475569" strokeWidth={0.8} />
-              <line x1={xOffset + buildingW * scale} y1={yOffset - 25}
-                x2={xOffset + buildingW * scale} y2={yOffset - 15}
-                stroke="#475569" strokeWidth={0.8} />
-              <line x1={xOffset} y1={yOffset} x2={xOffset} y2={yOffset - 28}
-                stroke="#94a3b8" strokeWidth={0.4} strokeDasharray="2 2" />
-              <line x1={xOffset + buildingW * scale} y1={yOffset}
-                x2={xOffset + buildingW * scale} y2={yOffset - 28}
-                stroke="#94a3b8" strokeWidth={0.4} strokeDasharray="2 2" />
-              <text
-                x={xOffset + (buildingW * scale) / 2}
-                y={yOffset - 24}
-                textAnchor="middle"
-                style={{ fontSize: '9px', fontWeight: 700, fill: '#1e293b', letterSpacing: '0.05em' }}
-              >
-                {buildingW.toFixed(2)} M
-              </text>
-
-              {/* Left dimension — building depth */}
-              <line
-                x1={xOffset - 20} y1={yOffset}
-                x2={xOffset - 20} y2={yOffset + buildingH * scale}
-                stroke="#475569" strokeWidth={0.8}
-              />
-              <line x1={xOffset - 25} y1={yOffset} x2={xOffset - 15} y2={yOffset}
-                stroke="#475569" strokeWidth={0.8} />
-              <line x1={xOffset - 25} y1={yOffset + buildingH * scale}
-                x2={xOffset - 15} y2={yOffset + buildingH * scale}
-                stroke="#475569" strokeWidth={0.8} />
-              <line x1={xOffset} y1={yOffset} x2={xOffset - 28} y2={yOffset}
-                stroke="#94a3b8" strokeWidth={0.4} strokeDasharray="2 2" />
-              <line x1={xOffset} y1={yOffset + buildingH * scale}
-                x2={xOffset - 28} y2={yOffset + buildingH * scale}
-                stroke="#94a3b8" strokeWidth={0.4} strokeDasharray="2 2" />
-              <text
-                x={xOffset - 24}
-                y={yOffset + (buildingH * scale) / 2}
-                textAnchor="middle"
-                transform={`rotate(-90, ${xOffset - 24}, ${yOffset + (buildingH * scale) / 2})`}
-                style={{ fontSize: '9px', fontWeight: 700, fill: '#1e293b', letterSpacing: '0.05em' }}
-              >
-                {buildingH.toFixed(2)} M
-              </text>
-            </g>
+            {/* Grid bubbles and dimension chains, as on the template: the
+                structural grid's lines lettered A, B, C… under the drawing and
+                numbered 1, 2, 3… from the rear on its left; the inner chain
+                gives each bay, the outer one the overall size. */}
+            {(() => {
+              const g = skeleton.grid;
+              const xs = g?.xs ?? [0, buildingW], ys = g?.ys ?? [0, buildingH];
+              const ink = '#475569', red = '#b91c1c', R = 8, AT = 60;
+              const fmt = (m: number) => `${+m.toFixed(2)}m`;
+              const X = (m: number) => xOffset + m * scale, Y = (m: number) => yOffset + m * scale;
+              const bot = Y(buildingH), left = X(0);
+              const letter = (i: number): string => (i >= 26 ? letter(Math.floor(i / 26) - 1) : '') + String.fromCharCode(65 + (i % 26));
+              const text = { fontSize: '8px', fontWeight: 700, fill: '#1e293b' } as const;
+              const chain = (ps: number[], off: number, horizontal: boolean, key: string) => (
+                <g key={key}>
+                  {horizontal
+                    ? <line x1={X(ps[0])} y1={bot + off} x2={X(ps[ps.length - 1])} y2={bot + off} stroke={ink} strokeWidth={0.6} />
+                    : <line x1={left - off} y1={Y(ps[0])} x2={left - off} y2={Y(ps[ps.length - 1])} stroke={ink} strokeWidth={0.6} />}
+                  {ps.map((p, i) => horizontal
+                    ? <line key={`t${i}`} x1={X(p) - 3} y1={bot + off + 3} x2={X(p) + 3} y2={bot + off - 3} stroke={ink} strokeWidth={1} />
+                    : <line key={`t${i}`} x1={left - off - 3} y1={Y(p) + 3} x2={left - off + 3} y2={Y(p) - 3} stroke={ink} strokeWidth={1} />)}
+                  {ps.slice(1).map((p, i) => {
+                    const m = horizontal ? (X(ps[i]) + X(p)) / 2 : (Y(ps[i]) + Y(p)) / 2;
+                    return horizontal
+                      ? <text key={`d${i}`} x={m} y={bot + off - 3} textAnchor="middle" style={text}>{fmt(p - ps[i])}</text>
+                      : <text key={`d${i}`} x={left - off - 3} y={m} textAnchor="middle" transform={`rotate(-90, ${left - off - 3}, ${m})`} style={text}>{fmt(p - ps[i])}</text>;
+                  })}
+                </g>
+              );
+              const bubble = (cx: number, cy: number, label: string) => (
+                <g>
+                  <circle cx={cx} cy={cy} r={R} fill="white" stroke={red} strokeWidth={0.8} />
+                  <text x={cx} y={cy + 3} textAnchor="middle" style={{ fontSize: '8px', fontWeight: 700, fill: red }}>{label}</text>
+                </g>
+              );
+              const extent = (ps: number[]) => [ps[0], ps[ps.length - 1]];
+              return (
+                <g className="grid-dimensions">
+                  {g && xs.map((x, i) => (
+                    <g key={`gx${i}`} data-bubble={letter(i)}>
+                      <line x1={X(x)} y1={bot} x2={X(x)} y2={bot + AT - R} stroke="#94a3b8" strokeWidth={0.5} strokeDasharray="6 2 1 2" />
+                      {bubble(X(x), bot + AT, letter(i))}
+                    </g>
+                  ))}
+                  {g && ys.map((y, i) => (
+                    <g key={`gy${i}`} data-bubble={i + 1}>
+                      <line x1={left} y1={Y(y)} x2={left - AT + R} y2={Y(y)} stroke="#94a3b8" strokeWidth={0.5} strokeDasharray="6 2 1 2" />
+                      {bubble(left - AT, Y(y), String(i + 1))}
+                    </g>
+                  ))}
+                  {chain(xs, 20, true, 'bays-x')}
+                  {xs.length > 2 && chain(extent(xs), 36, true, 'total-x')}
+                  {chain(ys, 20, false, 'bays-y')}
+                  {ys.length > 2 && chain(extent(ys), 36, false, 'total-y')}
+                </g>
+              );
+            })()}
 
             {captionY !== undefined && (
               <text x={xOffset + (buildingW * scale) / 2} y={captionY} textAnchor="middle"
@@ -910,7 +914,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
 
 // A floor shown alone gets a panel this wide (sheet units).
 const PANEL_W = 720;
-const SHEET_W = 1080, SHEET_MAX_SCALE = 30;
+const SHEET_W = 1080, MAX_SCALE = 30, GUTTER = 80;
 
 const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   const [showStructure, setShowStructure] = useState(false);
@@ -948,34 +952,29 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   const sheet = shown.length > 1;
 
   // ── One frame for every floor shown: the same scale, rear walls on one line
-  // (the BQ strip above the ground floor counts for all). Each floor in its
-  // own panel; with one floor this is the single-floor frame as before.
-  const padding = 2;
+  // (the BQ strip above the ground floor counts for all). Each floor has its
+  // own panel, the drawing plus a GUTTER each side for the grid bubbles and
+  // dimension chains, so the floors stand close together as on the template.
+  // The scale fills the target width (one floor: PANEL_W; the sheet:
+  // SHEET_W), up to MAX_SCALE (the labels are sized for 20–30 units a metre);
+  // the sheet is never narrower than PANEL_W, so text never shows larger than
+  // in a single floor's view, and it grows downwards as far as it needs.
   const obTop = (f: number) => f === 0 ? Math.max(0, ...(layout.outbuildings ?? []).map(b => -b.y)) : 0;
   const bounds = shown.map(f => floorBounds(layout, f, plot_width, plot_depth));
   const maxH = Math.max(...bounds.map(b => b.h));
   const top = Math.max(...shown.map(obTop));
-  // On the sheet each panel is its drawing plus a margin for the dimension
-  // lines, so the floors stand close together as on the template. The sheet
-  // grows downwards as far as it needs: its scale fills SHEET_W, up to
-  // SHEET_MAX_SCALE (the labels are sized for 20–27 units a metre), and it is
-  // never narrower than one floor's panel, so text never shows larger than
-  // in the single-floor view.
-  const margin = 2.5;
-  const across = bounds.reduce((s, b) => s + b.w + margin * 2, 0);
-  const scale = sheet
-    ? Math.min(SHEET_MAX_SCALE, SHEET_W / across)
-    : Math.min(...bounds.map(b =>
-        Math.min(620 / (b.w + padding * 2), 420 / (maxH + top + padding * 2))));
-  const sheetW = sheet ? Math.max(PANEL_W, across * scale) : PANEL_W;
-  const yOffset = sheet ? top * scale + 40 : (480 - ((maxH + top) * scale)) / 2 + top * scale;
-  const xOffsetOf = (k: number) => sheet
-    ? (sheetW - across * scale) / 2 + bounds.slice(0, k).reduce((s, b) => s + (b.w + margin * 2) * scale, 0) + margin * scale
-    : k * PANEL_W + (PANEL_W - bounds[k].w * scale) / 2;
+  const metres = bounds.reduce((s, b) => s + b.w, 0);
+  const gutters = shown.length * GUTTER * 2;
+  const scale = Math.min(MAX_SCALE, ((sheet ? SHEET_W : PANEL_W) - gutters) / metres);
+  const sheetW = Math.max(PANEL_W, metres * scale + gutters);
+  const yOffset = top * scale + 40;
+  const xOffsetOf = (k: number) => (sheetW - metres * scale - gutters) / 2
+    + bounds.slice(0, k).reduce((s, b) => s + b.w * scale + GUTTER * 2, 0) + GUTTER;
   const bottom = yOffset + maxH * scale;
-  // On the sheet the floor names sit under the drawings, the rest below them.
-  const below = sheet ? 60 : 36;
-  const sheetH = sheet ? bottom + below + 30 : 580;
+  // Under the drawings: the chains and bubbles (to +68), on the sheet the
+  // floor names, then north arrow, scale bar and title block.
+  const below = sheet ? 116 : 96;
+  const sheetH = bottom + below + 30;
 
   // Generate structural skeleton
   const skeleton = useMemo(() => structuralEngine.generateSkeleton(layout), [layout]);
@@ -1104,13 +1103,13 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
             </defs>
 
             {/* Background 1m grid */}
-            <rect x="0" y="0" width={sheetW} height={sheet ? sheetH : 520} fill="url(#arch-grid)" />
+            <rect x="0" y="0" width={sheetW} height={sheetH} fill="url(#arch-grid)" />
 
             {shown.map((f, k) => (
               <FloorDrawing key={f} layout={layout} floor={f} scale={scale}
                 xOffset={xOffsetOf(k)} yOffset={yOffset} showStructure={showStructure}
                 skeleton={skeleton} plot_width={plot_width} plot_depth={plot_depth}
-                showPlot={!sheet} captionY={sheet ? bottom + 30 : undefined} />
+                showPlot={!sheet} captionY={sheet ? bottom + 88 : undefined} />
             ))}
 
             {/* North arrow — bottom-left */}
