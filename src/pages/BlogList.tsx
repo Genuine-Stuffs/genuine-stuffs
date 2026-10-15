@@ -43,7 +43,7 @@ const BlogList = () => {
               Genuine Stuffs <span className="text-primary italic">Blog</span>
             </h1>
             <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-              Insights, updates, and expert advice on building materials, AI in construction, and project management in Africa.
+              News, ideas and expert advice on building materials, using AI (Artificial Intelligence) in building, and running building projects in Africa.
             </p>
           </div>
 
