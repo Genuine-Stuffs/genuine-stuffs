@@ -36,7 +36,7 @@ const HelpSupport = () => {
         {
             category: "General",
             questions: [
-                { q: "What is Material Insight?", a: "Material Insight is a website that uses real data to connect sellers of building materials with checked professionals, so buying materials and running a project go smoothly." },
+                { q: "What is Genuine Stuffs?", a: "Genuine Stuffs is a website that uses real data to connect sellers of building materials with checked professionals, so buying materials and running a project go smoothly." },
                 { q: "How do I verify my account?", a: "Sellers upload their CAC (Corporate Affairs Commission) registration documents and a short business profile on the Settings page. Professionals are checked using their professional licence numbers." }
             ]
         },
@@ -171,7 +171,7 @@ const HelpSupport = () => {
                                         </div>
                                         <div>
                                             <p className="text-white/70 text-[10px] font-black uppercase tracking-widest">Email Support</p>
-                                            <p className="font-bold">support@materialinsight.com</p>
+                                            <p className="font-bold">contact@genuinestuffs.com</p>
                                         </div>
                                     </div>
                                     <Button className="w-full h-14 bg-white text-primary hover:bg-slate-100 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-lg">
