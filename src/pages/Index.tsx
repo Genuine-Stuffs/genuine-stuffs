@@ -113,11 +113,11 @@ const Index = () => {
 
   // Building Gallery Images
   const galleryImages = [
-    { src: "/images/gallery/exterior-front.jpg", label: "Front Elevation" },
-    { src: "/images/gallery/exterior-angle.jpg", label: "3/4 Perspective" },
+    { src: "/images/gallery/exterior-front.jpg", label: "Front View" },
+    { src: "/images/gallery/exterior-angle.jpg", label: "View from the Corner" },
     { src: "/images/gallery/floor-plan-ground.jpg", label: "Ground Floor Plan" },
     { src: "/images/gallery/floor-plan-upper.jpg", label: "First Floor Plan" },
-    { src: "/images/gallery/interior-living.jpg", label: "Interior — Living" },
+    { src: "/images/gallery/interior-living.jpg", label: "Inside — Living Room" },
   ];
 
   // Hero Background 8-second Carousel State
@@ -179,11 +179,11 @@ const Index = () => {
       timeToBoq: "2 min 45 sec",
       suppliersMatched: 4,
       items: [
-        { name: "Concrete Grade C25", qty: "118 m³", unitPrice: "₦120,000", total: "₦14.16M", status: "Verified NIS" },
-        { name: "High Yield Rebars Y16", qty: "9.4 t", unitPrice: "₦1,200,000", total: "₦11.28M", status: "Direct Mill" },
+        { name: "Concrete Grade C25", qty: "118 m³", unitPrice: "₦120,000", total: "₦14.16M", status: "Meets NIS" },
+        { name: "High Yield Rebars Y16", qty: "9.4 t", unitPrice: "₦1,200,000", total: "₦11.28M", status: "From the Mill" },
         { name: "Vibrated Blocks 225mm", qty: "1,840 no.", unitPrice: "₦1,800", total: "₦3.31M", status: "In Stock" },
         { name: "Aluminium Roof 0.55mm", qty: "410 m²", unitPrice: "₦12,000", total: "₦4.92M", status: "Factory Price" },
-        { name: "Finishing & Electricals", qty: "Lump sum", unitPrice: "₦24,730,000", total: "₦24.73M", status: "Optimized" }
+        { name: "Finishing & Electricals", qty: "Lump sum", unitPrice: "₦24,730,000", total: "₦24.73M", status: "Best Price" }
       ]
     },
     {
@@ -193,11 +193,11 @@ const Index = () => {
       timeToBoq: "4 min 12 sec",
       suppliersMatched: 9,
       items: [
-        { name: "Ready-Mix Concrete C30", qty: "520 m³", unitPrice: "₦135,000", total: "₦70.20M", status: "Verified NIS" },
-        { name: "High Yield Rebars Y16/Y12", qty: "38.5 t", unitPrice: "₦1,180,000", total: "₦45.43M", status: "Direct Mill" },
+        { name: "Ready-Mix Concrete C30", qty: "520 m³", unitPrice: "₦135,000", total: "₦70.20M", status: "Meets NIS" },
+        { name: "High Yield Rebars Y16/Y12", qty: "38.5 t", unitPrice: "₦1,180,000", total: "₦45.43M", status: "From the Mill" },
         { name: "Vibrated Blocks 225mm", qty: "8,600 no.", unitPrice: "₦1,750", total: "₦15.05M", status: "In Stock" },
         { name: "Stone Coated Roof Tiles", qty: "1,850 m²", unitPrice: "₦18,500", total: "₦34.22M", status: "Factory Price" },
-        { name: "MEP & Interior Finishing", qty: "Lump sum", unitPrice: "₦80,900,000", total: "₦80.90M", status: "Optimized" }
+        { name: "Plumbing, Wiring & Interior Finishing", qty: "Lump sum", unitPrice: "₦80,900,000", total: "₦80.90M", status: "Best Price" }
       ]
     },
     {
@@ -207,11 +207,11 @@ const Index = () => {
       timeToBoq: "5 min 30 sec",
       suppliersMatched: 12,
       items: [
-        { name: "Heavy Duty Slab C35", qty: "950 m³", unitPrice: "₦145,000", total: "₦137.75M", status: "Verified NIS" },
-        { name: "Structural Steel I-Beams", qty: "65.0 t", unitPrice: "₦1,650,000", total: "₦107.25M", status: "Direct Mill" },
+        { name: "Heavy Duty Slab C35", qty: "950 m³", unitPrice: "₦145,000", total: "₦137.75M", status: "Meets NIS" },
+        { name: "Structural Steel I-Beams", qty: "65.0 t", unitPrice: "₦1,650,000", total: "₦107.25M", status: "From the Mill" },
         { name: "Industrial Cladding 0.7mm", qty: "3,200 m²", unitPrice: "₦22,000", total: "₦70.40M", status: "Factory Price" },
         { name: "Reinforced Mesh A142", qty: "2,500 m²", unitPrice: "₦8,500", total: "₦21.25M", status: "In Stock" },
-        { name: "Site Civils & Drainage", qty: "Lump sum", unitPrice: "₦75,350,000", total: "₦75.35M", status: "Optimized" }
+        { name: "Site Civils & Drainage", qty: "Lump sum", unitPrice: "₦75,350,000", total: "₦75.35M", status: "Best Price" }
       ]
     }
   ];
@@ -219,23 +219,23 @@ const Index = () => {
   const flywheelSteps = [
     {
       num: "01",
-      title: "Takeoff",
-      subtitle: "AI Quantifies",
-      desc: "Architects and engineers generate conceptual visualisations and costed BoQs instantly.",
+      title: "Count",
+      subtitle: "AI Counts the Materials",
+      desc: "Architects and engineers get pictures of the design and a priced list of every material straight away.",
       icon: Cpu,
     },
     {
       num: "02",
-      title: "Execute",
-      subtitle: "Site Reality",
-      desc: "Contractors order materials and execute the build, logging real market prices and site outcomes.",
+      title: "Build",
+      subtitle: "On Site",
+      desc: "Builders order the materials and put up the building, recording the prices they really paid and how the work went.",
       icon: Construction,
     },
     {
       num: "03",
       title: "Learn",
-      subtitle: "The Flywheel Feedback",
-      desc: "Real outcomes feed back into the AI engine, making every subsequent estimation smarter and more precise.",
+      subtitle: "Feeding Back",
+      desc: "What really happened goes back into the AI, so every estimate after it is smarter and more precise.",
       icon: RefreshCw,
     }
   ];
@@ -306,10 +306,10 @@ const Index = () => {
             <div className="flex flex-wrap items-center justify-between gap-4 pb-6 mb-8 border-b border-slate-800/80 text-xs font-semibold text-slate-400 uppercase tracking-[0.1em]">
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                <span className="text-white font-bold">AI-Native Construction Operating System</span>
+                <span className="text-white font-bold">AI (Artificial Intelligence) for Building</span>
               </div>
               <div className="flex items-center gap-6">
-                <span>System Status: Online</span>
+                <span>Service Status: Online</span>
                 <span className="hidden sm:inline">Built for Nigeria</span>
               </div>
             </div>
@@ -318,12 +318,12 @@ const Index = () => {
               <div className="lg:col-span-7 flex flex-col justify-center">
                 {/* Main Headline (Inter Display Weight 800/900) */}
                 <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.08] mb-6">
-                  The operating system for <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-primary">building.</span>
+                  Everything you need to build, <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-primary">in one place.</span>
                 </h1>
 
                 {/* Subtitle */}
                 <p className="text-lg sm:text-xl text-slate-300 font-normal leading-relaxed mb-8">
-                  Concept, quantities, materials and people — one continuous system. Go from a rough sketch to a costed bill of quantities to a placed, <span className="text-white font-bold underline decoration-primary decoration-2 underline-offset-4">verified</span> order in minutes, not weeks.
+                  Plan your building, work out what it needs, buy the materials and find people to build it, all in one place. Start with a rough idea, get a priced list of every material, and place an order with <span className="text-white font-bold underline decoration-primary decoration-2 underline-offset-4">checked</span> suppliers in minutes instead of weeks.
                 </p>
 
                 {/* Action Buttons */}
@@ -335,7 +335,7 @@ const Index = () => {
                     </Link>
                   </Button>
                   <a href="#live-translation" className="text-slate-300 hover:text-white font-semibold flex items-center gap-2 transition-colors text-base group">
-                    <span>Watch a live takeoff</span>
+                    <span>See how we count the materials</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </a>
                 </div>
@@ -346,7 +346,7 @@ const Index = () => {
                 <div className="absolute inset-0 bg-gradient-to-tr from-primary/10 to-blue-500/10 rounded-2xl blur-xl pointer-events-none" />
                 <div className="relative bg-slate-900/80 backdrop-blur-md border border-slate-700/50 rounded-2xl p-5 shadow-2xl">
                   <div className="flex items-center justify-between border-b border-slate-700/50 pb-3 mb-4">
-                    <span className="text-xs font-mono text-slate-400">takeoff_engine.exe</span>
+                    <span className="text-xs font-mono text-slate-400">materials counter</span>
                     <span className="text-[10px] uppercase font-bold text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20 shadow-[0_0_10px_rgba(52,211,153,0.2)]">Live</span>
                   </div>
                   <div className="space-y-4">
@@ -375,7 +375,7 @@ const Index = () => {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 p-4 rounded-3xl bg-transparent border border-slate-800/60 shadow-2xl backdrop-blur-[2px]">
               <div className="p-5 rounded-2xl bg-[#F0F9FF] hover:bg-transparent border border-slate-300 hover:border-slate-700/80 transition-all duration-300 group flex flex-col justify-center shadow-md hover:shadow-2xl">
                 <span className="text-3xl sm:text-4xl font-extrabold text-blue-950 group-hover:text-white tracking-tight transition-colors">3 min</span>
-                <span className="text-xs uppercase tracking-[0.1em] text-slate-800 group-hover:text-primary font-bold mt-1 transition-colors">Median Concept → BoQ</span>
+                <span className="text-xs uppercase tracking-[0.1em] text-slate-800 group-hover:text-primary font-bold mt-1 transition-colors">Typical Time from Idea to Priced Materials List</span>
               </div>
               <div className="p-5 rounded-2xl bg-[#F0F9FF] hover:bg-transparent border border-slate-300 hover:border-slate-700/80 transition-all duration-300 group flex flex-col justify-center shadow-md hover:shadow-2xl">
                 <span className="text-3xl sm:text-4xl font-extrabold text-blue-950 group-hover:text-white tracking-tight transition-colors">860+</span>
@@ -383,11 +383,11 @@ const Index = () => {
               </div>
               <div className="p-5 rounded-2xl bg-[#F0F9FF] hover:bg-transparent border border-slate-300 hover:border-slate-700/80 transition-all duration-300 group flex flex-col justify-center shadow-md hover:shadow-2xl">
                 <span className="text-3xl sm:text-4xl font-extrabold text-blue-950 group-hover:text-white tracking-tight transition-colors">12,400</span>
-                <span className="text-xs uppercase tracking-[0.1em] text-slate-800 group-hover:text-primary font-bold mt-1 transition-colors">Material SKUs Priced</span>
+                <span className="text-xs uppercase tracking-[0.1em] text-slate-800 group-hover:text-primary font-bold mt-1 transition-colors">Building Products with Prices</span>
               </div>
               <div className="p-5 rounded-2xl bg-[#F0F9FF] hover:bg-transparent border border-slate-300 hover:border-slate-700/80 transition-all duration-300 group flex flex-col justify-center shadow-md hover:shadow-2xl">
                 <span className="text-3xl sm:text-4xl font-extrabold text-blue-950 group-hover:text-white tracking-tight transition-colors">₦2.1B+</span>
-                <span className="text-xs uppercase tracking-[0.1em] text-slate-800 group-hover:text-primary font-bold mt-1 transition-colors">Value Quantified</span>
+                <span className="text-xs uppercase tracking-[0.1em] text-slate-800 group-hover:text-primary font-bold mt-1 transition-colors">Worth of Building Work Costed</span>
               </div>
             </div>
 
@@ -405,13 +405,13 @@ const Index = () => {
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-[0.12em] mb-4">
                 <Terminal className="w-3.5 h-3.5" />
-                <span>01 / Live Translation Engine</span>
+                <span>01 / From Idea to Order</span>
               </div>
               <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">
                 One prompt. One bill. <span className="text-primary underline decoration-2 underline-offset-4">One checkout.</span>
               </h2>
               <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 font-normal">
-                See how our AI engine translates conceptual building dimensions directly into verified NIS material orders ready for instant Paystack checkout.
+                Describe your building in a sentence. Our AI works out every material it needs and finds it from suppliers whose products meet the NIS (Nigerian Industrial Standards). You can then pay for everything at once through Paystack, a secure online payment service.
               </p>
             </div>
 
@@ -504,7 +504,7 @@ const Index = () => {
                 </div>
                 <div className="flex items-center gap-6">
                   <div className="text-right">
-                    <span className="text-[10px] uppercase font-bold tracking-[0.1em] text-slate-400 block">AI Takeoff Speed</span>
+                    <span className="text-[10px] uppercase font-bold tracking-[0.1em] text-slate-400 block">Time to Count the Materials</span>
                     <span className="text-sm font-extrabold text-slate-900 dark:text-white flex items-center justify-end gap-1 mt-0.5">
                       <Zap className="w-3.5 h-3.5 text-primary fill-primary" />
                       {boqProjects[selectedBoqProject].timeToBoq}
@@ -513,7 +513,7 @@ const Index = () => {
                   <div className="h-8 w-[1px] bg-slate-200 dark:bg-slate-700 hidden sm:block" />
                   <div className="text-right hidden sm:block">
                     <span className="text-[10px] uppercase font-bold tracking-[0.1em] text-slate-400 block">Suppliers Matched</span>
-                    <span className="text-sm font-extrabold text-primary mt-0.5 block">{boqProjects[selectedBoqProject].suppliersMatched} Verified NIS</span>
+                    <span className="text-sm font-extrabold text-primary mt-0.5 block">{boqProjects[selectedBoqProject].suppliersMatched} Checked Suppliers</span>
                   </div>
                 </div>
               </div>
@@ -523,11 +523,11 @@ const Index = () => {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50 dark:bg-slate-900/40">
-                      <th className="py-3.5 px-6">Material / Structural Item</th>
-                      <th className="py-3.5 px-6">AI Quantified Qty</th>
-                      <th className="py-3.5 px-6">Verified Unit Rate</th>
-                      <th className="py-3.5 px-6">Subtotal Cost</th>
-                      <th className="py-3.5 px-6 text-right">Verification Status</th>
+                      <th className="py-3.5 px-6">Material</th>
+                      <th className="py-3.5 px-6">Amount Needed</th>
+                      <th className="py-3.5 px-6">Checked Price Each</th>
+                      <th className="py-3.5 px-6">Cost</th>
+                      <th className="py-3.5 px-6 text-right">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-700/60 font-normal text-sm">
@@ -568,7 +568,7 @@ const Index = () => {
                     </div>
                     <div className="flex justify-between items-end border-t border-slate-200/50 dark:border-slate-700/50 pt-2 mt-1">
                       <div className="flex flex-col">
-                        <span className="text-[10px] uppercase font-bold text-slate-400">Qty & Rate</span>
+                        <span className="text-[10px] uppercase font-bold text-slate-400">Amount & Price</span>
                         <span className="text-xs text-slate-600 dark:text-slate-300 font-medium mt-0.5">{item.qty} × {item.unitPrice}</span>
                       </div>
                       <div className="flex flex-col text-right">
@@ -583,22 +583,22 @@ const Index = () => {
               {/* Table Footer Bar with Instant Checkout CTA */}
               <div className="p-6 bg-slate-50 dark:bg-slate-900/80 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div>
-                  <span className="text-xs uppercase font-bold tracking-[0.1em] text-slate-500 dark:text-slate-400 block">Total Estimated Material Takeoff</span>
+                  <span className="text-xs uppercase font-bold tracking-[0.1em] text-slate-500 dark:text-slate-400 block">Estimated Total Cost of Materials</span>
                   <div className="flex items-baseline gap-2 mt-1">
                     <span className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">{boqProjects[selectedBoqProject].totalCost}</span>
-                    <span className="text-xs text-primary font-bold uppercase">(Direct Mill & Factory Rates)</span>
+                    <span className="text-xs text-primary font-bold uppercase">(at factory prices)</span>
                   </div>
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-2 block">Representative project · rates as of Aug 2026</span>
+                  <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400 mt-2 block">Example project · prices as of August 2026</span>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Button asChild variant="outline" className="h-12 px-6 rounded-2xl text-xs font-bold border-slate-300 dark:border-slate-600 w-full sm:w-auto whitespace-normal h-auto min-h-12 py-3">
-                    <Link to="/pro/ai-studio" className="text-center">Customize in AI Studio</Link>
+                    <Link to="/pro/ai-studio" className="text-center">Change This in AI Studio</Link>
                   </Button>
                   <Button asChild className="h-auto min-h-12 py-3 px-4 sm:px-8 rounded-2xl bg-primary hover:bg-primary/90 text-white font-bold text-[11px] sm:text-sm uppercase tracking-normal sm:tracking-wider shadow-lg shadow-primary/20 flex items-center justify-center gap-2 w-full sm:w-auto whitespace-normal">
                     <Link to="/marketplace" className="text-center flex items-center justify-center gap-1.5 flex-wrap">
                       <Lock className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                      <span className="hidden md:inline">Order All — Paystack Checkout</span>
-                      <span className="hidden sm:inline md:hidden">Order All — Checkout</span>
+                      <span className="hidden md:inline">Order Everything — Pay with Paystack</span>
+                      <span className="hidden sm:inline md:hidden">Order Everything</span>
                       <span className="sm:hidden">Checkout Order</span>
                     </Link>
                   </Button>
@@ -621,15 +621,15 @@ const Index = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-3 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-                  <span>02 / Three Pillars</span>
+                  <span>02 / What We Offer</span>
                   <div className="h-[1px] w-12 bg-primary/30" />
                 </div>
                 <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                  One platform. <span className="text-primary">Three integrated engines.</span>
+                  One website. <span className="text-primary">Three services that work together.</span>
                 </h2>
               </div>
               <p className="text-base text-slate-600 dark:text-slate-300 max-w-md font-normal">
-                We bridge the gap between conceptual design, material procurement, and project management into a single digital workflow.
+                Designing a building, buying its materials and managing the work usually happen separately. We bring all three together in one place online.
               </p>
             </div>
 
@@ -641,20 +641,20 @@ const Index = () => {
                   num: "01",
                   title: "Innovation Studio",
                   tagline: "FOR ARCHITECTS & ENGINEERS",
-                  desc: "Turn a concept into a costed, buildable bill of quantities — AI takeoff, structural estimates and visualisations in minutes.",
+                  desc: "Turn an idea into a buildable design with a priced list of every material. In minutes, AI counts the materials, estimates the cost of the structure and shows you pictures of the building.",
                   icon: Cpu,
-                  features: ["AI Conceptual Visualisation", "Automated BoQ Takeoff", "Preliminary Structural Costing", "BIM / CAD Export Ready"],
+                  features: ["Pictures of Your Idea, Made by AI", "Automatic BoQ (Bill of Quantities)", "Early Cost of the Frame and Foundations", "Files for BIM (Building Information Modelling) and CAD (Computer-Aided Design)"],
                   link: "/pro/ai-studio",
                   cta: "Launch Studio"
                 },
                 {
                   id: 1,
                   num: "02",
-                  title: "Procurement Marketplace",
-                  tagline: "FOR BUILDERS & PROCUREMENT",
-                  desc: "Order straight from the BoQ — verified suppliers, live factory-gate pricing and tracked logistics, no middleman markup.",
+                  title: "Materials Marketplace",
+                  tagline: "FOR BUILDERS & BUYERS",
+                  desc: "Order straight from your materials list. Suppliers are checked, prices come straight from the factory, deliveries are tracked, and no middleman adds to the price.",
                   icon: Box,
-                  features: ["Live Mill & Factory Pricing", "NIS-Certified Verification", "Zero Middleman Markups", "Tracked Site Logistics"],
+                  features: ["Up-to-Date Factory Prices", "Products Checked Against NIS (Nigerian Industrial Standards)", "No Middleman Markups", "Deliveries Tracked to Your Site"],
                   link: "/marketplace",
                   cta: "Browse Marketplace"
                 },
@@ -663,11 +663,11 @@ const Index = () => {
                   num: "03",
                   title: "Professional Portal",
                   tagline: "FOR PROJECT TEAMS",
-                  desc: "Run the build in one hub — verified experts, BIM/CAD management and execution tracking against the same data model.",
+                  desc: "Run the whole build from one place: hire checked experts, keep every drawing together and follow progress on site, all from the same project information.",
                   icon: Users,
-                  features: ["Verified Expert Directory", "BIM / CAD Cloud Management", "Project Execution Tracking", "Escrow & Milestone Pay"],
+                  features: ["A List of Checked Experts", "Drawings Stored Safely Online", "Follow the Work on Site", "Safe Payments, Released Stage by Stage"],
                   link: "/pros",
-                  cta: "Enter ProHub"
+                  cta: "Open ProHub"
                 }
               ].map((pillar) => (
                 <div 
@@ -720,7 +720,7 @@ const Index = () => {
           <div className="max-w-5xl mx-auto">
             
             <div className="flex items-center gap-3 mb-4 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-              <span>03 / The Fracture</span>
+              <span>03 / The Problem</span>
               <div className="h-[1px] flex-1 bg-primary/30" />
             </div>
 
@@ -728,14 +728,14 @@ const Index = () => {
               <div className="lg:col-span-6">
                 <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-6">
                   Building is not one industry. <br />
-                  <span className="font-normal text-slate-600 dark:text-slate-400">It is six that do not speak.</span>
+                  <span className="font-normal text-slate-600 dark:text-slate-400">It is six that do not talk to each other.</span>
                 </h2>
                 <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal mb-8">
-                  Design hands over a drawing. Quantities are re-counted by hand. Procurement starts again from zero, on the telephone, at a price nobody can verify. Every handover loses money, time and truth — and the loss compounds through the life of the asset.
+                  The designer hands over a drawing. Someone counts the materials again by hand. The buyer starts from scratch, phoning around for prices nobody can check. Each hand-over wastes money and time and lets mistakes creep in, and the losses keep adding up for as long as the building stands.
                 </p>
                 <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-bold text-sm uppercase tracking-wider">
                   <ShieldCheck className="w-5 h-5" />
-                  <span>Genuine Stuffs removes the handovers.</span>
+                  <span>Genuine Stuffs keeps it all in one place, so nothing is lost between steps.</span>
                 </div>
               </div>
 
@@ -751,7 +751,7 @@ const Index = () => {
                             <div className="absolute inset-0 bg-black/60 flex items-end p-6">
                               <div className="text-white">
                                 <span className="text-xs uppercase font-bold tracking-[0.1em] bg-primary px-2.5 py-1 rounded-lg text-white">The Old Way</span>
-                                <h4 className="text-xl font-bold mt-2.5">Fragmented Handovers & Unverified Pricing</h4>
+                                <h4 className="text-xl font-bold mt-2.5">Work Passed from Hand to Hand, Prices Nobody Can Check</h4>
                               </div>
                             </div>
                           </div>
@@ -761,8 +761,8 @@ const Index = () => {
                             <img src={townAfter1} alt="Unified AI-Native Construction Site" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                             <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent flex items-end p-6">
                               <div className="text-white">
-                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-lg text-white">The Genuine OS Way</span>
-                                <h4 className="text-xl font-bold mt-2.5">Unified AI Takeoffs & Verified NIS Marketplace</h4>
+                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-lg text-white">The Genuine Stuffs Way</span>
+                                <h4 className="text-xl font-bold mt-2.5">AI Counts the Materials, Checked Suppliers Sell Them</h4>
                               </div>
                             </div>
                           </div>
@@ -788,10 +788,10 @@ const Index = () => {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <div className="flex items-center gap-3 mb-2 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-                  <span>04 / Live Procurement Feed</span>
+                  <span>04 / Materials for Sale Now</span>
                 </div>
                 <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight">
-                  Verified NIS <span className="text-primary">Marketplace SKUs</span>
+                  Products That Meet <span className="text-primary">Nigerian Standards</span>
                 </h2>
               </div>
               <Link to="/marketplace" className="inline-flex items-center gap-2 text-sm font-bold text-primary hover:underline uppercase tracking-tight">
@@ -860,7 +860,7 @@ const Index = () => {
                         className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-700"
                       />
                       <div className="absolute top-3 right-3 px-3 py-1 rounded-xl bg-primary text-white text-[10px] font-bold uppercase tracking-widest shadow-md z-10">
-                        Verified NIS
+                        Meets NIS
                       </div>
                     </div>
 
@@ -892,7 +892,7 @@ const Index = () => {
                 ))
               ) : (
                 <div className="col-span-full py-16 text-center text-slate-400 font-normal bg-white dark:bg-[#2D3748] rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
-                  No promoted materials available at the moment. Explore the full marketplace inventory.
+                  There are no featured materials right now. Have a look at everything in the marketplace.
                 </div>
               )}
             </div>
@@ -919,13 +919,13 @@ const Index = () => {
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-primary/20 border border-primary/40 text-primary text-xs font-bold uppercase tracking-[0.12em] mb-4">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin-slow" />
-                <span>05 / The Flywheel & Proof</span>
+                <span>05 / How We Keep Getting Better</span>
               </div>
               <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4">
                 Every project teaches <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-primary">the next one.</span>
               </h2>
               <p className="text-base sm:text-lg text-slate-300 font-normal">
-                Genuine Stuffs creates a continuous feedback loop where real market prices and site execution outcomes compound into data-driven efficiency.
+                Each project sends real prices and real results from the building site back into our system, so every estimate after it is more accurate.
               </p>
             </div>
 
@@ -957,9 +957,9 @@ const Index = () => {
             {/* Proof Stats Band */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8 mt-12 relative z-10 border-t border-slate-800/80 pt-16">
               {[
-                { val: "₦2.1B+", label: "Value Quantified", desc: "Total value of building infrastructure processed across our studio." },
-                { val: "12,400", label: "Material SKUs Priced", desc: "Verified materials available for instant procurement." },
-                { val: "3", label: "Cities Live", desc: "Built and proven in Lagos, Abuja, and Port Harcourt — ready for Africa." }
+                { val: "₦2.1B+", label: "Worth of Building Work Costed", desc: "The total value of the building work costed in our studio." },
+                { val: "12,400", label: "Building Products with Prices", desc: "Checked building products you can buy straight away." },
+                { val: "3", label: "Cities Served", desc: "Working in Lagos, Abuja and Port Harcourt, and ready for the rest of Africa." }
               ].map((stat, idx) => (
                 <div key={idx} className="p-8 rounded-3xl bg-blue-950/80 backdrop-blur-md border border-blue-800/50 shadow-xl shadow-blue-900/20 text-center hover:bg-blue-900/80 transition-colors duration-300">
                   <span className="text-5xl font-extrabold text-primary block mb-3">{stat.val}</span>
@@ -995,17 +995,17 @@ const Index = () => {
           <div className="max-w-5xl mx-auto">
             
             <div className="text-center mb-16">
-              <span className="text-xs font-bold uppercase tracking-[0.15em] text-primary block mb-3">06 / Integrity by Default</span>
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-primary block mb-3">06 / Trust Comes First</span>
               <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-white">
-                Architected for <span className="text-primary">uncompromising trust.</span>
+                Built so you can <span className="text-primary">trust every step.</span>
               </h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 text-left">
               {[
-                { title: "Supplier Verification", desc: "Rigorous physical and legal screening before a single material listing goes live on our marketplace.", icon: ShieldCheck },
-                { title: "NIS-Standard Compliance", desc: "Every SKU listed must meet or exceed Standard Organisation of Nigeria (SON/NIS) minimum engineering specs.", icon: ClipboardCheck },
-                { title: "Price & Logistics Truth", desc: "Live factory gate pricing with real-time GPS-tracked site delivery. Zero opaque middleman telephone quotes.", icon: Truck }
+                { title: "We Check Every Supplier", desc: "We visit every supplier and check their legal papers before any of their products appear in our marketplace.", icon: ShieldCheck },
+                { title: "Products Meet Nigerian Standards", desc: "Every product we list must meet at least the minimum quality set by the SON (Standards Organisation of Nigeria) in the NIS (Nigerian Industrial Standards).", icon: ClipboardCheck },
+                { title: "Honest Prices and Deliveries", desc: "You see today's factory prices and can follow your delivery to site on a map as it happens, using GPS (Global Positioning System). No vague phone quotes from middlemen.", icon: Truck }
               ].map((item, idx) => (
                 <div key={idx} className="p-6 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-lg">
                   <div className="w-12 h-12 rounded-2xl bg-primary/20 text-primary flex items-center justify-center mb-4">
@@ -1019,10 +1019,10 @@ const Index = () => {
 
             {/* Seamless Platform Integrations Bar */}
             <div className="p-6 rounded-3xl bg-white/80 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 flex flex-wrap items-center justify-around gap-6 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest shadow-sm mb-16">
-              <span className="flex items-center gap-2 text-slate-900 dark:text-white"><Lock className="w-4 h-4 text-primary" /> Paystack Escrow Secured</span>
-              <span className="flex items-center gap-2"><Layers className="w-4 h-4 text-primary" /> Revit & IFC BIM Compatible</span>
-              <span className="flex items-center gap-2"><Cpu className="w-4 h-4 text-primary" /> AutoCAD Export Ready</span>
-              <span className="flex items-center gap-2"><Share2 className="w-4 h-4 text-primary" /> WhatsApp Site Notifications</span>
+              <span className="flex items-center gap-2 text-slate-900 dark:text-white"><Lock className="w-4 h-4 text-primary" /> Paystack Holds Your Payment Safely</span>
+              <span className="flex items-center gap-2"><Layers className="w-4 h-4 text-primary" /> Works with Revit and IFC (Industry Foundation Classes) Building Models</span>
+              <span className="flex items-center gap-2"><Cpu className="w-4 h-4 text-primary" /> Drawings Saved for AutoCAD</span>
+              <span className="flex items-center gap-2"><Share2 className="w-4 h-4 text-primary" /> Site Updates on WhatsApp</span>
             </div>
 
             {/* David Okonkwo Featured Testimonial Banner */}
@@ -1068,16 +1068,16 @@ const Index = () => {
               <div className="lg:col-span-6 space-y-6 text-left">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-primary/20 border border-primary/30 text-primary text-xs font-bold uppercase tracking-[0.12em]">
                   <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <span>07 / Ready for Deployment</span>
+                  <span>07 / Get Started</span>
                 </div>
                 
                 <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-[1.12]">
-                  Ready to transform <br />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-700 to-primary dark:from-white dark:via-slate-200 dark:to-primary">how you build?</span>
+                  Ready to build <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-slate-700 to-primary dark:from-white dark:via-slate-200 dark:to-primary">a better way?</span>
                 </h2>
 
                 <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 font-normal leading-relaxed max-w-lg">
-                  Join leading developers, engineers, and architects across Africa moving from conceptual sketches to verified NIS procurement in minutes, not weeks.
+                  Join leading developers, engineers and architects across Africa who go from a first sketch to buying quality-checked materials in minutes instead of weeks.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
@@ -1093,9 +1093,9 @@ const Index = () => {
                 </div>
 
                 <div className="pt-4 flex flex-wrap items-center gap-6 text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wider">
-                  <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-primary" /> Instant AI Studio</span>
-                  <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-primary" /> Zero Setup Fee</span>
-                  <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-primary" /> Verified NIS Quality</span>
+                  <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-primary" /> Start Designing Straight Away</span>
+                  <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-primary" /> No Setup Fee</span>
+                  <span className="flex items-center gap-1.5"><Check className="w-4 h-4 text-primary" /> Quality-Checked Materials</span>
                 </div>
               </div>
 
@@ -1113,10 +1113,10 @@ const Index = () => {
                   <div className="relative z-10 flex items-center justify-between pb-4 border-b border-slate-800/80 text-xs font-bold text-slate-300">
                     <div className="flex items-center gap-2">
                       <Terminal className="w-4 h-4 text-primary" />
-                      <span className="uppercase tracking-wider">AI-Native Pipeline Console</span>
+                      <span className="uppercase tracking-wider">Behind the Scenes</span>
                     </div>
                     <span className="px-2.5 py-1 rounded-lg bg-primary/20 text-primary border border-primary/30 text-[10px] uppercase font-extrabold tracking-widest">
-                      Live Telemetry
+                      Live
                     </span>
                   </div>
 
@@ -1128,8 +1128,8 @@ const Index = () => {
                           01
                         </div>
                         <div>
-                          <span className="text-[11px] font-bold text-white block">Structural Concept & Takeoff</span>
-                          <span className="text-[10px] text-slate-400 font-medium">Auto-quantifying 14-Unit Terrace...</span>
+                          <span className="text-[11px] font-bold text-white block">Design and Materials Count</span>
+                          <span className="text-[10px] text-slate-400 font-medium">Counting materials for a 14-unit terrace...</span>
                         </div>
                       </div>
                       <span className="text-xs font-extrabold text-primary flex items-center gap-1">
@@ -1143,12 +1143,12 @@ const Index = () => {
                           02
                         </div>
                         <div>
-                          <span className="text-[11px] font-bold text-white block">NIS Supplier Verification</span>
-                          <span className="text-[10px] text-slate-400 font-medium">Matching direct mill factory rates...</span>
+                          <span className="text-[11px] font-bold text-white block">Checking Suppliers</span>
+                          <span className="text-[10px] text-slate-400 font-medium">Finding factory prices...</span>
                         </div>
                       </div>
                       <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-primary text-white whitespace-nowrap shrink-0">
-                        100% Verified
+                        All Checked
                       </span>
                     </div>
                   </div>
@@ -1156,7 +1156,7 @@ const Index = () => {
                   {/* Bottom Console Status Bar */}
                   <div className="relative z-10 pt-3 border-t border-slate-800/80 flex items-center justify-between text-[11px] font-bold text-slate-400">
                     <span className="flex items-center gap-2">
-                      <Lock className="w-3.5 h-3.5 text-primary" /> Paystack Escrow Ready
+                      <Lock className="w-3.5 h-3.5 text-primary" /> Secure Payment Ready
                     </span>
                     <span className="text-primary hover:underline cursor-pointer flex items-center gap-1">
                       <span>Launch ProHub</span>
