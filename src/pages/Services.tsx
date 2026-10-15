@@ -9,51 +9,51 @@ const Services = () => {
   const services = [
     {
       icon: FileCheck,
-      title: "Material & Supplier Verification",
-      description: "Screening and profiling building materials suppliers to ensure compliance with quality standards and project requirements.",
+      title: "Checking Materials and Suppliers",
+      description: "We look closely at building material suppliers. We make sure what they sell meets quality standards and suits your project.",
       features: [
-        "Supplier background checks & profiling",
-        "Material quality standard verification",
-        "Price authenticity auditing",
-        "Inventory reliability assessment",
+        "Background checks on each supplier",
+        "Checking materials meet quality standards",
+        "Checking prices are genuine",
+        "Checking suppliers really have the stock they list",
       ],
-      whyItMatters: "Verification is the first line of defense against substandard materials and fragmented supply chains that cause 90% of budget overruns.",
+      whyItMatters: "Poor materials and disorganised supply cause 90% of projects that go over budget. Checking is your first protection against both.",
     },
     {
       icon: TrendingUp,
-      title: "Construction & Property Advisory",
-      description: "Over two decades of site-level experience protecting property value through strategic material selection and cost efficiency.",
+      title: "Building and Property Advice",
+      description: "We have more than twenty years of experience on building sites. We protect the value of your property by choosing the right materials and keeping costs down.",
       features: [
-        "Architectural & structural review",
-        "Cost-efficiency & value modeling",
-        "Asset durability forecasting",
-        "Procurement strategy development",
+        "Reviewing the design and the structure",
+        "Working out where your money goes furthest",
+        "Predicting how long your building will last",
+        "Planning how and where to buy materials",
       ],
-      whyItMatters: "Our practical foundation ensures you don't just build, but build right, maximizing long-term asset value.",
+      whyItMatters: "Our hands-on experience means you don't just build, you build properly, so your property keeps its value for longer.",
     },
     {
       icon: AlertCircle,
-      title: "Compliance & Value Assurance",
-      description: "Safeguarding your investment through rigorous regulatory awareness and quality-focused construction enablement.",
+      title: "Following the Rules and Protecting Value",
+      description: "We protect your investment by making sure your project follows building rules and is built to a high standard.",
       features: [
-        "Regulatory compliance awareness",
-        "Verification of professionals & artisans",
-        "Structural integrity oversight",
-        "Quality-focused project coordination",
+        "Knowing which building rules apply",
+        "Checking professionals and tradespeople",
+        "Making sure the building is structurally sound",
+        "Organising the project with quality in mind",
       ],
-      whyItMatters: "Value assurance prevents structural failures and legal disputes, protecting your investment for generations.",
+      whyItMatters: "Getting this right prevents buildings failing and legal disputes, protecting your investment for generations.",
     },
     {
       icon: GraduationCap,
-      title: "Training & Knowledge Hub",
-      description: "Empowering new industry entrants and property owners through structured knowledge, training, and guidance.",
+      title: "Training and Learning",
+      description: "We help newcomers to building and property owners learn what they need, through courses, training and guidance.",
       features: [
-        "Artisan skills training & screening",
-        "Material selection workshops",
-        "Regulatory & standards education",
-        "Best practices for project owners",
+        "Skills training and checks for tradespeople",
+        "Workshops on choosing materials",
+        "Learning the building rules and standards",
+        "Good habits for people running a building project",
       ],
-      whyItMatters: "Knowledge reduces risk. Empowered stakeholders make informed decisions that eliminate costly construction errors.",
+      whyItMatters: "Knowledge lowers risk. People who understand their project make better choices and avoid expensive building mistakes.",
     },
   ];
 
@@ -66,10 +66,10 @@ const Services = () => {
         <div className="absolute bottom-0 left-0 p-40 bg-primary/10 rounded-full blur-3xl opacity-50" />
         <div className="container mx-auto px-4 relative z-10 text-center max-w-4xl">
           <h1 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
-            Value-Focused <span className="text-primary italic">Construction</span> Guidance
+            Building Advice That <span className="text-primary italic">Protects</span> Your Money
           </h1>
           <p className="text-xl md:text-2xl text-slate-400 font-medium leading-relaxed">
-            Enabling informed decision-making and protecting long-term property value through trust, verification, and knowledge.
+            Helping you make well-informed choices and protecting the value of your property for years, through trust, careful checking and shared knowledge.
           </p>
         </div>
       </section>
@@ -126,22 +126,22 @@ const Services = () => {
               The Cost of Poor Material Choices
             </h2>
             <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto font-medium">
-              Data-driven insights on why material quality cannot be compromised.
+              The numbers that show why you should never cut corners on material quality.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             <div className="text-center p-10 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 transition-all hover:scale-105">
               <div className="text-5xl font-black text-primary mb-4 italic">40%</div>
-              <p className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-tight">Higher maintenance costs with sub-standard materials</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-tight">Higher upkeep costs when poor-quality materials are used</p>
             </div>
             <div className="text-center p-10 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 transition-all hover:scale-105">
               <div className="text-5xl font-black text-primary mb-4 italic">3-5x</div>
-              <p className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-tight">Average cost multiplier for fixing material failures</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-tight">How many times more it costs, on average, to fix failed materials</p>
             </div>
             <div className="text-center p-10 rounded-[2.5rem] bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 transition-all hover:scale-105">
               <div className="text-5xl font-black text-primary mb-4 italic">35%</div>
-              <p className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-tight">Reduction in delays with proper material audits</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-slate-200 leading-tight">Fewer delays when materials are properly checked</p>
             </div>
           </div>
         </div>
@@ -155,10 +155,10 @@ const Services = () => {
               Build Right, Build Secure.
             </h2>
             <p className="text-xl mb-8 max-w-2xl mx-auto opacity-90 font-medium">
-              Schedule a consultation to discover how our verified ecosystem can optimize your project outcomes.
+              Book a meeting with us to find out how our checked suppliers and professionals can help your project turn out well.
             </p>
             <Button asChild size="lg" variant="secondary" className="text-lg font-black h-14 px-10 rounded-xl">
-              <Link to="/contact">Schedule Free Consultation</Link>
+              <Link to="/contact">Book a Free Meeting</Link>
             </Button>
           </div>
         </div>
