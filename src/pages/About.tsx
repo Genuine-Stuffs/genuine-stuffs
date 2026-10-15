@@ -9,17 +9,17 @@ const About = () => {
     {
       icon: Target,
       title: "Quality First",
-      description: "We believe that material quality is the foundation of every successful construction project. Our recommendations prioritize long-term performance over short-term savings.",
+      description: "Good materials are the foundation of every building that turns out well. We recommend what will last for years, not what saves a little money today.",
     },
     {
       icon: Eye,
       title: "Transparency",
-      description: "We provide clear, data-driven insights that empower you to make informed decisions. No hidden agendas, just honest expert guidance.",
+      description: "We give you clear facts and figures so you can make your own well-informed choices. No hidden motives, just honest advice from experts.",
     },
     {
       icon: Heart,
-      title: "Longevity Focus",
-      description: "Our approach centers on lifecycle value. We help you build structures that stand the test of time and deliver sustained returns on investment.",
+      title: "Built to Last",
+      description: "We think about what a building costs and earns over its whole life. We help you build something that lasts and keeps paying you back for years.",
     },
   ];
 
@@ -27,20 +27,20 @@ const About = () => {
     {
       name: "Dr. Emmanuel Adebayo",
       role: "Founder & Lead Consultant",
-      credentials: "PhD Materials Science, 15+ years construction consulting",
-      bio: "Former research lead at National Building Institute, specializing in tropical climate material durability and lifecycle performance modeling.",
+      credentials: "Doctorate (PhD) in Materials Science, 15+ years advising on building projects",
+      bio: "Formerly led research at the National Building Institute, studying how long building materials last in a hot, humid climate and how they perform over a building's life.",
     },
     {
       name: "Chioma Okafor",
       role: "Senior Materials Engineer",
-      credentials: "MSc Structural Engineering, COREN certified",
-      bio: "Expert in compliance standards and quality control protocols, with extensive experience in commercial and residential construction projects.",
+      credentials: "Master's degree (MSc) in Structural Engineering, registered with COREN (Council for the Regulation of Engineering in Nigeria)",
+      bio: "An expert in building rules and quality checks, with wide experience on both homes and commercial buildings.",
     },
     {
       name: "Ibrahim Hassan",
-      role: "Lifecycle Performance Analyst",
-      credentials: "MEng Civil Engineering, Value Engineering certified",
-      bio: "Specializes in cost-benefit analysis and ROI modeling for material selection, helping clients maximize long-term asset value.",
+      role: "Building Lifetime Cost Analyst",
+      credentials: "Master's degree (MEng) in Civil Engineering, certified in value engineering (getting the most from every naira spent)",
+      bio: "Weighs the costs and benefits of each material and works out the ROI (return on investment), helping clients get the most value from their property over time.",
     },
   ];
 
@@ -55,10 +55,10 @@ const About = () => {
           <div className="max-w-4xl mx-auto">
             <div className="inline-block px-4 py-1.5 bg-primary/20 rounded-full text-primary text-xs font-black uppercase tracking-widest mb-6 border border-primary/30">Since 2004</div>
             <h1 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
-              A Data-Driven <span className="text-primary italic">Construction</span> Ecosystem
+              Building with <span className="text-primary italic">Facts</span>, Not Guesswork
             </h1>
             <p className="text-xl md:text-2xl text-slate-400 font-medium leading-relaxed">
-              Built to restore confidence, quality, and long-term value in the built environment.
+              We are here to bring back confidence, quality and lasting value to building and property.
             </p>
           </div>
         </div>
@@ -69,18 +69,18 @@ const About = () => {
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <div>
-              <h2 className="text-4xl font-black mb-8 text-slate-900 dark:text-white uppercase tracking-tight">We Exist to Change the Industry.</h2>
+              <h2 className="text-4xl font-black mb-8 text-slate-900 dark:text-white uppercase tracking-tight">We Want to Change How Building Is Done.</h2>
               <p className="text-xl text-slate-600 dark:text-slate-400 mb-8 leading-relaxed font-medium">
-                Our platform serves as a verified hub where building materials suppliers, construction professionals, artisans, knowledge resources, and advisory services converge.
+                Our website brings together, in one trusted place, checked suppliers of building materials, building professionals, skilled tradespeople, useful guides and expert advice.
               </p>
               <div className="space-y-6">
                 <p className="text-lg text-slate-500 dark:text-slate-500 leading-relaxed">
-                  This platform is founded on <span className="font-bold text-slate-900 dark:text-slate-200">over two decades of real-world experience</span> across construction and real estate—from site supervision to property management.
+                  It is built on <span className="font-bold text-slate-900 dark:text-slate-200">more than twenty years of hands-on experience</span> in building and property, from running building sites to managing property.
                 </p>
                 <div className="bg-slate-50 dark:bg-slate-900 p-8 rounded-3xl border border-slate-100 dark:border-slate-800 transition-colors">
                   <h3 className="text-xl font-black mb-4 text-slate-900 dark:text-white">Our Mission</h3>
                   <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium italic">
-                    "Our mission is to enable informed decision-making, reduce construction risk, and protect long-term property value through trust, verification, and knowledge."
+                    "Our mission is to help people make well-informed choices, lower the risks of building, and protect the value of their property for years to come, through trust, careful checking and shared knowledge."
                   </p>
                 </div>
               </div>
@@ -102,7 +102,7 @@ const About = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-black mb-4 text-slate-900 dark:text-white uppercase tracking-tight">Our Core Values</h2>
             <p className="text-xl text-muted-foreground dark:text-slate-400 max-w-2xl mx-auto font-medium">
-              The principles that guide every consultation, recommendation, and partnership.
+              The beliefs behind every piece of advice we give and every partnership we make.
             </p>
           </div>
 
@@ -126,7 +126,7 @@ const About = () => {
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Meet Our Expert Team</h2>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Seasoned professionals with deep expertise in materials science, engineering, and construction consulting.
+              Experienced professionals who know building materials, engineering and building projects inside out.
             </p>
           </div>
 
@@ -158,10 +158,10 @@ const About = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                { title: "Technical Expertise", desc: "PhD level research and decades of site management." },
-                { title: "Data-Driven Modeling", desc: "ROI and lifecycle performance analysis for every material." },
-                { title: "Verified Ecosystem", desc: "Rigorous screening for both suppliers and artisans." },
-                { title: "Partnership Focus", desc: "We guide projects from assessment to completion." }
+                { title: "Real Expertise", desc: "Research at doctorate (PhD) level and decades of running building sites." },
+                { title: "Decisions Based on Facts", desc: "For every material, we work out the ROI (return on investment) and how it will perform over the building's life." },
+                { title: "Everyone Is Checked", desc: "We check suppliers and tradespeople thoroughly before they join." },
+                { title: "With You All the Way", desc: "We guide your project from the first look to the finished building." }
               ].map((perf, i) => (
                 <Card key={i} className="border-2 dark:border-slate-800 dark:bg-slate-900 rounded-2xl shadow-sm hover:shadow-xl transition-all">
                   <CardContent className="pt-6">
