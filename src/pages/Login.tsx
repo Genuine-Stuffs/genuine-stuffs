@@ -100,7 +100,7 @@ const Login = () => {
                         Welcome <span className="text-primary italic">Back</span>
                     </h1>
                     <p className="text-xs md:text-sm text-muted-foreground font-medium italic hidden sm:block">
-                        Enter your credentials to access your construction workspace.
+                        Enter your email and password to open your building workspace.
                     </p>
                 </div>
             </div>
@@ -110,7 +110,7 @@ const Login = () => {
                     <Card className="border-none shadow-2xl bg-white backdrop-blur-xl rounded-[2.5rem] overflow-hidden transition-all duration-500">
                         <CardHeader className="bg-white p-4 md:p-6 text-center border-b">
                             <CardTitle className="text-xl font-black text-slate-900 uppercase tracking-tight flex items-center justify-center gap-3">
-                                <KeyRound className="w-5 h-5 text-primary" /> Secure Gateway
+                                <KeyRound className="w-5 h-5 text-primary" /> Secure Sign-In
                             </CardTitle>
                         </CardHeader>
 
@@ -135,7 +135,7 @@ const Login = () => {
                                         <span className="w-full border-t border-slate-100" />
                                     </div>
                                     <div className="relative flex justify-center text-[10px] uppercase">
-                                        <span className="bg-white px-4 text-slate-400 font-black tracking-widest italic">Or use credentials</span>
+                                        <span className="bg-white px-4 text-slate-400 font-black tracking-widest italic">Or use your email and password</span>
                                     </div>
                                 </div>
 
@@ -156,7 +156,7 @@ const Login = () => {
                                     <div className="space-y-1.5">
                                         <div className="flex justify-between items-center">
                                             <Label htmlFor="password" title="password" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Password</Label>
-                                            <Link to="#" className="text-[9px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity">Forgot?</Link>
+                                            <Link to="#" className="text-[9px] font-black uppercase tracking-widest text-primary hover:opacity-70 transition-opacity">Forgot password?</Link>
                                         </div>
                                         <div className="relative">
                                             <Input
@@ -185,7 +185,7 @@ const Login = () => {
                                         {isLoading ? (
                                             <Loader2 className="w-4 h-4 animate-spin" />
                                         ) : (
-                                            <>Authenticate <ArrowRight className="w-4 h-4" /></>
+                                            <>Sign In <ArrowRight className="w-4 h-4" /></>
                                         )}
                                     </Button>
 
@@ -200,7 +200,7 @@ const Login = () => {
                                             {isMagicLinkLoading ? (
                                                 <Loader2 className="w-4 h-4 animate-spin" />
                                             ) : (
-                                                <><Sparkles className="w-3.5 h-3.5" /> Sign in with Magic Link</>
+                                                <><Sparkles className="w-3.5 h-3.5" /> Email Me a Sign-In Link</>
                                             )}
                                         </Button>
                                     </div>
@@ -211,7 +211,7 @@ const Login = () => {
 
                     <div className="mt-2 text-center space-y-4">
                         <p className="text-xs font-medium text-slate-500">
-                            New here? <Link to="/register" className="text-primary font-black uppercase tracking-widest text-[10px] ml-1 hover:underline">Join the ecosystem</Link>
+                            New here? <Link to="/register" className="text-primary font-black uppercase tracking-widest text-[10px] ml-1 hover:underline">Create an account</Link>
                         </p>
                     </div>
                 </div>

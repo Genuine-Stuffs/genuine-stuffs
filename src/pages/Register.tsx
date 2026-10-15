@@ -495,10 +495,10 @@ const Register = () => {
                 </div>
                 <div className="mx-auto text-center">
                     <h1 className="text-3xl md:text-4xl font-black mb-1 md:mb-2 text-slate-900 uppercase tracking-tighter leading-none">
-                        Join the <span className="text-primary italic">Ecosystem</span>
+                        Create Your <span className="text-primary italic">Account</span>
                     </h1>
                     <p className="text-xs md:text-sm text-muted-foreground font-medium italic hidden sm:block">
-                        Select your account type to proceed.
+                        Choose the type of account you want.
                     </p>
                 </div>
             </div>
@@ -542,10 +542,10 @@ const Register = () => {
                             {/* Common Header */}
                             <div className="mb-6 md:mb-8 text-center">
                                 <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-slate-900 flex items-center justify-center gap-3">
-                                    {role === 'professional' ? <><Sparkles className="w-5 h-5 text-primary" /> Pro Registration</> : vendorSteps[step - 1].title}
+                                    {role === 'professional' ? <><Sparkles className="w-5 h-5 text-primary" /> Professional Sign-Up</> : vendorSteps[step - 1].title}
                                 </h2>
                                 <p className="text-[10px] md:text-xs text-slate-500 italic mt-1 font-medium tracking-widest uppercase">
-                                    {role === 'professional' ? "Access AI-powered innovation tools." : "Tell us about your materials business."}
+                                    {role === 'professional' ? "Use our AI (Artificial Intelligence) design tools." : "Tell us about your materials business."}
                                 </p>
                             </div>
 
@@ -563,7 +563,7 @@ const Register = () => {
                                                 <Input id="pro-last-name" placeholder="Doe" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <Label htmlFor="pro-type" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Discipline *</Label>
+                                                <Label htmlFor="pro-type" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Your Profession *</Label>
                                                 <Input id="pro-type" placeholder="e.g. Architecture" value={formData.proType} onChange={(e) => handleInputChange('proType', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.proType ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                             <div className="space-y-1.5">
