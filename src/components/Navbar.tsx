@@ -49,8 +49,8 @@ const Navbar = () => {
 
   const desktopLinks = (role === 'professional' || role === 'admin' || role === 'pm') ? [
     { path: "/pros", label: "ProHub" },
-    { path: "/pro/ai-studio", label: "AI-Studio" },
-    { path: "/calculators", label: "BOQ-Cal" },
+    { path: "/pro/ai-studio", label: "AI Studio" },
+    { path: "/calculators", label: "Cost Calculator" },
     { path: "/resources", label: "Resources" },
     { path: "/pro-portal", label: "Dashboard" },
   ] : filteredLinks;
