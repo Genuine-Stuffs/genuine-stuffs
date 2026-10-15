@@ -13,41 +13,41 @@ const Resources = () => {
 
   const resourceFilters = [
     { id: "all", label: "All Resources", icon: BookOpen },
-    { id: "cad", label: "CAD/BIM Models", icon: Cpu },
+    { id: "cad", label: "Drawings and 3D Models", icon: Cpu },
     { id: "standards", label: "Quality Standards", icon: ShieldCheck },
-    { id: "guides", label: "Technical Guides", icon: FileText },
+    { id: "guides", label: "How-To Guides", icon: FileText },
   ];
 
   const articles = [
     {
       icon: Cpu,
-      category: "BIM MODEL",
+      category: "3D BUILDING MODEL",
       title: "Commercial High-Rise Structural Skeleton (.rvt)",
-      description: "Complete Revit model for a 15-story structural frame with clash detection notes.",
-      readTime: "Pro Members Only",
+      description: "A complete 3D model (for the Revit design program) of the frame of a 15-storey building, with notes on where parts would clash.",
+      readTime: "For Professional Members",
       isPro: true,
     },
     {
       icon: AlertTriangle,
       category: "Case Study",
       title: "10 Material Failures Common in Tropical Climates",
-      description: "Learn from real-world examples of how climate-specific material failures impact projects.",
+      description: "Real examples of materials that failed because of a hot, wet climate, and what it did to the buildings.",
       readTime: "8 min read",
       isPro: false,
     },
     {
       icon: Layers,
-      category: "Technical",
+      category: "Drawings",
       title: "Reinforced Concrete Detail Library (.dwg)",
-      description: "Comprehensive CAD files for various foundation and beam reinforcement scenarios.",
-      readTime: "Pro Members Only",
+      description: "A full set of CAD (Computer-Aided Design) drawings. They show how to place steel bars in different foundations and beams.",
+      readTime: "For Professional Members",
       isPro: true,
     },
     {
       icon: TrendingUp,
       category: "Analysis",
       title: "How to Compare Material Lifespans",
-      description: "A practical guide to evaluating and comparing long-term performance and cost-effectiveness.",
+      description: "A practical guide to comparing how long materials last and which give the best value over time.",
       readTime: "6 min read",
       isPro: false,
     },
@@ -56,21 +56,21 @@ const Resources = () => {
   const downloads = [
     {
       title: "Material Quality Checklist for Project Owners",
-      description: "A comprehensive PDF checklist covering essential material quality considerations.",
+      description: "A printable checklist of the most important things to check about the quality of your materials.",
       icon: Download,
       format: "PDF",
       isPro: false,
     },
     {
-      title: "BIM Protocol & Standards Handbook (2026)",
-      description: "Industry standard operating procedures for digital construction modeling and handover.",
+      title: "BIM (Building Information Modelling) Rules and Standards Handbook (2026)",
+      description: "The industry's standard steps for making digital models of buildings and handing them over to the next team.",
       icon: Lock,
-      format: "PRO ONLY",
+      format: "MEMBERS ONLY",
       isPro: true,
     },
     {
-      title: "Material Compliance Quick Reference Guide",
-      description: "Essential reference document for building codes, standards, and certification requirements.",
+      title: "Quick Guide to Material Rules",
+      description: "A handy reference to the building codes, standards and certificates your materials need.",
       icon: Download,
       format: "PDF",
       isPro: false,
@@ -87,10 +87,10 @@ const Resources = () => {
         <div className="container mx-auto px-4 relative z-10">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-6xl font-black mb-6 tracking-tight uppercase leading-none">
-              Technical <span className="text-primary italic">Resource</span> Center
+              Guides, Drawings <span className="text-primary italic">and</span> Standards
             </h1>
             <p className="text-xl text-slate-400 font-medium italic">
-              High-fidelity CAD/BIM models, industry standards, and precision guides for the modern construction team.
+              Detailed drawings and 3D models of buildings, industry standards and step-by-step guides for everyone on a building team.
             </p>
           </div>
         </div>
@@ -159,8 +159,8 @@ const Resources = () => {
       <section className="py-24 bg-slate-900 dark:bg-slate-950 text-white transition-colors duration-300">
         <div className="container mx-auto px-4">
           <div className="mb-16 text-center">
-            <h2 className="text-4xl font-black mb-4 uppercase tracking-tighter">Technical Assets</h2>
-            <p className="text-xl text-slate-400 italic">Direct access to verified construction documentation.</p>
+            <h2 className="text-4xl font-black mb-4 uppercase tracking-tighter">Downloads</h2>
+            <p className="text-xl text-slate-400 italic">Checked building documents you can download straight away.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -175,7 +175,7 @@ const Resources = () => {
                       {download.format}
                     </span>
                   </div>
-                  <h3 className="text-xl font-black mb-4 uppercase tracking-tight">{download.title}</h3>
+                  <h3 className="text-xl font-black mb-4 uppercase tracking-tight text-white">{download.title}</h3>
                   <p className="text-slate-400 mb-8 font-medium leading-relaxed italic">"{download.description}"</p>
                   <Button
                     className={`w-full h-12 gap-3 font-black uppercase tracking-wider rounded-xl transition-all shadow-lg ${download.isPro ? 'bg-primary hover:bg-primary/90 text-white shadow-primary/20' : 'bg-white text-slate-900 hover:bg-slate-100 shadow-white/10'}`}
@@ -183,12 +183,12 @@ const Resources = () => {
                   >
                     {download.isPro && !isPro ? (
                       <Link to="/register/pro">
-                        <Sparkles className="w-4 h-4" /> Upgrade to Access
+                        <Sparkles className="w-4 h-4" /> Upgrade to Get This
                       </Link>
                     ) : (
                       <>
                         {download.isPro ? <Sparkles className="w-4 h-4" /> : <Download className="w-4 h-4" />}
-                        {download.isPro ? "Download Pro Asset" : "Download Now"}
+                        {download.isPro ? "Download for Professional Members" : "Download Now"}
                       </>
                     )}
                   </Button>
