@@ -41,7 +41,10 @@ const isHabitable = (type: string) =>
 
 export interface ValidationIssue {
     room_id: string;
-    rule: 'CORRIDOR_ADJACENCY' | 'EXTERNAL_WALL' | 'BATH_VENTILATION' | 'ADJACENCY_MISSED' | 'AREA_ADJUSTED' | 'NO_FRONT_ENTRANCE';
+    rule: 'CORRIDOR_ADJACENCY' | 'EXTERNAL_WALL' | 'BATH_VENTILATION' | 'ADJACENCY_MISSED' | 'AREA_ADJUSTED' | 'NO_FRONT_ENTRANCE'
+        | 'OUTBUILDING_NO_FIT'
+        // a gap-free fallback plan's other misses (gapfree/solve.ts searchMisses)
+        | 'SHAPE' | 'AREA' | 'NBC_MIN' | 'GARAGE_SIZE' | 'STAIR_SIZE' | 'HALL_WIDTH' | 'STAIR_FIT' | 'STAIR_ALIGN' | 'CIRC_CONNECTED' | 'FRONT' | 'REACH';
     detail: string;
 }
 

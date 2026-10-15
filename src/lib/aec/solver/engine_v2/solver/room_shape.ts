@@ -35,6 +35,11 @@ const MAX_ASPECT_BY_TYPE: Record<string, number> = {
 };
 const DEFAULT_MAX_ASPECT = 3.0;
 
+/** Longest side ÷ shortest side allowed for a room of this type. */
+export function maxAspectFor(node: Pick<GraphNode, 'type'>): number {
+    return MAX_ASPECT_BY_TYPE[node.type] ?? DEFAULT_MAX_ASPECT;
+}
+
 /** Minimum width in metres for a room of this type/zone. */
 export function minWidthFor(node: Pick<GraphNode, 'type' | 'zone'>): number {
     return ABSOLUTE_MIN_WIDTH_M[node.type] ?? DEFAULT_MIN_WIDTH_BY_ZONE[node.zone] ?? 2.4;
@@ -48,7 +53,7 @@ export function minWidthFor(node: Pick<GraphNode, 'type' | 'zone'>): number {
 export function roomShapeOk(node: Pick<GraphNode, 'type' | 'zone'>, w_m: number, h_m: number): boolean {
     const short = Math.min(w_m, h_m), long = Math.max(w_m, h_m);
     if (short + 1e-6 < minWidthFor(node)) return false;
-    return long / short <= (MAX_ASPECT_BY_TYPE[node.type] ?? DEFAULT_MAX_ASPECT) + 1e-6;
+    return long / short <= maxAspectFor(node) + 1e-6;
 }
 
 /** NBC 2006 minimums from compliance_rules.json (spatial_compliance.

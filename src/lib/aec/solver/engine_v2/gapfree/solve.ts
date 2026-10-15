@@ -25,11 +25,12 @@ import type { PlotEnvelope, SolverOptions } from "../../types";
 import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
-import { anneal, layout, violations, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
+import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
 import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS } from "./config";
 import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP } from "./outbuildings";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
+import { minWidthFor, maxAspectFor } from "../solver/room_shape";
 
 export const CELL = 0.5;
 export const RESTARTS = 64;
@@ -300,6 +301,7 @@ function toLayout(p: Prepared, best: Fp): SolvedLayout {
     // I5): a fallback by the compromise policy, a solved plan because the
     // relaxation ladder may have dropped room links (RELAX-SOFT-ADJ).
     issues.push(...unflaggedMisses(p, placed, best, issues));
+    if (!solved) issues.push(...searchMisses(p, placed, best, hard, issues));
     if (!solved) console.warn(`[SOLVER_GAPFREE] no plan met every rule; best plan with ${hard.length} miss(es), flagged`);
     return {
         program_reference: p.program, plot_width: p.envelope.width, plot_depth: p.envelope.depth,
@@ -313,6 +315,54 @@ function toLayout(p: Prepared, best: Fp): SolvedLayout {
         }),
         placement_issues: issues,
     };
+}
+
+/** A fallback plan's remaining misses, one note each, in words: every rule
+ * the search counts as hard (SHAPE, AREA, a cut-off hall, …) that the
+ * notes don't carry yet. Links and outside walls are already listed by
+ * `unflaggedMisses` and the validator. */
+function searchMisses(p: Prepared, placed: PlacedRoom[], best: Fp, hard: Array<{ rule: string; leaf: number; fl: number }>, issues: ValidationIssue[]): ValidationIssue[] {
+    const out: ValidationIssue[] = [];
+    const m = (v: number) => `${+v.toFixed(2)}`;
+    const floor = (fl: number) => fl === 0 ? "ground floor" : fl === 1 ? "first floor" : `floor ${fl}`;
+    const seen = (rule: string, id: string) => [...issues, ...out].some(i => i.room_id === id && (i.rule === rule
+        || (rule === "REACH" && i.rule === "CORRIDOR_ADJACENCY") || (rule === "FRONT" && i.rule === "NO_FRONT_ENTRANCE")));
+    for (const v of hard) {
+        if (v.rule === "ADJACENCY" || v.rule === "EXTERNAL_WALL") continue;
+        const l = best.specs.get(v.fl)!.leaves[v.leaf];
+        const hallId = placed.find(r => r.floor === v.fl && (r.room_id.startsWith("corridor_floor") || r.room_id.startsWith("stairwell")))?.room_id ?? l.id;
+        const id = l.hall ? hallId : l.id;
+        if (seen(v.rule, id)) continue;
+        const r = placed.find(q => q.room_id === l.id && q.floor === v.fl);
+        const name = l.node?.label ?? l.id, size = r ? `${m(r.width)} × ${m(r.depth)} m` : "";
+        let detail: string;
+        switch (v.rule) {
+            case "SHAPE": detail = l.node && r && Math.min(r.width, r.depth) + 1e-6 < minWidthFor(l.node)
+                ? `${name} is ${size}, narrower than its ${m(minWidthFor(l.node))} m minimum.`
+                : `${name} is ${size}, longer than ${m(maxAspectFor(l.node ?? { type: l.type }))} times its width.`; break;
+            case "AREA": detail = `${name} is ${r ? m(r.width * r.depth) : "?"} m², more than 20% off the ${m(l.area)} m² asked for.`; break;
+            case "NBC_MIN": detail = `${name} is ${size}, below the building code's minimum for its type.`; break;
+            case "GARAGE_SIZE": detail = `${name} is ${size}, too small for the cars asked for.`; break;
+            case "STAIR_SIZE": detail = `The stair is ${size}, too small for a full flight.`; break;
+            case "HALL_WIDTH": detail = `The hall on the ${floor(v.fl)} is narrower than 1.5 m in places.`; break;
+            case "STAIR_FIT": detail = `The stair doesn't fit inside the hall on the ${floor(v.fl)}.`; break;
+            case "STAIR_ALIGN": detail = `The stair on the ${floor(v.fl)} doesn't line up with the floor below.`; break;
+            case "CIRC_CONNECTED": {
+                // the walk-through rooms not joined to the hall by a doorway-width wall, as violations() finds them
+                const sp = best.specs.get(v.fl)!, R = best.rects.get(v.fl)!;
+                const conn = sp.leaves.map((_, j) => j).filter(j => sp.leaves[j].connector || sp.leaves[j].hall);
+                const joined = new Set([v.leaf]), stack = [v.leaf];
+                while (stack.length) { const a = stack.pop()!; for (const b of conn) if (!joined.has(b) && shared(R[a], R[b]) >= 2) { joined.add(b); stack.push(b); } }
+                const cut = conn.filter(j => !joined.has(j)).map(j => sp.leaves[j].node?.label ?? sp.leaves[j].id);
+                detail = `${cut.join(" and ") || "Part of the circulation"} ${cut.length > 1 ? "are" : "is"} cut off from the hall on the ${floor(v.fl)}.`; break;
+            }
+            case "FRONT": detail = `${name} isn't on the street front.`; break;
+            case "REACH": detail = `${name} doesn't open onto the hall or a room that leads to it.`; break;
+            default: detail = `${name} misses the ${v.rule.toLowerCase().replace(/_/g, " ")} rule.`;
+        }
+        out.push({ room_id: id, rule: v.rule as ValidationIssue["rule"], detail });
+    }
+    return out;
 }
 
 /** Shared wall between two placed rooms (m), 0 if they don't touch. */
