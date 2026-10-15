@@ -32,7 +32,7 @@ const Contact = () => {
 
     toast({
       title: "Consultation Request Received!",
-      description: "We'll contact you within 24 hours to schedule your free materials review.",
+      description: "We'll be in touch within 24 hours to arrange your free review of your materials.",
     });
 
     setFormData({
@@ -52,10 +52,10 @@ const Contact = () => {
   };
 
   const benefits = [
-    "Free 30-minute materials review consultation",
-    "Expert assessment of your project needs",
-    "Custom recommendations for your specific challenges",
-    "No obligation - just valuable insights",
+    "A free 30-minute meeting to review your materials",
+    "An expert look at what your project needs",
+    "Advice made for your particular problems",
+    "No commitment - just useful advice",
   ];
 
   return (
@@ -67,10 +67,10 @@ const Contact = () => {
         <div className="container mx-auto px-4">
           <div className="max-w-3xl mx-auto text-center">
             <h1 className="text-4xl md:text-5xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-tight">
-              Schedule Your Free Materials Review
+              Book a Free Review of Your Materials
             </h1>
             <p className="text-xl text-muted-foreground dark:text-slate-400 font-medium leading-relaxed">
-              Let's discuss how quality material decisions can transform your construction project's success and longevity.
+              Let's talk about how choosing good materials can help your building project succeed and last longer.
             </p>
           </div>
         </div>
@@ -84,7 +84,7 @@ const Contact = () => {
             <div>
               <Card className="border-2 dark:border-slate-800 dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm">
                 <CardContent className="pt-8">
-                  <h2 className="text-2xl font-black mb-8 text-slate-900 dark:text-white uppercase tracking-tighter">Book Your Consultation</h2>
+                  <h2 className="text-2xl font-black mb-8 text-slate-900 dark:text-white uppercase tracking-tighter">Book Your Meeting</h2>
                   <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
                       <Label htmlFor="name">Full Name *</Label>
@@ -154,11 +154,11 @@ const Contact = () => {
                           <SelectValue placeholder="Select project stage" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="planning">Planning/Pre-construction</SelectItem>
-                          <SelectItem value="design">Design Phase</SelectItem>
-                          <SelectItem value="procurement">Material Procurement</SelectItem>
+                          <SelectItem value="planning">Planning, before building starts</SelectItem>
+                          <SelectItem value="design">Being designed</SelectItem>
+                          <SelectItem value="procurement">Buying materials</SelectItem>
                           <SelectItem value="construction">Under Construction</SelectItem>
-                          <SelectItem value="completed">Completed - Review Needed</SelectItem>
+                          <SelectItem value="completed">Finished - needs a review</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -171,12 +171,12 @@ const Contact = () => {
                         onChange={(e) => handleChange("message", e.target.value)}
                         required
                         rows={4}
-                        placeholder="Tell us about your project and material quality concerns..."
+                        placeholder="Tell us about your project and any worries about material quality..."
                       />
                     </div>
 
                     <Button type="submit" disabled={isSubmitting} className="w-full bg-slate-900 dark:bg-primary dark:text-slate-900 hover:bg-primary text-white font-black h-12 rounded-xl transition-all shadow-lg hover:shadow-primary/20" size="lg">
-                      {isSubmitting ? "Submitting..." : "Book Free Consultation"}
+                      {isSubmitting ? "Submitting..." : "Book Free Meeting"}
                     </Button>
                   </form>
                 </CardContent>
@@ -250,7 +250,7 @@ const Contact = () => {
                     <p className="flex justify-between items-center"><span className="text-xs font-black uppercase tracking-widest text-slate-400 text-red-400">Sun:</span> <span className="text-red-400">Closed</span></p>
                   </div>
                   <p className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-6 uppercase tracking-wider italic">
-                    * We typically respond to inquiries within 24 business hours
+                    * We usually reply within 24 working hours
                   </p>
                 </CardContent>
               </Card>
