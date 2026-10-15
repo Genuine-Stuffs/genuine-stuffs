@@ -70,7 +70,7 @@ const HireExperts = () => {
                     <div className="max-w-4xl mx-auto space-y-1.5 md:space-y-4">
                         <div className="hidden md:flex text-slate-800 dark:text-white text-center mb-1 items-center justify-center gap-2">
                             <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter flex items-center gap-2">
-                                <Sparkles className="w-5 h-5 text-primary" /> Find Your Professional/Artisan Expert
+                                <Sparkles className="w-5 h-5 text-primary" /> Find a Professional or Tradesperson
                             </h2>
                         </div>
                         
@@ -147,7 +147,7 @@ const HireExperts = () => {
                             Hire Certified <span className="text-primary italic">Experts</span>
                         </h1>
                     <p className="text-muted-foreground text-[9px] md:text-base font-medium max-w-2xl mx-auto italic leading-relaxed">
-                        Find vetted AEC experts to execute your projects with precision.
+                        Find checked AEC (Architecture, Engineering and Construction) experts to carry out your project carefully.
                     </p>
                 </div>
 
@@ -217,7 +217,7 @@ const HireExperts = () => {
 
                                             {/* Skill Pills (Truncated) */}
                                             <div className="flex flex-wrap justify-center gap-1 mt-2">
-                                                {(pro.skills ? (Array.isArray(pro.skills) ? pro.skills : pro.skills.split(',')) : ['AEC Expert', 'Vetted']).slice(0, 2).map((skill: string, idx: number) => (
+                                                {(pro.skills ? (Array.isArray(pro.skills) ? pro.skills : pro.skills.split(',')) : ['Building Expert', 'Checked']).slice(0, 2).map((skill: string, idx: number) => (
                                                     <Badge key={idx} variant="secondary" className="text-[8px] md:text-[9px] font-bold px-1.5 py-0 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                                                         {skill.trim()}
                                                     </Badge>
