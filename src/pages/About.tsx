@@ -60,6 +60,9 @@ const About = () => {
             <p className="text-xl md:text-2xl text-slate-400 font-medium leading-relaxed">
               We are here to bring back confidence, quality and lasting value to building and property.
             </p>
+            <p className="mt-6 text-lg md:text-xl text-slate-300 font-medium leading-relaxed">
+              Building costs shouldn't be a guessing game. We turn building information into real-time data, so you know what it will cost to finish your project before you make your first move.
+            </p>
           </div>
         </div>
       </section>
