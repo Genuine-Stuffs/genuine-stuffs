@@ -94,7 +94,7 @@ const Settings = () => {
                             Account <span className="text-primary italic">Settings</span>
                         </h1>
                         <p className="text-xl text-muted-foreground dark:text-slate-400 font-medium italic">
-                            Manage your platform identity and business information.
+                            Change how you appear on the website and your business details.
                         </p>
                     </header>
 
@@ -140,7 +140,7 @@ const Settings = () => {
                                     <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-3">
                                         <FileText className="w-6 h-6 text-primary" /> Profile Details
                                     </CardTitle>
-                                    <CardDescription className="dark:text-slate-400 font-medium italic">Update your public facing information.</CardDescription>
+                                    <CardDescription className="dark:text-slate-400 font-medium italic">Change what other people see about you.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="p-8 space-y-6">
                                     <div className="space-y-2">

@@ -140,7 +140,7 @@ const Cart = () => {
                                 Your cart is currently empty
                             </h2>
                             <p className="text-slate-500 dark:text-slate-400 font-medium italic mb-8 max-w-md mx-auto">
-                                Looks like you haven't added any premium construction materials to your cart yet.
+                                You haven't added any building materials to your cart yet.
                             </p>
                             <Button 
                                 onClick={() => navigate("/marketplace")}
@@ -268,7 +268,7 @@ const Cart = () => {
                             </div>
                             <div>
                                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Secure Payments</h4>
-                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-0.5">Verified Safe Checkout</p>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-0.5">Safe, checked payment</p>
                             </div>
                         </div>
                         <div className="p-6 rounded-3xl bg-white dark:bg-card border border-slate-100 dark:border-border flex items-center gap-4 shadow-sm group hover:shadow-md transition-all">
@@ -276,8 +276,8 @@ const Cart = () => {
                                 <ShoppingBag className="w-6 h-6 " />
                             </div>
                             <div>
-                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Direct Marketplace</h4>
-                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-0.5">Reliable Vendor Access</p>
+                                <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Buy Direct</h4>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-0.5">From checked sellers</p>
                             </div>
                         </div>
                         <div className="p-6 rounded-3xl bg-white dark:bg-card border border-slate-100 dark:border-border flex items-center gap-4 shadow-sm group hover:shadow-md transition-all">
@@ -286,7 +286,7 @@ const Cart = () => {
                             </div>
                             <div>
                                 <h4 className="text-xs font-black uppercase tracking-widest text-slate-900 dark:text-white">Easy Returns</h4>
-                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-0.5">Quality Guaranteed</p>
+                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-tight mt-0.5">Quality promised</p>
                             </div>
                         </div>
                     </div>

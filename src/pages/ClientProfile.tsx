@@ -31,8 +31,8 @@ const ClientProfile = () => {
             title: "Marketplace Activity",
             items: [
                 { icon: Package, label: "Order History", description: "Track your material purchases", path: "#" },
-                { icon: Heart, label: "Saved Materials", description: "View your bookmarked listings", path: "/marketplace" },
-                { icon: Clock, label: "Browse History", description: "Materials youRecently viewed", path: "/marketplace" },
+                { icon: Heart, label: "Saved Materials", description: "Materials you saved for later", path: "/marketplace" },
+                { icon: Clock, label: "Browse History", description: "Materials you looked at recently", path: "/marketplace" },
             ]
         },
         {
@@ -66,7 +66,7 @@ const ClientProfile = () => {
                                         {user?.email?.split('@')[0] || "Guest User"}
                                     </h1>
                                     <Badge className="w-fit mx-auto md:mx-0 bg-slate-100 dark:bg-muted text-slate-600 dark:text-slate-400 font-black uppercase tracking-widest text-[10px] px-3 py-1 border-none">
-                                        {isGuest ? "Guest" : role === 'professional' ? "Professional" : role === 'vendor' ? "Vendor" : "Standard Client"}
+                                        {isGuest ? "Guest" : role === 'professional' ? "Professional" : role === 'vendor' ? "Vendor" : "Customer"}
                                     </Badge>
                                 </div>
                                 <p className="text-slate-500 font-medium italic mb-6">
@@ -167,7 +167,7 @@ const ClientProfile = () => {
                                     Want to <span className="text-primary italic">Sell</span> on the Ecosystem?
                                 </h3>
                                 <p className="text-slate-400 text-sm font-medium">
-                                    Upgrade your account to a Vendor or Professional profile to access specialized tools.
+                                    Change your account to a seller or professional account to get the tools for selling or design work.
                                 </p>
                             </div>
                             <Button 
