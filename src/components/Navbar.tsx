@@ -35,7 +35,7 @@ const Navbar = () => {
   const filteredLinks = [
     { path: "/", label: "Home" },
     { path: "/marketplace", label: "Marketplace" },
-    { path: "/hire-experts", label: "Hire Certified AEC Experts", hideForRole: "professional" },
+    { path: "/hire-experts", label: "Hire Certified Building Experts", hideForRole: "professional" },
     { path: "/pros", label: "ProHuB", role: "professional" },
     { path: "/pro-portal", label: "Dashboard", role: "professional" },
     { path: "/vendor-dashboard", label: "Dashboard", role: "vendor" },
@@ -93,7 +93,7 @@ const Navbar = () => {
                   <Link to="/login">Log In</Link>
                 </Button>
                 <Button asChild className="rounded-2xl font-black bg-slate-900 dark:bg-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 px-6 h-11 transition-colors">
-                  <Link to="/register">Join Platform</Link>
+                  <Link to="/register">Sign Up</Link>
                 </Button>
               </div>
             ) : (
@@ -126,7 +126,7 @@ const Navbar = () => {
                   {role === 'professional' && (
                     <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors text-amber-600 dark:text-amber-400">
                       <Link to="/calculators" className="flex items-center gap-3 w-full">
-                        <Calculator className="w-4 h-4" /> <span className="font-bold">BoQ Calculator</span>
+                        <Calculator className="w-4 h-4" /> <span className="font-bold">Building Cost Calculator</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -147,7 +147,7 @@ const Navbar = () => {
                   {role === 'pm' && (
                     <DropdownMenuItem asChild className="rounded-xl gap-3 py-3 px-4 cursor-pointer focus:bg-slate-100 dark:focus:bg-white/10 transition-colors">
                       <Link to="/pm-dashboard" className="flex items-center gap-3 w-full">
-                        <LayoutDashboard className="w-4 h-4 text-red-600" /> <span className="font-bold text-slate-700 dark:text-slate-200">PM Dashboard</span>
+                        <LayoutDashboard className="w-4 h-4 text-red-600" /> <span className="font-bold text-slate-700 dark:text-slate-200">Project Manager Dashboard</span>
                       </Link>
                     </DropdownMenuItem>
                   )}
@@ -210,7 +210,7 @@ const Navbar = () => {
               </Link>
             )}
             <div className="pt-3 border-t border-sky-400/20">
-              <p className="px-4 pb-1 text-[9px] font-bold uppercase text-sky-300/70 tracking-[0.4em]">Authentication</p>
+              <p className="px-4 pb-1 text-[9px] font-bold uppercase text-sky-300/70 tracking-[0.4em]">Your Account</p>
               <div className="px-2 pb-3">
                 {role === 'guest' ? (
                   <div className="space-y-2">
@@ -218,11 +218,11 @@ const Navbar = () => {
                       <Link to="/login">LOG IN</Link>
                     </Button>
                     <Button asChild className="w-full h-11 rounded-2xl font-black text-sm bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/30" onClick={() => setIsOpen(false)}>
-                      <Link to="/register">JOIN PLATFORM</Link>
+                      <Link to="/register">SIGN UP</Link>
                     </Button>
                   </div>
                 ) : (
-                  <Button variant="outline" className="w-full h-9 rounded-xl font-bold text-[11px] text-red-400 border-red-400/20 bg-red-500/10 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/20" onClick={() => { handleLogoutClick(); setIsOpen(false); }}>LOGOUT</Button>
+                  <Button variant="outline" className="w-full h-9 rounded-xl font-bold text-[11px] text-red-400 border-red-400/20 bg-red-500/10 hover:bg-red-500 hover:text-white transition-all shadow-lg shadow-red-500/20" onClick={() => { handleLogoutClick(); setIsOpen(false); }}>LOG OUT</Button>
                 )}
               </div>
             </div>
