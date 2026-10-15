@@ -18,10 +18,10 @@ const Methodology = () => {
 
           <div className="mb-12">
             <h1 className="text-4xl sm:text-6xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-6">
-              Our <span className="text-primary">Methodology.</span>
+              How We <span className="text-primary">Get Our Numbers.</span>
             </h1>
             <p className="text-xl text-slate-600 dark:text-slate-300 font-normal leading-relaxed">
-              We don't invent numbers. For a brand whose entire thesis is verification, transparency is the only metric that matters. Here is exactly how we calculate the figures we report on our platform.
+              We don't make up numbers. Checking things is what we are about, so being open about our figures matters more than anything. Here is exactly how we work out each figure shown on our website.
             </p>
           </div>
 
@@ -34,14 +34,14 @@ const Methodology = () => {
                   <span className="text-lg font-extrabold">₦</span>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Value Quantified</h3>
+                  <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Worth of Building Work Costed</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
-                    The total gross merchandise value (GMV) of all structural estimates and Bills of Quantities (BoQs) generated through the AI Studio. 
+                    The total value of all the building cost estimates and BoQs (Bills of Quantities: priced lists of every material a building needs) made in our AI (Artificial Intelligence) Studio. 
                   </p>
                   <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Calculation Model</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">How We Work It Out</h4>
                     <p className="text-xs text-slate-700 dark:text-slate-300 font-medium font-mono">
-                      Sum of (Quantity of Material × Live Factory Gate Price) across all generated projects on the platform.
+                      For every project made on our website, we multiply the amount of each material by its current factory price, and add it all up.
                     </p>
                   </div>
                 </div>
@@ -55,16 +55,16 @@ const Methodology = () => {
                   <CheckCircle2 className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Verified Material SKUs</h3>
+                  <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">Building Products with Prices</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
-                    The exact count of distinct material Stock Keeping Units (SKUs) currently live, priced, and orderable in our procurement marketplace.
+                    The exact number of different building products that are listed, priced and ready to order in our marketplace right now.
                   </p>
                   <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Inclusion Criteria</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">What Counts</h4>
                     <ul className="text-xs text-slate-700 dark:text-slate-300 font-medium space-y-2">
-                      <li className="flex gap-2"><span className="text-primary">•</span> SKU must be actively linked to a verified supplier.</li>
-                      <li className="flex gap-2"><span className="text-primary">•</span> SKU must meet Standard Organisation of Nigeria (SON/NIS) minimum engineering specifications.</li>
-                      <li className="flex gap-2"><span className="text-primary">•</span> SKU pricing must have been updated within the last 72 hours.</li>
+                      <li className="flex gap-2"><span className="text-primary">•</span> The product must come from a supplier we have checked.</li>
+                      <li className="flex gap-2"><span className="text-primary">•</span> The product must meet at least the minimum quality set by the SON (Standards Organisation of Nigeria) in the NIS (Nigerian Industrial Standards).</li>
+                      <li className="flex gap-2"><span className="text-primary">•</span> Its price must have been updated in the last 72 hours.</li>
                     </ul>
                   </div>
                 </div>
@@ -78,14 +78,14 @@ const Methodology = () => {
                   <span className="text-lg font-extrabold">⏱</span>
                 </div>
                 <div>
-                  <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">3 Min Takeoff Speed</h3>
+                  <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">3 Minutes from Idea to Priced Materials List</h3>
                   <p className="text-sm text-slate-600 dark:text-slate-300 mb-4 leading-relaxed">
-                    The median time elapsed between an architect uploading structural parameters into the AI Studio and the generation of a fully costed, procure-ready BoQ.
+                    The typical (middle) time between an architect entering the building's details in the AI Studio and receiving a fully priced BoQ, ready to order from.
                   </p>
                   <div className="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-100 dark:border-slate-800">
-                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Data Source</h4>
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Where the Figure Comes From</h4>
                     <p className="text-xs text-slate-700 dark:text-slate-300 font-medium font-mono">
-                      System telemetry logs measuring (Timestamp of Final BoQ Generation - Timestamp of Parameter Submission) across the last 500 successful queries.
+                      Our system records the time each request is sent and the time its BoQ is ready. We take the difference for the last 500 successful requests.
                     </p>
                   </div>
                 </div>
@@ -95,7 +95,7 @@ const Methodology = () => {
           </div>
 
           <div className="mt-16 text-center">
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Want to see the data in action?</h3>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">Want to see it for yourself?</h3>
             <Button asChild size="lg" className="h-14 px-8 text-base font-bold rounded-2xl bg-primary hover:bg-primary/90 text-white shadow-xl shadow-primary/25">
               <Link to="/pro/ai-studio">Try the AI Studio</Link>
             </Button>
