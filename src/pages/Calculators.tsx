@@ -439,7 +439,7 @@ const Calculators = () => {
                                         </div>
                                         <div>
                                             <h3 className="text-base lg:text-lg font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-none">Project Input</h3>
-                                            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 mt-1">Node Configuration</p>
+                                            <p className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-400 mt-1">Your Project Details</p>
                                         </div>
                                     </div>
                                 </CardHeader>
@@ -447,13 +447,13 @@ const Calculators = () => {
                                     {/* Mobile hero (hidden on desktop) */}
                                     <div className="lg:hidden text-center space-y-4 mb-2">
                                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/5 border border-primary/10 text-primary text-[8px] font-black uppercase tracking-[0.2em]">
-                                            <BrainCircuit className="w-3 h-3" /> Neural QS v4.0
+                                            <BrainCircuit className="w-3 h-3" /> AI Quantity Surveyor v4.0
                                         </div>
                                         <h1 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight leading-tight">
                                             AI-Powered <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-orange-500 italic block sm:inline">BoQ</span>
                                         </h1>
                                         <p className="text-[10px] text-slate-500 font-medium leading-tight max-w-[260px] mx-auto italic">
-                                            Transform architectural prompts or blueprints into detailed material estimations.
+                                            Describe your building or upload its drawings, and get a detailed estimate of the materials it needs.
                                         </p>
                                     </div>
 
@@ -461,7 +461,7 @@ const Calculators = () => {
                                     <div className="space-y-2">
                                         <textarea
                                             className="w-full min-h-[120px] p-5 rounded-2xl border bg-slate-50 dark:bg-slate-800/50 focus:ring-1 ring-primary/20 transition-all placeholder:text-slate-400 text-slate-700 dark:text-slate-200 font-medium text-xs leading-relaxed border-slate-100 dark:border-white/5 shadow-inner"
-                                            placeholder="E.g., A 4-bedroom duplex in Lekki, Lagos with BQ for structural phase..."
+                                            placeholder="E.g., A 4-bedroom duplex in Lekki, Lagos with a BQ (boys' quarters), frame stage..."
                                             value={prompt}
                                             onChange={(e) => setPrompt(e.target.value)}
                                         />
@@ -509,7 +509,7 @@ const Calculators = () => {
                                                     </div>
                                                     <div className="text-center">
                                                         <p className="font-black text-slate-900 dark:text-white uppercase tracking-[0.1em] text-[11px]">Upload Plan</p>
-                                                        <p className="text-[8px] text-slate-400 uppercase tracking-[0.2em] font-black italic mt-1">PDF · DWG · RVT · DXF · IFC · SKP</p>
+                                                        <p className="text-[8px] text-slate-400 uppercase tracking-[0.2em] font-black italic mt-1">PDF, AutoCAD, Revit, SketchUp or IFC (Industry Foundation Classes) files</p>
                                                     </div>
                                                 </div>
                                             )}
@@ -532,7 +532,7 @@ const Calculators = () => {
                                         {isSurveying ? (
                                             <><RefreshCw className="w-4 h-4 animate-spin" /> SYNTHESIZING...</>
                                         ) : (
-                                            <><Sparkles className="w-4 h-4 text-yellow-300" /> GENERATE BoQ</>
+                                            <><Sparkles className="w-4 h-4 text-yellow-300" /> GET MY MATERIALS LIST</>
                                         )}
                                     </Button>
                                 </CardContent>
@@ -546,16 +546,16 @@ const Calculators = () => {
                             {!surveyComplete && !isSurveying && (
                                 <div className="flex-grow flex flex-col justify-center items-start lg:p-12 animate-in fade-in duration-1000">
                                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em] mb-8 w-fit shrink-0">
-                                        <BrainCircuit className="w-3.5 h-3.5" /> Neural QS v4.0
+                                        <BrainCircuit className="w-3.5 h-3.5" /> AI Quantity Surveyor v4.0
                                     </div>
                                     <h1 className="text-4xl md:text-5xl lg:text-7xl font-black text-slate-900 dark:text-white uppercase tracking-tighter leading-[0.8] mb-8">
                                         AI-Powered <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-red-500 to-orange-500 italic">Bill of Quantities</span>
                                     </h1>
                                     <p className="text-sm md:text-lg lg:text-2xl text-slate-400 dark:text-slate-500 font-medium leading-tight max-w-xl italic lg:max-w-2xl">
-                                        Transform architectural prompts or blueprints into detailed, phased material estimations in seconds.
+                                        Describe your building or upload its drawings, and in seconds get a detailed estimate of the materials it needs, stage by stage.
                                     </p>
                                     <div className="flex gap-10 mt-16 opacity-30 lg:mt-20">
-                                        {[{ icon: UploadCloud, label: 'Vault' }, { icon: Sparkles, label: 'Neural Engine' }, { icon: BarChart, label: 'BoQ Deliver' }].map((step, i) => (
+                                        {[{ icon: UploadCloud, label: 'Upload' }, { icon: Sparkles, label: 'AI Works It Out' }, { icon: BarChart, label: 'Get Your List' }].map((step, i) => (
                                             <div key={i} className="flex flex-col items-center lg:items-start gap-2">
                                                 <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
                                                     <step.icon className="w-5 h-5 shadow-inner" />
@@ -579,7 +579,7 @@ const Calculators = () => {
                                         </div>
                                     </div>
                                     <div className="text-center space-y-3">
-                                        <p className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Neural QS Processing</p>
+                                        <p className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Our AI Quantity Surveyor Is Working</p>
                                         <p className="text-sm text-slate-500 dark:text-slate-400 italic max-w-sm">Analyzing your construction document and extracting material quantities against the Nigerian market database...</p>
                                     </div>
                                     <div className="flex flex-col gap-3 w-full max-w-sm">
@@ -629,7 +629,7 @@ const Calculators = () => {
 
                     {/* Legacy modules strip */}
                     <div className="mt-4 lg:mt-6 animate-in slide-in-from-bottom-5 duration-700">
-                        <p className="text-[8px] lg:text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 px-4 mb-4 text-center lg:text-left">Legacy Estimation Protocol Modules</p>
+                        <p className="text-[8px] lg:text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 px-4 mb-4 text-center lg:text-left">Simple Calculators</p>
                         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 pb-2">
                             {[
                                 { title: 'Concrete Volume', icon: Calculator },
