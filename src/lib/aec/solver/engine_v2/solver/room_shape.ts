@@ -17,6 +17,8 @@ export const ABSOLUTE_MIN_WIDTH_M: Record<string, number> = {
     bedroom: 2.7, master_bedroom: 3.0, bathroom: 1.5, wardrobe: 1.2, dressing: 1.5,
     office: 2.4, study: 2.4,
     void: 1.0, circulation: 1.0, hall: 1.2, landing: 1.2, stairwell: 2.4,
+    toilet: 1.2, wc: 1.2, powder_room: 1.2,
+    balcony: 1.5, terrace: 1.5, veranda: 1.5, verandah: 1.5, patio: 1.5,
 };
 export const DEFAULT_MIN_WIDTH_BY_ZONE: Record<string, number> = {
     social: 3.0, service: 2.1, private: 2.4, circ: 1.0,
