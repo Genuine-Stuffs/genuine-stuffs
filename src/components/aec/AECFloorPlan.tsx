@@ -1089,7 +1089,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
           </div>
           <div>
             <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white flex items-center gap-3">
-              Derived Floor Plan (Solver Output)
+              Floor Plan (Drawn by Our AI)
               {isDuplex && (
                 <div className="flex bg-white/10 rounded-full p-0.5 ml-2">
                   {viewButton('sheet', 'SHEET')}
@@ -1106,19 +1106,19 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
                 }`}
               >
                 <Layers className="w-3 h-3" />
-                {showStructure ? 'STRUCTURAL GRID ON' : 'STRUCTURAL GRID OFF'}
+                {showStructure ? 'COLUMNS & BEAMS SHOWN' : 'SHOW COLUMNS & BEAMS'}
               </button>
             </CardTitle>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
-                Procedurally Generated • Elev {shown.map(f => `+${f * 3.0}m`).join(' / ')}
+                Drawn automatically • Floor heights {shown.map(f => `+${f * 3.0}m`).join(' / ')}
               </span>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3">
           <Badge className="bg-emerald-600 text-white border-none text-[9px] font-black px-4 py-1.5 shadow-lg shadow-emerald-900/20">
-            <CheckCircle2 className="w-3 h-3 mr-1.5" /> COMPILED
+            <CheckCircle2 className="w-3 h-3 mr-1.5" /> READY
           </Badge>
         </div>
       </CardHeader>
@@ -1315,7 +1315,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
               </div>
               <div>
                 <p className="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">Safety Factor</p>
-                <p className="text-xs font-black text-slate-900 dark:text-white">FS 1.5 Structural</p>
+                <p className="text-xs font-black text-slate-900 dark:text-white">FS (factor of safety) 1.5 for the structure</p>
               </div>
             </div>
           </div>

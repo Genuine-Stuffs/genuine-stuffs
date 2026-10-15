@@ -126,7 +126,7 @@ const ProDashboard = () => {
     const activeProjectMock = [
         { name: "Steven Terry", project: "Luxury Villa Concept", price: "₦1.2M", delivery: "4 Days", progress: 90, status: "Finalizing" },
         { name: "Audrey Jones", project: "Sustainable Facade", price: "₦450k", delivery: "12 Days", progress: 50, status: "Materials" },
-        { name: "Brian Fisher", project: "MEP Precision Kit", price: "₦800k", delivery: "2 Days", progress: 20, status: "Drafting" },
+        { name: "Brian Fisher", project: "Plumbing and Wiring Plans", price: "₦800k", delivery: "2 Days", progress: 20, status: "Drafting" },
     ];
 
     return (
@@ -143,7 +143,7 @@ const ProDashboard = () => {
                         <h1 className="text-2xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-tight">
                             Welcome back, <br className="sm:hidden" /><span className="text-primary italic">{user?.email?.split('@')[0] || 'Pro'}</span> 👋
                         </h1>
-                        <p className="text-[10px] font-black text-slate-400 dark:text-slate-600 mt-2 uppercase tracking-[0.2em]">Workspace Protocol v4.0 · Node Active</p>
+                        <p className="text-[10px] font-black text-slate-400 dark:text-slate-600 mt-2 uppercase tracking-[0.2em]">Your workspace is ready</p>
                     </div>
                     <div className="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
                          <div className="w-full sm:w-auto">
@@ -204,7 +204,7 @@ const ProDashboard = () => {
                                     <div className="w-full bg-slate-100 dark:bg-white/5 h-2 rounded-full overflow-hidden">
                                         <div className="bg-primary h-full transition-all duration-1000" style={{ width: credits && credits > 50 ? '80%' : '30%' }} />
                                     </div>
-                                    <p className="text-[10px] font-bold text-slate-400 mt-4 italic uppercase tracking-wider">Projected for 12 more syncs</p>
+                                    <p className="text-[10px] font-bold text-slate-400 mt-4 italic uppercase tracking-wider">Enough for about 12 more designs</p>
                                 </CardContent>
                             </Card>
 
@@ -233,14 +233,14 @@ const ProDashboard = () => {
                                             <Zap className="w-6 h-6 text-white" />
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black uppercase text-white/40 tracking-widest mb-1 leading-none">Sync Accuracy</p>
+                                            <p className="text-[10px] font-black uppercase text-white/40 tracking-widest mb-1 leading-none">Estimate Accuracy</p>
                                             <p className="text-3xl font-black text-white italic tabular-nums">98.2%</p>
                                         </div>
                                     </div>
                                     <div className="w-full bg-white/10 h-2 rounded-full overflow-hidden">
                                         <div className="bg-primary h-full w-[98%]" />
                                     </div>
-                                    <p className="text-[10px] font-bold text-white/60 mt-4 italic uppercase tracking-wider">Neural BoQ Active</p>
+                                    <p className="text-[10px] font-bold text-white/60 mt-4 italic uppercase tracking-wider">Materials Calculator On</p>
                                 </CardContent>
                             </Card>
                         </div>
@@ -254,12 +254,12 @@ const ProDashboard = () => {
                                             <Layers className="w-6 h-6 text-primary" />
                                         </div>
                                         <div>
-                                            <CardTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">Active <span className="text-primary italic">Pipeline</span></CardTitle>
-                                            <CardDescription className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">3 Production Nodes</CardDescription>
+                                            <CardTitle className="text-xl md:text-2xl font-black uppercase tracking-tighter text-slate-900 dark:text-white leading-none">Current <span className="text-primary italic">Projects</span></CardTitle>
+                                            <CardDescription className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">3 projects under way</CardDescription>
                                         </div>
                                     </div>
                                     <Button variant="ghost" className="w-full sm:w-auto rounded-2xl px-6 h-12 hover:bg-slate-100 dark:hover:bg-white/5 font-black uppercase text-[10px] tracking-widest border border-slate-100 dark:border-white/10">
-                                        System History <ArrowRight className="w-4 h-4 ml-2" />
+                                        Past Projects <ArrowRight className="w-4 h-4 ml-2" />
                                     </Button>
                                 </div>
                             </CardHeader>
@@ -269,9 +269,9 @@ const ProDashboard = () => {
                                     <table className="w-full text-left">
                                         <thead>
                                             <tr className="border-b border-slate-100 dark:border-white/5">
-                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-widest px-4">Entity</th>
-                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-widest px-4">Production Vision</th>
-                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-widest px-4">Est. Value</th>
+                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-widest px-4">Client</th>
+                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-widest px-4">Project</th>
+                                                <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-widest px-4">Estimated Value</th>
                                                 <th className="pb-6 text-[10px] font-black uppercase text-slate-400 tracking-widest px-4 text-right">Status</th>
                                             </tr>
                                         </thead>
@@ -285,7 +285,7 @@ const ProDashboard = () => {
                                                             </div>
                                                             <div>
                                                                 <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">{project.name}</p>
-                                                                <p className="text-[10px] text-slate-400 font-bold mt-1 italic">{project.delivery} Delivery</p>
+                                                                <p className="text-[10px] text-slate-400 font-bold mt-1 italic">{project.delivery} to deliver</p>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -323,7 +323,7 @@ const ProDashboard = () => {
                                                     </div>
                                                     <div>
                                                         <p className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-tight">{project.name}</p>
-                                                        <p className="text-[10px] text-slate-400 font-bold mt-1 italic">{project.delivery} Delivery</p>
+                                                        <p className="text-[10px] text-slate-400 font-bold mt-1 italic">{project.delivery} to deliver</p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
@@ -379,7 +379,7 @@ const ProDashboard = () => {
                                     </div>
                                     <div className="grid grid-cols-2 w-full gap-4 mt-10 border-t border-white/5 pt-10">
                                         <div>
-                                            <p className="text-[10px] font-black uppercase text-white/30 tracking-widest mb-1">Impact Score</p>
+                                            <p className="text-[10px] font-black uppercase text-white/30 tracking-widest mb-1">Your Rating</p>
                                             <p className="text-lg font-black text-white italic">A+</p>
                                         </div>
                                         <div>
@@ -388,7 +388,7 @@ const ProDashboard = () => {
                                         </div>
                                     </div>
                                     <Button asChild className="w-full mt-10 h-12 rounded-2xl bg-white text-slate-900 hover:bg-primary hover:text-white transition-all font-black uppercase tracking-widest text-[10px]">
-                                        <Link to={`/pro/profile/${user?.id}`}>Edit Identity Node</Link>
+                                        <Link to={`/pro/profile/${user?.id}`}>Edit Your Profile</Link>
                                     </Button>
                                 </div>
                            </CardContent>
@@ -399,7 +399,7 @@ const ProDashboard = () => {
                             <div className="flex items-center justify-between mb-8">
                                 <div className="flex items-center gap-3">
                                     <TrendingUp className="w-5 h-5 text-emerald-500" />
-                                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">Trend <span className="text-emerald-500">Node</span></h3>
+                                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">Price <span className="text-emerald-500">Changes</span></h3>
                                 </div>
                                 <span className="text-[9px] font-black text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-1 rounded uppercase tracking-tighter">Real-Time</span>
                             </div>
@@ -449,9 +449,9 @@ const ProDashboard = () => {
                         {/* Technical Toolkits Quick Grid */}
                         <div className="grid grid-cols-2 gap-4">
                             {[
-                                { name: "AI Workspace", icon: Sparkles, path: "/pro/ai-studio", color: "text-primary" },
+                                { name: "AI Studio", icon: Sparkles, path: "/pro/ai-studio", color: "text-primary" },
                                 { name: "Materials", icon: Building2, path: "/marketplace", color: "text-blue-500" },
-                                { name: "Neural BoQ", icon: Cpu, path: "/calculators", color: "text-amber-500" },
+                                { name: "Cost Calculator", icon: Cpu, path: "/calculators", color: "text-amber-500" },
                                 { name: "Resources", icon: BookOpen, path: "/resources", color: "text-emerald-500" },
                             ].map((tool, i) => (
                                 <Link 

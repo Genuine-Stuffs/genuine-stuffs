@@ -70,7 +70,7 @@ const Pros = () => {
                     <div className="max-w-4xl mx-auto space-y-1.5 md:space-y-4">
                         <div className="hidden md:flex text-slate-800 dark:text-white text-center mb-1 items-center justify-center gap-2">
                             <h2 className="text-lg md:text-xl font-black uppercase tracking-tighter flex items-center gap-2">
-                                <Sparkles className="w-5 h-5 text-primary" /> ProHub Community Network
+                                <Sparkles className="w-5 h-5 text-primary" /> ProHub: Our Network of Professionals
                             </h2>
                         </div>
                         
@@ -147,7 +147,7 @@ const Pros = () => {
                             ProHub <span className="text-primary italic">Network</span>
                         </h1>
                     <p className="text-muted-foreground text-[9px] md:text-base font-medium max-w-2xl mx-auto italic leading-relaxed">
-                        The ultimate AEC ecosystem to connect, network and collaborate with fellow professionals.
+                        The place for AEC (Architecture, Engineering and Construction) professionals to meet, connect and work together.
                     </p>
                 </div>
 

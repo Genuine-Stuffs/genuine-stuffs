@@ -324,12 +324,12 @@ const AIStudio = () => {
         // SaaS Gating: Unlock only for premium or active packages (admins bypass)
         const isPremium = subscriptionStatus === 'active' || (credits !== null && credits > 10) || role === 'admin' || role === 'pm';
         if (!isPremium) {
-            toast.error("Download blocked. Please purchase a credit package to unlock document exports.");
+            toast.error("To download documents, please buy a credit package first.");
             if (isPro) setShowRefillModal(true);
             return;
         }
 
-        toast.info("Preparing high-resolution blueprint...");
+        toast.info("Preparing a detailed drawing...");
 
         const doc = new jsPDF();
         const timestamp = new Date().toLocaleString();
@@ -491,19 +491,19 @@ const AIStudio = () => {
         }
 
         doc.save(`MaterialInsight_Blueprint_${selectedRole.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
-        toast.success("Professional Blueprint Exported!");
+        toast.success("Drawing downloaded!");
     };
 
     const handleExportDXF = () => {
         if (!designPackage || !designPackage.architectural_layout) {
-            toast.error("No design data available for CAD export.");
+            toast.error("There is no design yet to save as a CAD (Computer-Aided Design) file.");
             return;
         }
 
         // SaaS Gating: Unlock only for premium or active packages (admins bypass)
         const isPremium = subscriptionStatus === 'active' || (credits !== null && credits > 10) || role === 'admin' || role === 'pm';
         if (!isPremium) {
-            toast.error("Export blocked. Please purchase a credit package to unlock CAD downloads.");
+            toast.error("To download CAD (Computer-Aided Design) files, please buy a credit package first.");
             if (isPro) setShowRefillModal(true);
             return;
         }
@@ -549,13 +549,13 @@ const AIStudio = () => {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
         
-        toast.success("CAD File (.DXF) exported successfully!");
+        toast.success("CAD file (.DXF, opens in AutoCAD) downloaded!");
     };
 
     const handleGenerate = async () => {
         // Bypass credit check for admin/pm users based on server-verified claims
         if (!serverClaims.is_admin && !serverClaims.is_pm && (credits === null || credits < 2)) {
-            toast.error("Insufficient credits.");
+            toast.error("Not enough credits.");
             if (isPro) setShowRefillModal(true);
             return;
         }
@@ -735,9 +735,9 @@ const AIStudio = () => {
             setIsGenerating(false);
             
             if (hasDesignData) {
-                toast.success("AEC Spatial Program Synchronized.");
+                toast.success("Room plan ready.");
             } else if (cleanText) {
-                toast.info("Design Analysis Ready.");
+                toast.info("Design check ready.");
             } else {
                 toast.info("Response received. See results below.");
             }
@@ -803,7 +803,7 @@ const AIStudio = () => {
         setPromptText("");
         setSidebarOpen(false);
         setMobileSidebarOpen(false);
-        toast.success("New Project Session Initiated (Memory Cleared).");
+        toast.success("New project started. The earlier conversation has been cleared.");
     };
 
     // Geometry signature, not just plot size + room count: options for the
@@ -1099,13 +1099,13 @@ const AIStudio = () => {
                     <div className="hidden md:flex items-center justify-between px-6 py-1.5 bg-white dark:bg-[#15171a] border-b border-slate-200 dark:border-white/5 z-40 shrink-0 w-full min-h-[52px]">
                         <div className="flex items-center gap-4">
                              <div>
-                                <h2 className="text-[12px] font-black uppercase tracking-tight text-slate-800 dark:text-white leading-none">Studio Environment</h2>
-                                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#e11d48] mt-0.5 opacity-80">Active AI Node</p>
+                                <h2 className="text-[12px] font-black uppercase tracking-tight text-slate-800 dark:text-white leading-none">AI Studio</h2>
+                                <p className="text-[8px] font-black uppercase tracking-[0.2em] text-[#e11d48] mt-0.5 opacity-80">Ready</p>
                             </div>
                             
                             {serverClaims.is_admin && (
                                 <div className="flex items-center gap-2 ml-4 p-1 bg-amber-500/10 rounded-lg border border-amber-500/20">
-                                    <span className="text-[9px] font-black uppercase text-amber-600 px-2 tracking-widest">Environment:</span>
+                                    <span className="text-[9px] font-black uppercase text-amber-600 px-2 tracking-widest">Account:</span>
                                     <button 
                                         onClick={() => switchEnvironmentView('professional')}
                                         className={`px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-widest transition-all ${role === 'professional' ? 'bg-amber-600 text-white' : 'text-amber-600 hover:bg-amber-600/10'}`}
@@ -1265,7 +1265,7 @@ const AIStudio = () => {
                                                         {isVisualizing ? (
                                                             <div className="aspect-[16/9] w-full flex flex-col items-center justify-center p-12 space-y-6">
                                                                 <div className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-                                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary animate-pulse">Rendering Design Vision</p>
+                                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-primary animate-pulse">Drawing Your Design</p>
                                                             </div>
                                                         ) : (
                                                             <>
@@ -1554,8 +1554,8 @@ const AIStudio = () => {
                                                                 <div className="flex items-center gap-4">
                                                                     <ShieldCheck className="w-6 h-6 text-slate-500" />
                                                                     <div>
-                                                                        <h4 className="text-[11px] font-black uppercase tracking-widest text-white">Compliance Pre-Screen Pending</h4>
-                                                                        <p className="text-[9px] text-slate-400">Room geometry required for NBC 2006 validation. Refine your brief to include room specifications.</p>
+                                                                        <h4 className="text-[11px] font-black uppercase tracking-widest text-white">Building Code Check Not Done Yet</h4>
+                                                                        <p className="text-[9px] text-slate-400">We need each room's size to check the design against the NBC (National Building Code of Nigeria, 2006). Add the rooms you want, and their sizes, to your request.</p>
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex gap-2">
@@ -1595,7 +1595,7 @@ const AIStudio = () => {
                                                                     <summary className="flex items-center justify-between px-6 py-4 bg-slate-50 dark:bg-white/5 cursor-pointer list-none">
                                                                         <div className="flex items-center gap-3">
                                                                             <HardHat className="w-4 h-4 text-primary" />
-                                                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white">Buildability & Maintainability Report</span>
+                                                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white">How Easy It Is to Build and Look After</span>
                                                                         </div>
                                                                         <ChevronRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" />
                                                                     </summary>
@@ -1627,7 +1627,7 @@ const AIStudio = () => {
                                                                     <summary className="flex items-center justify-between px-6 py-4 bg-slate-50 dark:bg-white/5 cursor-pointer list-none">
                                                                         <div className="flex items-center gap-3">
                                                                             <History className="w-4 h-4 text-primary" />
-                                                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white">Construction Programme</span>
+                                                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white">Building Schedule</span>
                                                                         </div>
                                                                         <ChevronRight className="w-4 h-4 text-slate-400 group-open:rotate-90 transition-transform" />
                                                                     </summary>
