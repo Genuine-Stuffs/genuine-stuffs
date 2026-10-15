@@ -36,22 +36,22 @@ const HelpSupport = () => {
         {
             category: "General",
             questions: [
-                { q: "What is Material Insight?", a: "Material Insight is a data-driven ecosystem connecting construction material vendors with verified professionals for seamless procurement and project management." },
-                { q: "How do I verify my account?", a: "Vendors must upload their CAC documents and business profile in the Settings page. Professionals are verified through their professional license numbers." }
+                { q: "What is Material Insight?", a: "Material Insight is a website that uses real data to connect sellers of building materials with checked professionals, so buying materials and running a project go smoothly." },
+                { q: "How do I verify my account?", a: "Sellers upload their CAC (Corporate Affairs Commission) registration documents and a short business profile on the Settings page. Professionals are checked using their professional licence numbers." }
             ]
         },
         {
-            category: "For Vendors",
+            category: "For Sellers",
             questions: [
-                { q: "How do I list new materials?", a: "Go to the Material Inventory page and click the 'Add Material' button. Fill in the details, price, and upload high-quality images." },
-                { q: "What are the transaction fees?", a: "We charge a small service fee on every successful transaction to maintain the platform and provide escrow services." }
+                { q: "How do I list new materials?", a: "Go to the Material Inventory page and click 'Add Material'. Fill in the details and price, and upload clear photos." },
+                { q: "What are the transaction fees?", a: "We charge a small fee on every completed sale. It pays for running the website and for holding each payment safely until the order is delivered (known as escrow)." }
             ]
         },
         {
             category: "Payments",
             questions: [
-                { q: "How do I get paid?", a: "Payments are processed via Paystack. Once an order is marked as delivered and confirmed by the client, funds are released to your registered bank account." },
-                { q: "Can I cancel an order?", a: "Orders can be cancelled before they are marked as 'Processing'. Once processing starts, cancellations are subject to our refund policy." }
+                { q: "How do I get paid?", a: "Payments go through Paystack, a secure online payment service. Once an order is marked as delivered and the customer confirms it, the money is paid into your registered bank account." },
+                { q: "Can I cancel an order?", a: "You can cancel an order until it is marked 'Processing'. After that, cancelling depends on our refund policy." }
             ]
         }
     ];
@@ -102,9 +102,9 @@ const HelpSupport = () => {
                 <div className="max-w-7xl mx-auto px-4 -mt-10 relative z-20">
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                         {[
-                            { icon: BookOpen, title: "Knowledge Base", desc: "Detailed guides on using the platform.", color: "text-blue-500", bg: "bg-blue-50" },
+                            { icon: BookOpen, title: "Knowledge Base", desc: "Step-by-step guides to using the website.", color: "text-blue-500", bg: "bg-blue-50" },
                             { icon: Youtube, title: "Video Tutorials", desc: "Watch how-to videos for every feature.", color: "text-red-500", bg: "bg-red-50" },
-                            { icon: ShieldAlert, title: "Industry Standards", desc: "Learn about quality control & safety.", color: "text-amber-500", bg: "bg-amber-50" },
+                            { icon: ShieldAlert, title: "Building Standards", desc: "Learn how quality is checked and how to stay safe.", color: "text-amber-500", bg: "bg-amber-50" },
                         ].map((card, i) => (
                             <Card key={i} className="border-none shadow-xl rounded-[2rem] overflow-hidden group hover:-translate-y-1 transition-all duration-300">
                                 <CardContent className="p-8">
@@ -175,14 +175,14 @@ const HelpSupport = () => {
                                         </div>
                                     </div>
                                     <Button className="w-full h-14 bg-white text-primary hover:bg-slate-100 rounded-2xl font-black uppercase tracking-widest text-[11px] shadow-lg">
-                                        Start Incident Report
+                                        Report a Problem
                                     </Button>
                                 </CardContent>
                             </Card>
 
                             <Card className="border-none shadow-xl rounded-[2.5rem] overflow-hidden">
                                 <CardHeader className="p-8 pb-0">
-                                    <CardTitle className="text-lg font-black uppercase tracking-tight">Submit a Ticket</CardTitle>
+                                    <CardTitle className="text-lg font-black uppercase tracking-tight">Send Us a Message</CardTitle>
                                     <CardDescription className="italic font-medium">We'll respond as soon as possible.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="p-8 pt-6">
@@ -193,7 +193,7 @@ const HelpSupport = () => {
                                         </div>
                                         <div className="space-y-2">
                                             <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400">Description</Label>
-                                            <Textarea required className="min-h-[120px] rounded-2xl bg-slate-50 border-none font-medium text-sm p-4" placeholder="Directly explain your issue..." />
+                                            <Textarea required className="min-h-[120px] rounded-2xl bg-slate-50 border-none font-medium text-sm p-4" placeholder="Tell us what went wrong..." />
                                         </div>
                                         <Button type="submit" disabled={isSubmitting} className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-[10px]">
                                             {isSubmitting ? "Sending..." : "Send Ticket"}
