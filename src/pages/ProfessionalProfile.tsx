@@ -356,7 +356,7 @@ const ProfessionalProfile = () => {
                                         )}
                                     </div>
                                     <p className="text-[10px] text-slate-500 font-medium italic">
-                                        * Please mention "Material Insight" when contacting this professional.
+                                        * Please mention "Genuine Stuffs" when contacting this professional.
                                     </p>
                                 </div>
                             )}

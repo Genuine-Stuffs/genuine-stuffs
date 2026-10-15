@@ -341,7 +341,7 @@ const AIStudio = () => {
         
         doc.setFontSize(9);
         doc.setTextColor(120, 120, 120);
-        doc.text(`Generated via Material Insight AI Studio Node`, 14, 30);
+        doc.text(`Made with the Genuine Stuffs AI Studio`, 14, 30);
         doc.text(`Issuance Date: ${timestamp}`, 14, 35);
         doc.text(`Professional Role: ${selectedRole}`, 14, 40);
         doc.text(`Project Integrity ID: MI-${Math.random().toString(36).substr(2, 9).toUpperCase()}`, 14, 45);
@@ -490,7 +490,7 @@ const AIStudio = () => {
             }
         }
 
-        doc.save(`MaterialInsight_Blueprint_${selectedRole.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
+        doc.save(`GenuineStuffs_Drawing_${selectedRole.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
         toast.success("Drawing downloaded!");
     };
 
@@ -543,7 +543,7 @@ const AIStudio = () => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `MaterialInsight_CAD_${designPackage.project_id || 'Design'}.dxf`;
+        link.download = `GenuineStuffs_CAD_${designPackage.project_id || 'Design'}.dxf`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
