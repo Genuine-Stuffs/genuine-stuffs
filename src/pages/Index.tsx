@@ -334,7 +334,7 @@ const Index = () => {
                       <ArrowRight className="w-5 h-5" />
                     </Link>
                   </Button>
-                  <a href="#live-translation" className="text-slate-300 hover:text-white font-semibold flex items-center gap-2 transition-colors text-base group">
+                  <a href="#boq-translator" className="text-slate-300 hover:text-white font-semibold flex items-center gap-2 transition-colors text-base group">
                     <span>See how we count the materials</span>
                     <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </a>
@@ -396,7 +396,174 @@ const Index = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 2: INTERACTIVE BoQ TRANSLATOR ("One Prompt. One Bill. One Checkout")
+          SECTION 2: THE FRACTURE (Why We Exist — 6 Disconnected Industries)
+         ========================================================================= */}
+      <section className="py-20 bg-[#F0F9FF] dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
+        <div className="container mx-auto px-4">
+          <div className="max-w-5xl mx-auto">
+            
+            <div className="flex items-center gap-3 mb-4 text-xs font-bold uppercase tracking-[0.15em] text-primary">
+              <span>01 / The Problem</span>
+              <div className="h-[1px] flex-1 bg-primary/30" />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+              <div className="lg:col-span-6">
+                <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-6">
+                  Building is not one industry. <br />
+                  <span className="font-normal text-slate-600 dark:text-slate-400">It is six that do not talk to each other.</span>
+                </h2>
+                <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal mb-8">
+                  The designer hands over a drawing. Someone counts the materials again by hand. The buyer starts from scratch, phoning around for prices nobody can check. Each hand-over wastes money and time and lets mistakes creep in, and the losses keep adding up for as long as the building stands.
+                </p>
+                <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-bold text-sm uppercase tracking-wider">
+                  <ShieldCheck className="w-5 h-5" />
+                  <span>Genuine Stuffs keeps it all in one place, so nothing is lost between steps.</span>
+                </div>
+              </div>
+
+              {/* Transformation Slider Visual */}
+              <div className="lg:col-span-6">
+                <div className="p-3 rounded-3xl bg-white dark:bg-[#2D3748] border border-slate-200 dark:border-slate-700 shadow-xl">
+                  <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-950 group">
+                    <Carousel className="w-full h-full" opts={{ loop: true }} plugins={[Autoplay({ delay: 5000 })]}>
+                      <CarouselContent>
+                        <CarouselItem>
+                          <div className="relative w-full h-full">
+                            <img src={paperTakeoffLoss} alt="Traditional Disconnected Construction Site" className="w-full h-full object-cover filter grayscale contrast-125 group-hover:scale-105 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-black/60 flex items-end p-6">
+                              <div className="text-white">
+                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-primary px-2.5 py-1 rounded-lg text-white">The Old Way</span>
+                                <h4 className="text-xl font-bold mt-2.5">Work Passed from Hand to Hand, Prices Nobody Can Check</h4>
+                              </div>
+                            </div>
+                          </div>
+                        </CarouselItem>
+                        <CarouselItem>
+                          <div className="relative w-full h-full">
+                            <img src={townAfter1} alt="Unified AI-Native Construction Site" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent flex items-end p-6">
+                              <div className="text-white">
+                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-lg text-white">The Genuine Stuffs Way</span>
+                                <h4 className="text-xl font-bold mt-2.5">AI Counts the Materials, Checked Suppliers Sell Them</h4>
+                              </div>
+                            </div>
+                          </div>
+                        </CarouselItem>
+                      </CarouselContent>
+                    </Carousel>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 3: THE THREE INTEGRATED PILLARS (Brand Tokens & Rounded Radius)
+         ========================================================================= */}
+      <section className="py-24 bg-white dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
+        <div className="container mx-auto px-4">
+          <div className="max-w-6xl mx-auto">
+            
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-3 text-xs font-bold uppercase tracking-[0.15em] text-primary">
+                  <span>02 / Our Answer</span>
+                  <div className="h-[1px] w-12 bg-primary/30" />
+                </div>
+                <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+                  One website. <span className="text-primary">Three services that work together.</span>
+                </h2>
+              </div>
+              <p className="text-base text-slate-600 dark:text-slate-300 max-w-md font-normal">
+                Designing a building, buying its materials and managing the work usually happen separately. We bring all three together in one place online.
+              </p>
+            </div>
+
+            {/* Interactive Pillar Selector Cards */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {[
+                {
+                  id: 0,
+                  num: "01",
+                  title: "Innovation Studio",
+                  tagline: "FOR ARCHITECTS & ENGINEERS",
+                  desc: "Turn an idea into a buildable design with a priced list of every material. In minutes, AI counts the materials, estimates the cost of the structure and shows you pictures of the building.",
+                  icon: Cpu,
+                  features: ["Pictures of Your Idea, Made by AI", "Automatic BoQ (Bill of Quantities)", "Early Cost of the Frame and Foundations", "Files for BIM (Building Information Modelling) and CAD (Computer-Aided Design)"],
+                  link: "/pro/ai-studio",
+                  cta: "Launch Studio"
+                },
+                {
+                  id: 1,
+                  num: "02",
+                  title: "Materials Marketplace",
+                  tagline: "FOR BUILDERS & BUYERS",
+                  desc: "Order straight from your materials list. Suppliers are checked, prices come straight from the factory, deliveries are tracked, and no middleman adds to the price.",
+                  icon: Box,
+                  features: ["Up-to-Date Factory Prices", "Products Checked Against NIS (Nigerian Industrial Standards)", "No Middleman Markups", "Deliveries Tracked to Your Site"],
+                  link: "/marketplace",
+                  cta: "Browse Marketplace"
+                },
+                {
+                  id: 2,
+                  num: "03",
+                  title: "Professional Portal",
+                  tagline: "FOR PROJECT TEAMS",
+                  desc: "Run the whole build from one place: hire checked experts, keep every drawing together and follow progress on site, all from the same project information.",
+                  icon: Users,
+                  features: ["A List of Checked Experts", "Drawings Stored Safely Online", "Follow the Work on Site", "Safe Payments, Released Stage by Stage"],
+                  link: "/pros",
+                  cta: "Open ProHub"
+                }
+              ].map((pillar) => (
+                <div 
+                  key={pillar.id}
+                  className="p-8 rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-all duration-300 cursor-pointer flex flex-col justify-between group bg-white dark:bg-[#2D3748]/50 hover:bg-[#F0F9FF] dark:hover:bg-[#2D3748] hover:ring-2 hover:ring-primary/20 shadow-md hover:shadow-2xl hover:scale-[1.02] hover:z-10 opacity-95 hover:opacity-100"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <span className="text-2xl font-extrabold text-primary">{pillar.num}</span>
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 group-hover:bg-primary group-hover:text-white group-hover:shadow-md group-hover:shadow-primary/30">
+                        <pillar.icon className="w-6 h-6" />
+                      </div>
+                    </div>
+
+                    <span className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 block mb-1">{pillar.tagline}</span>
+                    <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">{pillar.title}</h3>
+                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal mb-6">{pillar.desc}</p>
+
+                    <div className="h-[1px] w-full bg-slate-200 dark:bg-slate-800 mb-6" />
+
+                    <ul className="space-y-3 mb-8">
+                      {pillar.features.map((feat, i) => (
+                        <li key={i} className="flex items-center gap-3 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          <Check className="w-4 h-4 text-primary shrink-0" />
+                          <span>{feat}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <Button asChild className="w-full h-12 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all duration-300 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 group-hover:bg-primary group-hover:text-white group-hover:shadow-lg group-hover:shadow-primary/20 hover:!bg-primary/90">
+                    <Link to={pillar.link}>
+                      <span>{pillar.cta}</span>
+                      <ChevronRight className="w-4 h-4 ml-1" />
+                    </Link>
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 4: INTERACTIVE BoQ TRANSLATOR ("One Prompt. One Bill. One Checkout")
          ========================================================================= */}
       <section id="boq-translator" className="py-24 bg-[#F0F9FF] dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
         <div className="container mx-auto px-4">
@@ -405,7 +572,7 @@ const Index = () => {
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-[0.12em] mb-4">
                 <Terminal className="w-3.5 h-3.5" />
-                <span>01 / From Idea to Order</span>
+                <span>03 / How It Works</span>
               </div>
               <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">
                 One prompt. One bill. <span className="text-primary underline decoration-2 underline-offset-4">One checkout.</span>
@@ -612,174 +779,7 @@ const Index = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 3: THE THREE INTEGRATED PILLARS (Brand Tokens & Rounded Radius)
-         ========================================================================= */}
-      <section className="py-24 bg-white dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
-        <div className="container mx-auto px-4">
-          <div className="max-w-6xl mx-auto">
-            
-            <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-              <div>
-                <div className="flex items-center gap-3 mb-3 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-                  <span>02 / What We Offer</span>
-                  <div className="h-[1px] w-12 bg-primary/30" />
-                </div>
-                <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight">
-                  One website. <span className="text-primary">Three services that work together.</span>
-                </h2>
-              </div>
-              <p className="text-base text-slate-600 dark:text-slate-300 max-w-md font-normal">
-                Designing a building, buying its materials and managing the work usually happen separately. We bring all three together in one place online.
-              </p>
-            </div>
-
-            {/* Interactive Pillar Selector Cards */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {[
-                {
-                  id: 0,
-                  num: "01",
-                  title: "Innovation Studio",
-                  tagline: "FOR ARCHITECTS & ENGINEERS",
-                  desc: "Turn an idea into a buildable design with a priced list of every material. In minutes, AI counts the materials, estimates the cost of the structure and shows you pictures of the building.",
-                  icon: Cpu,
-                  features: ["Pictures of Your Idea, Made by AI", "Automatic BoQ (Bill of Quantities)", "Early Cost of the Frame and Foundations", "Files for BIM (Building Information Modelling) and CAD (Computer-Aided Design)"],
-                  link: "/pro/ai-studio",
-                  cta: "Launch Studio"
-                },
-                {
-                  id: 1,
-                  num: "02",
-                  title: "Materials Marketplace",
-                  tagline: "FOR BUILDERS & BUYERS",
-                  desc: "Order straight from your materials list. Suppliers are checked, prices come straight from the factory, deliveries are tracked, and no middleman adds to the price.",
-                  icon: Box,
-                  features: ["Up-to-Date Factory Prices", "Products Checked Against NIS (Nigerian Industrial Standards)", "No Middleman Markups", "Deliveries Tracked to Your Site"],
-                  link: "/marketplace",
-                  cta: "Browse Marketplace"
-                },
-                {
-                  id: 2,
-                  num: "03",
-                  title: "Professional Portal",
-                  tagline: "FOR PROJECT TEAMS",
-                  desc: "Run the whole build from one place: hire checked experts, keep every drawing together and follow progress on site, all from the same project information.",
-                  icon: Users,
-                  features: ["A List of Checked Experts", "Drawings Stored Safely Online", "Follow the Work on Site", "Safe Payments, Released Stage by Stage"],
-                  link: "/pros",
-                  cta: "Open ProHub"
-                }
-              ].map((pillar) => (
-                <div 
-                  key={pillar.id}
-                  className="p-8 rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-primary transition-all duration-300 cursor-pointer flex flex-col justify-between group bg-white dark:bg-[#2D3748]/50 hover:bg-[#F0F9FF] dark:hover:bg-[#2D3748] hover:ring-2 hover:ring-primary/20 shadow-md hover:shadow-2xl hover:scale-[1.02] hover:z-10 opacity-95 hover:opacity-100"
-                >
-                  <div>
-                    <div className="flex items-center justify-between mb-6">
-                      <span className="text-2xl font-extrabold text-primary">{pillar.num}</span>
-                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 group-hover:bg-primary group-hover:text-white group-hover:shadow-md group-hover:shadow-primary/30">
-                        <pillar.icon className="w-6 h-6" />
-                      </div>
-                    </div>
-
-                    <span className="text-xs font-bold uppercase tracking-[0.1em] text-slate-500 dark:text-slate-400 block mb-1">{pillar.tagline}</span>
-                    <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight mb-4">{pillar.title}</h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-normal mb-6">{pillar.desc}</p>
-
-                    <div className="h-[1px] w-full bg-slate-200 dark:bg-slate-800 mb-6" />
-
-                    <ul className="space-y-3 mb-8">
-                      {pillar.features.map((feat, i) => (
-                        <li key={i} className="flex items-center gap-3 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          <Check className="w-4 h-4 text-primary shrink-0" />
-                          <span>{feat}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  <Button asChild className="w-full h-12 rounded-2xl font-bold text-sm uppercase tracking-wider transition-all duration-300 bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 group-hover:bg-primary group-hover:text-white group-hover:shadow-lg group-hover:shadow-primary/20 hover:!bg-primary/90">
-                    <Link to={pillar.link}>
-                      <span>{pillar.cta}</span>
-                      <ChevronRight className="w-4 h-4 ml-1" />
-                    </Link>
-                  </Button>
-                </div>
-              ))}
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 4: THE FRACTURE (Why We Exist — 6 Disconnected Industries)
-         ========================================================================= */}
-      <section className="py-20 bg-[#F0F9FF] dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
-        <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            
-            <div className="flex items-center gap-3 mb-4 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-              <span>03 / The Problem</span>
-              <div className="h-[1px] flex-1 bg-primary/30" />
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-              <div className="lg:col-span-6">
-                <h2 className="text-3xl sm:text-5xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight mb-6">
-                  Building is not one industry. <br />
-                  <span className="font-normal text-slate-600 dark:text-slate-400">It is six that do not talk to each other.</span>
-                </h2>
-                <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed font-normal mb-8">
-                  The designer hands over a drawing. Someone counts the materials again by hand. The buyer starts from scratch, phoning around for prices nobody can check. Each hand-over wastes money and time and lets mistakes creep in, and the losses keep adding up for as long as the building stands.
-                </p>
-                <div className="inline-flex items-center gap-3 px-5 py-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-bold text-sm uppercase tracking-wider">
-                  <ShieldCheck className="w-5 h-5" />
-                  <span>Genuine Stuffs keeps it all in one place, so nothing is lost between steps.</span>
-                </div>
-              </div>
-
-              {/* Transformation Slider Visual */}
-              <div className="lg:col-span-6">
-                <div className="p-3 rounded-3xl bg-white dark:bg-[#2D3748] border border-slate-200 dark:border-slate-700 shadow-xl">
-                  <div className="relative aspect-[16/10] w-full rounded-2xl overflow-hidden bg-slate-950 group">
-                    <Carousel className="w-full h-full" opts={{ loop: true }} plugins={[Autoplay({ delay: 5000 })]}>
-                      <CarouselContent>
-                        <CarouselItem>
-                          <div className="relative w-full h-full">
-                            <img src={paperTakeoffLoss} alt="Traditional Disconnected Construction Site" className="w-full h-full object-cover filter grayscale contrast-125 group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute inset-0 bg-black/60 flex items-end p-6">
-                              <div className="text-white">
-                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-primary px-2.5 py-1 rounded-lg text-white">The Old Way</span>
-                                <h4 className="text-xl font-bold mt-2.5">Work Passed from Hand to Hand, Prices Nobody Can Check</h4>
-                              </div>
-                            </div>
-                          </div>
-                        </CarouselItem>
-                        <CarouselItem>
-                          <div className="relative w-full h-full">
-                            <img src={townAfter1} alt="Unified AI-Native Construction Site" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent flex items-end p-6">
-                              <div className="text-white">
-                                <span className="text-xs uppercase font-bold tracking-[0.1em] bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-lg text-white">The Genuine Stuffs Way</span>
-                                <h4 className="text-xl font-bold mt-2.5">AI Counts the Materials, Checked Suppliers Sell Them</h4>
-                              </div>
-                            </div>
-                          </div>
-                        </CarouselItem>
-                      </CarouselContent>
-                    </Carousel>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* =========================================================================
-          SECTION 04: LIVE PROCUREMENT FEED (Unified Category Grid + Promoted SKUs)
+          SECTION 5: LIVE PROCUREMENT FEED (Unified Category Grid + Promoted SKUs)
          ========================================================================= */}
       <section className="py-20 bg-white dark:bg-[#181E26] border-b border-slate-200 dark:border-slate-800 relative transition-colors">
         <div className="container mx-auto px-4">
@@ -788,7 +788,7 @@ const Index = () => {
             <div className="flex items-center justify-between mb-8">
               <div>
                 <div className="flex items-center gap-3 mb-2 text-xs font-bold uppercase tracking-[0.15em] text-primary">
-                  <span>04 / Materials for Sale Now</span>
+                  <span>04 / Shop the Materials</span>
                 </div>
                 <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 dark:text-white uppercase tracking-tight">
                   Products That Meet <span className="text-primary">Nigerian Standards</span>
@@ -902,7 +902,80 @@ const Index = () => {
       </section>
 
       {/* =========================================================================
-          SECTION 06: THE CONSTRUCTION FLYWHEEL & PROOF (Merged A & B)
+          SECTION 6: ARCHITECTED FOR TRUST (Trust Mechanics & Testimonial)
+         ========================================================================= */}
+      <section className="py-24 bg-[#F0F9FF] dark:bg-slate-950 text-slate-900 dark:text-white relative overflow-hidden transition-colors">
+        {/* Infused Trust Background */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <img src={trustImage} alt="Enterprise Trust & Reliability" className="w-full h-full object-cover object-center opacity-75 filter contrast-125" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#F0F9FF] via-[#F0F9FF]/45 to-[#F0F9FF] dark:from-slate-950 dark:via-slate-950/45 dark:to-slate-950" />
+        </div>
+
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="max-w-5xl mx-auto">
+            
+            <div className="text-center mb-16">
+              <span className="text-xs font-bold uppercase tracking-[0.15em] text-primary block mb-3">05 / Why You Can Trust Us</span>
+              <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-white">
+                Built so you can <span className="text-primary">trust every step.</span>
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 text-left">
+              {[
+                { title: "We Check Every Supplier", desc: "We visit every supplier and check their legal papers before any of their products appear in our marketplace.", icon: ShieldCheck },
+                { title: "Products Meet Nigerian Standards", desc: "Every product we list must meet at least the minimum quality set by the SON (Standards Organisation of Nigeria) in the NIS (Nigerian Industrial Standards).", icon: ClipboardCheck },
+                { title: "Honest Prices and Deliveries", desc: "You see today's factory prices and can follow your delivery to site on a map as it happens, using GPS (Global Positioning System). No vague phone quotes from middlemen.", icon: Truck }
+              ].map((item, idx) => (
+                <div key={idx} className="p-6 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-lg">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/20 text-primary flex items-center justify-center mb-4">
+                    <item.icon className="w-6 h-6" />
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{item.title}</h4>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 font-normal leading-relaxed">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Seamless Platform Integrations Bar */}
+            <div className="p-6 rounded-3xl bg-white/80 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 flex flex-wrap items-center justify-around gap-6 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest shadow-sm mb-16">
+              <span className="flex items-center gap-2 text-slate-900 dark:text-white"><Lock className="w-4 h-4 text-primary" /> Paystack Holds Your Payment Safely</span>
+              <span className="flex items-center gap-2"><Layers className="w-4 h-4 text-primary" /> Works with Revit and IFC (Industry Foundation Classes) Building Models</span>
+              <span className="flex items-center gap-2"><Cpu className="w-4 h-4 text-primary" /> Drawings Saved for AutoCAD</span>
+              <span className="flex items-center gap-2"><Share2 className="w-4 h-4 text-primary" /> Site Updates on WhatsApp</span>
+            </div>
+
+            {/* David Okonkwo Featured Testimonial Banner */}
+            <div className="p-8 sm:p-12 rounded-[2.5rem] bg-white dark:bg-slate-900/90 text-slate-900 dark:text-white relative overflow-hidden border border-slate-200 dark:border-slate-700 shadow-xl dark:shadow-2xl">
+              <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
+              
+              <div className="max-w-3xl relative z-10">
+                <div className="flex items-center gap-1 text-primary mb-6">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Sparkles key={i} className="w-5 h-5 fill-primary text-primary" />
+                  ))}
+                </div>
+                <blockquote className="text-xl sm:text-3xl font-bold leading-relaxed text-slate-900 dark:text-slate-100 mb-8">
+                  “We quantified a 14-unit terrace and ordered the substructure the same afternoon. <span className="text-primary underline decoration-2 underline-offset-4">The exact prices and verified standards were right there.</span> Genuine Stuffs has completely transformed how we approach material selection and project execution.”
+                </blockquote>
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/40 flex items-center justify-center font-extrabold text-primary text-lg">
+                    DO
+                  </div>
+                  <div>
+                    <h5 className="font-extrabold text-slate-900 dark:text-white text-base">David Okonkwo</h5>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider">Project Manager · Premium Developments Ltd</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 7: THE CONSTRUCTION FLYWHEEL & PROOF (Merged A & B)
          ========================================================================= */}
       <section className="py-24 bg-slate-950 text-white relative overflow-hidden">
         {/* Infused Construction Site Background Image with Dimmed Overlay */}
@@ -919,7 +992,7 @@ const Index = () => {
             <div className="text-center max-w-3xl mx-auto mb-16">
               <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-2xl bg-primary/20 border border-primary/40 text-primary text-xs font-bold uppercase tracking-[0.12em] mb-4">
                 <RefreshCw className="w-3.5 h-3.5 animate-spin-slow" />
-                <span>05 / How We Keep Getting Better</span>
+                <span>06 / Better with Every Project</span>
               </div>
               <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4">
                 Every project teaches <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-primary">the next one.</span>
@@ -980,83 +1053,8 @@ const Index = () => {
         </div>
       </section>
 
-
       {/* =========================================================================
-          SECTION 07: ARCHITECTED FOR TRUST (Trust Mechanics & Testimonial)
-         ========================================================================= */}
-      <section className="py-24 bg-[#F0F9FF] dark:bg-slate-950 text-slate-900 dark:text-white relative overflow-hidden transition-colors">
-        {/* Infused Trust Background */}
-        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <img src={trustImage} alt="Enterprise Trust & Reliability" className="w-full h-full object-cover object-center opacity-75 filter contrast-125" />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#F0F9FF] via-[#F0F9FF]/45 to-[#F0F9FF] dark:from-slate-950 dark:via-slate-950/45 dark:to-slate-950" />
-        </div>
-
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="max-w-5xl mx-auto">
-            
-            <div className="text-center mb-16">
-              <span className="text-xs font-bold uppercase tracking-[0.15em] text-primary block mb-3">06 / Trust Comes First</span>
-              <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight mb-4 text-slate-900 dark:text-white">
-                Built so you can <span className="text-primary">trust every step.</span>
-              </h2>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16 text-left">
-              {[
-                { title: "We Check Every Supplier", desc: "We visit every supplier and check their legal papers before any of their products appear in our marketplace.", icon: ShieldCheck },
-                { title: "Products Meet Nigerian Standards", desc: "Every product we list must meet at least the minimum quality set by the SON (Standards Organisation of Nigeria) in the NIS (Nigerian Industrial Standards).", icon: ClipboardCheck },
-                { title: "Honest Prices and Deliveries", desc: "You see today's factory prices and can follow your delivery to site on a map as it happens, using GPS (Global Positioning System). No vague phone quotes from middlemen.", icon: Truck }
-              ].map((item, idx) => (
-                <div key={idx} className="p-6 rounded-3xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 shadow-sm dark:shadow-lg">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/20 text-primary flex items-center justify-center mb-4">
-                    <item.icon className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-lg font-bold text-slate-900 dark:text-white mb-2">{item.title}</h4>
-                  <p className="text-sm text-slate-600 dark:text-slate-400 font-normal leading-relaxed">{item.desc}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Seamless Platform Integrations Bar */}
-            <div className="p-6 rounded-3xl bg-white/80 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800/80 flex flex-wrap items-center justify-around gap-6 text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-widest shadow-sm mb-16">
-              <span className="flex items-center gap-2 text-slate-900 dark:text-white"><Lock className="w-4 h-4 text-primary" /> Paystack Holds Your Payment Safely</span>
-              <span className="flex items-center gap-2"><Layers className="w-4 h-4 text-primary" /> Works with Revit and IFC (Industry Foundation Classes) Building Models</span>
-              <span className="flex items-center gap-2"><Cpu className="w-4 h-4 text-primary" /> Drawings Saved for AutoCAD</span>
-              <span className="flex items-center gap-2"><Share2 className="w-4 h-4 text-primary" /> Site Updates on WhatsApp</span>
-            </div>
-
-            {/* David Okonkwo Featured Testimonial Banner */}
-            <div className="p-8 sm:p-12 rounded-[2.5rem] bg-white dark:bg-slate-900/90 text-slate-900 dark:text-white relative overflow-hidden border border-slate-200 dark:border-slate-700 shadow-xl dark:shadow-2xl">
-              <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
-              
-              <div className="max-w-3xl relative z-10">
-                <div className="flex items-center gap-1 text-primary mb-6">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Sparkles key={i} className="w-5 h-5 fill-primary text-primary" />
-                  ))}
-                </div>
-                <blockquote className="text-xl sm:text-3xl font-bold leading-relaxed text-slate-900 dark:text-slate-100 mb-8">
-                  “We quantified a 14-unit terrace and ordered the substructure the same afternoon. <span className="text-primary underline decoration-2 underline-offset-4">The exact prices and verified standards were right there.</span> Genuine Stuffs has completely transformed how we approach material selection and project execution.”
-                </blockquote>
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-primary/20 border border-primary/40 flex items-center justify-center font-extrabold text-primary text-lg">
-                    DO
-                  </div>
-                  <div>
-                    <h5 className="font-extrabold text-slate-900 dark:text-white text-base">David Okonkwo</h5>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 font-semibold uppercase tracking-wider">Project Manager · Premium Developments Ltd</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-
-      {/* =========================================================================
-          SECTION 08: LUXURY AI-NATIVE CTA & TECH DISPLAY (Brand Aligned)
+          SECTION 8: LUXURY AI-NATIVE CTA & TECH DISPLAY (Brand Aligned)
          ========================================================================= */}
       <section className="py-24 bg-[#F0F9FF] dark:bg-[#181E26] border-t border-slate-200 dark:border-slate-800 transition-colors relative overflow-hidden">
         <div className="container mx-auto px-4">
