@@ -68,7 +68,7 @@ const AdminHome = () => {
         {
             id: 'admin',
             title: 'Admin Master Control',
-            description: 'Full system access and identity impersonation.',
+            description: 'Full access to everything, including seeing the site as any user.',
             icon: Crown,
             role: 'admin' as const,
             route: '/pm-dashboard', // Admin uses PM dashboard but with elevated bypasses
@@ -80,7 +80,7 @@ const AdminHome = () => {
         {
             id: 'pm',
             title: 'Product Manager',
-            description: 'Marketplace moderation, vendor approval, and incident reports.',
+            description: 'Review listings, approve sellers and handle reported problems.',
             icon: ShieldCheck,
             role: 'pm' as const,
             route: '/pm-dashboard',
@@ -92,7 +92,7 @@ const AdminHome = () => {
         {
             id: 'pro',
             title: 'Professional Portal',
-            description: 'AI Studio, project management, and client interaction.',
+            description: 'AI Studio, managing projects and working with clients.',
             icon: HardHat,
             role: 'professional' as const,
             route: '/pro-portal',
@@ -104,7 +104,7 @@ const AdminHome = () => {
         {
             id: 'vendor',
             title: 'Vendor Dashboard',
-            description: 'Material listings, inventory, and order fulfillment.',
+            description: 'Listing materials, managing stock and sending out orders.',
             icon: Store,
             role: 'vendor' as const,
             route: '/vendor-dashboard',
@@ -116,7 +116,7 @@ const AdminHome = () => {
         {
             id: 'client',
             title: 'Regular User',
-            description: 'Standard marketplace and consumer experience.',
+            description: 'The website as an ordinary customer sees it.',
             icon: User,
             role: 'client' as const,
             route: '/',
@@ -139,10 +139,10 @@ const AdminHome = () => {
                     </div>
                     <div>
                         <h1 className="text-3xl md:text-5xl font-black uppercase tracking-tighter">
-                            Select Environment
+                            Choose Where to Go
                         </h1>
                         <p className="text-sm text-slate-400 mt-2 font-medium italic">
-                            Authenticated as {serverClaims.is_admin ? 'CTO/Co-Founder' : serverClaims.is_pm ? 'Product Manager' : 'Marketing Engineer'}. Where would you like to go?
+                            Signed in as {serverClaims.is_admin ? 'CTO (Chief Technology Officer) / Co-Founder' : serverClaims.is_pm ? 'Product Manager' : 'Marketing Engineer'}. Where would you like to go?
                         </p>
                     </div>
                 </div>

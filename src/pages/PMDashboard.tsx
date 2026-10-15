@@ -235,7 +235,7 @@ const PMDashboard = () => {
         { label: "Active Vendors", value: stats?.totalVendors || 0, icon: Store, trend: "+12%", color: "text-blue-600" },
         { label: "Pending Vendors", value: stats?.pendingVendors || 0, icon: AlertTriangle, trend: "Priority", color: "text-amber-600" },
         { label: "Pending Professionals", value: stats?.pendingPros || 0, icon: ShieldCheck, trend: "Action Required", color: "text-red-600" },
-        { label: "Marketplace Assets", value: stats?.totalMaterials || 0, icon: ShoppingBag, trend: "+5.1k", color: "text-emerald-600" },
+        { label: "Products Listed", value: stats?.totalMaterials || 0, icon: ShoppingBag, trend: "+5.1k", color: "text-emerald-600" },
     ];
 
     return (
@@ -259,10 +259,10 @@ const PMDashboard = () => {
                         <nav className="space-y-2">
                             {[
                                 { id: "overview", icon: BarChart3, label: "Overview" },
-                                { id: "vendors", icon: Store, label: "Vendor Pipeline" },
-                                { id: "pros", icon: UserCheck, label: "Pro Verification" },
-                                { id: "materials", icon: ShoppingBag, label: "Content Moderation" },
-                                { id: "reports", icon: AlertTriangle, label: "Incident Reports" },
+                                { id: "vendors", icon: Store, label: "Sellers Waiting" },
+                                { id: "pros", icon: UserCheck, label: "Check Professionals" },
+                                { id: "materials", icon: ShoppingBag, label: "Review Listings" },
+                                { id: "reports", icon: AlertTriangle, label: "Problem Reports" },
                                 { id: "team", icon: Users, label: "Team Management" },
                                 { id: "system", icon: Activity, label: "System Maintenance" },
                             ].map((item) => (
@@ -425,7 +425,7 @@ const PMDashboard = () => {
                                     <div className="p-8 border-b border-slate-100 dark:border-white/5 flex items-center justify-between">
                                         <div>
                                             <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Recent Pending Vendors</h3>
-                                            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium italic">Pending CAC and Identity verification.</p>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium italic">Waiting for their CAC (Corporate Affairs Commission) registration and identity to be checked.</p>
                                         </div>
                                         <Button 
                                             variant="ghost" 
@@ -451,19 +451,19 @@ const PMDashboard = () => {
                                     <div className="space-y-6">
                                         <div>
                                             <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Quick Actions</h3>
-                                            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium italic">Execute high-priority tasks.</p>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500 font-medium italic">The most urgent jobs.</p>
                                         </div>
                                         
                                         <div className="space-y-3">
                                             {[
                                                 { 
-                                                    label: "Marketplace Broadcast", 
+                                                    label: "Message All Sellers", 
                                                     icon: Bell, 
                                                     color: "bg-blue-600",
                                                     action: () => setIsBroadcastOpen(true)
                                                 },
                                                 { 
-                                                    label: "Tax Control Center", 
+                                                    label: "Tax Settings", 
                                                     icon: Calculator, 
                                                     color: "bg-purple-600",
                                                     action: () => setIsTaxSystemOpen(true)
@@ -474,7 +474,7 @@ const PMDashboard = () => {
                                                     color: "bg-red-600",
                                                     action: () => {
                                                         setActiveTab('reports');
-                                                        toast.info("Navigated to Incident Reports");
+                                                        toast.info("Opened Problem Reports");
                                                     }
                                                 },
                                                 { 
@@ -539,7 +539,7 @@ const PMDashboard = () => {
                     {activeTab === 'materials' && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="mb-8">
-                                <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Content Moderation Pipeline</h3>
+                                <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Listings to Review</h3>
                                 <p className="text-sm text-slate-400 dark:text-slate-500 font-medium italic">Review new marketplace listings for accuracy and quality.</p>
                             </div>
                             <ContentModerationTable 
@@ -564,7 +564,7 @@ const PMDashboard = () => {
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
                             <div className="mb-8 flex justify-between items-end">
                                 <div>
-                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Incident Reports</h3>
+                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tighter">Problem Reports</h3>
                                     <p className="text-sm text-slate-400 dark:text-slate-500 font-medium italic">Flagged listings and user complaints.</p>
                                 </div>
                                 <Badge className="bg-red-600/20 text-red-500 font-black h-6 px-3">{incidentReports?.length || 0} ACTIVE</Badge>

@@ -55,10 +55,10 @@ const SystemMaintenance = () => {
     }, []);
 
     const metrics = [
-        { label: "Core API Latency", value: "142ms", trend: "-12ms", status: "optimal", icon: Zap, color: "text-emerald-500", bg: "bg-emerald-500/10" },
-        { label: "Uptime (30d)", value: "99.992%", trend: "Stable", status: "optimal", icon: Activity, color: "text-blue-500", bg: "bg-blue-500/10" },
-        { label: "Memory Utilization", value: "42.8%", trend: "+2.1%", status: "warning", icon: Cpu, color: "text-amber-500", bg: "bg-amber-500/10" },
-        { label: "AI Inference Delay", value: "1.8s", trend: "+0.4s", status: "warning", icon: Terminal, color: "text-purple-500", bg: "bg-purple-500/10" },
+        { label: "Server Response Time", value: "142ms", trend: "-12ms", status: "optimal", icon: Zap, color: "text-emerald-500", bg: "bg-emerald-500/10" },
+        { label: "Time Online (Last 30 Days)", value: "99.992%", trend: "Stable", status: "optimal", icon: Activity, color: "text-blue-500", bg: "bg-blue-500/10" },
+        { label: "Memory in Use", value: "42.8%", trend: "+2.1%", status: "warning", icon: Cpu, color: "text-amber-500", bg: "bg-amber-500/10" },
+        { label: "AI Answer Time", value: "1.8s", trend: "+0.4s", status: "warning", icon: Terminal, color: "text-purple-500", bg: "bg-purple-500/10" },
     ];
 
     const nodes = [
@@ -78,7 +78,7 @@ const SystemMaintenance = () => {
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
-                            <h1 className="text-xl font-black uppercase tracking-tighter leading-none mb-1">Observability & Health</h1>
+                            <h1 className="text-xl font-black uppercase tracking-tighter leading-none mb-1">System Health</h1>
                             <div className="flex items-center gap-3">
                                 <Badge className="bg-emerald-500/10 text-emerald-500 border-none px-2 py-0 h-4 text-[8px] font-black tracking-widest">INFRASTRUCTURE STABLE</Badge>
                                 <span className="text-[10px] font-bold text-slate-400 font-mono uppercase">{currentTime.toLocaleTimeString()}</span>
@@ -96,7 +96,7 @@ const SystemMaintenance = () => {
                                 });
                             }}
                         >
-                            <History size={16} /> Incident Logs
+                            <History size={16} /> Problem Log
                         </Button>
                         <Button 
                             onClick={async () => {
@@ -111,7 +111,7 @@ const SystemMaintenance = () => {
                             }}
                             className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-black text-[10px] uppercase tracking-widest rounded-xl px-6 h-11 shadow-xl hover:scale-105 transition-all"
                         >
-                            Run Global Audit
+                            Check Everything Now
                         </Button>
                     </div>
                 </div>
@@ -149,8 +149,8 @@ const SystemMaintenance = () => {
                         <Card className="bg-white dark:bg-[#15171a] border-slate-200 dark:border-white/5 rounded-[2.5rem] overflow-hidden p-8 shadow-sm">
                             <div className="flex items-center justify-between mb-8">
                                 <div>
-                                    <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Prometheus Traffic Matrix</h3>
-                                    <p className="text-xs text-slate-400 font-medium italic">Inbound requests per second across all edge nodes.</p>
+                                    <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Website Traffic</h3>
+                                    <p className="text-xs text-slate-400 font-medium italic">Requests reaching our servers each second.</p>
                                 </div>
                                 <Select 
                                     defaultValue="1h"
@@ -190,19 +190,19 @@ const SystemMaintenance = () => {
 
                             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5">
-                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Peak Intensity</p>
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Busiest Moment</p>
                                     <h4 className="font-black text-slate-900 dark:text-white">4.2k RPS</h4>
                                 </div>
                                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5">
-                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Errors (4xx/5xx)</p>
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Failed Requests</p>
                                     <h4 className="font-black text-red-500 text-sm">0.02%</h4>
                                 </div>
                                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5">
-                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">P95 Latency</p>
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Slowest 5% of Responses</p>
                                     <h4 className="font-black text-slate-900 dark:text-white">218ms</h4>
                                 </div>
                                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5">
-                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Bandwidth Out</p>
+                                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Data Sent</p>
                                     <h4 className="font-black text-slate-900 dark:text-white">12.4 TB</h4>
                                 </div>
                             </div>
@@ -211,7 +211,7 @@ const SystemMaintenance = () => {
                         {/* Development Priority Matrix */}
                         <div className="space-y-6">
                             <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-3">
-                                <Database className="text-red-500" size={20} /> Development Priority Matrix
+                                <Database className="text-red-500" size={20} /> What to Build Next
                             </h3>
                             <div className="grid md:grid-cols-2 gap-6">
                                 <Card className="p-6 bg-white dark:bg-[#15171a] border-slate-200 dark:border-white/5 rounded-3xl shadow-sm border-l-4 border-l-red-500">
