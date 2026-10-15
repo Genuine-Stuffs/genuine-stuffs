@@ -91,7 +91,7 @@ const VendorDashboard = () => {
         { title: "Total Sales", value: "₦ 0", icon: DollarSign, trend: "+0%", color: "text-emerald-600 dark:text-emerald-400", bg: "bg-emerald-50 dark:bg-emerald-950/30" },
         { title: "Active Orders", value: "0", icon: ShoppingCart, trend: "Stable", color: "text-blue-600 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-950/30" },
         { title: "Inventory Items", value: `${myMaterials.length}`, icon: Package, trend: `${lowStockCount} low`, color: "text-orange-600 dark:text-orange-400", bg: "bg-orange-50 dark:bg-orange-950/30" },
-        { title: "Market Visibility", value: totalViews.toLocaleString(), icon: Eye, trend: "Real-time", color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-950/30" },
+        { title: "Times Your Products Were Viewed", value: totalViews.toLocaleString(), icon: Eye, trend: "Live", color: "text-violet-600 dark:text-violet-400", bg: "bg-violet-50 dark:bg-violet-950/30" },
     ];
 
     const pieData = [
@@ -132,7 +132,7 @@ const VendorDashboard = () => {
                                 </div>
                                 <p className="text-muted-foreground dark:text-slate-400 font-medium italic">
                                     Manage your materials and track sales performance.
-                                    <span className="hidden lg:inline ml-2 text-primary font-black uppercase text-[10px] tracking-[0.2em]">Partner Hub</span>
+                                    <span className="hidden lg:inline ml-2 text-primary font-black uppercase text-[10px] tracking-[0.2em]">Seller Area</span>
                                 </p>
                             </div>
                             <div className="flex items-center gap-3 w-full md:w-auto">
@@ -202,7 +202,7 @@ const VendorDashboard = () => {
                                 <CardHeader className="p-8 flex flex-row items-center justify-between pb-2">
                                     <div>
                                         <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Sales Overview</CardTitle>
-                                        <CardDescription className="italic font-medium">Performance trends for the current week.</CardDescription>
+                                        <CardDescription className="italic font-medium">How your sales are going this week.</CardDescription>
                                     </div>
                                     <Button variant="ghost" className="h-9 px-4 rounded-full bg-slate-100 dark:bg-muted font-black text-[10px] uppercase tracking-widest gap-2">
                                         <Calendar className="w-3 h-3" /> This Week
@@ -249,7 +249,7 @@ const VendorDashboard = () => {
                             <Card className="border-none shadow-sm rounded-[2.5rem] overflow-hidden">
                                 <CardHeader className="p-8 pb-2">
                                     <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight text-center">Material Mix</CardTitle>
-                                    <CardDescription className="text-center italic font-medium">Inventory distribution by category.</CardDescription>
+                                    <CardDescription className="text-center italic font-medium">Your stock, by type of material.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="h-[250px] p-4">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -289,7 +289,7 @@ const VendorDashboard = () => {
                                 <CardHeader className="p-8 flex flex-row items-center justify-between">
                                     <div>
                                         <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Recent Orders</CardTitle>
-                                        <CardDescription className="italic font-medium">Real-time requisition feed.</CardDescription>
+                                        <CardDescription className="italic font-medium">The latest orders, as they come in.</CardDescription>
                                     </div>
                                     <Button variant="ghost" className="text-primary text-[10px] font-black uppercase tracking-widest h-8 px-4 bg-primary/5 hover:bg-primary/10 rounded-full">Explore All</Button>
                                 </CardHeader>

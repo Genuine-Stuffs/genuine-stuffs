@@ -199,7 +199,7 @@ const VendorSettings = () => {
                                                 <div className="flex items-center gap-3">
                                                     <Briefcase className="w-4 h-4 text-slate-400 dark:text-slate-200" />
                                                     <div className="flex-1">
-                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-slate-200">CAC Number</Label>
+                                                        <Label className="text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-slate-200">CAC (Corporate Affairs Commission) Number</Label>
                                                         <p className="font-black text-sm tabular-nums dark:text-white">{vendorData?.cac_number || 'RC-892341'}</p>
                                                     </div>
                                                 </div>
@@ -243,7 +243,7 @@ const VendorSettings = () => {
                                                 <Switch checked />
                                             </div>
                                             <div className="flex items-center justify-between">
-                                                <span className="text-xs font-bold text-slate-900 dark:text-slate-300">SMS Alerts</span>
+                                                <span className="text-xs font-bold text-slate-900 dark:text-slate-300">Text Message (SMS) Alerts</span>
                                                 <Switch />
                                             </div>
                                             <div className="flex items-center justify-between">
@@ -262,7 +262,7 @@ const VendorSettings = () => {
                                                 Change Password
                                             </Button>
                                             <Button variant="outline" className="w-full h-11 rounded-xl border-slate-700 hover:bg-slate-800 text-white font-black uppercase text-[10px] tracking-widest">
-                                                Two-Factor Auth
+                                                Two-Step Sign-In
                                             </Button>
                                         </CardContent>
                                     </Card>

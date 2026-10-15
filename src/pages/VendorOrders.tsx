@@ -101,8 +101,8 @@ const VendorOrders = () => {
     const stats = [
         { title: "Total Revenue", value: `₦ ${(totalRev / 1000000).toFixed(1)}M`, icon: DollarSign, trend: "Stable", color: "text-emerald-600", bg: "bg-emerald-50 dark:bg-emerald-950/30" },
         { title: "Active Orders", value: String(activeCount), icon: ShoppingCart, trend: "Active", color: "text-blue-600", bg: "bg-blue-50 dark:bg-blue-950/30" },
-        { title: "Pending Delivery", value: String(pendingDelivery), icon: Truck, trend: "Dispatch", color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-950/30" },
-        { title: "Completion Rate", value: `${completionRate}%`, icon: CheckCircle2, trend: "Fulfillment", color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-950/30" },
+        { title: "Pending Delivery", value: String(pendingDelivery), icon: Truck, trend: "On the Way", color: "text-orange-600", bg: "bg-orange-50 dark:bg-orange-950/30" },
+        { title: "Completion Rate", value: `${completionRate}%`, icon: CheckCircle2, trend: "Orders Completed", color: "text-violet-600", bg: "bg-violet-50 dark:bg-violet-950/30" },
     ];
 
     const filteredOrders = orders.filter(o => 
@@ -118,7 +118,7 @@ const VendorOrders = () => {
                 .eq('id', itemId);
 
             if (error) throw error;
-            toast.success(`Fulfillment updated to ${nextStatus.toUpperCase()}`);
+            toast.success(`Order status changed to ${nextStatus.toUpperCase()}`);
             refetch();
         } catch (err: any) {
             console.error("Fulfillment update failed:", err);
@@ -162,7 +162,7 @@ const VendorOrders = () => {
                             <div>
                                 <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Order Management</h1>
                                 <p className="text-muted-foreground dark:text-slate-400 font-medium italic">
-                                    Track requisitions and manage fulfillment.
+                                    Follow your orders from purchase to delivery.
                                 </p>
                             </div>
                             <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
@@ -176,7 +176,7 @@ const VendorOrders = () => {
                                     />
                                 </div>
                                 <Button variant="outline" className="h-11 rounded-xl gap-2 font-black uppercase tracking-widest text-[10px] bg-white dark:bg-card border-none shadow-sm">
-                                    <Download className="w-4 h-4" /> Export CSV
+                                    <Download className="w-4 h-4" /> Download as Spreadsheet
                                 </Button>
                             </div>
                         </header>
@@ -210,7 +210,7 @@ const VendorOrders = () => {
                         <Card className="border-none shadow-sm rounded-[2.5rem] overflow-hidden">
                             <CardHeader className="p-8 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between">
                                 <div>
-                                    <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Recent Requisitions</CardTitle>
+                                    <CardTitle className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Recent Orders</CardTitle>
                                     <CardDescription className="italic font-medium">Viewing {filteredOrders.length} orders.</CardDescription>
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -409,7 +409,7 @@ const VendorOrders = () => {
                                         </div>
                                         <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">No Orders Found</h3>
                                         <p className="text-slate-500 dark:text-slate-400 font-medium italic">
-                                            {searchQuery ? "No orders match your search criteria." : "You don't have any orders yet. Listings more materials to increase your sales!"}
+                                            {searchQuery ? "No orders match your search criteria." : "You don't have any orders yet. List more materials to increase your sales!"}
                                         </p>
                                     </div>
                                 )}

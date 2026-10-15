@@ -119,14 +119,14 @@ const VendorAnalytics = () => {
 
     const performanceStats = [
         { 
-            title: "Avg. Order Value", 
+            title: "Average Order Value", 
             value: avgOrderValue >= 1000 ? `₦${Math.round(avgOrderValue / 1000)}k` : `₦${avgOrderValue}`, 
             trend: avgOrderValue > 0 ? "+5.4%" : "0%", 
             icon: TrendingUp, 
             positive: true 
         },
         { 
-            title: "Conversion Rate", 
+            title: "Views That Became Orders", 
             value: `${conversionRate}%`, 
             trend: totalViews > 0 ? "+1.2%" : "0%", 
             icon: Users, 
@@ -286,7 +286,7 @@ const VendorAnalytics = () => {
                             <div>
                                 <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white uppercase">Analytics Dashboard</h1>
                                 <p className="text-muted-foreground dark:text-slate-200 font-medium italic">
-                                    Strategic insights for your construction supply business.
+                                    Useful figures to help you grow your building supplies business.
                                 </p>
                             </div>
                             <div className="flex flex-wrap items-center gap-3">
@@ -328,7 +328,7 @@ const VendorAnalytics = () => {
                                 <CardHeader className="p-8 pb-0">
                                     <div className="flex justify-between items-start">
                                         <div>
-                                            <CardTitle className="text-lg font-black uppercase tracking-tight text-slate-900 dark:text-white">Revenue Stream</CardTitle>
+                                            <CardTitle className="text-lg font-black uppercase tracking-tight text-slate-900 dark:text-white">Money Coming In</CardTitle>
                                             <CardDescription className="italic font-medium">Daily revenue performance for the current week.</CardDescription>
                                         </div>
                                         <LayoutDashboard className="w-5 h-5 text-primary/20" />
@@ -378,7 +378,7 @@ const VendorAnalytics = () => {
                             <Card className="border-none shadow-sm rounded-[2.5rem] overflow-hidden">
                                 <CardHeader className="p-8 pb-0">
                                     <CardTitle className="text-lg font-black uppercase tracking-tight text-slate-900 dark:text-white">Category Mix</CardTitle>
-                                    <CardDescription className="italic font-medium">Percentage share of total sales volume.</CardDescription>
+                                    <CardDescription className="italic font-medium">Each type's share of your total sales.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="p-8 flex flex-col items-center">
                                     <div className="h-[250px] w-full">
@@ -420,7 +420,7 @@ const VendorAnalytics = () => {
                                 <CardHeader className="p-8 border-b border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between">
                                     <div>
                                         <CardTitle className="text-lg font-black uppercase tracking-tight text-slate-900 dark:text-white">Top Materials</CardTitle>
-                                        <CardDescription className="italic font-medium">Most impactful listings this month.</CardDescription>
+                                        <CardDescription className="italic font-medium">Your best-selling products this month.</CardDescription>
                                     </div>
                                     <Button variant="ghost" size="sm" className="font-black text-[10px] uppercase tracking-widest text-primary">View All</Button>
                                 </CardHeader>
@@ -446,8 +446,8 @@ const VendorAnalytics = () => {
 
                             <Card className="border-none shadow-sm rounded-[2.5rem] overflow-hidden relative">
                                 <CardHeader className="p-8">
-                                    <CardTitle className="text-lg font-black uppercase tracking-tight text-slate-900 dark:text-white">Strategic Forecast</CardTitle>
-                                    <CardDescription className="italic font-medium">AI-driven market demand predictions.</CardDescription>
+                                    <CardTitle className="text-lg font-black uppercase tracking-tight text-slate-900 dark:text-white">What to Expect Next</CardTitle>
+                                    <CardDescription className="italic font-medium">AI (Artificial Intelligence) predictions of what buyers will want.</CardDescription>
                                 </CardHeader>
                                 <CardContent className="p-8 flex flex-col gap-6">
                                     <div className="p-6 bg-primary/5 rounded-3xl border border-primary/10">
