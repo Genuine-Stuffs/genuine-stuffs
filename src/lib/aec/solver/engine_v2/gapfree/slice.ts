@@ -3,7 +3,7 @@
 // Wong–Liu); every room is a leaf; one "hall" leaf takes the remainder.
 // Gap-free, overlap-free, inside the footprint by construction. Searched by
 // seeded simulated annealing over the expression; cost = rule violations.
-import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, deriveSuites, identifyHubs, specHub } from "../graph";
+import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARAGE_TYPES, deriveSuites, identifyHubs, specHub } from "../graph";
 import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
 import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
@@ -319,7 +319,7 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
             front: STREET_FRONT_TYPES.has(n.type),
             connector: isConnectorType(n.type),
             reachVia: parentOf.get(id),
-            garage: n.type === "garage", hardSpan: n.usesIntermediateColumns,
+            garage: GARAGE_TYPES.has(n.type), hardSpan: n.usesIntermediateColumns,
         });
     }
     if (extraStair && !STAIR_IN_HALL && !leaves.some(l => l.stair)) leaves.push({ id: floor === 0 ? "stairwell" : "stairwell_void", type: "stairwell", area: 10, needsExt: false, front: false, connector: true, stair: true });
