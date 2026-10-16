@@ -18,7 +18,7 @@ Source: `AI-Floor-Plan-Platform-Feasibility.pdf`. Status words: **Done**, **Part
 | 3 | Layout generation | **Partial** | Our own deterministic solver (D1: LLM never draws geometry, matching study problem 2). Small/medium houses 20/20; **villas always fall back** to scattered compromise plans |
 | 4 | Vectorisation + dimensioning + door/window schedule | **Partial** | Overall dimensions only. No per-bay chains, no D1/W1 tags or schedule (study deliverable #2) |
 | 5 | Multi-floor coordination (walls stack, stairs land) | **Partial** | Stair void mirrored (I7). **Upper walls don't stack on lower ones.** The study calls this "where most tools cheat" |
-| 6 | 3D + render consistent with the plan | **Partial** | `AECMassingView` massing + an image render call; consistency with the plan not verified |
+| 6 | 3D + render consistent with the plan | **Partial** | `AECMassingView` massing + an image render call. 2026-10-16: render restored (OpenRouter `/api/v1/images`), states the plan's storeys, size, balconies, outbuildings, set on a city street (owner); massing redraws on a new plan, frees its WebGL context, retries lighter, and explains a browser that refuses WebGL (the owner's "3D viewer unavailable" reproduces exactly with WebGL off). Owner wants the massing view itself ultra-realistic and rotatable (walls, openings, roof, materials, urban context): not started. |
 | 7 | Edit loop: a new prompt mutates the stored spec, re-renders only what changed | **Not started** | A follow-up regenerates from scratch with a new random seed (`AIStudio.tsx:671`), the "slot machine" the study warns against |
 | 8 | Export: DXF/DWG, IFC, PDF | **Partial** | PDF (jsPDF) and a basic DXF from SVG paths; `ifc/authoring.ts` exists; DWG none |
 
