@@ -26,7 +26,7 @@ import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
-import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE } from "./config";
+import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR } from "./config";
 import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP } from "./outbuildings";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
@@ -141,6 +141,21 @@ function footprints(p: Prepared, squeeze = SQUEEZE): Array<[number, number, bool
     return fps;
 }
 
+/** Two floors with the same rooms in the same order (type, size, links,
+ * flat roles); only the ids differ, so one's plan serves the other. */
+function sameFloor(a: FloorSpec, b: FloorSpec): boolean {
+    if (a.leaves.length !== b.leaves.length || a.pairs.length !== b.pairs.length) return false;
+    const at = (sp: FloorSpec, id?: string) => id === undefined ? -1 : sp.leaves.findIndex(l => l.id === id);
+    const ok = a.leaves.every((l, i) => {
+        const m = b.leaves[i];
+        return l.type === m.type && Math.abs(l.area - m.area) < 1e-9 && l.needsExt === m.needsExt && l.front === m.front
+            && l.connector === m.connector && !!l.hall === !!m.hall && !!l.stair === !!m.stair && !!l.garage === !!m.garage
+            && !!l.hardSpan === !!m.hardSpan && !!l.onHall === !!m.onHall && at(a, l.reachVia) === at(b, m.reachVia);
+    });
+    const key = (sp: FloorSpec) => sp.pairs.map(([x, y]) => `${x}|${y}|${sp.soft?.has(`${x}|${y}`) ? 1 : 0}`).join(",");
+    return ok && key(a) === key(b);
+}
+
 type Fp = { cost: number; rects: Map<number, Rect[]>; specs: Map<number, FloorSpec>; W: number; D: number; iters?: number };
 
 /** The whole search. Yields each floor's restart batch; returns the layout. */
@@ -166,12 +181,17 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
                 const si = ps.leaves.findIndex(l => l.stair), ui = spec.leaves.findIndex(l => l.stair);
                 if (si >= 0 && ui >= 0) spec.fixed = new Map([[ui, pr[si]]]);
             }
-            const base = p.seed * 7919 + fl * 104729 + W * 31 + D;
-            const res: AnnealResult = yield {
-                spec, seeds: [...Array(RESTARTS).keys()].map(k => base + k * SEED_STRIDE),
-                iters: iters / RESTARTS, sw: spec.below ? STACK_W : 0,
-            };
-            const r = layout(res.expr, spec, res.offs)!;
+            // TYPICAL_FLOOR: the same rooms as the floor above repeat its plan
+            let r: Rect[];
+            if (TYPICAL_FLOOR && prev !== undefined && sameFloor(spec, specs.get(prev)!)) r = rects.get(prev)!.map(q => ({ ...q }));
+            else {
+                const base = p.seed * 7919 + fl * 104729 + W * 31 + D;
+                const res: AnnealResult = yield {
+                    spec, seeds: [...Array(RESTARTS).keys()].map(k => base + k * SEED_STRIDE),
+                    iters: iters / RESTARTS, sw: spec.below ? STACK_W : 0,
+                };
+                r = layout(res.expr, spec, res.offs)!;
+            }
             specs.set(fl, spec); rects.set(fl, r);
             const vs = violations(r, spec);
             total += vs.filter(v => v.rule !== "AREA_RELAXED" && v.rule !== "ADJ_SOFT").length * 100 + vs.length + (spec.below ? unsupportedWall(r, spec) : 0);

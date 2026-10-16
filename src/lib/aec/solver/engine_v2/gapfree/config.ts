@@ -43,3 +43,6 @@ export const HALL_CAP = flag("HALL_CAP", true);
 export const SQUEEZE = flag("SQUEEZE", true);
 /** Bay-and-spine budget as a share of the gap-free search's. */
 export const SPINE_BUDGET = Number(env.SPINE_BUDGET ?? 0.25);
+/** A floor with the same rooms as the floor above (a typical floor of flats)
+ * repeats that floor's plan instead of being searched again (owner, 2026-10-16). */
+export const TYPICAL_FLOOR = flag("TYPICAL_FLOOR", true);
