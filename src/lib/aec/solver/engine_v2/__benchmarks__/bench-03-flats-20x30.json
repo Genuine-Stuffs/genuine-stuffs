@@ -1,0 +1,756 @@
+{
+ "brief_reference": {
+  "plot_size_sqm": 600,
+  "floors": 3,
+  "project_id": "GS-BENCH-03-FLATS-20x30"
+ },
+ "rooms": [
+  {
+   "room_id": "f0s",
+   "name": "Stairwell (Ground Floor)",
+   "type": "stairwell",
+   "floor": 0,
+   "area_m2": 8.64,
+   "width_m": 2.4,
+   "span_m": 2.4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0l"
+   ]
+  },
+  {
+   "room_id": "f0l",
+   "name": "Stair Landing (Ground Floor)",
+   "type": "corridor",
+   "floor": 0,
+   "area_m2": 6,
+   "width_m": 1.5,
+   "span_m": 1.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0s",
+    "f0A1",
+    "f0B1",
+    "f0x1",
+    "f0x2"
+   ]
+  },
+  {
+   "room_id": "f0A1",
+   "name": "Flat 1 Living and Dining",
+   "type": "living",
+   "floor": 0,
+   "area_m2": 24,
+   "width_m": 4,
+   "span_m": 4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0l",
+    "f0A2",
+    "f0A3",
+    "f0A5",
+    "f0A6",
+    "f0A7"
+   ],
+   "unit": "Flat 1"
+  },
+  {
+   "room_id": "f0A2",
+   "name": "Flat 1 Kitchen",
+   "type": "kitchen",
+   "floor": 0,
+   "area_m2": 9,
+   "width_m": 2.7,
+   "span_m": 2.7,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0A1"
+   ],
+   "unit": "Flat 1"
+  },
+  {
+   "room_id": "f0A3",
+   "name": "Flat 1 Master Bedroom",
+   "type": "bedroom",
+   "floor": 0,
+   "area_m2": 14,
+   "width_m": 3.5,
+   "span_m": 3.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0A1",
+    "f0A4"
+   ],
+   "unit": "Flat 1"
+  },
+  {
+   "room_id": "f0A4",
+   "name": "Flat 1 Master En-suite",
+   "type": "bathroom",
+   "floor": 0,
+   "area_m2": 4.5,
+   "width_m": 1.8,
+   "span_m": 1.8,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0A3"
+   ],
+   "unit": "Flat 1"
+  },
+  {
+   "room_id": "f0A5",
+   "name": "Flat 1 Bedroom 2",
+   "type": "bedroom",
+   "floor": 0,
+   "area_m2": 11,
+   "width_m": 3.2,
+   "span_m": 3.2,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0A1"
+   ],
+   "unit": "Flat 1"
+  },
+  {
+   "room_id": "f0A6",
+   "name": "Flat 1 Shared Bathroom",
+   "type": "bathroom",
+   "floor": 0,
+   "area_m2": 4.5,
+   "width_m": 1.8,
+   "span_m": 1.8,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0A1"
+   ],
+   "unit": "Flat 1"
+  },
+  {
+   "room_id": "f0A7",
+   "name": "Flat 1 Balcony",
+   "type": "balcony",
+   "floor": 0,
+   "area_m2": 5,
+   "width_m": 1.5,
+   "span_m": 1.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0A1"
+   ],
+   "unit": "Flat 1"
+  },
+  {
+   "room_id": "f0B1",
+   "name": "Flat 2 Living and Dining",
+   "type": "living",
+   "floor": 0,
+   "area_m2": 24,
+   "width_m": 4,
+   "span_m": 4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0l",
+    "f0B2",
+    "f0B3",
+    "f0B5",
+    "f0B6",
+    "f0B7"
+   ],
+   "unit": "Flat 2"
+  },
+  {
+   "room_id": "f0B2",
+   "name": "Flat 2 Kitchen",
+   "type": "kitchen",
+   "floor": 0,
+   "area_m2": 9,
+   "width_m": 2.7,
+   "span_m": 2.7,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0B1"
+   ],
+   "unit": "Flat 2"
+  },
+  {
+   "room_id": "f0B3",
+   "name": "Flat 2 Master Bedroom",
+   "type": "bedroom",
+   "floor": 0,
+   "area_m2": 14,
+   "width_m": 3.5,
+   "span_m": 3.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0B1",
+    "f0B4"
+   ],
+   "unit": "Flat 2"
+  },
+  {
+   "room_id": "f0B4",
+   "name": "Flat 2 Master En-suite",
+   "type": "bathroom",
+   "floor": 0,
+   "area_m2": 4.5,
+   "width_m": 1.8,
+   "span_m": 1.8,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0B3"
+   ],
+   "unit": "Flat 2"
+  },
+  {
+   "room_id": "f0B5",
+   "name": "Flat 2 Bedroom 2",
+   "type": "bedroom",
+   "floor": 0,
+   "area_m2": 11,
+   "width_m": 3.2,
+   "span_m": 3.2,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0B1"
+   ],
+   "unit": "Flat 2"
+  },
+  {
+   "room_id": "f0B6",
+   "name": "Flat 2 Shared Bathroom",
+   "type": "bathroom",
+   "floor": 0,
+   "area_m2": 4.5,
+   "width_m": 1.8,
+   "span_m": 1.8,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0B1"
+   ],
+   "unit": "Flat 2"
+  },
+  {
+   "room_id": "f0B7",
+   "name": "Flat 2 Balcony",
+   "type": "balcony",
+   "floor": 0,
+   "area_m2": 5,
+   "width_m": 1.5,
+   "span_m": 1.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0B1"
+   ],
+   "unit": "Flat 2"
+  },
+  {
+   "room_id": "f1s",
+   "name": "Stairwell (First Floor)",
+   "type": "stairwell",
+   "floor": 1,
+   "area_m2": 8.64,
+   "width_m": 2.4,
+   "span_m": 2.4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1l"
+   ]
+  },
+  {
+   "room_id": "f1l",
+   "name": "Stair Landing (First Floor)",
+   "type": "corridor",
+   "floor": 1,
+   "area_m2": 6,
+   "width_m": 1.5,
+   "span_m": 1.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1s",
+    "f1A1",
+    "f1B1"
+   ]
+  },
+  {
+   "room_id": "f1A1",
+   "name": "Flat 3 Living and Dining",
+   "type": "living",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4,
+   "span_m": 4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1l",
+    "f1A2",
+    "f1A3",
+    "f1A5",
+    "f1A6",
+    "f1A7"
+   ],
+   "unit": "Flat 3"
+  },
+  {
+   "room_id": "f1A2",
+   "name": "Flat 3 Kitchen",
+   "type": "kitchen",
+   "floor": 1,
+   "area_m2": 9,
+   "width_m": 2.7,
+   "span_m": 2.7,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1A1"
+   ],
+   "unit": "Flat 3"
+  },
+  {
+   "room_id": "f1A3",
+   "name": "Flat 3 Master Bedroom",
+   "type": "bedroom",
+   "floor": 1,
+   "area_m2": 14,
+   "width_m": 3.5,
+   "span_m": 3.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1A1",
+    "f1A4"
+   ],
+   "unit": "Flat 3"
+  },
+  {
+   "room_id": "f1A4",
+   "name": "Flat 3 Master En-suite",
+   "type": "bathroom",
+   "floor": 1,
+   "area_m2": 4.5,
+   "width_m": 1.8,
+   "span_m": 1.8,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1A3"
+   ],
+   "unit": "Flat 3"
+  },
+  {
+   "room_id": "f1A5",
+   "name": "Flat 3 Bedroom 2",
+   "type": "bedroom",
+   "floor": 1,
+   "area_m2": 11,
+   "width_m": 3.2,
+   "span_m": 3.2,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1A1"
+   ],
+   "unit": "Flat 3"
+  },
+  {
+   "room_id": "f1A6",
+   "name": "Flat 3 Shared Bathroom",
+   "type": "bathroom",
+   "floor": 1,
+   "area_m2": 4.5,
+   "width_m": 1.8,
+   "span_m": 1.8,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1A1"
+   ],
+   "unit": "Flat 3"
+  },
+  {
+   "room_id": "f1A7",
+   "name": "Flat 3 Balcony",
+   "type": "balcony",
+   "floor": 1,
+   "area_m2": 5,
+   "width_m": 1.5,
+   "span_m": 1.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1A1"
+   ],
+   "unit": "Flat 3"
+  },
+  {
+   "room_id": "f1B1",
+   "name": "Flat 4 Living and Dining",
+   "type": "living",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4,
+   "span_m": 4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1l",
+    "f1B2",
+    "f1B3",
+    "f1B5",
+    "f1B6",
+    "f1B7"
+   ],
+   "unit": "Flat 4"
+  },
+  {
+   "room_id": "f1B2",
+   "name": "Flat 4 Kitchen",
+   "type": "kitchen",
+   "floor": 1,
+   "area_m2": 9,
+   "width_m": 2.7,
+   "span_m": 2.7,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1B1"
+   ],
+   "unit": "Flat 4"
+  },
+  {
+   "room_id": "f1B3",
+   "name": "Flat 4 Master Bedroom",
+   "type": "bedroom",
+   "floor": 1,
+   "area_m2": 14,
+   "width_m": 3.5,
+   "span_m": 3.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1B1",
+    "f1B4"
+   ],
+   "unit": "Flat 4"
+  },
+  {
+   "room_id": "f1B4",
+   "name": "Flat 4 Master En-suite",
+   "type": "bathroom",
+   "floor": 1,
+   "area_m2": 4.5,
+   "width_m": 1.8,
+   "span_m": 1.8,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1B3"
+   ],
+   "unit": "Flat 4"
+  },
+  {
+   "room_id": "f1B5",
+   "name": "Flat 4 Bedroom 2",
+   "type": "bedroom",
+   "floor": 1,
+   "area_m2": 11,
+   "width_m": 3.2,
+   "span_m": 3.2,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1B1"
+   ],
+   "unit": "Flat 4"
+  },
+  {
+   "room_id": "f1B6",
+   "name": "Flat 4 Shared Bathroom",
+   "type": "bathroom",
+   "floor": 1,
+   "area_m2": 4.5,
+   "width_m": 1.8,
+   "span_m": 1.8,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1B1"
+   ],
+   "unit": "Flat 4"
+  },
+  {
+   "room_id": "f1B7",
+   "name": "Flat 4 Balcony",
+   "type": "balcony",
+   "floor": 1,
+   "area_m2": 5,
+   "width_m": 1.5,
+   "span_m": 1.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f1B1"
+   ],
+   "unit": "Flat 4"
+  },
+  {
+   "room_id": "f2s",
+   "name": "Stairwell (Second Floor)",
+   "type": "stairwell",
+   "floor": 2,
+   "area_m2": 8.64,
+   "width_m": 2.4,
+   "span_m": 2.4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2l"
+   ]
+  },
+  {
+   "room_id": "f2l",
+   "name": "Stair Landing (Second Floor)",
+   "type": "corridor",
+   "floor": 2,
+   "area_m2": 6,
+   "width_m": 1.5,
+   "span_m": 1.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2s",
+    "f2A1",
+    "f2B1"
+   ]
+  },
+  {
+   "room_id": "f2A1",
+   "name": "Flat 5 Living and Dining",
+   "type": "living",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4,
+   "span_m": 4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2l",
+    "f2A2",
+    "f2A3",
+    "f2A5",
+    "f2A6",
+    "f2A7"
+   ],
+   "unit": "Flat 5"
+  },
+  {
+   "room_id": "f2A2",
+   "name": "Flat 5 Kitchen",
+   "type": "kitchen",
+   "floor": 2,
+   "area_m2": 9,
+   "width_m": 2.7,
+   "span_m": 2.7,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2A1"
+   ],
+   "unit": "Flat 5"
+  },
+  {
+   "room_id": "f2A3",
+   "name": "Flat 5 Master Bedroom",
+   "type": "bedroom",
+   "floor": 2,
+   "area_m2": 14,
+   "width_m": 3.5,
+   "span_m": 3.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2A1",
+    "f2A4"
+   ],
+   "unit": "Flat 5"
+  },
+  {
+   "room_id": "f2A4",
+   "name": "Flat 5 Master En-suite",
+   "type": "bathroom",
+   "floor": 2,
+   "area_m2": 4.5,
+   "width_m": 1.8,
+   "span_m": 1.8,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2A3"
+   ],
+   "unit": "Flat 5"
+  },
+  {
+   "room_id": "f2A5",
+   "name": "Flat 5 Bedroom 2",
+   "type": "bedroom",
+   "floor": 2,
+   "area_m2": 11,
+   "width_m": 3.2,
+   "span_m": 3.2,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2A1"
+   ],
+   "unit": "Flat 5"
+  },
+  {
+   "room_id": "f2A6",
+   "name": "Flat 5 Shared Bathroom",
+   "type": "bathroom",
+   "floor": 2,
+   "area_m2": 4.5,
+   "width_m": 1.8,
+   "span_m": 1.8,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2A1"
+   ],
+   "unit": "Flat 5"
+  },
+  {
+   "room_id": "f2A7",
+   "name": "Flat 5 Balcony",
+   "type": "balcony",
+   "floor": 2,
+   "area_m2": 5,
+   "width_m": 1.5,
+   "span_m": 1.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2A1"
+   ],
+   "unit": "Flat 5"
+  },
+  {
+   "room_id": "f2B1",
+   "name": "Flat 6 Living and Dining",
+   "type": "living",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4,
+   "span_m": 4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2l",
+    "f2B2",
+    "f2B3",
+    "f2B5",
+    "f2B6",
+    "f2B7"
+   ],
+   "unit": "Flat 6"
+  },
+  {
+   "room_id": "f2B2",
+   "name": "Flat 6 Kitchen",
+   "type": "kitchen",
+   "floor": 2,
+   "area_m2": 9,
+   "width_m": 2.7,
+   "span_m": 2.7,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2B1"
+   ],
+   "unit": "Flat 6"
+  },
+  {
+   "room_id": "f2B3",
+   "name": "Flat 6 Master Bedroom",
+   "type": "bedroom",
+   "floor": 2,
+   "area_m2": 14,
+   "width_m": 3.5,
+   "span_m": 3.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2B1",
+    "f2B4"
+   ],
+   "unit": "Flat 6"
+  },
+  {
+   "room_id": "f2B4",
+   "name": "Flat 6 Master En-suite",
+   "type": "bathroom",
+   "floor": 2,
+   "area_m2": 4.5,
+   "width_m": 1.8,
+   "span_m": 1.8,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2B3"
+   ],
+   "unit": "Flat 6"
+  },
+  {
+   "room_id": "f2B5",
+   "name": "Flat 6 Bedroom 2",
+   "type": "bedroom",
+   "floor": 2,
+   "area_m2": 11,
+   "width_m": 3.2,
+   "span_m": 3.2,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2B1"
+   ],
+   "unit": "Flat 6"
+  },
+  {
+   "room_id": "f2B6",
+   "name": "Flat 6 Shared Bathroom",
+   "type": "bathroom",
+   "floor": 2,
+   "area_m2": 4.5,
+   "width_m": 1.8,
+   "span_m": 1.8,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2B1"
+   ],
+   "unit": "Flat 6"
+  },
+  {
+   "room_id": "f2B7",
+   "name": "Flat 6 Balcony",
+   "type": "balcony",
+   "floor": 2,
+   "area_m2": 5,
+   "width_m": 1.5,
+   "span_m": 1.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f2B1"
+   ],
+   "unit": "Flat 6"
+  },
+  {
+   "room_id": "f0x1",
+   "name": "Refuse Room",
+   "type": "store",
+   "floor": 0,
+   "area_m2": 4,
+   "width_m": 1.5,
+   "span_m": 1.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0l"
+   ]
+  },
+  {
+   "room_id": "f0x2",
+   "name": "Meter Room",
+   "type": "store",
+   "floor": 0,
+   "area_m2": 3,
+   "width_m": 1.5,
+   "span_m": 1.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "f0l"
+   ]
+  },
+  {
+   "room_id": "f0x3",
+   "name": "Security Post",
+   "type": "security",
+   "floor": 0,
+   "area_m2": 4,
+   "width_m": 2,
+   "span_m": 2,
+   "uses_intermediate_columns": false,
+   "adjacencies": []
+  }
+ ]
+}

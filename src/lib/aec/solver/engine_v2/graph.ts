@@ -36,6 +36,8 @@ export interface HiveRoom {
     span_m?: number;
     adjacencies?: string[];
     uses_intermediate_columns?: boolean;
+    /** The dwelling the room belongs to in a multi-unit building ("Flat 1"). */
+    unit?: string;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -139,6 +141,8 @@ export interface GraphNode {
     neighbors: Set<string>;
     degree: number;
     usesIntermediateColumns: boolean;
+    /** The dwelling the room belongs to in a multi-unit building. */
+    unit?: string;
 }
 
 export interface RoomGraph {
@@ -170,6 +174,7 @@ export function buildGraph(rooms: HiveRoom[]): RoomGraph {
             neighbors: new Set(r.adjacencies ?? []),
             degree:    0, // computed after symmetrisation, below
             usesIntermediateColumns: r.uses_intermediate_columns ?? false,
+            unit: r.unit || undefined,
         });
         const floorList = floors.get(r.floor ?? 0) ?? [];
         floorList.push(r.room_id);
@@ -386,4 +391,27 @@ export function suiteEdgeKeys(suites: Suite[]): Set<string> {
         }
     }
     return keys;
+}
+
+/**
+ * Multi-unit buildings: each room of a dwelling (`unit`) other than its
+ * entrance opens into that entrance, as an en-suite opens into its bedroom.
+ * The entrance is the unit's room linked to the landing (its living room
+ * when several are). Room id -> entrance id, for one floor.
+ */
+export function unitEntrances(graph: RoomGraph, floor: number): Map<string, string> {
+    const ids = graph.floors.get(floor) ?? [];
+    const entryOf = new Map<string, string>();
+    for (const id of ids) {
+        const n = graph.nodes.get(id)!;
+        if (!n.unit || n.zone === "circ") continue;
+        const onLanding = [...n.neighbors].some(m => graph.nodes.get(m)?.zone === "circ");
+        if (onLanding && (!entryOf.has(n.unit) || n.type === "living_room")) entryOf.set(n.unit, id);
+    }
+    const out = new Map<string, string>();
+    for (const id of ids) {
+        const n = graph.nodes.get(id)!, e = n.unit ? entryOf.get(n.unit) : undefined;
+        if (e && e !== id) out.set(id, e);
+    }
+    return out;
 }

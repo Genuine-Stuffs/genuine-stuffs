@@ -3,7 +3,7 @@
 // Wong–Liu); every room is a leaf; one "hall" leaf takes the remainder.
 // Gap-free, overlap-free, inside the footprint by construction. Searched by
 // seeded simulated annealing over the expression; cost = rule violations.
-import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARAGE_TYPES, deriveSuites, identifyHubs, specHub } from "../graph";
+import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARAGE_TYPES, deriveSuites, identifyHubs, specHub, unitEntrances } from "../graph";
 import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
 import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
@@ -302,6 +302,8 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
     const suites = deriveSuites(graph, floor);
     const parentOf = new Map<string, string>();
     for (const s of suites) for (const sub of s.subIds) parentOf.set(sub, s.bedroomId);
+    // a flat's rooms open into the flat's entrance (en-suites keep their bedroom)
+    for (const [id, e] of unitEntrances(graph, floor)) if (!parentOf.has(id)) parentOf.set(id, e);
     const leaves: Leaf[] = [];
     let hallIds: string[] = [];
     for (const id of ids) {

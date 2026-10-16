@@ -9,6 +9,8 @@
  */
 import type { SolvedLayout, PlacedRoom } from 'supabase/functions/ai-studio/schema';
 import { computePlacement, type WallSide } from '@/lib/aec/solver/engine_v2/doors';
+import { buildGraph, deriveSuites, unitEntrances } from '@/lib/aec/solver/engine_v2/graph';
+import { hiveRooms } from '@/lib/aec/solver/engine_v2/gapfree/need';
 
 export interface OpeningType { kind: 'D' | 'W'; w: number; h: number }
 
@@ -169,6 +171,21 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
   const placement = rooms.length ? computePlacement(rooms.map(r => ({
     room_id: r.room_id, type: typeOf(r.room_id), x: r.x, y: r.y, width: r.width, depth: r.depth,
   })), W, D) : null;
+  // A flat's rooms open into the flat's entrance, not onto the landing
+  // (en-suites keep their bedroom): the wall they share with it.
+  const program = (layout as any).program_reference;
+  const graph = program?.rooms?.some((q: any) => q.unit) ? buildGraph(hiveRooms(program)) : null;
+  const intoUnit = graph ? unitEntrances(graph, floor) : new Map<string, string>();
+  const suiteSubs = graph ? new Set(deriveSuites(graph, floor).flatMap(x => x.subIds)) : new Set<string>();
+  const sharedWall = (a: PlacedRoom, b: PlacedRoom): WallSide | null => {
+    const ov = (a1: number, a2: number, b1: number, b2: number) => Math.min(a2, b2) - Math.max(a1, b1);
+    const e = 1e-6, need = DOOR_ROOM.w + DOOR_CLEAR;
+    if (Math.abs(a.x - (b.x + b.width)) < e && ov(a.y, a.y + a.depth, b.y, b.y + b.depth) >= need) return 'left';
+    if (Math.abs(a.x + a.width - b.x) < e && ov(a.y, a.y + a.depth, b.y, b.y + b.depth) >= need) return 'right';
+    if (Math.abs(a.y - (b.y + b.depth)) < e && ov(a.x, a.x + a.width, b.x, b.x + b.width) >= need) return 'top';
+    if (Math.abs(a.y + a.depth - b.y) < e && ov(a.x, a.x + a.width, b.x, b.x + b.width) >= need) return 'bottom';
+    return null;
+  };
   const doors = new Map<string, PlannedDoor>();
   const windows: PlannedWindow[] = [];
   for (const r of rooms) {
@@ -177,7 +194,9 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
     const ext = externalEdges(r, W, D);
     if (t !== 'stairwell') {
       const spec = placement?.doors.find(d => d.room_id === r.room_id);
-      const wall = spec?.wall ?? heuristicDoorWall(r, rooms, typeOf, ext);
+      const entry = !suiteSubs.has(r.room_id) ? intoUnit.get(r.room_id) : undefined;
+      const entryRoom = entry ? rooms.find(q => q.room_id === entry) : undefined;
+      const wall = (entryRoom && sharedWall(r, entryRoom)) || spec?.wall || heuristicDoorWall(r, rooms, typeOf, ext);
       const type = spec?.interior || SERVICE_ROOMS.test(t) ? DOOR_SERVICE : DOOR_ROOM;
       if (wallLength(r, wall) >= type.w + DOOR_CLEAR) doors.set(r.room_id, { room_id: r.room_id, wall, type });
     }
