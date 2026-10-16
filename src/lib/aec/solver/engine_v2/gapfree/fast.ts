@@ -29,7 +29,7 @@ export function makeCtx(spec: FloorSpec): Ctx {
         terrace: Uint8Array.from(spec.leaves.map(l => +(l.type === "balcony"))),
         front: Uint8Array.from(spec.leaves.map(l => +(l.front && spec.floor === 0))),
         conn: Uint8Array.from(spec.leaves.map(l => +(!!l.connector || !!l.hall))),
-        reachVia: Int32Array.from(spec.leaves.map(l => l.connector || l.hall ? -2 : l.reachVia !== undefined ? (idx.get(l.reachVia) ?? -1) : -1)),
+        reachVia: Int32Array.from(spec.leaves.map(l => l.onHall ? spec.leaves.findIndex(m => m.hall) : l.connector || l.hall ? -2 : l.reachVia !== undefined ? (idx.get(l.reachVia) ?? -1) : -1)),
         hall: spec.leaves.findIndex(l => l.hall),
         pa: Int32Array.from(pairs.map(p => p[0])), pb: Int32Array.from(pairs.map(p => p[1])),
         pw: Float64Array.from(pairs.map(([a, b]) => spec.soft?.has(`${a}|${b}`) ? WEIGHT.ADJ_SOFT : WEIGHT.ADJACENCY)),

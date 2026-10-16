@@ -383,7 +383,9 @@ function searchMisses(p: Prepared, placed: PlacedRoom[], best: Fp, hard: Array<{
                 detail = `${cut.join(" and ") || "Part of the circulation"} ${cut.length > 1 ? "are" : "is"} cut off from the hall on the ${floor(v.fl)}.`; break;
             }
             case "FRONT": detail = `${name} isn't on the street front.`; break;
-            case "REACH": detail = `${name} doesn't open onto the hall or a room that leads to it.`; break;
+            case "REACH": detail = best.specs.get(v.fl)!.leaves[v.leaf].onHall
+                ? `${name}, the flat's entrance, doesn't open onto the landing on the ${floor(v.fl)}.`
+                : `${name} doesn't open onto the hall or a room that leads to it.`; break;
             default: detail = `${name} misses the ${v.rule.toLowerCase().replace(/_/g, " ")} rule.`;
         }
         out.push({ room_id: id, rule: v.rule as ValidationIssue["rule"], detail });

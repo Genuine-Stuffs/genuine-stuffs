@@ -21,6 +21,7 @@ export interface Leaf {
     id: string; type: string; area: number; node?: GraphNode;
     needsExt: boolean; front: boolean; connector: boolean; reachVia?: string; // sub-room reaches via its bedroom
     hall?: boolean; stair?: boolean; garage?: boolean; hardSpan?: boolean;
+    onHall?: boolean; // a flat's entrance: opens straight onto the hall (landing), not via another room
 }
 export interface Rect { x: number; y: number; w: number; h: number } // cells
 export interface FloorSpec {
@@ -110,6 +111,7 @@ export interface Violation { rule: string; leaf: number; other?: number; amount:
 export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
     const v: Violation[] = [];
     const DOOR = 2; // cells: 1.0 m shared wall (D5)
+    const hallI = spec.leaves.findIndex(l => l.hall);
     spec.leaves.forEach((l, i) => {
         const r = rects[i], w_m = r.w * CELL, h_m = r.h * CELL, a = w_m * h_m;
         if (l.hall) {
@@ -143,8 +145,8 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
         const lit = TERRACE_LIGHT && spec.floor > 0 && spec.leaves.some((m, j) => j !== i && m.type === "balcony" && !l.hall && l.type !== "balcony" && shared(r, rects[j]) >= DOOR);
         if (l.needsExt && !lit && !onPerimeter(r, spec)) v.push({ rule: "EXTERNAL_WALL", leaf: i, amount: 1 + perimDist(r, spec) / 4 });
         if (l.front && spec.floor === 0 && r.y + r.h !== spec.D) v.push({ rule: "FRONT", leaf: i, amount: 1 + (spec.D - r.y - r.h) / 4 });
-        if (!l.connector && !l.hall) {
-            const via = l.reachVia !== undefined ? spec.leaves.findIndex(x => x.id === l.reachVia) : -1;
+        if ((!l.connector || l.onHall) && !l.hall) {
+            const via = l.onHall ? hallI : l.reachVia !== undefined ? spec.leaves.findIndex(x => x.id === l.reachVia) : -1;
             const ok = via >= 0 ? shared(r, rects[via]) >= DOOR
                 : spec.leaves.some((m, j) => j !== i && (m.connector || m.hall) && shared(r, rects[j]) >= DOOR);
             if (!ok) {
@@ -156,7 +158,6 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
         if (fx && (fx.x !== r.x || fx.y !== r.y || fx.w !== r.w || fx.h !== r.h))
             v.push({ rule: "STAIR_ALIGN", leaf: i, amount: 1 + (Math.abs(fx.x - r.x) + Math.abs(fx.y - r.y) + Math.abs(fx.w - r.w) + Math.abs(fx.h - r.h)) / 4 });
     });
-    const hallI = spec.leaves.findIndex(l => l.hall);
     // upstairs every link may be met through the landing (LANDING_VIA_HALL)
     const isFoyer = (i: number) => ENTRANCE.has(spec.leaves[i].type) || (LANDING_VIA_HALL && spec.floor > 0);
     for (const [a, b] of spec.pairs) {
@@ -303,7 +304,9 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
     const parentOf = new Map<string, string>();
     for (const s of suites) for (const sub of s.subIds) parentOf.set(sub, s.bedroomId);
     // a flat's rooms open into the flat's entrance (en-suites keep their bedroom)
-    for (const [id, e] of unitEntrances(graph, floor)) if (!parentOf.has(id)) parentOf.set(id, e);
+    const suiteSub = new Set(parentOf.keys());
+    const entrances = new Set<string>();
+    for (const [id, e] of unitEntrances(graph, floor)) { entrances.add(e); if (!parentOf.has(id)) parentOf.set(id, e); }
     const leaves: Leaf[] = [];
     let hallIds: string[] = [];
     for (const id of ids) {
@@ -314,7 +317,8 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
             continue;
         }
         if (n.zone === "circ") { hallIds.push(id); continue; }
-        const sub = isSubRoom(n.type) || parentOf.has(id);
+        // a flat's rooms still need their own windows; only a suite's sub-rooms don't
+        const sub = isSubRoom(n.type) || suiteSub.has(id);
         leaves.push({
             id, type: n.type, area: n.area, node: n,
             needsExt: !NO_WINDOW_TYPES.has(n.type) && !sub,
@@ -322,6 +326,7 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
             connector: isConnectorType(n.type),
             reachVia: parentOf.get(id),
             garage: GARAGE_TYPES.has(n.type), hardSpan: n.usesIntermediateColumns,
+            ...(entrances.has(id) ? { onHall: true } : {}),
         });
     }
     if (extraStair && !STAIR_IN_HALL && !leaves.some(l => l.stair)) leaves.push({ id: floor === 0 ? "stairwell" : "stairwell_void", type: "stairwell", area: 10, needsExt: false, front: false, connector: true, stair: true });
