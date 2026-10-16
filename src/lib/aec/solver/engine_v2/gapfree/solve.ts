@@ -36,6 +36,11 @@ export const CELL = 0.5;
 export const RESTARTS = 64;
 /** Annealing iterations per floor per footprint, over all restarts. */
 export const ITERS = 1_280_000;
+/** A plot that leaves fewer candidate footprints (a narrow plot cuts several
+ * to one size) spends the six footprints' budget on those it has, up to
+ * 1.6× per footprint (owner, 2026-10-16): small briefs get more search, the
+ * slowest briefs (six footprints) are unchanged. */
+const FULL_FOOTPRINTS = 6, MAX_ITERS_SCALE = 1.6;
 const STACK_W = 30;
 const SEED_STRIDE = 1000003;
 /** Bay-and-spine search budget per floor per footprint (a quarter of the gap-free one). */
@@ -133,13 +138,14 @@ function footprints(p: Prepared): Array<[number, number]> {
     return fps;
 }
 
-type Fp = { cost: number; rects: Map<number, Rect[]>; specs: Map<number, FloorSpec>; W: number; D: number };
+type Fp = { cost: number; rects: Map<number, Rect[]>; specs: Map<number, FloorSpec>; W: number; D: number; iters?: number };
 
 /** The whole search. Yields each floor's restart batch; returns the layout. */
 export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
     const p = prepare(program, envelope, options);
     const fps = footprints(p);
     if (!fps.length) return unsat(p);
+    const iters = ITERS * Math.min(MAX_ITERS_SCALE, Math.max(1, FULL_FOOTPRINTS / fps.length));
     let best: Fp | null = null;
     for (const [W, D] of fps) {
         // One full attempt on a W × D footprint: the upper floor first (it
@@ -160,7 +166,7 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
             const base = p.seed * 7919 + fl * 104729 + W * 31 + D;
             const res: AnnealResult = yield {
                 spec, seeds: [...Array(RESTARTS).keys()].map(k => base + k * SEED_STRIDE),
-                iters: ITERS / RESTARTS, sw: spec.below ? STACK_W : 0,
+                iters: iters / RESTARTS, sw: spec.below ? STACK_W : 0,
             };
             const r = layout(res.expr, spec, res.offs)!;
             specs.set(fl, spec); rects.set(fl, r);
@@ -173,7 +179,7 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
             if (vs.some(v => (v.rule === "REACH" && spec.leaves[v.leaf].reachVia !== undefined) || v.rule === "STAIR_ALIGN" || v.rule === "STAIR_FIT")) total += 1e6;
             prev = fl;
         }
-        if (ok && (!best || total < best.cost)) best = { cost: total, rects, specs, W, D };
+        if (ok && (!best || total < best.cost)) best = { cost: total, rects, specs, W, D, iters };
         if (best && best.cost < 1) break;
     }
     if (!best) return unsat(p);
@@ -306,7 +312,7 @@ function toLayout(p: Prepared, best: Fp): SolvedLayout {
     return {
         program_reference: p.program, plot_width: p.envelope.width, plot_depth: p.envelope.depth,
         building_width: best.W * CELL, building_depth: best.D * CELL,
-        placed_rooms: placed, solver_iterations_used: ITERS * best.specs.size,
+        placed_rooms: placed, solver_iterations_used: (best.iters ?? ITERS) * best.specs.size,
         is_fully_connected: true,
         solver_status: relaxed || !solved ? "SOLVED_RELAXED" : "SOLVED",
         ...(solved ? {} : {
