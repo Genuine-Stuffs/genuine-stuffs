@@ -2,9 +2,13 @@
  * The exterior render's description, with the plan's facts first.
  * The AI writes the image description freely and often drops the storeys
  * (a duplex drawn as a bungalow); the image model follows what comes first,
- * so the number of storeys, the building's size and its balconies lead.
+ * so the number of storeys, the building's size and its balconies lead,
+ * then the urban setting.
  */
 const STOREY_WORDS = ['', 'single-storey', 'two-storey', 'three-storey', 'four-storey', 'five-storey', 'six-storey'];
+
+/** The owner wants the building in a city, not in a jungle (2026-10-16). */
+const URBAN = 'Urban setting in a city neighbourhood: a paved street and kerb in front, neighbouring buildings on both sides, a boundary wall with a gate, street lights, a few ornamental trees; no jungle, forest or dense palms.';
 
 export function renderPrompt(design: any, aiPrompt: string): string {
     const rooms: any[] = design?.rooms ?? [];
@@ -22,5 +26,5 @@ export function renderPrompt(design: any, aiPrompt: string): string {
     if (upperBalconies) facts.push(`${upperBalconies === 1 ? 'a balcony' : 'balconies'} on the upper floor${storeys > 2 ? 's' : ''}`);
     const outbuildings = (L?.outbuildings ?? []).map((b: any) => b.label).filter(Boolean);
     if (outbuildings.length) facts.push(`a separate small ${outbuildings.join(' and ')} behind it`);
-    return `${facts.join(', ')}. ${aiPrompt}`;
+    return `${facts.join(', ')}. ${URBAN} ${aiPrompt}`;
 }
