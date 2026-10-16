@@ -756,9 +756,10 @@ const AIStudio = () => {
                     });
 
                     if (vizError) throw vizError;
-                    if (vizData?.imageUrl) {
-                        setVisualUrl(vizData.imageUrl);
-                    }
+                    // the function returns the picture as `visualization` (is_image), or a text description when no picture was made
+                    const picture = vizData?.is_image ? vizData.visualization : vizData?.imageUrl;
+                    if (picture) setVisualUrl(picture);
+                    else console.warn('Path 3 Visualization: no picture returned');
                 } catch (vizErr) {
                     console.error("Path 3 Visualization Error:", vizErr);
                 } finally {

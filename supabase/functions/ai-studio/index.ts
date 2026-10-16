@@ -334,7 +334,7 @@ RULES:
                 rendered in Lumion, professional real estate photography`;
 
             try {
-                const vizResponse = await fetch('https://openrouter.ai/api/v1/images/generations', {
+                const vizResponse = await fetch('https://openrouter.ai/api/v1/images', {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${openRouterKey}`,
@@ -342,20 +342,22 @@ RULES:
                         'HTTP-Referer': 'https://genuinestuffs.com',
                     },
                     body: JSON.stringify({
-                        model: 'black-forest-labs/flux-2-klein-4b',
+                        model: 'black-forest-labs/flux.2-klein-4b',
                         prompt: enhancedPrompt,
                         n: 1,
-                        size: '1024x768',
+                        aspect_ratio: '4:3',
                     })
                 });
 
                 const vizData = await vizResponse.json();
+                if (!vizResponse.ok) console.warn('[Visualize] image request failed:', vizResponse.status, JSON.stringify(vizData).slice(0, 300));
                 const imageUrl = vizData.data?.[0]?.url ?? null;
                 const imageB64 = vizData.data?.[0]?.b64_json ?? null;
+                const mediaType = vizData.data?.[0]?.media_type ?? 'image/png';
 
                 if (imageUrl || imageB64) {
                     return new Response(JSON.stringify({
-                        visualization: imageUrl ?? `data:image/png;base64,${imageB64}`,
+                        visualization: imageUrl ?? `data:${mediaType};base64,${imageB64}`,
                         type: 'visualize',
                         is_image: true,
                     }), {
