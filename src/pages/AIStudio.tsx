@@ -69,6 +69,7 @@ import { useLayoutOptions, layoutSignature, solveLayoutInWorker, layoutModeSetti
 import { explainFailure } from '@/lib/aec/solver/engine_v2/failure_messages';
 import { plotSize } from '@/lib/aec/solver/engine_v2/plot';
 import { readSetbackIntent, defaultChoice, setbackStudy, SetbackChoice, SetbackStudy } from '@/lib/aec/setbacks';
+import { renderPrompt } from '@/lib/aec/render_prompt';
 import { ADVISORY_RULES } from '@/lib/aec/solver/engine_v2/placement_validator';
 import { runComplianceCheck, ComplianceReport } from '@/lib/aec/compliance_engine';
 
@@ -749,7 +750,7 @@ const AIStudio = () => {
                 try {
                     const { data: vizData, error: vizError } = await supabase.functions.invoke('ai-studio', {
                         body: { 
-                            prompt: data.data.image_prompt, 
+                            prompt: renderPrompt(finalDesignData, data.data.image_prompt),
                             type: 'visualize',
                             selectedRole: selectedRole 
                         }
