@@ -26,7 +26,7 @@ import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
-import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS } from "./config";
+import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE } from "./config";
 import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP } from "./outbuildings";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
@@ -100,8 +100,8 @@ export function prepare(program: SpatialProgram, envelope: PlotEnvelope, options
     };
 }
 
-function specFor(graph: RoomGraph, floor: number, W: number, D: number, duplex: boolean): FloorSpec | null {
-    const fl = floorLeaves(graph, floor, W, D, duplex);
+function specFor(graph: RoomGraph, floor: number, W: number, D: number, duplex: boolean, squeeze = false): FloorSpec | null {
+    const fl = floorLeaves(graph, floor, W, D, duplex, squeeze);
     if (!fl) return null;
     const { leaves, pairs, soft } = fl;
     const hall = leaves.find(l => l.hall)!;
@@ -122,8 +122,8 @@ function specFor(graph: RoomGraph, floor: number, W: number, D: number, duplex: 
  * longer than the buildable area is cut to it and the other side lengthened
  * to keep the area (a 15 m × 30 m plot builds 9 m wide), so no footprint is
  * dropped while the area fits at all. */
-function footprints(p: Prepared): Array<[number, number]> {
-    const fps: Array<[number, number]> = [];
+function footprints(p: Prepared, squeeze = SQUEEZE): Array<[number, number, boolean?]> {
+    const fps: Array<[number, number, boolean?]> = [];
     const maxW = Math.floor(p.be.width / CELL + 1e-9), maxD = Math.floor(p.be.height / CELL + 1e-9);
     for (const slack of [1.12, 1.2]) for (const ar of [0.8, 1.0, 1.25]) {
         const A = p.need * slack, Wm = Math.sqrt(A * ar), Dm = A / Wm;
@@ -135,25 +135,28 @@ function footprints(p: Prepared): Array<[number, number]> {
         if (cut && fps.some(([w, d]) => w === W && d === D)) continue;
         if (W <= maxW && D <= maxD) fps.push([W, D]);
     }
+    // SQUEEZE: no footprint fits, but the whole buildable area holds the rooms
+    // scaled down to 80 % at most (floorLeaves): search it, the plan says so
+    if (squeeze && !fps.length && maxW * maxD * CELL * CELL >= p.need * 0.8) fps.push([maxW, maxD, true]);
     return fps;
 }
 
 type Fp = { cost: number; rects: Map<number, Rect[]>; specs: Map<number, FloorSpec>; W: number; D: number; iters?: number };
 
 /** The whole search. Yields each floor's restart batch; returns the layout. */
-export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
+export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions, squeeze = SQUEEZE): Generator<RestartBatch, SolvedLayout, AnnealResult> {
     const p = prepare(program, envelope, options);
-    const fps = footprints(p);
+    const fps = footprints(p, squeeze);
     if (!fps.length) return unsat(p);
     const iters = ITERS * Math.min(MAX_ITERS_SCALE, Math.max(1, FULL_FOOTPRINTS / fps.length));
     let best: Fp | null = null;
-    for (const [W, D] of fps) {
+    for (const [W, D, squeeze] of fps) {
         // One full attempt on a W × D footprint: the upper floor first (it
         // chooses the stair's place), then each floor below must contain it.
         const specs = new Map<number, FloorSpec>(), rects = new Map<number, Rect[]>();
         let total = 0, prev: number | undefined, ok = true;
         for (const fl of [...p.floorIds].reverse()) {
-            const spec = specFor(p.graph, fl, W, D, p.duplex);
+            const spec = specFor(p.graph, fl, W, D, p.duplex, squeeze);
             if (!spec) { ok = false; break; }
             if (prev === undefined) { if (STAIR_IN_HALL && p.duplex) spec.stairCells = [5, 8]; }
             else {
@@ -218,12 +221,12 @@ export function* spineDriver(p: Prepared): Generator<RestartBatch, SolvedLayout 
 }
 
 /** The house: bay-and-spine first (multi-storey), else the gap-free search. */
-function* houseDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
+function* houseDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions, squeeze = SQUEEZE): Generator<RestartBatch, SolvedLayout, AnnealResult> {
     if (SPINE_FIRST) {
         const L = yield* spineDriver(prepare(program, envelope, options));
         if (L) return L;
     }
-    return yield* gapfreeDriver(program, envelope, options);
+    return yield* gapfreeDriver(program, envelope, options, squeeze);
 }
 
 /** The whole plan. Outbuildings (OUTBUILDINGS) take a strip behind the
@@ -238,7 +241,8 @@ export function* planDriver(program: SpatialProgram, envelope: PlotEnvelope, opt
     const d = outbuildingDepth(ob.units, be.width);
     const houseDepth = d === null ? 0 : envelope.depth - OB_GAP - d + rear;
     if (d !== null && houseDepth - s.front - s.rear > 0) {
-        const L = yield* houseDriver(ob.house, { ...envelope, depth: houseDepth }, options);
+        // never squeezed: a house that only fits squeezed keeps its outbuildings inside, as before
+        const L = yield* houseDriver(ob.house, { ...envelope, depth: houseDepth }, options, false);
         const placed = L.solver_status !== "UNSAT" && placeOutbuildings(ob.units, d, L.building_width ?? 0, L.placed_rooms, du => (L.building_depth ?? 0) + OB_GAP + du > be.height + 1e-9);
         // the house front on the front setback line, centred across the buildable width
         const site_offset = { x: s.left + (be.width - (L.building_width ?? 0)) / 2, y: envelope.depth - s.front - (L.building_depth ?? 0) };
@@ -308,6 +312,7 @@ function toLayout(p: Prepared, best: Fp): SolvedLayout {
     // relaxation ladder may have dropped room links (RELAX-SOFT-ADJ).
     issues.push(...unflaggedMisses(p, placed, best, issues));
     if (!solved) issues.push(...searchMisses(p, placed, best, hard, issues));
+    issues.push(...squeezeNote(best, placed));
     if (!solved) console.warn(`[SOLVER_GAPFREE] no plan met every rule; best plan with ${hard.length} miss(es), flagged`);
     return {
         program_reference: p.program, plot_width: p.envelope.width, plot_depth: p.envelope.depth,
@@ -327,6 +332,19 @@ function toLayout(p: Prepared, best: Fp): SolvedLayout {
  * the search counts as hard (SHAPE, AREA, a cut-off hall, …) that the
  * notes don't carry yet. Links and outside walls are already listed by
  * `unflaggedMisses` and the validator. */
+/** SQUEEZE: a plan whose rooms were scaled down to fit says by how much,
+ * and which room lost most against the brief. */
+function squeezeNote(best: Fp, placed: PlacedRoom[]): ValidationIssue[] {
+    const rooms = [...best.specs.entries()].flatMap(([fl, sp]) => sp.leaves.filter(l => l.node && !l.hall).map(l => ({ l, fl })));
+    if (!rooms.some(({ l }) => l.area < l.node!.area - 1e-6)) return [];
+    const pct = Math.round((1 - rooms.reduce((s, { l }) => s + l.area, 0) / rooms.reduce((s, { l }) => s + l.node!.area, 0)) * 100);
+    const got = (id: string, fl: number) => { const r = placed.find(q => q.room_id === id && q.floor === fl); return r ? r.width * r.depth : 0; };
+    const worst = rooms.map(({ l, fl }) => ({ l, a: got(l.id, fl) })).sort((x, y) => x.a / x.l.node!.area - y.a / y.l.node!.area)[0];
+    const m = (v: number) => `${+v.toFixed(2)}`;
+    return [{ room_id: worst.l.id, rule: "ROOMS_SQUEEZED",
+        detail: `The brief is bigger than the buildable area, so every room is about ${pct}% smaller than asked; the most: ${worst.l.node!.label} is ${m(worst.a)} m² against ${m(worst.l.node!.area)} m². See Setbacks for ways to keep every room at full size.` }];
+}
+
 function searchMisses(p: Prepared, placed: PlacedRoom[], best: Fp, hard: Array<{ rule: string; leaf: number; fl: number }>, issues: ValidationIssue[]): ValidationIssue[] {
     const out: ValidationIssue[] = [];
     const m = (v: number) => `${+v.toFixed(2)}`;
@@ -346,7 +364,9 @@ function searchMisses(p: Prepared, placed: PlacedRoom[], best: Fp, hard: Array<{
             case "SHAPE": detail = l.node && r && Math.min(r.width, r.depth) + 1e-6 < minWidthFor(l.node)
                 ? `${name} is ${size}, narrower than its ${m(minWidthFor(l.node))} m minimum.`
                 : `${name} is ${size}, longer than ${m(maxAspectFor(l.node ?? { type: l.type }))} times its width.`; break;
-            case "AREA": detail = `${name} is ${r ? m(r.width * r.depth) : "?"} m², more than 20% off the ${m(l.area)} m² asked for.`; break;
+            case "AREA": detail = l.node && l.area < l.node.area - 1e-6
+                ? `${name} is ${r ? m(r.width * r.depth) : "?"} m², more than 20% off its squeezed size of ${m(l.area)} m² (${m(l.node.area)} m² asked for).`
+                : `${name} is ${r ? m(r.width * r.depth) : "?"} m², more than 20% off the ${m(l.area)} m² asked for.`; break;
             case "NBC_MIN": detail = `${name} is ${size}, below the building code's minimum for its type.`; break;
             case "GARAGE_SIZE": detail = `${name} is ${size}, too small for the cars asked for.`; break;
             case "STAIR_SIZE": detail = `The stair is ${size}, too small for a full flight.`; break;

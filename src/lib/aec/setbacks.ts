@@ -152,7 +152,19 @@ export const buildableOf = (plot: Plot, s: Setbacks) => {
 // circulation (its smallest footprint slack).
 export const FOOTPRINT_SLACK = 1.12;
 
-export interface SetbackOption { choice: SetbackChoice; label: string; setbacks: Setbacks; area: number; fits: boolean }
+/** When the brief doesn't fit outright, the layout engine scales every room
+ * down evenly, to 80 % at most (owner, 2026-10-16). How much smaller the
+ * rooms come out, in %; null when even that doesn't fit. */
+export function squeezePct(area: number, need: number): number | null {
+    if (area + 1e-9 >= need) return 0;
+    return area + 1e-9 >= need * 0.8 ? Math.max(1, Math.round((1 - area / need) * 100)) : null;
+}
+
+export interface SetbackOption {
+    choice: SetbackChoice; label: string; setbacks: Setbacks; area: number; fits: boolean;
+    /** Not a full fit: the rooms come out this much smaller (%), or null. */
+    squeeze: number | null;
+}
 
 export interface SetbackAdvice {
     /** One line saying what conflicts, with the numbers. */
@@ -176,9 +188,10 @@ export function setbackOptions(plan: SetbackPlan, plot: Plot, need: number): Set
         .filter(c => c.law === 'lagos_2019' || c.use === 'residential')
         .map(c => {
             const s = lawSetbacks(c, plot), area = buildableOf(plot, s).area;
-            return { choice: c, label: choiceLabel(c), setbacks: s, area, fits: area + 1e-9 >= want };
+            const fits = area + 1e-9 >= want;
+            return { choice: c, label: choiceLabel(c), setbacks: s, area, fits, squeeze: fits ? null : squeezePct(area, need) };
         })
-        .sort((x, y) => Number(y.fits) - Number(x.fits) || y.area - x.area);
+        .sort((x, y) => Number(y.fits) - Number(x.fits) || Number(y.squeeze !== null) - Number(x.squeeze !== null) || y.area - x.area);
 
 }
 
@@ -195,6 +208,10 @@ export function setbackAdvice(plan: SetbackPlan, plot: Plot, need: number, store
 
     const lines: string[] = [];
     if (!fits) lines.push(`The rooms add up to about ${Math.round(need)} m² on the fullest floor, about ${Math.round(want)} m² of building with walls and circulation; under ${plan.label} (${fmt(plan.setbacks)}) a ${plot.width} × ${plot.depth} m plot leaves ${b.width.toFixed(1)} × ${b.depth.toFixed(1)} m = ${Math.round(b.area)} m².`);
+    const sq = fits ? null : squeezePct(b.area, need);
+    if (sq !== null) lines.push(sq > 0
+        ? `The plan makes every room about ${sq}% smaller than asked so it fits. To keep them at full size:`
+        : 'The plan fits with little room to spare for walls and the hall. For more space:');
     if (plan.below.length) lines.push(`You asked for ${plan.below.map(k => `${k} ${plan.setbacks[k]} m`).join(', ')}; ${plan.label} requires at least ${plan.below.map(k => `${k} ${plan.law[k]} m`).join(', ')}. The plan follows your figures — check them with the planning authority.`);
 
     const other: string[] = [];

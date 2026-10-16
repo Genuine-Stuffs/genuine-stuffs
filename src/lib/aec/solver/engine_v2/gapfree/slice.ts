@@ -297,7 +297,7 @@ export function anneal(spec: FloorSpec, seed: number, iters: number, stackW = 0)
 
 /** Leaves for one floor of the brief: rooms (circulation merged into one
  * hall leaf that takes the footprint's remainder). */
-export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: number, extraStair: boolean): { leaves: Leaf[]; pairs: Array<[number, number]>; soft: Set<string> } | null {
+export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: number, extraStair: boolean, squeeze = false): { leaves: Leaf[]; pairs: Array<[number, number]>; soft: Set<string> } | null {
     const ids = graph.floors.get(floor) ?? [];
     const suites = deriveSuites(graph, floor);
     const parentOf = new Map<string, string>();
@@ -323,7 +323,13 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
         });
     }
     if (extraStair && !STAIR_IN_HALL && !leaves.some(l => l.stair)) leaves.push({ id: floor === 0 ? "stairwell" : "stairwell_void", type: "stairwell", area: 10, needsExt: false, front: false, connector: true, stair: true });
-    const used = leaves.reduce((s, l) => s + l.area, 0);
+    let used = leaves.reduce((s, l) => s + l.area, 0);
+    // SQUEEZE footprint only: rooms scaled down evenly (to 80 % at most) to leave the brief's circulation
+    const circNeed = Math.max(4, hallIds.reduce((s, id) => s + graph.nodes.get(id)!.area, 0));
+    if (squeeze && W * D * CELL * CELL - used < circNeed) {
+        const f = (W * D * CELL * CELL - circNeed) / used;
+        if (f >= 0.8) { for (const l of leaves) l.area *= f; used *= f; }
+    }
     const rest = W * D * CELL * CELL - used;
     if (rest < 4) return null;
     leaves.push({ id: `corridor_floor${floor}_0`, type: "circulation", area: rest, needsExt: false, front: false, connector: true, hall: true });

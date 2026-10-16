@@ -37,5 +37,9 @@ export const SPINE_FIRST = flag("SPINE_FIRST", true);
 /** The hall is capped at its target on every floor (step (h), 2026-10-12): the
  * surplus is an open terrace (a porch on the ground floor). */
 export const HALL_CAP = flag("HALL_CAP", true);
+/** No footprint fits: search the whole buildable area, every room scaled down
+ * evenly (to 80 % at most) and the plan says so; the setback options stay
+ * on the page (owner, 2026-10-16). */
+export const SQUEEZE = flag("SQUEEZE", true);
 /** Bay-and-spine budget as a share of the gap-free search's. */
 export const SPINE_BUDGET = Number(env.SPINE_BUDGET ?? 0.25);

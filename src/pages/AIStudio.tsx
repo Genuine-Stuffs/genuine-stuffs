@@ -1489,9 +1489,9 @@ const AIStudio = () => {
                                                                             <Button key={i} size="sm" variant="outline" disabled={replanning}
                                                                                 onClick={() => replanSetbacks(o.choice)}
                                                                                 className={`bg-transparent rounded-xl text-[9px] font-black uppercase tracking-widest h-auto py-2 px-3 whitespace-normal text-left ${
-                                                                                    o.fits ? 'text-emerald-200 border-emerald-700 hover:bg-emerald-900/40' : 'text-slate-300 border-white/10 hover:bg-white/5'
+                                                                                    o.fits ? 'text-emerald-200 border-emerald-700 hover:bg-emerald-900/40' : o.squeeze !== null ? 'text-amber-200 border-amber-700 hover:bg-amber-900/40' : 'text-slate-300 border-white/10 hover:bg-white/5'
                                                                                 }`}>
-                                                                                Re-plan: {o.label} · {Math.round(o.area)} m² {o.fits ? '(fits)' : '(too small)'}
+                                                                                Re-plan: {o.label} · {Math.round(o.area)} m² {o.fits ? '(fits)' : o.squeeze !== null ? (o.squeeze > 0 ? `(fits with rooms about ${o.squeeze}% smaller)` : '(fits, tight)') : '(too small)'}
                                                                             </Button>
                                                                         ))}
                                                                     </div>
