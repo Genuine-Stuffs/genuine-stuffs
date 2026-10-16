@@ -204,16 +204,16 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<RenderMode>('loading');
   const cleanupRef = useRef<(() => void) | null>(null);
-  const mountedForRef = useRef<string | null>(null);
+
+  // Redraw only when the geometry changes. (A guard that skipped a remount
+  // when plot size and room count matched left the panel blank: the cleanup
+  // had already removed the previous drawing.)
+  const geometryKey = layout ? JSON.stringify([layout.plot_width, layout.plot_depth,
+    (layout.placed_rooms ?? []).map(r => [r.room_id, r.floor, r.x, r.y, r.width, r.depth]),
+    (layout.outbuildings ?? []).map(b => b.rooms.map(r => [r.room_id, r.x, r.y, r.width, r.depth]))]) : null;
 
   useEffect(() => {
     if (!containerRef.current || !layout) return;
-    
-    // Guard: don't remount if same layout
-    const layoutKey = layout ? `${layout.plot_width}-${layout.plot_depth}-${layout.placed_rooms?.length}` : null;
-      
-    if (mountedForRef.current === layoutKey) return;
-    mountedForRef.current = layoutKey;
 
     let cancelled = false;
 
@@ -235,7 +235,8 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
 
     mount();
     return () => { cancelled = true; cleanupRef.current?.(); cleanupRef.current = null; };
-  }, [layout]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- the geometry key stands for the layout
+  }, [geometryKey]);
 
   if (!layout) return null;
 
