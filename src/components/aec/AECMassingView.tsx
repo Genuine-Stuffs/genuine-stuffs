@@ -62,7 +62,14 @@ async function mountThreeViewer(
   scene.background = new THREE.Color(0xf1f5f9);
   scene.fog = new THREE.FogExp2(0xf1f5f9, 0.008);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+  // A browser that refuses the full settings (weak or busy GPU) gets a lighter
+  // context; one that refuses WebGL entirely gets an explained message.
+  let renderer: InstanceType<typeof THREE.WebGLRenderer>;
+  try {
+    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: 'high-performance' });
+  } catch {
+    renderer = new THREE.WebGLRenderer({ antialias: false, alpha: false, powerPreference: 'default', failIfMajorPerformanceCaveat: false });
+  }
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(W, H);
   renderer.shadowMap.enabled = true;
@@ -92,7 +99,7 @@ async function mountThreeViewer(
   const sun = new THREE.DirectionalLight(0xffffff, 1.2);
   sun.position.set(maxDim, maxDim * 2, maxDim);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(4096, 4096);
+  sun.shadow.mapSize.set(2048, 2048);
   sun.shadow.bias = -0.0005;
   const sc = maxDim * 1.5;
   Object.assign(sun.shadow.camera, { left: -sc, right: sc, top: sc, bottom: -sc, near: 0.1, far: camDist * 4 });
@@ -191,7 +198,11 @@ async function mountThreeViewer(
     cancelAnimationFrame(animId);
     window.removeEventListener('resize', onResize);
     controls.dispose();
+    scene.traverse((o: any) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
     renderer.dispose();
+    // free the browser's WebGL context now: each redraw makes a new one, and
+    // browsers refuse new ones (or block the site) once too many are held
+    renderer.forceContextLoss();
     if (container.contains(renderer.domElement)) container.removeChild(renderer.domElement);
   };
 }
@@ -203,6 +214,7 @@ type RenderMode = 'loading' | 'three' | 'error';
 const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<RenderMode>('loading');
+  const [noWebGL, setNoWebGL] = useState(false);
   const cleanupRef = useRef<(() => void) | null>(null);
 
   // Redraw only when the geometry changes. (A guard that skipped a remount
@@ -229,7 +241,7 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
         }
       } catch (err) {
         console.error('[AECMassingView] Three.js render failed:', err);
-        if (!cancelled) setMode('error');
+        if (!cancelled) { setNoWebGL(/webgl/i.test(String((err as Error)?.message ?? err))); setMode('error'); }
       }
     };
 
@@ -252,14 +264,14 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
               <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white">Structural Massing View</CardTitle>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[9px] font-black text-primary uppercase tracking-widest">
-                  {mode === 'three' ? '3D MASSING VIEW' : 'Compiling Mesh...'}
+                  {mode === 'three' ? '3D MASSING VIEW' : mode === 'error' ? 'Not available in this browser' : 'Compiling Mesh...'}
                 </span>
               </div>
             </div>
           </div>
           <Badge variant="outline" className="text-[9px] font-black border-primary/40 text-primary bg-primary/10 px-4 py-1.5">
             <Sparkles className="w-3 h-3 mr-1.5" />
-            {mode === 'three' ? '3D MASSING MODE' : 'INITIALISING'}
+            {mode === 'three' ? '3D MASSING MODE' : mode === 'error' ? 'UNAVAILABLE' : 'INITIALISING'}
           </Badge>
         </div>
       </CardHeader>
@@ -278,6 +290,9 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
             <div className="flex flex-col items-center gap-4 p-8 text-center">
               <AlertTriangle className="w-10 h-10 text-amber-500" />
               <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">3D Viewer Unavailable</p>
+              {noWebGL ? (
+                <p className="text-[10px] text-slate-400 max-w-sm">Your browser didn't allow 3D graphics (WebGL) for this page. Turn on "Use graphics acceleration when available" in your browser's settings, then restart the browser and reload this page.</p>
+              ) : null}
               <p className="text-[10px] text-slate-500 max-w-xs">The floor plan and all document outputs above are unaffected.</p>
             </div>
           </div>
