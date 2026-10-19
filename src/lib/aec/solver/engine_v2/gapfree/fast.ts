@@ -9,7 +9,7 @@ const DOOR = 2, PASSAGE = 3;
 export interface Ctx {
     spec: FloorSpec; n: number; W: number; D: number;
     area: Float64Array; X: Int32Array; Y: Int32Array; Wd: Int32Array; Ht: Int32Array;
-    needsExt: Uint8Array; terrace: Uint8Array; front: Uint8Array; conn: Uint8Array; reachVia: Int32Array; hall: number;
+    needsExt: Uint8Array; terrace: Uint8Array; front: Uint8Array; conn: Uint8Array; reachVia: Int32Array; reachAlt: Int32Array; hall: number;
     pa: Int32Array; pb: Int32Array; pw: Float64Array; pf: Int32Array; // pf: the pair's foyer end (upstairs: either end), or -1
     intrinsic: Float64Array; // n × (W+1) × (D+1), NaN = not computed
     // layout scratch (2n-1 nodes)
@@ -30,6 +30,7 @@ export function makeCtx(spec: FloorSpec): Ctx {
         front: Uint8Array.from(spec.leaves.map(l => +(l.front && (spec.floor === 0 || !!l.hall)))),
         conn: Uint8Array.from(spec.leaves.map(l => +(!!l.connector || !!l.hall))),
         reachVia: Int32Array.from(spec.leaves.map(l => l.onHall ? spec.leaves.findIndex(m => m.hall) : l.connector || l.hall ? -2 : l.reachVia !== undefined ? (idx.get(l.reachVia) ?? -1) : -1)),
+        reachAlt: Int32Array.from(spec.leaves.map(l => l.reachAlt !== undefined ? (idx.get(l.reachAlt) ?? -1) : -1)),
         hall: spec.leaves.findIndex(l => l.hall),
         pa: Int32Array.from(pairs.map(p => p[0])), pb: Int32Array.from(pairs.map(p => p[1])),
         pw: Float64Array.from(pairs.map(([a, b]) => spec.soft?.has(`${a}|${b}`) ? WEIGHT.ADJ_SOFT : WEIGHT.ADJACENCY)),
@@ -116,7 +117,11 @@ export function fastCost(c: Ctx, stackW: number): number {
         const via = c.reachVia[i];
         if (via !== -2) {
             let ok = false, d = 1e9;
-            if (via >= 0) { ok = sharedC(c, i, via) >= DOOR; if (!ok) d = gapC(c, i, via); }
+            if (via >= 0) {
+                const alt = c.reachAlt[i];
+                ok = sharedC(c, i, via) >= DOOR || (alt >= 0 && sharedC(c, i, alt) >= DOOR);
+                if (!ok) d = Math.min(gapC(c, i, via), alt >= 0 ? gapC(c, i, alt) : 1e9);
+            }
             else {
                 for (let j = 0; j < n && !ok; j++) if (j !== i && c.conn[j] && sharedC(c, i, j) >= DOOR) ok = true;
                 if (!ok) for (let j = 0; j < n; j++) if (j !== i && c.conn[j]) d = Math.min(d, gapC(c, i, j));

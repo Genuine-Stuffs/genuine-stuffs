@@ -118,7 +118,7 @@ function specFor(graph: RoomGraph, floor: number, W: number, D: number, duplex: 
     // ZONES: two flats on the floor stand either side of the core strip
     const units = [...new Set(leaves.map(l => l.node?.unit).filter((u): u is string => !!u))].sort();
     const zones = ZONES && units.length === 2
-        ? [units[0], undefined, units[1]].map(u => leaves.map((l, i) => i).filter(i => (leaves[i].node?.unit ?? undefined) === u))
+        ? [units[0], undefined, units[1]].map(u => leaves.map((l, i) => i).filter(i => (leaves[i].node?.unit ?? leaves[i].unit) === u))
         : undefined;
     return { leaves, W, D, pairs, floor, soft, ...(zones && zones.every(z => z.length) ? { zones } : {}) };
 }
@@ -155,7 +155,8 @@ function sameFloor(a: FloorSpec, b: FloorSpec): boolean {
         const m = b.leaves[i];
         return l.type === m.type && Math.abs(l.area - m.area) < 1e-9 && l.needsExt === m.needsExt && l.front === m.front
             && l.connector === m.connector && !!l.hall === !!m.hall && !!l.stair === !!m.stair && !!l.garage === !!m.garage
-            && !!l.hardSpan === !!m.hardSpan && !!l.onHall === !!m.onHall && at(a, l.reachVia) === at(b, m.reachVia);
+            && !!l.hardSpan === !!m.hardSpan && !!l.onHall === !!m.onHall && at(a, l.reachVia) === at(b, m.reachVia)
+            && !!l.passage === !!m.passage && at(a, l.reachAlt) === at(b, m.reachAlt);
     });
     const key = (sp: FloorSpec) => sp.pairs.map(([x, y]) => `${x}|${y}|${sp.soft?.has(`${x}|${y}`) ? 1 : 0}`).join(",");
     return ok && key(a) === key(b);
@@ -346,7 +347,7 @@ function toLayout(p: Prepared, best: Fp): SolvedLayout {
         if (!S) return [out(sp.leaves[i].id, r)];
         return [out(fl === 0 ? "stairwell" : "stairwell_void", S), ...hallPieces(r, S).map((q, k) => out(`corridor_floor${fl}_${k}`, q))];
     }));
-    const typeOf = (id: string) => p.graph.nodes.get(id)?.type ?? (id.startsWith("stair") ? "stairwell" : id.startsWith("corridor") ? "circulation" : "balcony");
+    const typeOf = (id: string) => p.graph.nodes.get(id)?.type ?? (id.startsWith("stair") ? "stairwell" : id.startsWith("corridor") || id.startsWith("passage_") ? "circulation" : "balcony");
     const issues = p.floorIds.flatMap(fl => {
         const subs = new Set(deriveSuites(p.graph, fl).flatMap(x => x.subIds));
         return validatePlacement(placed.filter(q => q.floor === fl), typeOf, id => id, best.W * CELL, best.D * CELL, fl, subs);
@@ -403,7 +404,7 @@ function searchMisses(p: Prepared, placed: PlacedRoom[], best: Fp, hard: Array<{
         const id = l.hall ? hallId : l.id;
         if (seen(v.rule, id)) continue;
         const r = placed.find(q => q.room_id === l.id && q.floor === v.fl);
-        const name = l.node?.label ?? l.id, size = r ? `${m(r.width)} × ${m(r.depth)} m` : "";
+        const name = l.node?.label ?? (l.passage ? `${l.unit} passage` : l.id), size = r ? `${m(r.width)} × ${m(r.depth)} m` : "";
         let detail: string;
         switch (v.rule) {
             case "SHAPE": detail = l.node && r && Math.min(r.width, r.depth) + 1e-6 < minWidthFor(l.node)

@@ -7,7 +7,7 @@ import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARAGE_TYPES
 import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
 import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
-import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P, ENTRY_W } from "./config";
+import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P, ENTRY_W, ZONES, FLAT_PASSAGE } from "./config";
 
 const CELL = 0.5;
 export { STAIR_IN_HALL, FOYER_VIA_HALL, TERRACE_LIGHT };
@@ -22,6 +22,8 @@ export interface Leaf {
     needsExt: boolean; front: boolean; connector: boolean; reachVia?: string; // sub-room reaches via its bedroom
     hall?: boolean; stair?: boolean; garage?: boolean; hardSpan?: boolean;
     onHall?: boolean; // a flat's entrance: opens straight onto the hall (landing), not via another room
+    unit?: string; passage?: boolean; // FLAT_PASSAGE: a flat's inner passage (no brief room)
+    reachAlt?: string; // a flat's bedroom or bathroom may open off the flat's passage instead
 }
 export interface Rect { x: number; y: number; w: number; h: number } // cells
 export interface FloorSpec {
@@ -86,6 +88,7 @@ export function hallPieces(H: Rect, S: Rect): Rect[] {
     return out;
 }
 const PASSAGE = 3; // cells: 1.5 m, the engine's default corridor width
+const PASSAGE_M2 = 6; // a flat's inner passage (FLAT_PASSAGE)
 
 /** Passage left around the stair is either none or >= 1.5 m, and there is some. */
 function piecesOk(H: Rect, S: Rect): boolean {
@@ -146,12 +149,14 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
         const lit = TERRACE_LIGHT && spec.floor > 0 && spec.leaves.some((m, j) => j !== i && m.type === "balcony" && !l.hall && l.type !== "balcony" && shared(r, rects[j]) >= DOOR);
         if (l.needsExt && !lit && !onPerimeter(r, spec)) v.push({ rule: "EXTERNAL_WALL", leaf: i, amount: 1 + perimDist(r, spec) / 4 });
         if (l.front && (spec.floor === 0 || l.hall) && r.y + r.h !== spec.D) v.push({ rule: "FRONT", leaf: i, amount: 1 + (spec.D - r.y - r.h) / 4 });
+        if (l.passage && Math.min(r.w, r.h) < 2) v.push({ rule: "SHAPE", leaf: i, amount: 1 + (2 - Math.min(r.w, r.h)) }); // >= 1.0 m wide
         if ((!l.connector || l.onHall) && !l.hall) {
             const via = l.onHall ? hallI : l.reachVia !== undefined ? spec.leaves.findIndex(x => x.id === l.reachVia) : -1;
-            const ok = via >= 0 ? shared(r, rects[via]) >= DOOR
+            const alt = l.reachAlt !== undefined ? spec.leaves.findIndex(x => x.id === l.reachAlt) : -1;
+            const ok = via >= 0 ? shared(r, rects[via]) >= DOOR || (alt >= 0 && shared(r, rects[alt]) >= DOOR)
                 : spec.leaves.some((m, j) => j !== i && (m.connector || m.hall) && shared(r, rects[j]) >= DOOR);
             if (!ok) {
-                const d = via >= 0 ? gap(r, rects[via]) : Math.min(...spec.leaves.map((m, j) => j !== i && (m.connector || m.hall) ? gap(r, rects[j]) : 1e9));
+                const d = via >= 0 ? Math.min(gap(r, rects[via]), alt >= 0 ? gap(r, rects[alt]) : 1e9) : Math.min(...spec.leaves.map((m, j) => j !== i && (m.connector || m.hall) ? gap(r, rects[j]) : 1e9));
                 v.push({ rule: "REACH", leaf: i, amount: (1 + d / 4) * (l.onHall ? ENTRY_W : 1) });
             }
         }
@@ -358,6 +363,14 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
         });
     }
     if (extraStair && !STAIR_IN_HALL && !leaves.some(l => l.stair)) leaves.push({ id: floor === 0 ? "stairwell" : "stairwell_void", type: "stairwell", area: 10, needsExt: false, front: false, connector: true, stair: true });
+    // FLAT_PASSAGE: a two-flat floor (ZONES) gives each flat an inner passage off its
+    // living room; the flat's bedrooms and bathroom may open off it instead
+    const flatUnits = new Set([...entrances].map(e => graph.nodes.get(e)!.unit));
+    if (FLAT_PASSAGE && ZONES && flatUnits.size === 2) for (const e of entrances) {
+        const unit = graph.nodes.get(e)!.unit!, pid = `passage_${e}`;
+        for (const l of leaves) if (l.reachVia === e && !suiteSub.has(l.id) && /bed|bath/.test(l.type)) l.reachAlt = pid;
+        leaves.push({ id: pid, type: "circulation", area: PASSAGE_M2, needsExt: false, front: false, connector: false, reachVia: e, unit, passage: true });
+    }
     let used = leaves.reduce((s, l) => s + l.area, 0);
     // SQUEEZE footprint only: rooms scaled down evenly (to 80 % at most) to leave the brief's circulation
     const circNeed = Math.max(4, hallIds.reduce((s, id) => s + graph.nodes.get(id)!.area, 0));
@@ -390,7 +403,9 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
     const soft = new Set<string>();
     // Circulation pairs are never hub edges in the engine (buildCirculation).
     const circ = (i: number) => !!(leaves[i].hall || leaves[i].stair);
-    for (const [a, b] of pairs) if (!servedLink(leaves[a].type, leaves[b].type) && (circ(a) || circ(b) || (!hubs.has(leaves[a].id) && !hubs.has(leaves[b].id)))) soft.add(`${a}|${b}`);
+    // a link met through the flat's passage instead is soft too (direct still preferred)
+    const viaPassage = (a: number, b: number) => (leaves[a].reachAlt !== undefined && leaves[a].reachVia === leaves[b].id) || (leaves[b].reachAlt !== undefined && leaves[b].reachVia === leaves[a].id);
+    for (const [a, b] of pairs) if (!servedLink(leaves[a].type, leaves[b].type) && (circ(a) || circ(b) || viaPassage(a, b) || (!hubs.has(leaves[a].id) && !hubs.has(leaves[b].id)))) soft.add(`${a}|${b}`);
     return { leaves, pairs, soft };
 }
 

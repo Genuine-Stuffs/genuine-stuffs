@@ -52,3 +52,6 @@ export const ENTRY_W = Number(env.ENTRY_W ?? 2);
 /** A floor with two flats is three full-depth strips side by side: one flat,
  * the core (stair, landing, shared rooms), the other flat (owner, 2026-10-19). */
 export const ZONES = flag("ZONES", true);
+/** Each flat of a two-flat floor gets an inner passage its bedrooms and
+ * bathroom may open off (owner, 2026-10-19). */
+export const FLAT_PASSAGE = flag("FLAT_PASSAGE", true);

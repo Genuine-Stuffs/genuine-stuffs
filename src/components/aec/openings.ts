@@ -37,6 +37,8 @@ export function roomTypeOf(layout: SolvedLayout, room_id: string): string {
   if (room_id === 'stairwell' || room_id === 'stairwell_void') return 'stairwell';
   if (room_id.startsWith('corridor_floor')) return 'circulation';
   if (room_id.startsWith('terrace_f')) return 'balcony';
+  // a flat's inner passage (engine FLAT_PASSAGE): walled, a door into its living room
+  if (room_id.startsWith('passage_')) return 'passage';
   const rooms: any[] = layout.program_reference?.rooms ?? [];
   return rooms.find(r => r.room_id === room_id || r.id === room_id)?.type ?? 'unknown';
 }
@@ -196,13 +198,16 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
     const ext = externalEdges(r, W, D);
     if (t !== 'stairwell') {
       const spec = placement?.doors.find(d => d.room_id === r.room_id);
-      const entry = !suiteSubs.has(r.room_id) ? intoUnit.get(r.room_id) : undefined;
+      // a flat's passage opens into its living room; the flat's rooms into the living room or the passage
+      const entry = r.room_id.startsWith('passage_') ? r.room_id.slice('passage_'.length)
+        : !suiteSubs.has(r.room_id) ? intoUnit.get(r.room_id) : undefined;
       const entryRoom = entry ? rooms.find(q => q.room_id === entry) : undefined;
-      const wall = (entryRoom && sharedWall(r, entryRoom)) || spec?.wall || heuristicDoorWall(r, rooms, typeOf, ext);
+      const passage = entry && !r.room_id.startsWith('passage_') ? rooms.find(q => q.room_id === `passage_${entry}`) : undefined;
+      const wall = (entryRoom && sharedWall(r, entryRoom)) || (passage && sharedWall(r, passage)) || spec?.wall || heuristicDoorWall(r, rooms, typeOf, ext);
       const type = spec?.interior || SERVICE_ROOMS.test(t) ? DOOR_SERVICE : DOOR_ROOM;
       if (wallLength(r, wall) >= type.w + DOOR_CLEAR) doors.set(r.room_id, { room_id: r.room_id, wall, type });
     }
-    if (t === 'stairwell' || isOutside(t)) continue;
+    if (t === 'stairwell' || t === 'passage' || isOutside(t)) continue;
     const sizes = LARGE_ROOMS.test(t) ? [WIN_LARGE, WIN_ROOM, WIN_SMALL]
       : SMALL_ROOMS.test(t) ? [WIN_SMALL] : [WIN_ROOM, WIN_SMALL];
     for (const wall of ['top', 'bottom', 'left', 'right'] as WallSide[]) {
