@@ -40,7 +40,13 @@ export interface HiveRoom {
     unit?: string;
     /** A floor the brief sets ("min 40 sqm"): the room may be larger, never smaller. */
     min_area_m2?: number;
+    /** The outside wall the brief puts the room on ("southern facade"): N/S/E/W. */
+    facade?: Facade;
 }
+
+/** A compass side of the building. The plan's north arrow points up and the
+ * street is at the bottom, so S is the street front, E the right-hand side. */
+export type Facade = "N" | "S" | "E" | "W";
 
 // ──────────────────────────────────────────────────────────────────────────
 // Zone classification — Hive "type" is authoritative
@@ -147,6 +153,8 @@ export interface GraphNode {
     unit?: string;
     /** The brief's minimum m² for this room, if it names one. */
     minArea?: number;
+    /** The outside wall the brief puts this room on, if it names one. */
+    facade?: Facade;
 }
 
 export interface RoomGraph {
@@ -180,6 +188,7 @@ export function buildGraph(rooms: HiveRoom[]): RoomGraph {
             usesIntermediateColumns: r.uses_intermediate_columns ?? false,
             unit: r.unit || undefined,
             ...(r.min_area_m2 ? { minArea: r.min_area_m2 } : {}),
+            ...(r.facade ? { facade: r.facade } : {}),
         });
         const floorList = floors.get(r.floor ?? 0) ?? [];
         floorList.push(r.room_id);

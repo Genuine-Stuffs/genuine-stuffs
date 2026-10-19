@@ -9,7 +9,7 @@ const DOOR = 2, PASSAGE = 3;
 export interface Ctx {
     spec: FloorSpec; n: number; W: number; D: number;
     area: Float64Array; X: Int32Array; Y: Int32Array; Wd: Int32Array; Ht: Int32Array;
-    needsExt: Uint8Array; terrace: Uint8Array; front: Uint8Array; conn: Uint8Array; reachVia: Int32Array; reachAlt: Int32Array; hall: number;
+    needsExt: Uint8Array; terrace: Uint8Array; terraces: Int32Array; side: Uint8Array; front: Uint8Array; conn: Uint8Array; reachVia: Int32Array; reachAlt: Int32Array; hall: number;
     pa: Int32Array; pb: Int32Array; pw: Float64Array; pf: Int32Array; // pf: the pair's foyer end (upstairs: either end), or -1
     intrinsic: Float64Array; // n × (W+1) × (D+1), NaN = not computed
     // layout scratch (2n-1 nodes)
@@ -27,6 +27,8 @@ export function makeCtx(spec: FloorSpec): Ctx {
         X: new Int32Array(n), Y: new Int32Array(n), Wd: new Int32Array(n), Ht: new Int32Array(n),
         needsExt: Uint8Array.from(spec.leaves.map(l => +l.needsExt)),
         terrace: Uint8Array.from(spec.leaves.map(l => +(l.type === "balcony"))),
+        terraces: Int32Array.from(spec.leaves.flatMap((l, j) => l.type === "balcony" ? [j] : [])),
+        side: Uint8Array.from(spec.leaves.map(l => ({ N: 1, S: 2, E: 3, W: 4 } as const)[l.node?.facade ?? "N"] * +!!l.node?.facade)),
         front: Uint8Array.from(spec.leaves.map(l => +(l.front && (spec.floor === 0 || !!l.hall)))),
         conn: Uint8Array.from(spec.leaves.map(l => +(!!l.connector || !!l.hall))),
         reachVia: Int32Array.from(spec.leaves.map(l => l.onHall ? spec.leaves.findIndex(m => m.hall) : l.connector || l.hall ? -2 : l.reachVia !== undefined ? (idx.get(l.reachVia) ?? -1) : -1)),
@@ -88,7 +90,7 @@ function intrinsicCost(c: Ctx, i: number, w: number, h: number): number {
     const spec = c.spec;
     const solo: FloorSpec = { leaves: [spec.leaves[i]], W: spec.W, D: spec.D, pairs: [], floor: 1, stairCells: spec.stairCells };
     let s = 0;
-    for (const vi of violations([rects[i]], solo)) if (!["EXTERNAL_WALL", "FRONT", "REACH", "CIRC_CONNECTED"].includes(vi.rule)) s += (WEIGHT[vi.rule] ?? 10) * vi.amount;
+    for (const vi of violations([rects[i]], solo)) if (!["EXTERNAL_WALL", "FRONT", "FACADE", "REACH", "CIRC_CONNECTED"].includes(vi.rule)) s += (WEIGHT[vi.rule] ?? 10) * vi.amount;
     c.intrinsic[key] = s;
     return s;
 }
@@ -102,6 +104,20 @@ const sharedC = (c: Ctx, a: number, b: number): number => {
 const gapC = (c: Ctx, a: number, b: number): number =>
     Math.max(0, c.X[a] - c.X[b] - c.Wd[b], c.X[b] - c.X[a] - c.Wd[a]) + Math.max(0, c.Y[a] - c.Y[b] - c.Ht[b], c.Y[b] - c.Y[a] - c.Ht[a]);
 
+/** Cells from leaf j to side 1-4 (N, S, E, W) of the floor. */
+const sideDist = (c: Ctx, side: number, j: number): number =>
+    side === 1 ? c.Y[j] : side === 2 ? c.D - c.Y[j] - c.Ht[j] : side === 3 ? c.W - c.X[j] - c.Wd[j] : c.X[j];
+
+/** As slice.ts facadeGap: 0 when leaf i is on its side, or opens onto a terrace that is. */
+function facadeGapC(c: Ctx, i: number): number {
+    const side = c.side[i], g = sideDist(c, side, i);
+    if (g) for (let k = 0; k < c.terraces.length; k++) {
+        const j = c.terraces[k];
+        if (sideDist(c, side, j) === 0 && g === (side <= 2 ? c.Ht[j] : c.Wd[j]) && sharedC(c, i, j) >= DOOR) return 0;
+    }
+    return g;
+}
+
 /** The same total as slice.ts cost(), for the current layout in ctx. */
 export function fastCost(c: Ctx, stackW: number): number {
     const { n, W, D } = c;
@@ -114,6 +130,7 @@ export function fastCost(c: Ctx, stackW: number): number {
         if (c.needsExt[i] && !lit && !(x === 0 || y === 0 || x + w === W || y + h === D))
             s += WEIGHT.EXTERNAL_WALL * (1 + Math.min(x, y, W - x - w, D - y - h) / 4);
         if (c.front[i] && y + h !== D) s += WEIGHT.FRONT * (1 + (D - y - h) / 4);
+        if (c.side[i]) { const g = facadeGapC(c, i); if (g) s += WEIGHT.FACADE * (1 + g / 4); }
         const via = c.reachVia[i];
         if (via !== -2) {
             let ok = false, d = 1e9;

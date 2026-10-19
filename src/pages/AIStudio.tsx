@@ -69,6 +69,7 @@ import { useLayoutOptions, layoutSignature, solveLayoutInWorker, layoutModeSetti
 import { explainFailure } from '@/lib/aec/solver/engine_v2/failure_messages';
 import { plotSize } from '@/lib/aec/solver/engine_v2/plot';
 import { withMinimums } from '@/lib/aec/solver/engine_v2/minimums';
+import { withFacades } from '@/lib/aec/solver/engine_v2/facades';
 import { readSetbackIntent, defaultChoice, setbackStudy, SetbackChoice, SetbackStudy } from '@/lib/aec/setbacks';
 import { renderPrompt } from '@/lib/aec/render_prompt';
 import { ADVISORY_RULES } from '@/lib/aec/solver/engine_v2/placement_validator';
@@ -665,6 +666,8 @@ const AIStudio = () => {
                     const { width: plotWidth, depth: plotDepth } = plotSize(userTexts, finalDesignData.brief_reference?.plot_size_sqm);
                     // "Sunken Living Lounge (min 40 sqm)": the plan never makes that room smaller
                     finalDesignData.rooms = withMinimums(finalDesignData, userTexts).rooms;
+                    // "Master Suite (southern facade)": that room has a wall on that side
+                    finalDesignData.rooms = withFacades(finalDesignData, userTexts).rooms;
                     
                     // Pass brief_reference floors to solver so duplex upper floor packs correctly.
                     // Guard both field names (floors / storeys) for schema compatibility.

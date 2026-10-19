@@ -419,6 +419,7 @@ function searchMisses(p: Prepared, placed: PlacedRoom[], best: Fp, hard: Array<{
                 : l.node && l.area < l.node.area - 1e-6
                 ? `${name} is ${r ? m(r.width * r.depth) : "?"} m², more than 20% off its squeezed size of ${m(l.area)} m² (${m(l.node.area)} m² asked for).`
                 : `${name} is ${r ? m(r.width * r.depth) : "?"} m², more than 20% off the ${m(l.area)} m² asked for.`; break;
+            case "FACADE": detail = `${name} isn't on the ${({ N: "north", S: "south", E: "east", W: "west" } as const)[l.node!.facade!]} side asked for.`; break;
             case "NBC_MIN": detail = `${name} is ${size}, below the building code's minimum for its type.`; break;
             case "GARAGE_SIZE": detail = `${name} is ${size}, too small for the cars asked for.`; break;
             case "STAIR_SIZE": detail = `The stair is ${size}, too small for a full flight.`; break;

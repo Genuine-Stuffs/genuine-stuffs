@@ -3,7 +3,7 @@
 // Wong–Liu); every room is a leaf; one "hall" leaf takes the remainder.
 // Gap-free, overlap-free, inside the footprint by construction. Searched by
 // seeded simulated annealing over the expression; cost = rule violations.
-import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARAGE_TYPES, carsIn, garageFrontage, deriveSuites, identifyHubs, specHub, unitEntrances } from "../graph";
+import { RoomGraph, GraphNode, Facade, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARAGE_TYPES, carsIn, garageFrontage, deriveSuites, identifyHubs, specHub, unitEntrances } from "../graph";
 import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
 import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
@@ -64,6 +64,17 @@ export function layout(expr: number[], spec: FloorSpec, offs?: number[]): Rect[]
     };
     place(stack[0].tree, { x: 0, y: 0, w: spec.W, h: spec.D });
     return ok ? out : null;
+}
+
+/** Cells between rect r and the floor's outside wall on `side` ("southern
+ * facade"): 0 when r is on it, or opens (a door's width) onto an open
+ * terrace that is — the master suite behind its south terrace still faces south. */
+export function facadeGap(r: Rect, side: Facade, W: number, D: number, terraces: Rect[]): number {
+    const d = (q: Rect) => side === "S" ? D - q.y - q.h : side === "N" ? q.y : side === "E" ? W - q.x - q.w : q.x;
+    const g = d(r);
+    if (g === 0) return 0;
+    for (const t of terraces) if (d(t) === 0 && g === (side === "S" || side === "N" ? t.h : t.w) && shared(r, t) >= 2) return 0;
+    return g;
 }
 
 export function shared(a: Rect, b: Rect): number {
@@ -155,6 +166,8 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
         const lit = TERRACE_LIGHT && spec.floor > 0 && spec.leaves.some((m, j) => j !== i && m.type === "balcony" && !l.hall && l.type !== "balcony" && shared(r, rects[j]) >= DOOR);
         if (l.needsExt && !lit && !onPerimeter(r, spec)) v.push({ rule: "EXTERNAL_WALL", leaf: i, amount: 1 + perimDist(r, spec) / 4 });
         if (l.front && (spec.floor === 0 || l.hall) && r.y + r.h !== spec.D) v.push({ rule: "FRONT", leaf: i, amount: 1 + (spec.D - r.y - r.h) / 4 });
+        // FACADE: a room the brief puts on a side ("southern facade") has a wall on it
+        if (l.node?.facade) { const g = facadeGap(r, l.node.facade, spec.W, spec.D, rects.filter((_, j) => spec.leaves[j].type === "balcony")); if (g) v.push({ rule: "FACADE", leaf: i, amount: 1 + g / 4 }); }
         if (l.passage && Math.min(r.w, r.h) < 2) v.push({ rule: "SHAPE", leaf: i, amount: 1 + (2 - Math.min(r.w, r.h)) }); // >= 1.0 m wide
         if ((!l.connector || l.onHall) && !l.hall) {
             const via = l.onHall ? hallI : l.reachVia !== undefined ? spec.leaves.findIndex(x => x.id === l.reachVia) : -1;
@@ -198,7 +211,7 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
     return v;
 }
 
-export const WEIGHT: Record<string, number> = { FRONT: 30, STAIR_ALIGN: 40, STAIR_FIT: 30, REACH: 20, EXTERNAL_WALL: 20, ADJACENCY: 15, SHAPE: 15, NBC_MIN: 15, STAIR_SIZE: 20, GARAGE_SIZE: 20, HALL_WIDTH: 10, HALL_REACH: 20, CIRC_CONNECTED: 20, AREA: 20, AREA_RELAXED: 2, ADJ_SOFT: 5 };
+export const WEIGHT: Record<string, number> = { FRONT: 30, FACADE: 30, STAIR_ALIGN: 40, STAIR_FIT: 30, REACH: 20, EXTERNAL_WALL: 20, ADJACENCY: 15, SHAPE: 15, NBC_MIN: 15, STAIR_SIZE: 20, GARAGE_SIZE: 20, HALL_WIDTH: 10, HALL_REACH: 20, CIRC_CONNECTED: 20, AREA: 20, AREA_RELAXED: 2, ADJ_SOFT: 5 };
 
 /** Lower-floor wall cells, built once per spec: vx[x*(D+1)+y] = a vertical
  * wall runs along x from y to y+1; hy likewise for horizontal walls. */
