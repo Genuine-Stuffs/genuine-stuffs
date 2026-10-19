@@ -305,12 +305,15 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
   const hallLabelId = hallPieces.reduce<any>((a, r) => (!a || r.width * r.depth > a.width * a.depth ? r : a), null)?.room_id;
 
   // A name short enough for a small room, so no room goes unlabelled.
-  const shortName = (room_id: string, name: string): string => {
+  const shortName = (room_id: string, fullName: string): string => {
     const t = resolveRoomType(room_id).toLowerCase();
+    // a flat's rooms are named "Flat 3 Master Bedroom": the flat isn't the room
+    const name = fullName.replace(/^(flat|unit|apartment|apt\.?)\s+\w+\s+/i, '');
     if (/toilet|wc|powder/.test(t) || /toilet|\bwc\b/i.test(name)) return 'WC';
     if (/bath|ensuite|shower/.test(t) || /bath/i.test(name)) return 'Bath';
     if (/wardrobe|closet/.test(t) || /wardrobe|closet/i.test(name)) return 'Ward.';
     if (t === 'stairwell') return 'Stair';
+    if (/bedroom/.test(t)) return 'Bedroom';
     // "Master Private Balcony" is a balcony, not a "Master"
     if (/balcony|terrace|veranda|patio/.test(t) || /balcony|terrace|veranda|patio/i.test(name))
       return (name.match(/balcony|terrace|veranda|patio/i)?.[0] ?? 'Balcony').replace(/^./, c => c.toUpperCase());
