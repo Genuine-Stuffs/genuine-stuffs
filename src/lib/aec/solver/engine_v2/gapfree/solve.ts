@@ -26,7 +26,7 @@ import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
-import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR } from "./config";
+import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES } from "./config";
 import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP, splitGatehouses, placeGatehouses } from "./outbuildings";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
@@ -115,7 +115,12 @@ function specFor(graph: RoomGraph, floor: number, W: number, D: number, duplex: 
         hall.area = hallTarget;
         leaves.push(terrace); // appended: pairs keep pointing at the right leaves
     }
-    return { leaves, W, D, pairs, floor, soft };
+    // ZONES: two flats on the floor stand either side of the core strip
+    const units = [...new Set(leaves.map(l => l.node?.unit).filter((u): u is string => !!u))].sort();
+    const zones = ZONES && units.length === 2
+        ? [units[0], undefined, units[1]].map(u => leaves.map((l, i) => i).filter(i => (leaves[i].node?.unit ?? undefined) === u))
+        : undefined;
+    return { leaves, W, D, pairs, floor, soft, ...(zones && zones.every(z => z.length) ? { zones } : {}) };
 }
 
 /** Candidate footprints (cells): two sizes × three proportions. A side

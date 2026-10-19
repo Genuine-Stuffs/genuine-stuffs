@@ -31,6 +31,7 @@ export interface FloorSpec {
     stairCells?: [number, number]; // stair module (w, h cells) set into a corner of the hall (ground)
     voidRect?: Rect;               // the stair below: the hall above must contain it
     below?: Rect[];            // rects of the floor below (wall stacking)
+    zones?: number[][];        // ZONES: leaves of each full-depth strip, left to right (flat, core, flat)
 }
 
 function rng(seed: number) { let s = seed >>> 0 || 1; return () => { s ^= s << 13; s >>>= 0; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; }; }
@@ -226,12 +227,28 @@ export function cost(expr: number[], offs: number[], spec: FloorSpec, stackW: nu
 /** Simulated annealing over normalized Polish expressions. */
 export function anneal(spec: FloorSpec, seed: number, iters: number, stackW = 0): { expr: number[]; offs: number[]; cost: number } {
     const R = rng(seed), n = spec.leaves.length;
-    const order = [...Array(n).keys()].sort(() => R() - 0.5);
-    const frontIdx = spec.floor === 0 ? order.filter(i => spec.leaves[i].front) : [];
-    const rest = order.filter(i => !frontIdx.includes(i));
-    let cur: number[] = [rest[0]];
-    for (let i = 1; i < rest.length; i++) cur.push(rest[i], R() < 0.5 ? H : V);
-    if (frontIdx.length) { cur.push(frontIdx[0]); for (let i = 1; i < frontIdx.length; i++) cur.push(frontIdx[i], V); cur.push(H); }
+    let cur: number[];
+    // ZONES: each strip its own sub-expression, joined side by side; moves stay inside a strip
+    // (segOf: the strip of each position, -1 for the joining cuts, which only shift by a cell)
+    let segOf: Int32Array | null = null, segEnd: Int32Array | null = null;
+    if (spec.zones) {
+        cur = []; const seg: number[] = [], ends: number[] = [];
+        spec.zones.forEach((z, k) => {
+            const o = [...z].sort(() => R() - 0.5);
+            const start = cur.length;
+            cur.push(o[0]); for (let i = 1; i < o.length; i++) cur.push(o[i], R() < 0.5 ? H : V);
+            for (let q = start; q < cur.length; q++) { seg.push(k); ends.push(cur.length); }
+            if (k > 0) { cur.push(V); seg.push(-1); ends.push(cur.length); }
+        });
+        segOf = Int32Array.from(seg); segEnd = Int32Array.from(ends);
+    } else {
+        const order = [...Array(n).keys()].sort(() => R() - 0.5);
+        const frontIdx = spec.floor === 0 ? order.filter(i => spec.leaves[i].front) : [];
+        const rest = order.filter(i => !frontIdx.includes(i));
+        cur = [rest[0]];
+        for (let i = 1; i < rest.length; i++) cur.push(rest[i], R() < 0.5 ? H : V);
+        if (frontIdx.length) { cur.push(frontIdx[0]); for (let i = 1; i < frontIdx.length; i++) cur.push(frontIdx[i], V); cur.push(H); }
+    }
     // Allocation-free loop: the candidate is built in scratch buffers (nx, no)
     // copied from the current plan, and buffers are swapped on acceptance.
     // Same random draws and decisions as before, so the same plans.
@@ -250,7 +267,7 @@ export function anneal(spec: FloorSpec, seed: number, iters: number, stackW = 0)
         const m = R();
         let nOps = 0;
         for (let i = 0; i < L; i++) if (nx[i] >= 0) opsB[nOps++] = i;
-        if (m < REPAIR_P && curV.length) { // repair: act on one current violation
+        if (m < REPAIR_P && curV.length && !segOf) { // repair: act on one current violation
             const v = curV[Math.floor(R() * curV.length)];
             const pos = (leaf: number) => nx.indexOf(leaf);
             if ((v.rule === "ADJACENCY" || v.rule === "ADJ_SOFT") && v.other !== undefined) {
@@ -274,17 +291,28 @@ export function anneal(spec: FloorSpec, seed: number, iters: number, stackW = 0)
             let i = Math.floor(R() * L); while (nx[i] >= 0) i = (i + 1) % L;
             no[i] = Math.max(-2, Math.min(2, no[i] + (R() < 0.5 ? -1 : 1)));
         } else if (m < REPAIR_P + 0.4) { // swap two operands
-            const a = opsB[Math.floor(R() * nOps)], b = opsB[Math.floor(R() * nOps)];
+            const a = opsB[Math.floor(R() * nOps)];
+            let b = opsB[Math.floor(R() * nOps)];
+            if (segOf) { // within a's strip
+                const k = segOf[a], e = segEnd![a];
+                let st = a; while (st > 0 && segOf[st - 1] === k) st--;
+                b = st + Math.floor(R() * (e - st)); while (nx[b] < 0) b = b + 1 < e ? b + 1 : st;
+            }
             const t = nx[a]; nx[a] = nx[b]; nx[b] = t;
         } else if (m < REPAIR_P + 0.6) { // complement an operator chain
             let i = Math.floor(R() * L); while (nx[i] >= 0) i = (i + 1) % L;
-            while (i < L && nx[i] < 0) { nx[i] = nx[i] === H ? V : H; i++; }
+            if (segOf) { if (segOf[i] < 0) continue; const k = segOf[i]; while (i < L && nx[i] < 0 && segOf[i] === k) { nx[i] = nx[i] === H ? V : H; i++; } }
+            else while (i < L && nx[i] < 0) { nx[i] = nx[i] === H ? V : H; i++; }
         } else { // swap adjacent operand/operator, keeping the expression valid
             const i = Math.floor(R() * (L - 1));
             if ((nx[i] >= 0) === (nx[i + 1] >= 0)) continue;
+            if (segOf && (segOf[i] < 0 || segOf[i] !== segOf[i + 1])) continue;
             let t = nx[i]; nx[i] = nx[i + 1]; nx[i + 1] = t; t = no[i]; no[i] = no[i + 1]; no[i + 1] = t;
             let operands = 0, okExpr = true;
-            for (let q = 0; q < L; q++) { operands += nx[q] >= 0 ? 1 : -1; if (operands < 1) { okExpr = false; break; } }
+            if (segOf) { // the strip stays one sub-expression
+                const k = segOf[i]; let st = i; while (st > 0 && segOf[st - 1] === k) st--;
+                for (let q = st; q < segEnd![i]; q++) { operands += nx[q] >= 0 ? 1 : -1; if (operands < 1) { okExpr = false; break; } }
+            } else for (let q = 0; q < L; q++) { operands += nx[q] >= 0 ? 1 : -1; if (operands < 1) { okExpr = false; break; } }
             if (!okExpr) continue;
         }
         const nc = costF(nx, no);

@@ -49,3 +49,6 @@ export const TYPICAL_FLOOR = flag("TYPICAL_FLOOR", true);
 /** A flat's entrance off the landing weighs this many REACH misses (2026-10-19:
  * flats, 20 plans, entrances off the landing 1.0 -> 0.25 of 6 at 2). */
 export const ENTRY_W = Number(env.ENTRY_W ?? 2);
+/** A floor with two flats is three full-depth strips side by side: one flat,
+ * the core (stair, landing, shared rooms), the other flat (owner, 2026-10-19). */
+export const ZONES = flag("ZONES", true);
