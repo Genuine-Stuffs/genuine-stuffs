@@ -46,8 +46,12 @@ export function maxAspectFor(node: Pick<GraphNode, 'type'> & Partial<Pick<GraphN
     return MAX_ASPECT_BY_TYPE[node.type] ?? DEFAULT_MAX_ASPECT;
 }
 
+/** A flat's galley kitchen may be 2.0 m wide (owner, 2026-10-19; NBC 1.8 m). */
+const FLAT_KITCHEN_MIN = 2.0;
+
 /** Minimum width in metres for a room of this type/zone. */
-export function minWidthFor(node: Pick<GraphNode, 'type' | 'zone'>): number {
+export function minWidthFor(node: Pick<GraphNode, 'type' | 'zone'> & Partial<Pick<GraphNode, 'unit'>>): number {
+    if (node.unit && node.type === 'kitchen') return FLAT_KITCHEN_MIN;
     return ABSOLUTE_MIN_WIDTH_M[node.type] ?? DEFAULT_MIN_WIDTH_BY_ZONE[node.zone] ?? 2.4;
 }
 
