@@ -55,3 +55,6 @@ export const ZONES = flag("ZONES", true);
 /** Each flat of a two-flat floor gets an inner passage its bedrooms and
  * bathroom may open off (owner, 2026-10-19). */
 export const FLAT_PASSAGE = flag("FLAT_PASSAGE", true);
+/** A block of flats is planned from the ground floor up: the ground floor
+ * (street entrance, shared rooms) places the stair (2026-10-19). */
+export const FLAT_BOTTOM_UP = flag("FLAT_BOTTOM_UP", true);

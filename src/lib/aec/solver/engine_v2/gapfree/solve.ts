@@ -26,7 +26,7 @@ import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
-import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES } from "./config";
+import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES, FLAT_BOTTOM_UP } from "./config";
 import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP, splitGatehouses, placeGatehouses } from "./outbuildings";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
@@ -171,12 +171,15 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
     if (!fps.length) return unsat(p);
     const iters = ITERS * Math.min(MAX_ITERS_SCALE, Math.max(1, FULL_FOOTPRINTS / fps.length));
     let best: Fp | null = null;
+    // FLAT_BOTTOM_UP: a block of flats plans its ground floor first (street
+    // entrance, shared rooms): it places the stair, the floors above contain it
+    const flatsUp = FLAT_BOTTOM_UP && ZONES && [...p.graph.nodes.values()].some(n => n.unit);
     for (const [W, D, squeeze] of fps) {
         // One full attempt on a W × D footprint: the upper floor first (it
         // chooses the stair's place), then each floor below must contain it.
         const specs = new Map<number, FloorSpec>(), rects = new Map<number, Rect[]>();
         let total = 0, prev: number | undefined, ok = true;
-        for (const fl of [...p.floorIds].reverse()) {
+        for (const fl of flatsUp ? p.floorIds : [...p.floorIds].reverse()) {
             const spec = specFor(p.graph, fl, W, D, p.duplex, squeeze);
             if (!spec) { ok = false; break; }
             if (prev === undefined) { if (STAIR_IN_HALL && p.duplex) spec.stairCells = [5, 8]; }
@@ -194,7 +197,8 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
                 const base = p.seed * 7919 + fl * 104729 + W * 31 + D;
                 const res: AnnealResult = yield {
                     spec, seeds: [...Array(RESTARTS).keys()].map(k => base + k * SEED_STRIDE),
-                    iters: iters / RESTARTS, sw: spec.below ? STACK_W : 0,
+                    // flats planned upwards keep the downward plan's scoring: no wall-stacking term (as before)
+                    iters: iters / RESTARTS, sw: spec.below && !flatsUp ? STACK_W : 0,
                 };
                 r = layout(res.expr, spec, res.offs)!;
             }
