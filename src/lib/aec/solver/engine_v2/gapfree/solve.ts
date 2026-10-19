@@ -414,7 +414,9 @@ function searchMisses(p: Prepared, placed: PlacedRoom[], best: Fp, hard: Array<{
             case "SHAPE": detail = l.node && r && Math.min(r.width, r.depth) + 1e-6 < minWidthFor(l.node)
                 ? `${name} is ${size}, narrower than its ${m(minWidthFor(l.node))} m minimum.`
                 : `${name} is ${size}, longer than ${m(maxAspectFor(l.node ?? { type: l.type }))} times its width.`; break;
-            case "AREA": detail = l.node && l.area < l.node.area - 1e-6
+            case "AREA": detail = l.node?.minArea && r && r.width * r.depth < l.node.minArea - 1e-6
+                ? `${name} is ${m(r.width * r.depth)} m², below the ${m(l.node.minArea)} m² minimum asked for.`
+                : l.node && l.area < l.node.area - 1e-6
                 ? `${name} is ${r ? m(r.width * r.depth) : "?"} m², more than 20% off its squeezed size of ${m(l.area)} m² (${m(l.node.area)} m² asked for).`
                 : `${name} is ${r ? m(r.width * r.depth) : "?"} m², more than 20% off the ${m(l.area)} m² asked for.`; break;
             case "NBC_MIN": detail = `${name} is ${size}, below the building code's minimum for its type.`; break;

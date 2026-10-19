@@ -68,6 +68,7 @@ import AECMassingView from '@/components/aec/AECMassingView';
 import { useLayoutOptions, layoutSignature, solveLayoutInWorker, layoutModeSetting } from '@/hooks/use-layout-options';
 import { explainFailure } from '@/lib/aec/solver/engine_v2/failure_messages';
 import { plotSize } from '@/lib/aec/solver/engine_v2/plot';
+import { withMinimums } from '@/lib/aec/solver/engine_v2/minimums';
 import { readSetbackIntent, defaultChoice, setbackStudy, SetbackChoice, SetbackStudy } from '@/lib/aec/setbacks';
 import { renderPrompt } from '@/lib/aec/render_prompt';
 import { ADVISORY_RULES } from '@/lib/aec/solver/engine_v2/placement_validator';
@@ -662,6 +663,8 @@ const AIStudio = () => {
                     // else the square of the stated area; else a standard 15x30m plot.
                     const userTexts = updatedMessages.filter(m => m.role === 'user').map(m => String(m.content ?? ''));
                     const { width: plotWidth, depth: plotDepth } = plotSize(userTexts, finalDesignData.brief_reference?.plot_size_sqm);
+                    // "Sunken Living Lounge (min 40 sqm)": the plan never makes that room smaller
+                    finalDesignData.rooms = withMinimums(finalDesignData, userTexts).rooms;
                     
                     // Pass brief_reference floors to solver so duplex upper floor packs correctly.
                     // Guard both field names (floors / storeys) for schema compatibility.

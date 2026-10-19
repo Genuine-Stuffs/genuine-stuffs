@@ -38,6 +38,8 @@ export interface HiveRoom {
     uses_intermediate_columns?: boolean;
     /** The dwelling the room belongs to in a multi-unit building ("Flat 1"). */
     unit?: string;
+    /** A floor the brief sets ("min 40 sqm"): the room may be larger, never smaller. */
+    min_area_m2?: number;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -143,6 +145,8 @@ export interface GraphNode {
     usesIntermediateColumns: boolean;
     /** The dwelling the room belongs to in a multi-unit building. */
     unit?: string;
+    /** The brief's minimum m² for this room, if it names one. */
+    minArea?: number;
 }
 
 export interface RoomGraph {
@@ -175,6 +179,7 @@ export function buildGraph(rooms: HiveRoom[]): RoomGraph {
             degree:    0, // computed after symmetrisation, below
             usesIntermediateColumns: r.uses_intermediate_columns ?? false,
             unit: r.unit || undefined,
+            ...(r.min_area_m2 ? { minArea: r.min_area_m2 } : {}),
         });
         const floorList = floors.get(r.floor ?? 0) ?? [];
         floorList.push(r.room_id);

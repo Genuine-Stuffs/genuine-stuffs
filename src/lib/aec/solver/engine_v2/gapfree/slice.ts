@@ -136,6 +136,9 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
             // Ladder: within ±10% is strict; within ±20% is RELAX-AREA-20.
             if (dev > 0.20) v.push({ rule: "AREA", leaf: i, amount: 1 + 5 * (dev - 0.20) });
             else if (dev > 0.10) v.push({ rule: "AREA_RELAXED", leaf: i, amount: dev - 0.10 });
+            // a minimum the brief names ("min 40 sqm") is hard: no tolerance below it
+            const min = l.node?.minArea ?? 0;
+            if (a < min - 1e-6) v.push({ rule: "AREA", leaf: i, amount: 1 + 5 * (min - a) / min });
             if (l.node) {
                 if (!l.hardSpan && !roomShapeOk(l.node, w_m, h_m)) v.push({ rule: "SHAPE", leaf: i, amount: 1 + Math.max(0, minWidthFor(l.node) - Math.min(w_m, h_m)) + Math.max(0, Math.max(w_m, h_m) / Math.min(w_m, h_m) - 2) });
                 if (l.hardSpan && Math.max(w_m, h_m) / Math.min(w_m, h_m) > 3) v.push({ rule: "SHAPE", leaf: i, amount: 1 });
@@ -379,7 +382,7 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
     const circNeed = Math.max(4, hallIds.reduce((s, id) => s + graph.nodes.get(id)!.area, 0));
     if (squeeze && W * D * CELL * CELL - used < circNeed) {
         const f = (W * D * CELL * CELL - circNeed) / used;
-        if (f >= 0.8) { for (const l of leaves) l.area *= f; used *= f; }
+        if (f >= 0.8) { for (const l of leaves) l.area = Math.max(l.area * f, l.node?.minArea ?? 0); used = leaves.reduce((s, l) => s + l.area, 0); }
     }
     const rest = W * D * CELL * CELL - used;
     if (rest < 4) return null;
