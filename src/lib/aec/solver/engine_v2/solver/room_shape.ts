@@ -36,8 +36,13 @@ const MAX_ASPECT_BY_TYPE: Record<string, number> = {
 };
 const DEFAULT_MAX_ASPECT = 3.0;
 
+/** A flat's combined living and dining room may run to 2.5:1, a through
+ * room (owner, 2026-10-19). */
+const FLAT_LIVING_DINING_ASPECT = 2.5;
+
 /** Longest side ÷ shortest side allowed for a room of this type. */
-export function maxAspectFor(node: Pick<GraphNode, 'type'>): number {
+export function maxAspectFor(node: Pick<GraphNode, 'type'> & Partial<Pick<GraphNode, 'unit' | 'label'>>): number {
+    if (node.unit && node.type === 'living_room' && /dining/i.test(node.label ?? '')) return FLAT_LIVING_DINING_ASPECT;
     return MAX_ASPECT_BY_TYPE[node.type] ?? DEFAULT_MAX_ASPECT;
 }
 
@@ -51,7 +56,7 @@ export function minWidthFor(node: Pick<GraphNode, 'type' | 'zone'>): number {
  * Inputs: the room's graph node, the rect's two sides in metres.
  * Never throws.
  */
-export function roomShapeOk(node: Pick<GraphNode, 'type' | 'zone'>, w_m: number, h_m: number): boolean {
+export function roomShapeOk(node: Pick<GraphNode, 'type' | 'zone'> & Partial<Pick<GraphNode, 'unit' | 'label'>>, w_m: number, h_m: number): boolean {
     const short = Math.min(w_m, h_m), long = Math.max(w_m, h_m);
     if (short + 1e-6 < minWidthFor(node)) return false;
     return long / short <= maxAspectFor(node) + 1e-6;
