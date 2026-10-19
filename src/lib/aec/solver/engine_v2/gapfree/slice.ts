@@ -3,7 +3,7 @@
 // Wong–Liu); every room is a leaf; one "hall" leaf takes the remainder.
 // Gap-free, overlap-free, inside the footprint by construction. Searched by
 // seeded simulated annealing over the expression; cost = rule violations.
-import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARAGE_TYPES, deriveSuites, identifyHubs, specHub, unitEntrances } from "../graph";
+import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARAGE_TYPES, carsIn, garageFrontage, deriveSuites, identifyHubs, specHub, unitEntrances } from "../graph";
 import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
 import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
@@ -143,7 +143,10 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
             }
             if (l.stair && (Math.min(r.w, r.h) < 5 || Math.max(r.w, r.h) < 8)) v.push({ rule: "STAIR_SIZE", leaf: i, amount: 1 });
             // Cars drive in from the front: frontage per the brief's width (-1 m), >= 5.5 m deep.
-            if (l.garage && (r.h * CELL < 5.5 || r.w * CELL < (l.node?.width ?? 3) - 1)) v.push({ rule: "GARAGE_SIZE", leaf: i, amount: 1 + Math.max(0, 5.5 - r.h * CELL) + Math.max(0, (l.node?.width ?? 3) - 1 - r.w * CELL) });
+            // ... and an enclosed garage wide enough for a vehicle door for every car named
+            // ("3-Car Garage": 8.1 m; an open car porch keeps the brief's width)
+            const front = Math.max((l.node?.width ?? 3) - 1, l.type === "garage" ? garageFrontage(carsIn(l.node?.label ?? "")) : 0);
+            if (l.garage && (r.h * CELL < 5.5 || r.w * CELL < front - 1e-6)) v.push({ rule: "GARAGE_SIZE", leaf: i, amount: 1 + Math.max(0, 5.5 - r.h * CELL) + Math.max(0, front - r.w * CELL) });
         }
         // TERRACE_LIGHT: opening onto an open terrace upstairs counts as an outside wall (not a ground-floor porch, as I5)
         const lit = TERRACE_LIGHT && spec.floor > 0 && spec.leaves.some((m, j) => j !== i && m.type === "balcony" && !l.hall && l.type !== "balcony" && shared(r, rects[j]) >= DOOR);

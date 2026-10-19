@@ -9,7 +9,7 @@
  */
 import type { SolvedLayout, PlacedRoom } from 'supabase/functions/ai-studio/schema';
 import { computePlacement, type WallSide } from '@/lib/aec/solver/engine_v2/doors';
-import { buildGraph, deriveSuites, unitEntrances } from '@/lib/aec/solver/engine_v2/graph';
+import { buildGraph, deriveSuites, unitEntrances, carsIn, VEHICLE_BAY, VEHICLE_END } from '@/lib/aec/solver/engine_v2/graph';
 import { hiveRooms } from '@/lib/aec/solver/engine_v2/gapfree/need';
 
 export interface OpeningType { kind: 'D' | 'W'; w: number; h: number }
@@ -21,7 +21,7 @@ export const DOOR_SERVICE: OpeningType = { kind: 'D', w: 0.8, h: 2.1 };
 export const DOOR_ENTRANCE: OpeningType = { kind: 'D', w: 0.9, h: 2.5 };
 /** A garage's vehicle door: an overhead door 2.4 m high, 2.5 m of opening
  * per car (one type per width, so the schedule counts each size once). */
-const VEHICLE_BAY = 2.5, VEHICLE_H = 2.4, VEHICLE_END = 0.3;
+const VEHICLE_H = 2.4;
 const vehicleTypes = new Map<number, OpeningType>();
 const vehicleType = (w: number): OpeningType => {
   if (!vehicleTypes.has(w)) vehicleTypes.set(w, { kind: 'D', w, h: VEHICLE_H });
@@ -183,7 +183,7 @@ function vehicleDoor(layout: SolvedLayout, r: PlacedRoom, W: number, D: number, 
   const name = brief.find(q => q.room_id === r.room_id || q.id === r.room_id)?.name ?? '';
   if (!GARAGES.test(norm(typeOf(r.room_id))) && !/\bgarage\b/i.test(name)) return null;
   const ext = externalEdges(r, W, D);
-  const cars = Number(name.match(/(\d+)\s*-?\s*car/i)?.[1] ?? 0);
+  const cars = carsIn(name);
   for (const wall of ['bottom', 'left', 'right', 'top'] as WallSide[]) {
     const L = wallLength(r, wall);
     if (!ext[wall] || L < VEHICLE_BAY + 2 * VEHICLE_END) continue;

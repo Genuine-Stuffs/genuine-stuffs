@@ -269,6 +269,11 @@ export const ENTRANCE_TYPES = new Set(['foyer', 'entrance', 'entry', 'entrance_h
  * the parking on the front). Before this the garage landed at the back
  * on every seed of hive-001/002 and mid-plan on the villas. */
 export const GARAGE_TYPES = new Set(['garage', 'carport', 'parking']);
+/** Cars a garage holds, from its name ("3-Car Enclosed Garage", "Car Porch (2 cars)"); 0 when unnamed. */
+export const carsIn = (name: string): number => Number(name.match(/(\d+)\s*-?\s*cars?\b/i)?.[1] ?? 0);
+/** A vehicle door: 2.5 m of opening per car, 0.3 m of wall each side (owner, 2026-10-19). */
+export const VEHICLE_BAY = 2.5, VEHICLE_END = 0.3;
+export const garageFrontage = (cars: number): number => cars > 0 ? cars * VEHICLE_BAY + 2 * VEHICLE_END : 0;
 export const STREET_FRONT_TYPES = new Set([...ENTRANCE_TYPES, ...GARAGE_TYPES]);
 const BEDROOM_TYPES  = new Set(['bedroom', 'master_bedroom']);
 
