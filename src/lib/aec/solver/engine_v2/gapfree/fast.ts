@@ -2,7 +2,7 @@
 // allocating. Rules that depend only on a room's own size are memoised per
 // (leaf, w, h); positions are scored on preallocated typed arrays.
 import { FloorSpec, Rect, violations, WEIGHT, placeStair, hallPieces, unsupportedWall, ENTRANCE, servedLink } from "./slice";
-import { FOYER_VIA_HALL, TERRACE_LIGHT, LANDING_VIA_HALL } from "./config";
+import { FOYER_VIA_HALL, TERRACE_LIGHT, LANDING_VIA_HALL, ENTRY_W } from "./config";
 
 const DOOR = 2, PASSAGE = 3;
 
@@ -121,7 +121,7 @@ export function fastCost(c: Ctx, stackW: number): number {
                 for (let j = 0; j < n && !ok; j++) if (j !== i && c.conn[j] && sharedC(c, i, j) >= DOOR) ok = true;
                 if (!ok) for (let j = 0; j < n; j++) if (j !== i && c.conn[j]) d = Math.min(d, gapC(c, i, j));
             }
-            if (!ok) s += WEIGHT.REACH * (1 + d / 4);
+            if (!ok) s += WEIGHT.REACH * (1 + d / 4) * (c.spec.leaves[i].onHall ? ENTRY_W : 1);
         }
     }
     for (let p = 0; p < c.pa.length; p++) {

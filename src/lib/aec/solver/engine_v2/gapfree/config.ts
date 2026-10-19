@@ -46,3 +46,6 @@ export const SPINE_BUDGET = Number(env.SPINE_BUDGET ?? 0.25);
 /** A floor with the same rooms as the floor above (a typical floor of flats)
  * repeats that floor's plan instead of being searched again (owner, 2026-10-16). */
 export const TYPICAL_FLOOR = flag("TYPICAL_FLOOR", true);
+/** A flat's entrance off the landing weighs this many REACH misses (2026-10-19:
+ * flats, 20 plans, entrances off the landing 1.0 -> 0.25 of 6 at 2). */
+export const ENTRY_W = Number(env.ENTRY_W ?? 2);

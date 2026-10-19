@@ -7,7 +7,7 @@ import { RoomGraph, GraphNode, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARAGE_TYPES
 import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
 import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
-import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P } from "./config";
+import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P, ENTRY_W } from "./config";
 
 const CELL = 0.5;
 export { STAIR_IN_HALL, FOYER_VIA_HALL, TERRACE_LIGHT };
@@ -151,7 +151,7 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
                 : spec.leaves.some((m, j) => j !== i && (m.connector || m.hall) && shared(r, rects[j]) >= DOOR);
             if (!ok) {
                 const d = via >= 0 ? gap(r, rects[via]) : Math.min(...spec.leaves.map((m, j) => j !== i && (m.connector || m.hall) ? gap(r, rects[j]) : 1e9));
-                v.push({ rule: "REACH", leaf: i, amount: 1 + d / 4 });
+                v.push({ rule: "REACH", leaf: i, amount: (1 + d / 4) * (l.onHall ? ENTRY_W : 1) });
             }
         }
         const fx = spec.fixed?.get(i);
