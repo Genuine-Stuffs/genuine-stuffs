@@ -138,9 +138,11 @@ const ENTRY_NAME = /foyer|entrance|entry|lobby|porch/i;
  * room, else another day room; the widest frontage of the first kind
  * found. None when only bedrooms, baths, stores or the garage face it. */
 function frontEntrance(layout: SolvedLayout, rooms: PlacedRoom[], D: number, typeOf: (id: string) => string): PlannedEntrance | null {
-  const onStreet = rooms.filter(r => Math.abs(r.y + r.depth - D) < EDGE_TOLERANCE && r.width >= DOOR_ENTRANCE.w + DOOR_CLEAR);
-  const brief: Array<{ room_id?: string; id?: string; name?: string }> = layout.program_reference?.rooms ?? [];
+  const brief: Array<{ room_id?: string; id?: string; name?: string; unit?: string }> = layout.program_reference?.rooms ?? [];
   const named = (id: string) => brief.find(r => r.room_id === id || r.id === id)?.name ?? '';
+  // a flat's own rooms are private: the block's front door never opens into one
+  const inFlat = (id: string) => !!brief.find(r => r.room_id === id || r.id === id)?.unit;
+  const onStreet = rooms.filter(r => Math.abs(r.y + r.depth - D) < EDGE_TOLERANCE && r.width >= DOOR_ENTRANCE.w + DOOR_CLEAR && !inFlat(r.room_id));
   const kinds: Array<(r: PlacedRoom) => boolean> = [
     // a car porch is no entrance
     r => !/^(garage|carport|car_porch)$/.test(norm(typeOf(r.room_id))) && !/\bcar\b/i.test(named(r.room_id))

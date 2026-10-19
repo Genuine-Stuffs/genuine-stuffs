@@ -144,7 +144,7 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
         // TERRACE_LIGHT: opening onto an open terrace upstairs counts as an outside wall (not a ground-floor porch, as I5)
         const lit = TERRACE_LIGHT && spec.floor > 0 && spec.leaves.some((m, j) => j !== i && m.type === "balcony" && !l.hall && l.type !== "balcony" && shared(r, rects[j]) >= DOOR);
         if (l.needsExt && !lit && !onPerimeter(r, spec)) v.push({ rule: "EXTERNAL_WALL", leaf: i, amount: 1 + perimDist(r, spec) / 4 });
-        if (l.front && spec.floor === 0 && r.y + r.h !== spec.D) v.push({ rule: "FRONT", leaf: i, amount: 1 + (spec.D - r.y - r.h) / 4 });
+        if (l.front && (spec.floor === 0 || l.hall) && r.y + r.h !== spec.D) v.push({ rule: "FRONT", leaf: i, amount: 1 + (spec.D - r.y - r.h) / 4 });
         if ((!l.connector || l.onHall) && !l.hall) {
             const via = l.onHall ? hallI : l.reachVia !== undefined ? spec.leaves.findIndex(x => x.id === l.reachVia) : -1;
             const ok = via >= 0 ? shared(r, rects[via]) >= DOOR
@@ -339,7 +339,10 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
     }
     const rest = W * D * CELL * CELL - used;
     if (rest < 4) return null;
-    leaves.push({ id: `corridor_floor${floor}_0`, type: "circulation", area: rest, needsExt: false, front: false, connector: true, hall: true });
+    // a block of flats with no foyer is entered through its hall: the hall reaches the street front,
+    // on every floor, so the stair core the upper floors place is one the ground floor can enter from the street
+    const blockHall = [...graph.nodes.values()].some(n => n.unit) && !(graph.floors.get(0) ?? []).some(id => ENTRANCE.has(graph.nodes.get(id)!.type));
+    leaves.push({ id: `corridor_floor${floor}_0`, type: "circulation", area: rest, needsExt: false, front: blockHall, connector: true, hall: true });
     const index = new Map(leaves.map((l, i) => [l.id, i]));
     for (const h of hallIds) index.set(h, leaves.length - 1); // every declared corridor is the one hall
     const pairs: Array<[number, number]> = [];

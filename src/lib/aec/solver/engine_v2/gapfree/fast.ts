@@ -27,7 +27,7 @@ export function makeCtx(spec: FloorSpec): Ctx {
         X: new Int32Array(n), Y: new Int32Array(n), Wd: new Int32Array(n), Ht: new Int32Array(n),
         needsExt: Uint8Array.from(spec.leaves.map(l => +l.needsExt)),
         terrace: Uint8Array.from(spec.leaves.map(l => +(l.type === "balcony"))),
-        front: Uint8Array.from(spec.leaves.map(l => +(l.front && spec.floor === 0))),
+        front: Uint8Array.from(spec.leaves.map(l => +(l.front && (spec.floor === 0 || !!l.hall)))),
         conn: Uint8Array.from(spec.leaves.map(l => +(!!l.connector || !!l.hall))),
         reachVia: Int32Array.from(spec.leaves.map(l => l.onHall ? spec.leaves.findIndex(m => m.hall) : l.connector || l.hall ? -2 : l.reachVia !== undefined ? (idx.get(l.reachVia) ?? -1) : -1)),
         hall: spec.leaves.findIndex(l => l.hall),
