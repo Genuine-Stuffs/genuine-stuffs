@@ -19,6 +19,14 @@ export const DOOR_ROOM: OpeningType = { kind: 'D', w: 0.9, h: 2.1 };
 export const DOOR_SERVICE: OpeningType = { kind: 'D', w: 0.8, h: 2.1 };
 /** The front door, the template's own D1. */
 export const DOOR_ENTRANCE: OpeningType = { kind: 'D', w: 0.9, h: 2.5 };
+/** A garage's vehicle door: an overhead door 2.4 m high, 2.5 m of opening
+ * per car (one type per width, so the schedule counts each size once). */
+const VEHICLE_BAY = 2.5, VEHICLE_H = 2.4, VEHICLE_END = 0.3;
+const vehicleTypes = new Map<number, OpeningType>();
+const vehicleType = (w: number): OpeningType => {
+  if (!vehicleTypes.has(w)) vehicleTypes.set(w, { kind: 'D', w, h: VEHICLE_H });
+  return vehicleTypes.get(w)!;
+};
 const WIN_LARGE: OpeningType = { kind: 'W', w: 1.8, h: 1.2 };
 const WIN_ROOM: OpeningType = { kind: 'W', w: 1.2, h: 1.2 };
 const WIN_SMALL: OpeningType = { kind: 'W', w: 0.6, h: 0.6 };
@@ -93,7 +101,9 @@ export interface PlannedEntrance { room_id: string; type: OpeningType; x: number
 /** The kitchen's door to the yard: on an outside wall, never the street's;
  * `at` is where its leaf starts along the wall (m from the wall's start). */
 export interface PlannedYardDoor { room_id: string; wall: WallSide; type: OpeningType; at: number }
-export interface FloorOpenings { doors: Map<string, PlannedDoor>; windows: PlannedWindow[]; entrance: PlannedEntrance | null; yard: PlannedYardDoor | null }
+/** `at`: the opening's start along its wall (m from the wall's start, x for top/bottom, y for left/right). */
+export interface PlannedVehicleDoor { room_id: string; wall: WallSide; at: number; type: OpeningType }
+export interface FloorOpenings { doors: Map<string, PlannedDoor>; windows: PlannedWindow[]; entrance: PlannedEntrance | null; yard: PlannedYardDoor | null; vehicles: PlannedVehicleDoor[] }
 
 const KITCHENS = /^(kitchen|wet_kitchen|kitchenette|outdoor_kitchen|dirty_kitchen)$/;
 const YARD_END = 0.3; // the yard door's leaf starts this far from the wall's end
@@ -164,6 +174,26 @@ function frontEntrance(layout: SolvedLayout, rooms: PlacedRoom[], D: number, typ
 
 const wallLength = (r: PlacedRoom, wall: WallSide) => wall === 'top' || wall === 'bottom' ? r.width : r.depth;
 
+const GARAGES = /^(garage|carport|car_porch|parking)$/;
+/** A garage's vehicle door: as many 2.5 m bays as the brief's cars ("3-car
+ * garage"; else as the wall holds), on the street wall first, then a side
+ * wall, then the rear; none when no outside wall can take one bay. */
+function vehicleDoor(layout: SolvedLayout, r: PlacedRoom, W: number, D: number, typeOf: (id: string) => string): PlannedVehicleDoor | null {
+  const brief: Array<{ room_id?: string; id?: string; name?: string }> = layout.program_reference?.rooms ?? [];
+  const name = brief.find(q => q.room_id === r.room_id || q.id === r.room_id)?.name ?? '';
+  if (!GARAGES.test(norm(typeOf(r.room_id))) && !/\bgarage\b/i.test(name)) return null;
+  const ext = externalEdges(r, W, D);
+  const cars = Number(name.match(/(\d+)\s*-?\s*car/i)?.[1] ?? 0);
+  for (const wall of ['bottom', 'left', 'right', 'top'] as WallSide[]) {
+    const L = wallLength(r, wall);
+    if (!ext[wall] || L < VEHICLE_BAY + 2 * VEHICLE_END) continue;
+    const fit = Math.floor((L - 2 * VEHICLE_END) / VEHICLE_BAY + 1e-9);
+    const w = Math.round(Math.min(L - 2 * VEHICLE_END, (cars > 0 ? Math.min(cars, fit) : fit) * VEHICLE_BAY) * 10) / 10;
+    return { room_id: r.room_id, wall, at: (L - w) / 2, type: vehicleType(w) };
+  }
+  return null;
+}
+
 /** One floor's doors (one per room, where it fits) and windows (one per
  * external wall of a room, the largest of its sizes that fits). */
 export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings {
@@ -218,9 +248,16 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
   }
   // The front door takes the place of the window on its wall.
   const entrance = floor === 0 ? frontEntrance(layout, rooms, D, typeOf) : null;
-  const kept = entrance ? windows.filter(w => !(w.room_id === entrance.room_id && w.wall === 'bottom')) : windows;
+  // A garage's vehicle door, on its street wall where it has one, else another
+  // outside wall; it takes the place of that wall's window.
+  const vehicles = floor === 0 ? rooms.flatMap(r => {
+    const v = vehicleDoor(layout, r, W, D, typeOf);
+    return v ? [v] : [];
+  }) : [];
+  const kept = windows.filter(w => !(entrance && w.room_id === entrance.room_id && w.wall === 'bottom')
+    && !vehicles.some(v => v.room_id === w.room_id && v.wall === w.wall));
   const yard = floor === 0 ? yardDoor(layout, rooms, W, D, typeOf, kept) : null;
-  return { doors, windows: kept, entrance, yard };
+  return { doors, windows: kept, entrance, yard, vehicles };
 }
 
 export interface ScheduleRow { tag: string; type: OpeningType; count: number }
@@ -241,6 +278,7 @@ export function openingSchedule(layout: SolvedLayout): { tagOf: (t: OpeningType)
   const ground = planOpenings(layout, 0);
   if (ground.entrance) add(ground.entrance.type);
   if (ground.yard) add(ground.yard.type);
+  ground.vehicles.forEach(v => add(v.type));
   const kind = (k: 'D' | 'W') => [...used.keys()].filter(t => t.kind === k)
     .sort((a, b) => b.w * b.h - a.w * a.h || b.w - a.w);
   const rows: ScheduleRow[] = [];

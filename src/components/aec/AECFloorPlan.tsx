@@ -886,6 +886,29 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               </g>
             )}
 
+            {/* Garage vehicle doors: a gap in the outside wall, the overhead door dashed inside, its tag outside */}
+            {!showStructure && openings.vehicles.map(v => {
+              const r = activeRooms.find(q => q.room_id === v.room_id);
+              if (!r) return null;
+              const T = WALL_PX.ext, w = v.type.w * scale, a = v.at * scale, IN = 6, OUT = 16;
+              const rx = xOffset + r.x * scale, ry = yOffset + r.y * scale, rw = r.width * scale, rh = r.depth * scale;
+              const horizontal = v.wall === 'top' || v.wall === 'bottom';
+              const edge = v.wall === 'bottom' ? ry + rh : v.wall === 'top' ? ry : v.wall === 'left' ? rx : rx + rw;
+              const sgn = v.wall === 'bottom' || v.wall === 'right' ? -1 : 1; // into the room
+              const s0 = (horizontal ? rx : ry) + a, s1 = s0 + w;
+              const gap = horizontal ? { x: s0, y: edge - T / 2 - 0.5, width: w, height: T + 1 } : { x: edge - T / 2 - 0.5, y: s0, width: T + 1, height: w };
+              const tag: [number, number] = horizontal ? [(s0 + s1) / 2, edge - sgn * OUT] : [edge - sgn * OUT, (s0 + s1) / 2];
+              return (
+                <g key={`veh-${v.room_id}`} data-vehicle-door={v.room_id} data-wall={v.wall}>
+                  <rect {...gap} fill="white" />
+                  {horizontal
+                    ? <line x1={s0} y1={edge + sgn * IN} x2={s1} y2={edge + sgn * IN} stroke="#1e293b" strokeWidth={0.8} strokeDasharray="4 2" />
+                    : <line x1={edge + sgn * IN} y1={s0} x2={edge + sgn * IN} y2={s1} stroke="#1e293b" strokeWidth={0.8} strokeDasharray="4 2" />}
+                  {renderTag(tagOf(v.type), tag[0], tag[1])}
+                </g>
+              );
+            })}
+
             {/* Outbuildings: each its own walls, rooms, door towards the house and the 3 m gap */}
             {outbuildings.map(b => {
               const segs = computeWalls(b.rooms.map(r => ({ x: r.x, y: r.y, width: r.width, depth: r.depth, kind: 'room' as WallRoomKind })));
