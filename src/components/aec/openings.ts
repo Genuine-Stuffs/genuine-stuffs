@@ -103,7 +103,7 @@ const YARD_END = 0.3; // the yard door's leaf starts this far from the wall's en
  * the wall's window moved into the rest of the wall, dropped only when
  * nothing fits there. */
 function yardDoor(layout: SolvedLayout, rooms: PlacedRoom[], W: number, D: number, typeOf: (id: string) => string, windows: PlannedWindow[]): PlannedYardDoor | null {
-  const obs = (layout.outbuildings ?? []).map(b => ({ x: b.x + b.width / 2, y: b.y + b.depth / 2 }));
+  const obs = (layout.outbuildings ?? []).filter(b => !b.at_gate).map(b => ({ x: b.x + b.width / 2, y: b.y + b.depth / 2 }));
   const target = (r: PlacedRoom) => obs.length
     ? obs.reduce((a, b) => Math.hypot(b.x - r.x - r.width / 2, b.y) < Math.hypot(a.x - r.x - r.width / 2, a.y) ? b : a)
     : { x: r.x + r.width / 2, y: -1 };

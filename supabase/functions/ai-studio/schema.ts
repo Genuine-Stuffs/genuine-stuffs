@@ -55,6 +55,7 @@ export interface Outbuilding {
     label: string;
     x: number; y: number; width: number; depth: number; // house frame, metres
     in_rear_setback: boolean; // the user allowed it into the rear setback
+    at_gate?: boolean;        // a gatehouse (security post) in the front setback at the gate (owner 2026-10-19)
     rooms: PlacedRoom[];      // ground floor, same frame
 }
 

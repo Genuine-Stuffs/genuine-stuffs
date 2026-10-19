@@ -24,7 +24,8 @@ export function renderPrompt(design: any, aiPrompt: string): string {
         facts.push(`about ${Math.round(L.building_width)} m wide and ${Math.round(L.building_depth)} m deep`);
     const upperBalconies = rooms.filter(r => Number(r.floor ?? 0) > 0 && /balcon|terrace/i.test(`${r.type} ${r.name}`)).length;
     if (upperBalconies) facts.push(`${upperBalconies === 1 ? 'a balcony' : 'balconies'} on the upper floor${storeys > 2 ? 's' : ''}`);
-    const outbuildings = (L?.outbuildings ?? []).map((b: any) => b.label).filter(Boolean);
+    const outbuildings = (L?.outbuildings ?? []).filter((b: any) => !b.at_gate).map((b: any) => b.label).filter(Boolean);
     if (outbuildings.length) facts.push(`a separate small ${outbuildings.join(' and ')} behind it`);
+    if ((L?.outbuildings ?? []).some((b: any) => b.at_gate)) facts.push('a small gatehouse beside the front gate');
     return `${facts.join(', ')}. ${URBAN} ${aiPrompt}`;
 }

@@ -433,10 +433,17 @@ export function assertI11_Outbuildings(layout: SolvedLayout, graph: RoomGraph): 
             const p = b.rooms[i], q = b.rooms[j];
             if (Math.min(p.x + p.width, q.x + q.width) - Math.max(p.x, q.x) > E && Math.min(p.y + p.depth, q.y + q.depth) - Math.max(p.y, q.y) > E) bad.push(`${p.room_id} overlaps ${q.room_id}`);
         }
+        if (b.at_gate) {
+            // a gatehouse: in front of the house, clear of it, inside the plot
+            const D = layout.building_depth ?? 0, o = layout.site_offset;
+            if (b.y < D + 1 - E) bad.push(`${b.id} ${(b.y - D).toFixed(2)} m in front of the house (need 1)`);
+            if (!o || b.x + o.x < -E || b.x + b.width + o.x > layout.plot_width + E || b.y + b.depth + o.y > layout.plot_depth + E) bad.push(`${b.id} off the plot`);
+            return;
+        }
         if (b.y + b.depth > -GAP + E) bad.push(`${b.id} ${(-(b.y + b.depth)).toFixed(2)} m from the house (need ${GAP})`);
         if (b.x < -E || b.x + b.width > W + E) bad.push(`${b.id} outside the house's width`);
         if (layout.site_offset && b.y + layout.site_offset.y < -E) bad.push(`${b.id} off the plot`);
-        for (const c of obs.slice(k + 1)) {
+        for (const c of obs.slice(k + 1).filter(c => !c.at_gate)) {
             const gx = Math.max(c.x - (b.x + b.width), b.x - (c.x + c.width)), gy = Math.max(c.y - (b.y + b.depth), b.y - (c.y + c.depth));
             if (Math.max(gx, gy) < GAP - E) bad.push(`${b.id} ${Math.max(gx, gy).toFixed(2)} m from ${c.id} (need ${GAP})`);
         }

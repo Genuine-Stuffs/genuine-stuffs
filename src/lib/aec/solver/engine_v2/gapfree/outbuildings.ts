@@ -90,3 +90,42 @@ export function placeOutbuildings(units: ObUnit[], d: number, W: number, house: 
         return { id: `outbuilding_${u.id}`, label: u.label, x, y, width: w, depth: du, in_rear_setback: inSetback(du), rooms };
     });
 }
+
+/** Gatehouse (owner 2026-10-19): a security post stands at the gate, in the
+ * front setback against the front boundary, beside the house's line; the
+ * plan says to confirm it with the planning authority. */
+const GATE_TYPE = /^(security(_post|_house|_room)?|gate_?house|guard_?house|gatehouse)$/;
+const GATE_NAME = /\bsecurity (post|house|room)\b|\bgate ?house\b|\bguard ?house\b/i;
+const GATE_MIN = 2.4, GATE_CLEAR = 1, GATE_SIDE = 0.5;
+const gateSize = (u: ObUnit) => {
+    const a = u.rooms.reduce((s, r) => s + r.area, 0), w = Math.max(GATE_MIN, ceilCell(Math.sqrt(a)));
+    return { w, d: Math.max(GATE_MIN, ceilCell(a / w)) };
+};
+
+/** The brief's ground-floor security posts, one gatehouse each, and the
+ * program without them; none when the front setback can't hold one with
+ * GATE_CLEAR to the house. */
+export function splitGatehouses(program: any, front: number): { house: any; units: ObUnit[] } {
+    const rooms: any[] = program?.rooms ?? [];
+    const id = (r: any, i: number) => r.room_id ?? r.id ?? `room_${i}`;
+    const units: ObUnit[] = rooms.map((r, i) => [r, id(r, i)] as const)
+        .filter(([r]) => (r.floor ?? r.target_floor ?? 0) === 0 && (GATE_TYPE.test(norm(r.type)) || GATE_NAME.test(String(r.name ?? ""))))
+        .map(([r, rid]) => ({ id: rid, label: r.name ?? rid, rooms: [{ room_id: rid, name: r.name ?? rid, area: r.area_m2 ?? 4 }] }))
+        .filter(u => gateSize(u).d + GATE_CLEAR <= front + 1e-9);
+    const taken = new Set(units.map(u => u.id));
+    const house = { ...program, rooms: rooms.filter((r, i) => !taken.has(id(r, i))).map(r => ({ ...r, adjacencies: (r.adjacencies ?? r.adjacent_to ?? []).filter((m: string) => !taken.has(m)) })) };
+    return { house, units };
+}
+
+/** Each gatehouse in the plot's front left corner, where the gate post
+ * stands (house frame: the house front is y = D, the boundary y = D + front;
+ * `left`: the plot's edge, metres left of the house), the next beside it. */
+export function placeGatehouses(units: ObUnit[], D: number, front: number, left: number): Outbuilding[] {
+    let at = -left;
+    return units.map(u => {
+        const { w, d } = gateSize(u), y = D + front - d, x = at;
+        at += w + GATE_SIDE;
+        const room: PlacedRoom = { room_id: u.rooms[0].room_id, floor: 0, x, y, width: w, depth: d };
+        return { id: `outbuilding_${u.id}`, label: u.label, x, y, width: w, depth: d, in_rear_setback: false, at_gate: true, rooms: [room] };
+    });
+}

@@ -27,7 +27,7 @@ import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
 import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR } from "./config";
-import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP } from "./outbuildings";
+import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP, splitGatehouses, placeGatehouses } from "./outbuildings";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
 import { minWidthFor, maxAspectFor } from "../solver/room_shape";
@@ -254,6 +254,26 @@ function* houseDriver(program: SpatialProgram, envelope: PlotEnvelope, options?:
  * (the rear setback counts when the user allows it). When they don't fit,
  * the house keeps them inside, as before, and the plan says why. */
 export function* planDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
+    // a security post is a gatehouse at the front gate (owner 2026-10-19), planned apart from the house
+    const s = envelope.setbacks;
+    const gate = OUTBUILDINGS ? splitGatehouses(program, s.front) : null;
+    if (!gate?.units.length) return yield* rearDriver(program, envelope, options);
+    const L = yield* rearDriver(gate.house, envelope, options);
+    if (L.solver_status === "UNSAT") return { ...L, program_reference: program };
+    const be = prepare(program, envelope, options).be, D = L.building_depth ?? 0;
+    // the house front on the front setback line, centred across the buildable width (as with a BQ)
+    const site_offset = L.site_offset ?? { x: s.left + (be.width - (L.building_width ?? 0)) / 2, y: envelope.depth - s.front - D };
+    const gates = placeGatehouses(gate.units, D, envelope.depth - site_offset.y - D, site_offset.x);
+    const names = gate.units.map(u => u.label).join(" and ");
+    return {
+        ...L, program_reference: program, plot_depth: envelope.depth, site_offset, outbuildings: [...(L.outbuildings ?? []), ...gates],
+        placement_issues: [...(L.placement_issues ?? []), { room_id: gate.units[0].id, rule: "GATEHOUSE_IN_FRONT_SETBACK",
+            detail: `${names} stands at the gate, in the front setback. Confirm with your planning authority.` }],
+    };
+}
+
+/** The plan with the BQ and generator house behind it. */
+function* rearDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
     const ob = OUTBUILDINGS ? splitOutbuildings(program) : null;
     if (!ob?.units.length) return yield* houseDriver(program, envelope, options);
     const be = prepare(program, envelope, options).be, s = envelope.setbacks;

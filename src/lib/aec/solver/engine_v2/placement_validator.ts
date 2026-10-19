@@ -43,6 +43,7 @@ export interface ValidationIssue {
     room_id: string;
     rule: 'CORRIDOR_ADJACENCY' | 'EXTERNAL_WALL' | 'BATH_VENTILATION' | 'ADJACENCY_MISSED' | 'AREA_ADJUSTED' | 'NO_FRONT_ENTRANCE'
         | 'OUTBUILDING_NO_FIT'
+        | 'GATEHOUSE_IN_FRONT_SETBACK'
         // rooms scaled down to fit the buildable area (gapfree SQUEEZE)
         | 'ROOMS_SQUEEZED'
         // a gap-free fallback plan's other misses (gapfree/solve.ts searchMisses)
@@ -55,7 +56,7 @@ export interface ValidationIssue {
  * with no window. Shared with the UI's WARN/REVIEW split. ADJACENCY_MISSED
  * and AREA_ADJUSTED come only from fallback plans. */
 export const ADVISORY_RULES: ReadonlySet<ValidationIssue['rule']> =
-    new Set(['BATH_VENTILATION', 'ADJACENCY_MISSED', 'AREA_ADJUSTED', 'OUTBUILDING_NO_FIT', 'ROOMS_SQUEEZED']);
+    new Set(['BATH_VENTILATION', 'ADJACENCY_MISSED', 'AREA_ADJUSTED', 'OUTBUILDING_NO_FIT', 'ROOMS_SQUEEZED', 'GATEHOUSE_IN_FRONT_SETBACK']);
 
 function sharesWall(a: PlacedRoom, b: PlacedRoom): boolean {
     const aR = a.x + a.width, aB = a.y + a.depth;

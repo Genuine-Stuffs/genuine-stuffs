@@ -116,7 +116,8 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
   const { placed_rooms } = layout;
   const activeRooms = placed_rooms.filter(r => r.floor === activeFloor);
   // Outbuildings (BQ, generator house) stand behind the house on the ground
-  // floor; their rooms have y < 0 in the house's frame.
+  // floor; their rooms have y < 0 in the house's frame. A gatehouse (at_gate)
+  // stands in front, against the front boundary (y > the house's depth).
   const outbuildings = activeFloor === 0 ? (layout.outbuildings ?? []) : [];
   const { w: buildingW, h: buildingH } = floorBounds(layout, activeFloor, plot_width, plot_depth);
 
@@ -889,7 +890,9 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               const segs = computeWalls(b.rooms.map(r => ({ x: r.x, y: r.y, width: r.width, depth: r.depth, kind: 'room' as WallRoomKind })));
               const head = b.rooms[0];
               const door = DOOR_ROOM.w * scale;
-              const dx = xOffset + (head.x + head.width / 2) * scale - door / 2, dy = yOffset + (head.y + head.depth) * scale;
+              // the door faces the house: a BQ's on its front wall, a gatehouse's on its rear wall
+              const gate = !!b.at_gate;
+              const dx = xOffset + (head.x + head.width / 2) * scale - door / 2, dy = yOffset + (gate ? head.y : head.y + head.depth) * scale;
               const gx = xOffset + (b.x + b.width / 2) * scale;
               return (
                 <g key={b.id}>
@@ -900,9 +903,9 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                   {renderWalls(segs)}
                   {/* door opening on the wall facing the house */}
                   <rect x={dx} y={dy - WALL_PX.ext / 2 - 0.5} width={door} height={WALL_PX.ext + 1} fill="#ffffff" />
-                  <path d={`M ${dx} ${dy} L ${dx} ${dy - door} A ${door} ${door} 0 0 1 ${dx + door} ${dy}`}
+                  <path d={gate ? `M ${dx} ${dy} L ${dx} ${dy + door} A ${door} ${door} 0 0 0 ${dx + door} ${dy}` : `M ${dx} ${dy} L ${dx} ${dy - door} A ${door} ${door} 0 0 1 ${dx + door} ${dy}`}
                     fill="none" stroke="#1e293b" strokeWidth={0.8} />
-                  {renderTag(tagOf(DOOR_ROOM), dx + door + 9, dy - 9)}
+                  {renderTag(tagOf(DOOR_ROOM), gate ? dx - 9 : dx + door + 9, gate ? dy + 9 : dy - 9)}
                   {b.rooms.map(r => {
                     // short name (brackets dropped), shrunk to the room's width
                     const name = resolveRoomName(r.room_id).replace(/\s*\(.*\)\s*/g, ' ').trim();
@@ -920,13 +923,22 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                     </g>
                     );
                   })}
-                  {/* gap to the house */}
-                  <line x1={gx} y1={yOffset + (b.y + b.depth) * scale} x2={gx} y2={yOffset}
-                    stroke="#64748b" strokeWidth={0.6} strokeDasharray="2 2" />
-                  <text x={gx + 3} y={yOffset + (b.y + b.depth) * scale + 9}
-                    style={{ fontSize: '6px', fontWeight: 700, fill: '#64748b' }}>
-                    {(-(b.y + b.depth)).toFixed(1)}M
-                  </text>
+                  {/* gap to the house (a gatehouse: to the house front) */}
+                  {gate ? (<>
+                    <line x1={gx} y1={yOffset + buildingH * scale} x2={gx} y2={yOffset + b.y * scale}
+                      stroke="#64748b" strokeWidth={0.6} strokeDasharray="2 2" />
+                    <text x={gx + 3} y={yOffset + b.y * scale - 4}
+                      style={{ fontSize: '6px', fontWeight: 700, fill: '#64748b' }}>
+                      {(b.y - buildingH).toFixed(1)}M
+                    </text>
+                  </>) : (<>
+                    <line x1={gx} y1={yOffset + (b.y + b.depth) * scale} x2={gx} y2={yOffset}
+                      stroke="#64748b" strokeWidth={0.6} strokeDasharray="2 2" />
+                    <text x={gx + 3} y={yOffset + (b.y + b.depth) * scale + 9}
+                      style={{ fontSize: '6px', fontWeight: 700, fill: '#64748b' }}>
+                      {(-(b.y + b.depth)).toFixed(1)}M
+                    </text>
+                  </>)}
                 </g>
               );
             })}
@@ -937,8 +949,10 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               let nx = skeleton.grid?.xs.length ?? 0, ny = skeleton.grid?.ys.length ?? 0;
               const ink = '#475569', red = '#b91c1c', R = 8;
               const text = { fontSize: '8px', fontWeight: 700, fill: '#1e293b' } as const;
+              // a gatehouse is a booth: no grid of its own on the drawing
+              const gates = new Set((layout.outbuildings ?? []).filter(b => b.at_gate).map(b => b.id));
               return skeleton.outbuildings.map(o => {
-                if (!o.grid) return null;
+                if (!o.grid || gates.has(o.id)) return null;
                 const xs = o.grid.xs.map(v => xOffset + (o.x + v) * scale), ys = o.grid.ys.map(v => yOffset + (o.y + v) * scale);
                 const top = ys[0], left = xs[0];
                 const lx = nx, ly = ny;
@@ -1035,12 +1049,17 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   const metres = bounds.reduce((s, b) => s + b.w, 0);
   const gutters = shown.length * GUTTER * 2;
   const scale = Math.min(MAX_SCALE, ((sheet ? SHEET_W : PANEL_W) - gutters) / metres);
-  const sheetW = Math.max(PANEL_W, metres * scale + gutters);
+  // a gatehouse at the plot's front corner may stand further left than the ground floor's gutter
+  const gateLeft = shown[0] === 0 ? Math.max(0, ...(layout.outbuildings ?? []).filter(b => b.at_gate).map(b => -b.x)) : 0;
+  const extraLeft = Math.max(0, gateLeft * scale + 8 - GUTTER);
+  const sheetW = Math.max(PANEL_W, metres * scale + gutters + extraLeft);
   // room above for the outbuildings' bubbles
   const yOffset = top * scale + (top > 0 ? 60 : 40);
-  const xOffsetOf = (k: number) => (sheetW - metres * scale - gutters) / 2
+  const xOffsetOf = (k: number) => (sheetW - metres * scale - gutters - extraLeft) / 2 + extraLeft
     + bounds.slice(0, k).reduce((s, b) => s + b.w * scale + GUTTER * 2, 0) + GUTTER;
-  const bottom = yOffset + maxH * scale;
+  // a gatehouse stands in the front setback, below the ground floor's drawing
+  const gateFront = shown.includes(0) ? Math.max(0, ...(layout.outbuildings ?? []).filter(b => b.at_gate).map(b => b.y + b.depth)) : 0;
+  const bottom = yOffset + Math.max(maxH * scale, gateFront > 0 ? gateFront * scale + 24 : 0);
   // Under the drawings: window tags (to +23), the chains and bubbles (to
   // +78), on the sheet the floor names, then north arrow, scale bar, title
   // block and the door and window schedule.
