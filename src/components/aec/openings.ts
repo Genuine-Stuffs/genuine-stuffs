@@ -210,9 +210,13 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
   // A flat's rooms open into the flat's entrance, not onto the landing
   // (en-suites keep their bedroom): the wall they share with it.
   const program = (layout as any).program_reference;
-  const graph = program?.rooms?.some((q: any) => q.unit) ? buildGraph(hiveRooms(program)) : null;
-  const intoUnit = graph ? unitEntrances(graph, floor) : new Map<string, string>();
-  const suiteSubs = graph ? new Set(deriveSuites(graph, floor).flatMap(x => x.subIds)) : new Set<string>();
+  const graph = program?.rooms?.length ? buildGraph(hiveRooms(program)) : null;
+  const intoUnit = graph && program.rooms.some((q: any) => q.unit) ? unitEntrances(graph, floor) : new Map<string, string>();
+  // An en-suite bathroom or wardrobe opens into its own bedroom, never a
+  // neighbouring one it also touches (Bathroom 4 into Bedroom 2, 2026-10-20)
+  const suites = graph ? deriveSuites(graph, floor) : [];
+  const suiteSubs = new Set(suites.flatMap(x => x.subIds));
+  const ownBedroom = new Map(suites.flatMap(s => s.subIds.map(id => [id, s.bedroomId] as const)));
   const sharedWall = (a: PlacedRoom, b: PlacedRoom): WallSide | null => {
     const ov = (a1: number, a2: number, b1: number, b2: number) => Math.min(a2, b2) - Math.max(a1, b1);
     const e = 1e-6, need = DOOR_ROOM.w + DOOR_CLEAR;
@@ -235,7 +239,8 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
         : !suiteSubs.has(r.room_id) ? intoUnit.get(r.room_id) : undefined;
       const entryRoom = entry ? rooms.find(q => q.room_id === entry) : undefined;
       const passage = entry && !r.room_id.startsWith('passage_') ? rooms.find(q => q.room_id === `passage_${entry}`) : undefined;
-      const wall = (entryRoom && sharedWall(r, entryRoom)) || (passage && sharedWall(r, passage)) || spec?.wall || heuristicDoorWall(r, rooms, typeOf, ext);
+      const bedroom = rooms.find(q => q.room_id === ownBedroom.get(r.room_id));
+      const wall = (bedroom && sharedWall(r, bedroom)) || (entryRoom && sharedWall(r, entryRoom)) || (passage && sharedWall(r, passage)) || spec?.wall || heuristicDoorWall(r, rooms, typeOf, ext);
       const type = spec?.interior || SERVICE_ROOMS.test(t) ? DOOR_SERVICE : DOOR_ROOM;
       if (wallLength(r, wall) >= type.w + DOOR_CLEAR) doors.set(r.room_id, { room_id: r.room_id, wall, type });
     }
