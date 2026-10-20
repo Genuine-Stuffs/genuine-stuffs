@@ -47,6 +47,8 @@ export function roomTypeOf(layout: SolvedLayout, room_id: string): string {
   if (room_id.startsWith('terrace_f')) return 'balcony';
   // a flat's inner passage (engine FLAT_PASSAGE): walled, a door into its living room
   if (room_id.startsWith('passage_')) return 'passage';
+  // the open-to-below void over a double-volume room: open to the landing, no door or window
+  if (room_id.startsWith('atrium_')) return 'void';
   const rooms: any[] = layout.program_reference?.rooms ?? [];
   return rooms.find(r => r.room_id === room_id || r.id === room_id)?.type ?? 'unknown';
 }

@@ -10,7 +10,7 @@ export function hiveRooms(program: any): HiveRoom[] {
     return (program?.rooms ?? []).map((r: any, i: number) => ({
         room_id: r.room_id ?? r.id ?? `room_${i}`, name: r.name ?? r.room_name ?? r.room_type ?? r.category, type: r.type,
         floor: r.floor ?? r.target_floor ?? 0, area_m2: r.area_m2 ?? r.min_area_sqm ?? 9, width_m: r.width_m, span_m: r.span_m,
-        adjacencies: r.adjacencies ?? r.adjacent_to ?? [], uses_intermediate_columns: r.uses_intermediate_columns, unit: r.unit ?? r.unit_id, min_area_m2: r.min_area_m2, facade: r.facade,
+        adjacencies: r.adjacencies ?? r.adjacent_to ?? [], uses_intermediate_columns: r.uses_intermediate_columns, unit: r.unit ?? r.unit_id, min_area_m2: r.min_area_m2, facade: r.facade, atrium_over: r.atrium_over,
     }));
 }
 

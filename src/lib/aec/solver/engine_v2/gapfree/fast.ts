@@ -1,7 +1,7 @@
 // Fast scorer: the same weighted cost as cost() in slice.ts, without
 // allocating. Rules that depend only on a room's own size are memoised per
 // (leaf, w, h); positions are scored on preallocated typed arrays.
-import { FloorSpec, Rect, violations, WEIGHT, placeStair, hallPieces, unsupportedWall, ENTRANCE, servedLink } from "./slice";
+import { FloorSpec, Rect, violations, WEIGHT, outside, ATRIUM_RULE, placeStair, hallPieces, unsupportedWall, ENTRANCE, servedLink } from "./slice";
 import { FOYER_VIA_HALL, TERRACE_LIGHT, LANDING_VIA_HALL, ENTRY_W } from "./config";
 
 const DOOR = 2, PASSAGE = 3;
@@ -9,7 +9,7 @@ const DOOR = 2, PASSAGE = 3;
 export interface Ctx {
     spec: FloorSpec; n: number; W: number; D: number;
     area: Float64Array; X: Int32Array; Y: Int32Array; Wd: Int32Array; Ht: Int32Array;
-    needsExt: Uint8Array; terrace: Uint8Array; terraces: Int32Array; side: Uint8Array; front: Uint8Array; conn: Uint8Array; reachVia: Int32Array; reachAlt: Int32Array; hall: number;
+    needsExt: Uint8Array; terrace: Uint8Array; terraces: Int32Array; atriumOver: number; atriumIn: number; side: Uint8Array; front: Uint8Array; conn: Uint8Array; reachVia: Int32Array; reachAlt: Int32Array; hall: number;
     pa: Int32Array; pb: Int32Array; pw: Float64Array; pf: Int32Array; // pf: the pair's foyer end (upstairs: either end), or -1
     intrinsic: Float64Array; // n × (W+1) × (D+1), NaN = not computed
     // layout scratch (2n-1 nodes)
@@ -27,6 +27,8 @@ export function makeCtx(spec: FloorSpec): Ctx {
         X: new Int32Array(n), Y: new Int32Array(n), Wd: new Int32Array(n), Ht: new Int32Array(n),
         needsExt: Uint8Array.from(spec.leaves.map(l => +l.needsExt)),
         terrace: Uint8Array.from(spec.leaves.map(l => +(l.type === "balcony"))),
+        atriumIn: spec.atriumIn ? spec.leaves.findIndex(l => !!l.atrium) : -1,
+        atriumOver: spec.atriumRect ? spec.leaves.findIndex(l => !!l.node?.atriumOver) : -1,
         terraces: Int32Array.from(spec.leaves.flatMap((l, j) => l.type === "balcony" ? [j] : [])),
         side: Uint8Array.from(spec.leaves.map(l => ({ N: 1, S: 2, E: 3, W: 4 } as const)[l.node?.facade ?? "N"] * +!!l.node?.facade)),
         front: Uint8Array.from(spec.leaves.map(l => +(l.front && (spec.floor === 0 || !!l.hall)))),
@@ -90,7 +92,7 @@ function intrinsicCost(c: Ctx, i: number, w: number, h: number): number {
     const spec = c.spec;
     const solo: FloorSpec = { leaves: [spec.leaves[i]], W: spec.W, D: spec.D, pairs: [], floor: 1, stairCells: spec.stairCells };
     let s = 0;
-    for (const vi of violations([rects[i]], solo)) if (!["EXTERNAL_WALL", "FRONT", "FACADE", "REACH", "CIRC_CONNECTED"].includes(vi.rule)) s += (WEIGHT[vi.rule] ?? 10) * vi.amount;
+    for (const vi of violations([rects[i]], solo)) if (!["EXTERNAL_WALL", "FRONT", "FACADE", "ATRIUM", "ATRIUM_SOFT", "REACH", "CIRC_CONNECTED"].includes(vi.rule)) s += (WEIGHT[vi.rule] ?? 10) * vi.amount;
     c.intrinsic[key] = s;
     return s;
 }
@@ -130,6 +132,8 @@ export function fastCost(c: Ctx, stackW: number): number {
         if (c.needsExt[i] && !lit && !(x === 0 || y === 0 || x + w === W || y + h === D))
             s += WEIGHT.EXTERNAL_WALL * (1 + Math.min(x, y, W - x - w, D - y - h) / 4);
         if (c.front[i] && y + h !== D) s += WEIGHT.FRONT * (1 + (D - y - h) / 4);
+        if (i === c.atriumIn) { const g = outside(c.spec.atriumIn!, { x, y, w, h }); if (g) s += WEIGHT[ATRIUM_RULE] * (1 + g / 2); }
+        if (i === c.atriumOver) { const A = c.spec.atriumRect!, g = outside({ x, y, w, h }, A); if (g) s += WEIGHT[ATRIUM_RULE] * (1 + g / 2); }
         if (c.side[i]) { const g = facadeGapC(c, i); if (g) s += WEIGHT.FACADE * (1 + g / 4); }
         const via = c.reachVia[i];
         if (via !== -2) {

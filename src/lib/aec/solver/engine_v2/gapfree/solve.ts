@@ -26,7 +26,7 @@ import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
-import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES, FLAT_BOTTOM_UP } from "./config";
+import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES, FLAT_BOTTOM_UP, ATRIUM_UP } from "./config";
 import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP, splitGatehouses, placeGatehouses } from "./outbuildings";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
@@ -34,6 +34,8 @@ import { minWidthFor, maxAspectFor } from "../solver/room_shape";
 
 export const CELL = 0.5;
 export const RESTARTS = 64;
+/** The open-to-below void: 40 % of the room it stands over, 9-20 m² (3 m across at least). */
+const ATRIUM_SHARE = 0.4, ATRIUM_MIN = 9, ATRIUM_MAX = 20;
 /** Annealing iterations per floor per footprint, over all restarts. */
 export const ITERS = 1_280_000;
 /** A plot that leaves fewer candidate footprints (a narrow plot cuts several
@@ -115,6 +117,17 @@ function specFor(graph: RoomGraph, floor: number, W: number, D: number, duplex: 
         hall.area = hallTarget;
         leaves.push(terrace); // appended: pairs keep pointing at the right leaves
     }
+    // ATRIUM: the brief's double-volume room below leaves an open-to-below void up
+    // here, open to the landing; its area comes from the terrace surplus first, then the hall
+    const under = floor > 0 ? (graph.floors.get(floor - 1) ?? []).map(id => graph.nodes.get(id)!).find(n => n.atriumOver) : undefined;
+    if (under) {
+        const area = Math.min(ATRIUM_MAX, Math.max(ATRIUM_MIN, ATRIUM_SHARE * under.area));
+        const terrace = leaves.find(l => l.id === `terrace_f${floor}`);
+        const fromTerrace = terrace ? Math.min(area, Math.max(0, terrace.area - 4)) : 0;
+        if (terrace) terrace.area -= fromTerrace;
+        hall.area -= area - fromTerrace;
+        leaves.push({ id: `atrium_f${floor}`, type: "atrium", area, needsExt: false, front: false, connector: false, onHall: true, atrium: true });
+    }
     // ZONES: two flats on the floor stand either side of the core strip
     const units = [...new Set(leaves.map(l => l.node?.unit).filter((u): u is string => !!u))].sort();
     const zones = ZONES && units.length === 2
@@ -174,12 +187,15 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
     // FLAT_BOTTOM_UP: a block of flats plans its ground floor first (street
     // entrance, shared rooms): it places the stair, the floors above contain it
     const flatsUp = FLAT_BOTTOM_UP && ZONES && [...p.graph.nodes.values()].some(n => n.unit);
+    // ATRIUM_UP: a house with a double-volume room plans its ground floor first,
+    // and the void above goes where that room landed (the upper floor has the slack)
+    const up = flatsUp || (ATRIUM_UP && [...p.graph.nodes.values()].some(n => n.atriumOver));
     for (const [W, D, squeeze] of fps) {
         // One full attempt on a W × D footprint: the upper floor first (it
         // chooses the stair's place), then each floor below must contain it.
         const specs = new Map<number, FloorSpec>(), rects = new Map<number, Rect[]>();
         let total = 0, prev: number | undefined, ok = true;
-        for (const fl of flatsUp ? p.floorIds : [...p.floorIds].reverse()) {
+        for (const fl of up ? p.floorIds : [...p.floorIds].reverse()) {
             const spec = specFor(p.graph, fl, W, D, p.duplex, squeeze);
             if (!spec) { ok = false; break; }
             if (prev === undefined) { if (STAIR_IN_HALL && p.duplex) spec.stairCells = [5, 8]; }
@@ -189,6 +205,11 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
                 if (STAIR_IN_HALL) { const hb = ps.leaves.findIndex(l => l.hall); const S = ps.stairCells ? placeStair(pr[hb], ps.stairCells) : ps.voidRect; if (S) spec.voidRect = S; }
                 const si = ps.leaves.findIndex(l => l.stair), ui = spec.leaves.findIndex(l => l.stair);
                 if (si >= 0 && ui >= 0) spec.fixed = new Map([[ui, pr[si]]]);
+                // the room under the double-volume void must stand under all of it
+                const ai = ps.leaves.findIndex(l => l.atrium);
+                if (ai >= 0 && fl < prev) spec.atriumRect = pr[ai];
+                const oi = ps.leaves.findIndex(l => l.node?.atriumOver);
+                if (oi >= 0 && fl > prev && spec.leaves.some(l => l.atrium)) spec.atriumIn = pr[oi];
             }
             // TYPICAL_FLOOR: the same rooms as the floor above repeat its plan
             let r: Rect[];
@@ -198,13 +219,13 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
                 const res: AnnealResult = yield {
                     spec, seeds: [...Array(RESTARTS).keys()].map(k => base + k * SEED_STRIDE),
                     // flats planned upwards keep the downward plan's scoring: no wall-stacking term (as before)
-                    iters: iters / RESTARTS, sw: spec.below && !flatsUp ? STACK_W : 0,
+                    iters: iters / RESTARTS, sw: spec.below && !up ? STACK_W : 0,
                 };
                 r = layout(res.expr, spec, res.offs)!;
             }
             specs.set(fl, spec); rects.set(fl, r);
             const vs = violations(r, spec);
-            total += vs.filter(v => v.rule !== "AREA_RELAXED" && v.rule !== "ADJ_SOFT").length * 100 + vs.length + (spec.below ? unsupportedWall(r, spec) : 0);
+            total += vs.filter(v => v.rule !== "AREA_RELAXED" && v.rule !== "ADJ_SOFT" && v.rule !== "ATRIUM_SOFT").length * 100 + vs.length + (spec.below ? unsupportedWall(r, spec) : 0);
             // Never acceptable as compromises: an en-suite cut off from its
             // bedroom (I4), or a stair that doesn't land in the hall above
             // (I7). A plan with one ranks below every plan without. (Solved
@@ -225,6 +246,7 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
  * does so quickly, and a miss hands over to the gap-free search. */
 export function* spineDriver(p: Prepared): Generator<RestartBatch, SolvedLayout | null, AnnealResult> {
     if (!p.duplex || p.floorIds.length < 2) return null;
+    if ([...p.graph.nodes.values()].some(n => n.atriumOver)) return null; // bay-and-spine plans have no open-to-below void
     const fps = spineFootprints(p.need, Math.floor(p.be.width / CELL + 1e-9), Math.floor(p.be.height / CELL + 1e-9));
     let best: (Fp & { hard: number }) | null = null;
     for (const { W, D, a } of fps) {
@@ -239,7 +261,7 @@ export function* spineDriver(p: Prepared): Generator<RestartBatch, SolvedLayout 
             const r = res.spine && spineRects(res.spine, spec, a);
             if (!r) { ok = false; break; }
             specs.set(fl, spec); rects.set(fl, r);
-            const vs = violations(r, spec), h = vs.filter(v => v.rule !== "AREA_RELAXED" && v.rule !== "ADJ_SOFT").length;
+            const vs = violations(r, spec), h = vs.filter(v => v.rule !== "AREA_RELAXED" && v.rule !== "ADJ_SOFT" && v.rule !== "ATRIUM_SOFT").length;
             hard += h; total += h * 100 + vs.length;
             if (h) { ok = false; break; } // only a plan with no hard miss is used: skip the other floors
         }
@@ -341,7 +363,7 @@ function unsat(p: Prepared): SolvedLayout {
 function toLayout(p: Prepared, best: Fp): SolvedLayout {
     const all = [...best.specs.entries()].flatMap(([fl, sp]) => violations(best.rects.get(fl)!, sp).map(v => ({ ...v, fl })));
     const relaxed = all.some(v => v.rule === "AREA_RELAXED" || v.rule === "ADJ_SOFT");
-    const hard = all.filter(v => v.rule !== "AREA_RELAXED" && v.rule !== "ADJ_SOFT");
+    const hard = all.filter(v => v.rule !== "AREA_RELAXED" && v.rule !== "ADJ_SOFT" && v.rule !== "ATRIUM_SOFT");
     const placed: PlacedRoom[] = [...best.specs.entries()].flatMap(([fl, sp]) => best.rects.get(fl)!.flatMap((r, i) => {
         const out = (id: string, q: Rect): PlacedRoom => ({ room_id: id, floor: fl, x: q.x * CELL, y: q.y * CELL, width: q.w * CELL, depth: q.h * CELL });
         if (!sp.leaves[i].hall) return [out(sp.leaves[i].id, r)];
@@ -351,7 +373,7 @@ function toLayout(p: Prepared, best: Fp): SolvedLayout {
         if (!S) return [out(sp.leaves[i].id, r)];
         return [out(fl === 0 ? "stairwell" : "stairwell_void", S), ...hallPieces(r, S).map((q, k) => out(`corridor_floor${fl}_${k}`, q))];
     }));
-    const typeOf = (id: string) => p.graph.nodes.get(id)?.type ?? (id.startsWith("stair") ? "stairwell" : id.startsWith("corridor") || id.startsWith("passage_") ? "circulation" : "balcony");
+    const typeOf = (id: string) => p.graph.nodes.get(id)?.type ?? (id.startsWith("stair") ? "stairwell" : id.startsWith("corridor") || id.startsWith("passage_") ? "circulation" : id.startsWith("atrium_") ? "atrium" : "balcony");
     const issues = p.floorIds.flatMap(fl => {
         const subs = new Set(deriveSuites(p.graph, fl).flatMap(x => x.subIds));
         return validatePlacement(placed.filter(q => q.floor === fl), typeOf, id => id, best.W * CELL, best.D * CELL, fl, subs);
@@ -362,7 +384,7 @@ function toLayout(p: Prepared, best: Fp): SolvedLayout {
     // relaxation ladder may have dropped room links (RELAX-SOFT-ADJ).
     issues.push(...unflaggedMisses(p, placed, best, issues));
     if (!solved) issues.push(...searchMisses(p, placed, best, hard, issues));
-    issues.push(...squeezeNote(best, placed));
+    issues.push(...squeezeNote(best, placed), ...atriumNote(best));
     if (!solved) console.warn(`[SOLVER_GAPFREE] no plan met every rule; best plan with ${hard.length} miss(es), flagged`);
     return {
         program_reference: p.program, plot_width: p.envelope.width, plot_depth: p.envelope.depth,
@@ -384,6 +406,19 @@ function toLayout(p: Prepared, best: Fp): SolvedLayout {
  * `unflaggedMisses` and the validator. */
 /** SQUEEZE: a plan whose rooms were scaled down to fit says by how much,
  * and which room lost most against the brief. */
+/** The double-volume void that couldn't stand over its room (ATRIUM_SOFT): said, not hidden. */
+function atriumNote(best: Fp): ValidationIssue[] {
+    for (const sp of best.specs.values()) {
+        const rects = best.rects.get(sp.floor)!;
+        const miss = violations(rects, sp).find(v => v.rule === "ATRIUM_SOFT");
+        if (!miss) continue;
+        const room = [...best.specs.values()].flatMap(s => s.leaves).find(l => l.node?.atriumOver)?.node?.label ?? "the room asked for";
+        return [{ room_id: `atrium_f${Math.max(...best.specs.keys())}`, rule: "ATRIUM_OFF_ROOM",
+            detail: `The open-to-below void on the upper floor isn't wholly over the ${room}, so only part of it (or none) is double height. Re-planning may find a layout with the void over it.` }];
+    }
+    return [];
+}
+
 function squeezeNote(best: Fp, placed: PlacedRoom[]): ValidationIssue[] {
     const rooms = [...best.specs.entries()].flatMap(([fl, sp]) => sp.leaves.filter(l => l.node && !l.hall).map(l => ({ l, fl })));
     if (!rooms.some(({ l }) => l.area < l.node!.area - 1e-6)) return [];
@@ -408,7 +443,7 @@ function searchMisses(p: Prepared, placed: PlacedRoom[], best: Fp, hard: Array<{
         const id = l.hall ? hallId : l.id;
         if (seen(v.rule, id)) continue;
         const r = placed.find(q => q.room_id === l.id && q.floor === v.fl);
-        const name = l.node?.label ?? (l.passage ? `${l.unit} passage` : l.id), size = r ? `${m(r.width)} × ${m(r.depth)} m` : "";
+        const name = l.node?.label ?? (l.passage ? `${l.unit} passage` : l.atrium ? "The open-to-below void" : l.id), size = r ? `${m(r.width)} × ${m(r.depth)} m` : "";
         let detail: string;
         switch (v.rule) {
             case "SHAPE": detail = l.node && r && Math.min(r.width, r.depth) + 1e-6 < minWidthFor(l.node)
@@ -436,7 +471,8 @@ function searchMisses(p: Prepared, placed: PlacedRoom[], best: Fp, hard: Array<{
                 detail = `${cut.join(" and ") || "Part of the circulation"} ${cut.length > 1 ? "are" : "is"} cut off from the hall on the ${floor(v.fl)}.`; break;
             }
             case "FRONT": detail = `${name} isn't on the street front.`; break;
-            case "REACH": detail = best.specs.get(v.fl)!.leaves[v.leaf].onHall
+            case "ATRIUM": detail = `${name} isn't under all of the open-to-below void on the floor above.`; break;
+            case "REACH": detail = l.atrium ? `${name} doesn't open onto the landing on the ${floor(v.fl)}.` : best.specs.get(v.fl)!.leaves[v.leaf].onHall
                 ? `${name}, the flat's entrance, doesn't open onto the landing on the ${floor(v.fl)}.`
                 : `${name} doesn't open onto the hall or a room that leads to it.`; break;
             default: detail = `${name} misses the ${v.rule.toLowerCase().replace(/_/g, " ")} rule.`;

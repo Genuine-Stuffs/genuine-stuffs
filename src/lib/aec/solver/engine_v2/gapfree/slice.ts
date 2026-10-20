@@ -7,7 +7,7 @@ import { RoomGraph, GraphNode, Facade, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARA
 import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
 import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
-import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P, ENTRY_W, ZONES, FLAT_PASSAGE } from "./config";
+import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P, ENTRY_W, ZONES, FLAT_PASSAGE, ATRIUM_SOFT } from "./config";
 
 const CELL = 0.5;
 export { STAIR_IN_HALL, FOYER_VIA_HALL, TERRACE_LIGHT };
@@ -24,6 +24,7 @@ export interface Leaf {
     onHall?: boolean; // a flat's entrance: opens straight onto the hall (landing), not via another room
     unit?: string; passage?: boolean; // FLAT_PASSAGE: a flat's inner passage (no brief room)
     reachAlt?: string; // a flat's bedroom or bathroom may open off the flat's passage instead
+    atrium?: boolean; // the open-to-below void over the brief's double-volume room (opens onto the landing)
 }
 export interface Rect { x: number; y: number; w: number; h: number } // cells
 export interface FloorSpec {
@@ -33,6 +34,8 @@ export interface FloorSpec {
     stairCells?: [number, number]; // stair module (w, h cells) set into a corner of the hall (ground)
     voidRect?: Rect;               // the stair below: the hall above must contain it
     below?: Rect[];            // rects of the floor below (wall stacking)
+    atriumRect?: Rect;         // the void above: the room it stands over must contain it
+    atriumIn?: Rect;           // planned upwards: the room below, which the void must stay inside
     zones?: number[][];        // ZONES: leaves of each full-depth strip, left to right (flat, core, flat)
 }
 
@@ -77,6 +80,8 @@ export function facadeGap(r: Rect, side: Facade, W: number, D: number, terraces:
     return g;
 }
 
+export const ATRIUM_RULE = ATRIUM_SOFT ? "ATRIUM_SOFT" : "ATRIUM";
+
 export function shared(a: Rect, b: Rect): number {
     if (a.x + a.w === b.x || b.x + b.w === a.x) return Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
     if (a.y + a.h === b.y || b.y + b.h === a.y) return Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x));
@@ -119,6 +124,8 @@ export function placeStair(H: Rect, cells: [number, number]): Rect | null {
     return null;
 }
 const contains = (H: Rect, S: Rect) => S.x >= H.x && S.y >= H.y && S.x + S.w <= H.x + H.w && S.y + S.h <= H.y + H.h;
+/** Cells by which S sticks out of H, summed over the four sides. */
+export const outside = (H: Rect, S: Rect) => Math.max(0, H.x - S.x) + Math.max(0, S.x + S.w - H.x - H.w) + Math.max(0, H.y - S.y) + Math.max(0, S.y + S.h - H.y - H.h);
 
 export interface Violation { rule: string; leaf: number; other?: number; amount: number }
 
@@ -166,6 +173,10 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
         const lit = TERRACE_LIGHT && spec.floor > 0 && spec.leaves.some((m, j) => j !== i && m.type === "balcony" && !l.hall && l.type !== "balcony" && shared(r, rects[j]) >= DOOR);
         if (l.needsExt && !lit && !onPerimeter(r, spec)) v.push({ rule: "EXTERNAL_WALL", leaf: i, amount: 1 + perimDist(r, spec) / 4 });
         if (l.front && (spec.floor === 0 || l.hall) && r.y + r.h !== spec.D) v.push({ rule: "FRONT", leaf: i, amount: 1 + (spec.D - r.y - r.h) / 4 });
+        // ATRIUM: the void is at least 3 m across, and the room below it stands under all of it
+        if (l.atrium && Math.min(r.w, r.h) < 6) v.push({ rule: "SHAPE", leaf: i, amount: 1 + (6 - Math.min(r.w, r.h)) / 2 });
+        if (spec.atriumIn && l.atrium && !contains(spec.atriumIn, r)) v.push({ rule: ATRIUM_RULE, leaf: i, amount: 1 + outside(spec.atriumIn, r) / 2 });
+        if (spec.atriumRect && l.node?.atriumOver && !contains(r, spec.atriumRect)) v.push({ rule: ATRIUM_RULE, leaf: i, amount: 1 + outside(r, spec.atriumRect) / 2 });
         // FACADE: a room the brief puts on a side ("southern facade") has a wall on it
         if (l.node?.facade) { const g = facadeGap(r, l.node.facade, spec.W, spec.D, rects.filter((_, j) => spec.leaves[j].type === "balcony")); if (g) v.push({ rule: "FACADE", leaf: i, amount: 1 + g / 4 }); }
         if (l.passage && Math.min(r.w, r.h) < 2) v.push({ rule: "SHAPE", leaf: i, amount: 1 + (2 - Math.min(r.w, r.h)) }); // >= 1.0 m wide
@@ -211,7 +222,7 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
     return v;
 }
 
-export const WEIGHT: Record<string, number> = { FRONT: 30, FACADE: 30, STAIR_ALIGN: 40, STAIR_FIT: 30, REACH: 20, EXTERNAL_WALL: 20, ADJACENCY: 15, SHAPE: 15, NBC_MIN: 15, STAIR_SIZE: 20, GARAGE_SIZE: 20, HALL_WIDTH: 10, HALL_REACH: 20, CIRC_CONNECTED: 20, AREA: 20, AREA_RELAXED: 2, ADJ_SOFT: 5 };
+export const WEIGHT: Record<string, number> = { FRONT: 30, FACADE: 30, ATRIUM: 40, ATRIUM_SOFT: 10, STAIR_ALIGN: 40, STAIR_FIT: 30, REACH: 20, EXTERNAL_WALL: 20, ADJACENCY: 15, SHAPE: 15, NBC_MIN: 15, STAIR_SIZE: 20, GARAGE_SIZE: 20, HALL_WIDTH: 10, HALL_REACH: 20, CIRC_CONNECTED: 20, AREA: 20, AREA_RELAXED: 2, ADJ_SOFT: 5 };
 
 /** Lower-floor wall cells, built once per spec: vx[x*(D+1)+y] = a vertical
  * wall runs along x from y to y+1; hy likewise for horizontal walls. */

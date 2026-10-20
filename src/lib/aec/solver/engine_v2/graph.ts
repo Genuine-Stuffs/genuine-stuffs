@@ -42,6 +42,8 @@ export interface HiveRoom {
     min_area_m2?: number;
     /** The outside wall the brief puts the room on ("southern facade"): N/S/E/W. */
     facade?: Facade;
+    /** The upper floor is left open above this room (a double-volume atrium). */
+    atrium_over?: boolean;
 }
 
 /** A compass side of the building. The plan's north arrow points up and the
@@ -155,6 +157,8 @@ export interface GraphNode {
     minArea?: number;
     /** The outside wall the brief puts this room on, if it names one. */
     facade?: Facade;
+    /** The brief's double-volume space stands over this room. */
+    atriumOver?: boolean;
 }
 
 export interface RoomGraph {
@@ -189,6 +193,7 @@ export function buildGraph(rooms: HiveRoom[]): RoomGraph {
             unit: r.unit || undefined,
             ...(r.min_area_m2 ? { minArea: r.min_area_m2 } : {}),
             ...(r.facade ? { facade: r.facade } : {}),
+            ...(r.atrium_over ? { atriumOver: true } : {}),
         });
         const floorList = floors.get(r.floor ?? 0) ?? [];
         floorList.push(r.room_id);

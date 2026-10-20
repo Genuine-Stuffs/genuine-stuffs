@@ -136,6 +136,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
     // gap-free engine: the open roof of the floor below
     if (room_id.startsWith('terrace_f')) return 'Terrace';
     if (room_id.startsWith('passage_')) return 'Passage';
+    if (room_id.startsWith('atrium_')) return 'Open to Below';
     const match = sourceRooms.find(
       r => r.room_id === room_id || r.id === room_id
     );
@@ -597,6 +598,14 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               fill={`url(#${patternId})`} opacity={0.35} />
           );
         })()}
+
+        {/* ── Open to below (double-volume void): balustrade outline and the opening's cross ── */}
+        {room.room_id.startsWith('atrium_') && (
+          <g data-atrium stroke="#475569" fill="none">
+            <rect x={rx + 1.5} y={ry + 1.5} width={rw - 3} height={rh - 3} strokeWidth={1.2} />
+            <path d={`M${rx + 1.5},${ry + 1.5} L${rx + rw - 1.5},${ry + rh - 1.5} M${rx + rw - 1.5},${ry + 1.5} L${rx + 1.5},${ry + rh - 1.5}`} strokeWidth={0.8} strokeDasharray="6 4" />
+          </g>
+        )}
 
         {/* ── Furniture ── */}
         {!showStructure && rw > 35 && rh > 28 && renderFurniture(room, rx, ry, rw, rh)}
@@ -1102,6 +1111,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     if (room_id === 'stairwell_void') return 'STAIR VOID';
     if (room_id.startsWith('terrace_f')) return 'Terrace';
     if (room_id.startsWith('passage_')) return 'Passage';
+    if (room_id.startsWith('atrium_')) return 'Open to Below';
     const match = sourceRooms.find(r => r.room_id === room_id || r.id === room_id);
     return match?.name ?? room_id.replace(/_/g, ' ').toUpperCase();
   };

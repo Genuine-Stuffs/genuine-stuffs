@@ -58,3 +58,9 @@ export const FLAT_PASSAGE = flag("FLAT_PASSAGE", true);
 /** A block of flats is planned from the ground floor up: the ground floor
  * (street entrance, shared rooms) places the stair (2026-10-19). */
 export const FLAT_BOTTOM_UP = flag("FLAT_BOTTOM_UP", true);
+/** A house with a double-volume room is planned from the ground floor up: the
+ * void above goes where that room landed (2026-10-20). */
+export const ATRIUM_UP = flag("ATRIUM_UP", true);
+/** The room below standing under the double-volume void is a strong preference,
+ * noted when missed, not a miss (owner 2026-10-20: as a hard rule 46 -> 17 of 50 villas solved). */
+export const ATRIUM_SOFT = flag("ATRIUM_SOFT", true);
