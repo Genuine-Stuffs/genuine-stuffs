@@ -1,0 +1,977 @@
+{
+ "brief_reference": {
+  "plot_size_sqm": 1200,
+  "floors": 4,
+  "project_id": "GS-BENCH-04-HOTEL-30x40",
+  "use_type": "hospitality"
+ },
+ "rooms": [
+  {
+   "room_id": "g01",
+   "name": "Reception",
+   "type": "reception",
+   "floor": 0,
+   "area_m2": 12,
+   "width_m": 3.5,
+   "span_m": 3.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "g02"
+   ]
+  },
+  {
+   "room_id": "g02",
+   "name": "Lobby",
+   "type": "lobby",
+   "floor": 0,
+   "area_m2": 40,
+   "width_m": 6.3,
+   "span_m": 6.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "g01",
+    "g03",
+    "g04",
+    "g10",
+    "g11"
+   ]
+  },
+  {
+   "room_id": "g03",
+   "name": "Lounge / Bar",
+   "type": "bar",
+   "floor": 0,
+   "area_m2": 45,
+   "width_m": 6.7,
+   "span_m": 6.7,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "g02"
+   ]
+  },
+  {
+   "room_id": "g04",
+   "name": "60-Seat Restaurant",
+   "type": "restaurant",
+   "floor": 0,
+   "area_m2": 90,
+   "width_m": 9.5,
+   "span_m": 9.5,
+   "uses_intermediate_columns": true,
+   "adjacencies": [
+    "g02",
+    "g05"
+   ]
+  },
+  {
+   "room_id": "g05",
+   "name": "Back-of-House Kitchen",
+   "type": "commercial_kitchen",
+   "floor": 0,
+   "area_m2": 40,
+   "width_m": 6.3,
+   "span_m": 6.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "g04",
+    "g09"
+   ]
+  },
+  {
+   "room_id": "g06",
+   "name": "Accessible Guest Room 1 (en-suite)",
+   "type": "guest_room",
+   "floor": 0,
+   "area_m2": 28,
+   "width_m": 5.3,
+   "span_m": 5.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "g12"
+   ]
+  },
+  {
+   "room_id": "g07",
+   "name": "Accessible Guest Room 2 (en-suite)",
+   "type": "guest_room",
+   "floor": 0,
+   "area_m2": 28,
+   "width_m": 5.3,
+   "span_m": 5.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "g12"
+   ]
+  },
+  {
+   "room_id": "g08",
+   "name": "Admin Office",
+   "type": "office",
+   "floor": 0,
+   "area_m2": 12,
+   "width_m": 3.5,
+   "span_m": 3.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "g02"
+   ]
+  },
+  {
+   "room_id": "g09",
+   "name": "Staff Facilities",
+   "type": "staff_facilities",
+   "floor": 0,
+   "area_m2": 15,
+   "width_m": 3.9,
+   "span_m": 3.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "g05"
+   ]
+  },
+  {
+   "room_id": "g10",
+   "name": "Lift Core",
+   "type": "lift",
+   "floor": 0,
+   "area_m2": 6,
+   "width_m": 2.4,
+   "span_m": 2.4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "g02"
+   ]
+  },
+  {
+   "room_id": "g11",
+   "name": "Stairwell (Ground Floor)",
+   "type": "stairwell",
+   "floor": 0,
+   "area_m2": 10,
+   "width_m": 3.2,
+   "span_m": 3.2,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "g02"
+   ]
+  },
+  {
+   "room_id": "g12",
+   "name": "Ground Floor Corridor",
+   "type": "corridor",
+   "floor": 0,
+   "area_m2": 20,
+   "width_m": 4.5,
+   "span_m": 4.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "g06",
+    "g07",
+    "g02"
+   ]
+  },
+  {
+   "room_id": "g13",
+   "name": "Standby Generator House",
+   "type": "gen_house",
+   "floor": 0,
+   "area_m2": 12,
+   "width_m": 3.5,
+   "span_m": 3.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": []
+  },
+  {
+   "room_id": "r101",
+   "name": "Suite 101 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 40,
+   "width_m": 6.3,
+   "span_m": 6.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r102",
+   "name": "Suite 102 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 40,
+   "width_m": 6.3,
+   "span_m": 6.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r103",
+   "name": "Suite 103 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 40,
+   "width_m": 6.3,
+   "span_m": 6.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r104",
+   "name": "Guest Room 104 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r105",
+   "name": "Guest Room 105 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r106",
+   "name": "Guest Room 106 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r107",
+   "name": "Guest Room 107 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r108",
+   "name": "Guest Room 108 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r109",
+   "name": "Guest Room 109 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r110",
+   "name": "Guest Room 110 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r111",
+   "name": "Guest Room 111 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r112",
+   "name": "Guest Room 112 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r113",
+   "name": "Guest Room 113 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r114",
+   "name": "Guest Room 114 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "r115",
+   "name": "Guest Room 115 (en-suite)",
+   "type": "guest_room",
+   "floor": 1,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "h1",
+   "name": "Housekeeping Store (Floor 1)",
+   "type": "housekeeping",
+   "floor": 1,
+   "area_m2": 6,
+   "width_m": 2.4,
+   "span_m": 2.4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "l1",
+   "name": "Lift Core (Floor 1)",
+   "type": "lift",
+   "floor": 1,
+   "area_m2": 6,
+   "width_m": 2.4,
+   "span_m": 2.4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "s1",
+   "name": "Stairwell (Floor 1)",
+   "type": "stairwell",
+   "floor": 1,
+   "area_m2": 10,
+   "width_m": 3.2,
+   "span_m": 3.2,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c1"
+   ]
+  },
+  {
+   "room_id": "c1",
+   "name": "Guest Corridor (Floor 1)",
+   "type": "corridor",
+   "floor": 1,
+   "area_m2": 50,
+   "width_m": 7.1,
+   "span_m": 7.1,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "r101",
+    "r102",
+    "r103",
+    "r104",
+    "r105",
+    "r106",
+    "r107",
+    "r108",
+    "r109",
+    "r110",
+    "r111",
+    "r112",
+    "r113",
+    "r114",
+    "r115",
+    "h1",
+    "l1",
+    "s1"
+   ]
+  },
+  {
+   "room_id": "r201",
+   "name": "Suite 201 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 40,
+   "width_m": 6.3,
+   "span_m": 6.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r202",
+   "name": "Suite 202 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 40,
+   "width_m": 6.3,
+   "span_m": 6.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r203",
+   "name": "Suite 203 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 40,
+   "width_m": 6.3,
+   "span_m": 6.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r204",
+   "name": "Guest Room 204 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r205",
+   "name": "Guest Room 205 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r206",
+   "name": "Guest Room 206 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r207",
+   "name": "Guest Room 207 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r208",
+   "name": "Guest Room 208 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r209",
+   "name": "Guest Room 209 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r210",
+   "name": "Guest Room 210 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r211",
+   "name": "Guest Room 211 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r212",
+   "name": "Guest Room 212 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r213",
+   "name": "Guest Room 213 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r214",
+   "name": "Guest Room 214 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "r215",
+   "name": "Guest Room 215 (en-suite)",
+   "type": "guest_room",
+   "floor": 2,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "h2",
+   "name": "Housekeeping Store (Floor 2)",
+   "type": "housekeeping",
+   "floor": 2,
+   "area_m2": 6,
+   "width_m": 2.4,
+   "span_m": 2.4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "l2",
+   "name": "Lift Core (Floor 2)",
+   "type": "lift",
+   "floor": 2,
+   "area_m2": 6,
+   "width_m": 2.4,
+   "span_m": 2.4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "s2",
+   "name": "Stairwell (Floor 2)",
+   "type": "stairwell",
+   "floor": 2,
+   "area_m2": 10,
+   "width_m": 3.2,
+   "span_m": 3.2,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c2"
+   ]
+  },
+  {
+   "room_id": "c2",
+   "name": "Guest Corridor (Floor 2)",
+   "type": "corridor",
+   "floor": 2,
+   "area_m2": 50,
+   "width_m": 7.1,
+   "span_m": 7.1,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "r201",
+    "r202",
+    "r203",
+    "r204",
+    "r205",
+    "r206",
+    "r207",
+    "r208",
+    "r209",
+    "r210",
+    "r211",
+    "r212",
+    "r213",
+    "r214",
+    "r215",
+    "h2",
+    "l2",
+    "s2"
+   ]
+  },
+  {
+   "room_id": "r301",
+   "name": "Suite 301 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 40,
+   "width_m": 6.3,
+   "span_m": 6.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r302",
+   "name": "Suite 302 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 40,
+   "width_m": 6.3,
+   "span_m": 6.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r303",
+   "name": "Suite 303 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 40,
+   "width_m": 6.3,
+   "span_m": 6.3,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r304",
+   "name": "Guest Room 304 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r305",
+   "name": "Guest Room 305 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r306",
+   "name": "Guest Room 306 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r307",
+   "name": "Guest Room 307 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r308",
+   "name": "Guest Room 308 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r309",
+   "name": "Guest Room 309 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r310",
+   "name": "Guest Room 310 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r311",
+   "name": "Guest Room 311 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r312",
+   "name": "Guest Room 312 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r313",
+   "name": "Guest Room 313 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r314",
+   "name": "Guest Room 314 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "r315",
+   "name": "Guest Room 315 (en-suite)",
+   "type": "guest_room",
+   "floor": 3,
+   "area_m2": 24,
+   "width_m": 4.9,
+   "span_m": 4.9,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "h3",
+   "name": "Housekeeping Store (Floor 3)",
+   "type": "housekeeping",
+   "floor": 3,
+   "area_m2": 6,
+   "width_m": 2.4,
+   "span_m": 2.4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "l3",
+   "name": "Lift Core (Floor 3)",
+   "type": "lift",
+   "floor": 3,
+   "area_m2": 6,
+   "width_m": 2.4,
+   "span_m": 2.4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "s3",
+   "name": "Stairwell (Floor 3)",
+   "type": "stairwell",
+   "floor": 3,
+   "area_m2": 10,
+   "width_m": 3.2,
+   "span_m": 3.2,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c3"
+   ]
+  },
+  {
+   "room_id": "c3",
+   "name": "Guest Corridor (Floor 3)",
+   "type": "corridor",
+   "floor": 3,
+   "area_m2": 50,
+   "width_m": 7.1,
+   "span_m": 7.1,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "r301",
+    "r302",
+    "r303",
+    "r304",
+    "r305",
+    "r306",
+    "r307",
+    "r308",
+    "r309",
+    "r310",
+    "r311",
+    "r312",
+    "r313",
+    "r314",
+    "r315",
+    "h3",
+    "l3",
+    "s3"
+   ]
+  }
+ ]
+}

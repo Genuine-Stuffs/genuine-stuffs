@@ -28,6 +28,8 @@ import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
 import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES, FLAT_BOTTOM_UP, ATRIUM_UP } from "./config";
 import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP, splitGatehouses, placeGatehouses, isGenerator, withoutUnits } from "./outbuildings";
+import { hotelLayout } from "./hotel";
+import { buildingSupport } from "../building_support";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
 import { minWidthFor, maxAspectFor } from "../solver/room_shape";
@@ -286,6 +288,8 @@ function* houseDriver(program: SpatialProgram, envelope: PlotEnvelope, options?:
  * (the rear setback counts when the user allows it). When they don't fit,
  * the house keeps them inside, as before, and the plan says why. */
 export function* planDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
+    // a hotel: guest floors along a central corridor, stacked (hotel.ts)
+    if (buildingSupport(program).kind === 'hotel') return hotelLayout(program, envelope, options);
     // a security post is a gatehouse at the front gate (owner 2026-10-19), planned apart from the house
     const s = envelope.setbacks;
     const gate = OUTBUILDINGS ? splitGatehouses(program, s.front) : null;

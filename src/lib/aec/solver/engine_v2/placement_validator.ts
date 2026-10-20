@@ -48,7 +48,7 @@ export interface ValidationIssue {
         | 'ROOMS_SQUEEZED'
         // a gap-free fallback plan's other misses (gapfree/solve.ts searchMisses)
         | 'SHAPE' | 'AREA' | 'NBC_MIN' | 'GARAGE_SIZE' | 'STAIR_SIZE' | 'HALL_WIDTH' | 'STAIR_FIT' | 'STAIR_ALIGN' | 'CIRC_CONNECTED' | 'FRONT' | 'REACH' | 'FACADE' | 'ATRIUM'
-        | 'ATRIUM_OFF_ROOM';
+        | 'ATRIUM_OFF_ROOM' | 'HOTEL_PENDING_CODE';
     detail: string;
 }
 
@@ -57,7 +57,7 @@ export interface ValidationIssue {
  * with no window. Shared with the UI's WARN/REVIEW split. ADJACENCY_MISSED
  * and AREA_ADJUSTED come only from fallback plans. */
 export const ADVISORY_RULES: ReadonlySet<ValidationIssue['rule']> =
-    new Set(['BATH_VENTILATION', 'ADJACENCY_MISSED', 'AREA_ADJUSTED', 'OUTBUILDING_NO_FIT', 'ROOMS_SQUEEZED', 'GATEHOUSE_IN_FRONT_SETBACK', 'ATRIUM_OFF_ROOM']);
+    new Set(['BATH_VENTILATION', 'ADJACENCY_MISSED', 'AREA_ADJUSTED', 'OUTBUILDING_NO_FIT', 'ROOMS_SQUEEZED', 'GATEHOUSE_IN_FRONT_SETBACK', 'ATRIUM_OFF_ROOM', 'HOTEL_PENDING_CODE']);
 
 function sharesWall(a: PlacedRoom, b: PlacedRoom): boolean {
     const aR = a.x + a.width, aB = a.y + a.depth;

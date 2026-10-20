@@ -14,3 +14,10 @@ to the landing). Its parking, gate security post and overhead tank are site
 items the engine doesn't model yet (the post is listed as a room).
 The hotel and church briefs need features that don't exist yet (lift cores,
 seating, clear spans).
+
+The hotel brief (`bench-04-hotel-30x40`, 2026-10-20) is hand-written too: per
+guest floor 12 standard rooms (24 m², en-suite inside the room) and 3 suites
+(40 m²), a housekeeping store, a lift core and a stair off a central corridor;
+the ground floor as the prompt lists it. Room sizes are planning assumptions,
+not code figures; the restaurant's area for 60 seats in particular should
+come from the occupancy engine (capability C) once it exists.

@@ -35,6 +35,10 @@ const EXPLAIN: Record<string, Explain> = {
         reason: `${list(r.rooms)} has to share a wall directly with ${r.values?.maxDegree ?? 'too many'} rooms. A room can realistically open onto at most ${r.values?.limit ?? 6}.`,
         suggestion: `Let some of the rooms around ${list(r.rooms)} open off a corridor or hall instead.`,
     }),
+    'H-001': r => ({
+        reason: `The ${r.values?.rooms ?? ''} guest rooms on each floor need about ${Math.ceil(r.values?.need_m ?? 0)} m of corridor on each side, but a straight corridor on this plot is at most ${Math.floor(r.values?.have_m ?? 0)} m long. The floor area is enough; its shape isn't.`,
+        suggestion: 'Fewer guest rooms per floor, a longer plot, or an L-shaped guest floor (not available yet).',
+    }),
     'S-001': () => ({
         reason: 'No arrangement satisfies every requirement at once — room sizes, which rooms must touch, and which rooms need an outside wall for windows.',
         suggestion: 'Ask for fewer rooms that must sit next to each other, or fewer large fixed-size rooms (garage, structural living room).',
