@@ -747,6 +747,18 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
             ? beam.width_m * scale
             : beam.span_m  * scale;
           const halfCol = (beam.width_m * scale) / 2;
+          // a hall's long-span member (truss / portal frame): drawn heavier, with its span
+          if (beam.kind === 'long_span') return (
+            <g key={beam.id} data-long-span>
+              <rect x={x - (beam.end_x === beam.start_x ? halfCol * 2 : 0)} y={y - (beam.end_y === beam.start_y ? halfCol * 2 : 0)}
+                width={beam.end_x === beam.start_x ? w * 2 : w} height={beam.end_y === beam.start_y ? h * 2 : h}
+                className="fill-violet-500/25 stroke-violet-700 stroke-[2]" />
+              <text x={x + (beam.end_x - beam.start_x) * scale / 2 + (beam.end_x === beam.start_x ? 6 : 0)} y={y + (beam.end_y - beam.start_y) * scale / 2 - (beam.end_y === beam.start_y ? 5 : 0)}
+                textAnchor={beam.end_x === beam.start_x ? 'start' : 'middle'} style={{ fontSize: '7px', fontWeight: 800, fill: '#5b21b6' }}>
+                LONG-SPAN TRUSS {beam.span_m.toFixed(1)} m
+              </text>
+            </g>
+          );
           return (
             <rect
               key={beam.id}

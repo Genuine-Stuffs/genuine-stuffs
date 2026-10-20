@@ -13,6 +13,8 @@
  */
 
 import rules from './compliance_rules.json';
+import { catalogueEntry } from './solver/engine_v2/room_catalogue';
+import { LONG_SPAN_MAX_M } from './solver/structural';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -161,6 +163,16 @@ function checkMinimumWidth(room: Room): RuleResult | null {
 
 function checkStructuralSpan(room: Room, useType: string): RuleResult | null {
   if (room.span_m === undefined) return null;
+  // a hall (auditorium, restaurant, overflow hall) is on the long-span system, not the
+  // framed house limit (owner's engine brief, capability D)
+  if (catalogueEntry({ type: room.type, name: room.name })?.longSpan) {
+    if (room.span_m > LONG_SPAN_MAX_M) return fail('MAX_SPAN', room,
+      `${room.name} span of ${room.span_m}m is beyond the long-span range (portal frame or steel truss, up to about ${LONG_SPAN_MAX_M}m). A structural engineer's own scheme is needed.`,
+      `≤ ${LONG_SPAN_MAX_M}m`, `${room.span_m}m`);
+    return pass('MAX_SPAN', room,
+      `${room.name} is a hall on a long-span roof (portal frame or steel truss): its ${room.span_m}m span is within the ${LONG_SPAN_MAX_M}m range, with no columns inside.`,
+      `≤ ${LONG_SPAN_MAX_M}m`, `${room.span_m}m`);
+  }
   const maxSpan = rules.structural_parameters.beam_design.max_span_m.typical_residential;
   const spanDepthRatio = rules.structural_parameters.beam_design.span_to_depth_ratio.simply_supported;
   const requiredDepthMm = (room.span_m / spanDepthRatio) * 1000;
