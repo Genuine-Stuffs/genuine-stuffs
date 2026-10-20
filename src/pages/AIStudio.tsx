@@ -63,6 +63,7 @@ import { ModeToggle } from "@/components/ModeToggle";
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import AECFloorPlan from '@/components/aec/AECFloorPlan';
+import { AECSitePlan } from '@/components/aec/AECSitePlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { useLayoutOptions, layoutSignature, solveLayoutInWorker, layoutModeSetting } from '@/hooks/use-layout-options';
@@ -1383,6 +1384,7 @@ const AIStudio = () => {
                                                                         </div>
                                                                     </div>
                                                                 )}
+                                                                <AECSitePlan layout={stableLayout} setbacks={designPackage?.setback?.plan?.setbacks} />
                                                                 <AECFloorPlan layout={stableLayout} />
                                                                 <AECMassingView layout={stableLayout} />
                                                                 <AECBillOfQuantities layout={stableLayout} materials={designPackage.material_schedule || []} />
