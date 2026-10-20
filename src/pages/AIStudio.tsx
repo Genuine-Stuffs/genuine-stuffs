@@ -43,6 +43,7 @@ import { supabase } from "backend/supabaseClient";
 import CreditInfo from "@/components/CreditInfo";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
+import { newerBuildAvailable, reloadKeepingPrompt, takePendingPrompt } from "@/lib/appVersion";
 import { Badge } from "@/components/ui/badge";
 import {
     Dialog,
@@ -132,6 +133,14 @@ const AIStudio = () => {
     const [complianceReport, setComplianceReport] = useState<ComplianceReport | null>(null);
     const [replanning, setReplanning] = useState(false);
     const [promptText, setPromptText] = useState("");
+    // the prompt kept across a reload onto the newer build (lib/appVersion)
+    useEffect(() => {
+        const pending = takePendingPrompt();
+        if (pending) {
+            setPromptText(pending);
+            toast.info("AI Studio was updated, so the page reloaded. Your prompt is back in the box: press send.");
+        }
+    }, []);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const [ultraMode, setUltraMode] = useState(false);
@@ -562,6 +571,13 @@ const AIStudio = () => {
         if (!serverClaims.is_admin && !serverClaims.is_pm && (credits === null || credits < 2)) {
             toast.error("Not enough credits.");
             if (isPro) setShowRefillModal(true);
+            return;
+        }
+
+        // A tab older than the live site can't load the planner's workers: reload before a
+        // first prompt (nothing on screen to lose), keeping the prompt
+        if (messages.length === 0 && await newerBuildAvailable()) {
+            reloadKeepingPrompt(promptText);
             return;
         }
 

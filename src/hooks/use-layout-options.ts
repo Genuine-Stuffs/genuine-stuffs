@@ -4,6 +4,8 @@ import type { SolvedLayout, SpatialProgram } from "../../supabase/functions/ai-s
 import type { PlotEnvelope, SolverOptions } from "@/lib/aec/solver/types";
 import { solveLayoutV2 } from "@/lib/aec/solver/engine_v2";
 import { solveGapfreeInPool } from "@/lib/aec/solver/engine_v2/gapfree/pool";
+import { toast } from "sonner";
+import { newerBuildAvailable } from "@/lib/appVersion";
 
 /** solveLayoutV2() in a Web Worker, so the page stays responsive while a
  * large brief solves (villas: ~9 s). Same arguments, same result. Where
@@ -19,6 +21,10 @@ export function solveLayoutInWorker(
   if (options.layoutMode === "gapfree") {
     return solveGapfreeInPool(program, envelope, options).catch((err) => {
       console.warn("[SOLVER] worker pool failed, solving in one worker:", err);
+      // usually a tab older than the live site: its worker files are gone
+      void newerBuildAvailable().then(newer => {
+        if (newer) toast.info("A newer version of AI Studio is live. This plan is still being drawn, more slowly; reload the page before your next design.", { duration: 12000 });
+      });
       return solveInOneWorker(program, envelope, options);
     });
   }
