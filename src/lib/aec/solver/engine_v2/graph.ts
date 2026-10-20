@@ -22,6 +22,8 @@
  * ═══════════════════════════════════════════════════════════════════════
  */
 
+import { catalogueEntry, catalogueZone } from './room_catalogue';
+
 // ──────────────────────────────────────────────────────────────────────────
 // Input shape (matches Hive payload)
 // ──────────────────────────────────────────────────────────────────────────
@@ -121,12 +123,19 @@ export function normalizeRoomType(type: string | undefined): string | undefined 
 export function classifyRoom(room: { type?: string; name?: string; room_id: string }): ZoneType {
     const t = normalizeRoomType(room.type);
     if (t && TYPE_TO_ZONE[t]) return TYPE_TO_ZONE[t];
+    // hotel and assembly room types (room_catalogue.ts): by the AI's type
+    const byType = t ? catalogueEntry({ type: t }) : null;
+    if (byType) return catalogueZone(byType);
 
     // Fallback: label keywords (name, then room_id)
     const label = (room.name ?? room.room_id).toLowerCase();
     for (const [zone, keywords] of LABEL_FALLBACK) {
         if (keywords.some(k => label.includes(k))) return zone;
     }
+
+    // ... then by name, after the house keywords above
+    const byName = catalogueEntry({ name: room.name });
+    if (byName) return catalogueZone(byName);
 
     console.warn(
         `[SOLVER_V2] classifyRoom: no "type" match and no label match for ` +

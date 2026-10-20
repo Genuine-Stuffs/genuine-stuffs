@@ -1,6 +1,6 @@
 # Engine Brief: Hotel & Assembly Building Types
 
-Owner's brief, 2026-10-20. The PDF is `docs/design-references/pdfs/Engine-Brief-Hotel-and-Assembly-Building-Types.pdf`; this is its text, kept here so it can be searched and linked. Progress is tracked in `PROJECT_LEDGER.md` §6 item 13.
+Owner's brief, 2026-10-20. The PDF is `docs/design-references/pdfs/Engine-Brief-Hotel-and-Assembly-Building-Types.pdf`; this is its text, kept here so it can be searched and linked. Progress is tracked in `PROJECT_LEDGER.md` §6 item 13. Done so far: A (honest gate, `ef3643b`); B (room catalogue, `room_catalogue.ts`) and E (hospitality and assembly setbacks: no cited figure found, the Lagos commercial setbacks used as a documented fallback and stated on each plan).
 
 Adding hotel and assembly (place-of-worship) floor plans needs one shared capability layer plus two type configs on top. None of it exists today. Building the shared layer once also unlocks factories, schools and banks later.
 

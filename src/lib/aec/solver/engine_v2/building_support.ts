@@ -8,6 +8,8 @@
  * a picture or a code "pass" built on rooms it doesn't understand.
  */
 
+import { catalogueEntry } from './room_catalogue';
+
 export type UnsupportedKind = 'assembly' | 'hotel';
 
 // clear signals only: houses have "Guest Bedroom", "Laundry" or a "Reception" room too
@@ -23,9 +25,11 @@ const text = (r: any) => `${String(r?.type ?? '').replace(/_/g, ' ')} ${String(r
 export function buildingSupport(program: any): BuildingSupport {
     const rooms: any[] = program?.rooms ?? [];
     const use = String(program?.brief_reference?.use_type ?? '');
-    const assembly = rooms.filter(r => ASSEMBLY.test(text(r)));
+    // the catalogue's signal rooms (room_catalogue.ts), then the words of the brief
+    const signal = (r: any, b: UnsupportedKind) => { const e = catalogueEntry(r); return !!e?.signal && e.building === b; };
+    const assembly = rooms.filter(r => signal(r, 'assembly') || ASSEMBLY.test(text(r)));
     if (assembly.length || ASSEMBLY.test(use)) return { supported: false, kind: 'assembly', rooms: assembly.map(r => String(r.name ?? r.type)) };
-    const hotel = rooms.filter(r => HOTEL.test(text(r)));
+    const hotel = rooms.filter(r => signal(r, 'hotel') || HOTEL.test(text(r)));
     if (hotel.length || /\b(hotel|hospitality|lodging)\b/i.test(use)) return { supported: false, kind: 'hotel', rooms: hotel.map(r => String(r.name ?? r.type)) };
     return { supported: true, rooms: [] };
 }

@@ -17,12 +17,19 @@
  *   study quotes 4.5–6 m at the front). High 4.5 / 2 / 2 and low
  *   7.5 / 4.5 / 4.5 are from secondary summaries, not yet checked against
  *   the code's own text.
+ * - Hotels (hospitality) and places of worship (assembly), owner's engine
+ *   brief 2026-10-20, capability E: no Lagos 2019 or NBC 2006 setback figure
+ *   for either was found (web search 2026-10-20: the regulation's schedule
+ *   isn't published online; only enforcement news and a 15 m setback from
+ *   high-tension lines). Documented fallback: the Lagos commercial figures,
+ *   9 / 6 / 3, and every such plan says so (USE_FALLBACK) and asks the user
+ *   to confirm with LASPPPA. Replace with the cited figures when found.
  */
 
 import { programNeed } from './solver/engine_v2/gapfree/need';
 
 export type SetbackLaw = 'lagos_2019' | 'nbc_2006';
-export type BuildingUse = 'residential' | 'commercial' | 'mixed';
+export type BuildingUse = 'residential' | 'commercial' | 'mixed' | 'hospitality' | 'assembly';
 export type Density = 'high' | 'medium' | 'low';
 
 export interface Setbacks { front: number; rear: number; left: number; right: number }
@@ -53,7 +60,16 @@ const LAGOS: Record<BuildingUse, Setbacks> = {
     residential: { front: 6, rear: 3, left: 3, right: 3 },
     commercial: { front: 9, rear: 3, left: 6, right: 6 },
     mixed: { front: 6, rear: 4.5, left: 4.5, right: 4.5 },
+    // no source found: the commercial figures, said on every plan (USE_FALLBACK)
+    hospitality: { front: 9, rear: 3, left: 6, right: 6 },
+    assembly: { front: 9, rear: 3, left: 6, right: 6 },
 };
+/** Uses with no setback source of their own, and what the plan says about it. */
+const USE_FALLBACK: Partial<Record<BuildingUse, string>> = {
+    hospitality: 'No Lagos or national setback rule for hotels was found in our sources, so the commercial setbacks are used (front 9 m, sides 6 m, rear 3 m). Confirm them with the planning authority (LASPPPA in Lagos).',
+    assembly: 'No Lagos or national setback rule for places of worship or other assembly buildings was found in our sources, so the commercial setbacks are used (front 9 m, sides 6 m, rear 3 m). Confirm them with the planning authority (LASPPPA in Lagos).',
+};
+const USE_WORD: Record<BuildingUse, string> = { residential: 'residential', commercial: 'commercial', mixed: 'mixed use', hospitality: 'hotel', assembly: 'place of worship / assembly' };
 const NBC_RESIDENTIAL: Record<Density, Setbacks> = {
     high: { front: 4.5, rear: 2, left: 2, right: 2 },
     medium: { front: 6, rear: 3, left: 3, right: 3 },
@@ -80,7 +96,10 @@ export function readSetbackIntent(userTexts: string[]): SetbackIntent {
         const d = t.match(/\b(high|medium|low)[\s-]+density\b/i);
         if (d) intent.density = d[1].toLowerCase() as Density;
         if (/\bmixed[\s-]+use\b/i.test(t)) intent.use = 'mixed';
-        else if (/\b(hotel|office|shop|plaza|mall|commercial|church|auditorium)\b/i.test(t)) intent.use = 'commercial';
+        else if (/\b(church|mosque|chapel|cathedral|auditorium|place of worship|worship centre|assembly hall)\b/i.test(t)) intent.use = 'assembly';
+        else if (/\b(hotel|motel)\b/i.test(t)) intent.use = 'hospitality';
+        // the building, not a room in it: a villa's "Home Office" kept villas on the commercial setbacks (fixed 2026-10-20)
+        else if (/\b(office (building|block|complex|tower|space)s?|(shopping )?(plaza|mall)s?|shopping (centre|center|complex)|(commercial|retail) (building|property|use|development|complex)s?|shops? and offices?)\b/i.test(t)) intent.use = 'commercial';
         if (/\bcorner\s+(plot|piece|lot)\b/i.test(t)) intent.corner = true;
         const put = (side: string, v: number) => {
             const s = side.toLowerCase();
@@ -121,7 +140,7 @@ export function lawSetbacks(c: SetbackChoice, plot: Plot): Setbacks {
 
 export function choiceLabel(c: SetbackChoice): string {
     const law = c.law === 'lagos_2019' ? 'Lagos Planning Permit Regulations 2019' : 'National Building Code 2006';
-    const band = c.law === 'nbc_2006' && c.use === 'residential' ? `, ${c.density} density` : c.use !== 'residential' ? `, ${c.use}` : '';
+    const band = c.law === 'nbc_2006' && c.use === 'residential' ? `, ${c.density} density` : c.use !== 'residential' ? `, ${USE_WORD[c.use]}` : '';
     return `${law}${band}${c.corner ? ', corner plot' : ''}${c.outbuildingsInRear === false ? ', outbuildings kept out of the setbacks' : ''}`;
 }
 
@@ -136,13 +155,15 @@ export interface SetbackPlan {
     label: string;
     /** Sides where the user asked for less than the law requires. */
     below: Array<keyof Setbacks>;
+    /** Said on the plan when the use has no setback source of its own. */
+    fallback?: string;
 }
 
 export function planSetbacks(choice: SetbackChoice, plot: Plot, stated: Partial<Setbacks> = {}): SetbackPlan {
     const law = lawSetbacks(choice, plot);
     const setbacks = { ...law, ...stated };
     const below = (Object.keys(stated) as Array<keyof Setbacks>).filter(k => (stated[k] ?? Infinity) < law[k] - 1e-9);
-    return { choice, setbacks, law, label: choiceLabel(choice), below };
+    return { choice, setbacks, law, label: choiceLabel(choice), below, ...(USE_FALLBACK[choice.use] ? { fallback: USE_FALLBACK[choice.use] } : {}) };
 }
 
 export const buildableOf = (plot: Plot, s: Setbacks) => {
@@ -213,9 +234,10 @@ export function setbackAdvice(plan: SetbackPlan, plot: Plot, need: number, store
     const want = need * FOOTPRINT_SLACK;
     const b = buildableOf(plot, plan.setbacks);
     const fits = b.area + 1e-9 >= want;
-    if (fits && plan.below.length === 0) return null;
+    if (fits && plan.below.length === 0 && !plan.fallback) return null;
 
     const lines: string[] = [];
+    if (plan.fallback) lines.push(plan.fallback);
     if (!fits) lines.push(`The rooms add up to about ${Math.round(need)} m² on the fullest floor, about ${Math.round(want)} m² of building with walls and circulation; under ${plan.label} (${fmt(plan.setbacks)}) a ${plot.width} × ${plot.depth} m plot leaves ${b.width.toFixed(1)} × ${b.depth.toFixed(1)} m = ${Math.round(b.area)} m².`);
     const sq = fits ? null : squeezePct(b.area, need);
     if (sq !== null) lines.push(sq > 0
