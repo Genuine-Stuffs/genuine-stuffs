@@ -9,7 +9,7 @@
  */
 import type { SolvedLayout, PlacedRoom } from 'supabase/functions/ai-studio/schema';
 import { computePlacement, type WallSide } from '@/lib/aec/solver/engine_v2/doors';
-import { buildGraph, deriveSuites, unitEntrances, carsIn, VEHICLE_BAY, VEHICLE_END } from '@/lib/aec/solver/engine_v2/graph';
+import { buildGraph, deriveSuites, unitEntrances, carsIn, VEHICLE_BAY, VEHICLE_END, normalizeRoomType } from '@/lib/aec/solver/engine_v2/graph';
 import { hiveRooms } from '@/lib/aec/solver/engine_v2/gapfree/need';
 
 export interface OpeningType { kind: 'D' | 'W'; w: number; h: number }
@@ -50,7 +50,9 @@ export function roomTypeOf(layout: SolvedLayout, room_id: string): string {
   // the open-to-below void over a double-volume room: open to the landing, no door or window
   if (room_id.startsWith('atrium_')) return 'void';
   const rooms: any[] = layout.program_reference?.rooms ?? [];
-  return rooms.find(r => r.room_id === room_id || r.id === room_id)?.type ?? 'unknown';
+  // the planner's own names ("living" -> living_room, "master bedroom" -> master_bedroom):
+  // the door rules key on them, so a raw type left the lounge scored as a plain room (2026-10-20)
+  return normalizeRoomType(rooms.find(r => r.room_id === room_id || r.id === room_id)?.type) ?? 'unknown';
 }
 
 const isOpen = (t: string) => t === 'circulation' || t === 'hall' || t === 'landing' || t === 'void';
@@ -95,27 +97,40 @@ function heuristicDoorWall(room: PlacedRoom, rooms: PlacedRoom[], typeOf: (id: s
 }
 
 /** `at`: where the door leaf starts along its wall (m from the wall's start), when a
- * quarter along would open onto a void; a quarter along when absent. */
-/** A door on a wall that partly faces an open-to-below void: set in the
- * longest stretch of that wall clear of the void (a drop to the floor below). */
-function clearOfVoid(r: PlacedRoom, wall: WallSide, type: OpeningType, rooms: PlacedRoom[], typeOf: (id: string) => string): { at?: number } {
+ * quarter along would open into the wrong room; a quarter along when absent. */
+/** Where a door goes on its wall: in the stretch shared with the room it opens
+ * into (`target`, else the best neighbour there: hall or landing, then a living
+ * room, then any room; never a void), so a wall shared by the hall and a
+ * bathroom doesn't put the door into the bathroom. A quarter along, as before,
+ * when that already lands in the right stretch. */
+function doorStretch(r: PlacedRoom, wall: WallSide, type: OpeningType, rooms: PlacedRoom[], typeOf: (id: string) => string, target?: PlacedRoom): { at?: number } {
   const horizontal = wall === 'top' || wall === 'bottom';
   const lo = horizontal ? r.x : r.y, len = horizontal ? r.width : r.depth;
   const line = wall === 'top' ? r.y : wall === 'bottom' ? r.y + r.depth : wall === 'left' ? r.x : r.x + r.width;
-  const cuts = rooms.filter(q => q.room_id !== r.room_id && typeOf(q.room_id) === 'void').flatMap(q => {
+  const own = norm(typeOf(r.room_id));
+  const score = (q: PlacedRoom) => {
+    if (target) return q.room_id === target.room_id ? 1 : -1;
+    const t = norm(typeOf(q.room_id));
+    if (t === 'void') return -1; // a drop to the floor below
+    if (isOpen(t) || t === 'stairwell' || t === 'foyer' || q.room_id.startsWith('corridor_floor')) return 100;
+    if (SERVICE_ROOMS.test(own) && /bedroom/.test(t)) return 90;
+    if (/^(living_room|family_room|dining_room)$/.test(t)) return 60;
+    if (SERVICE_ROOMS.test(t) || /garage|store|wardrobe/.test(t)) return 5;
+    return 20;
+  };
+  const stretches = rooms.filter(q => q.room_id !== r.room_id).flatMap(q => {
     const touches = horizontal ? Math.abs(q.y + q.depth - line) < TOLERANCE || Math.abs(q.y - line) < TOLERANCE
       : Math.abs(q.x + q.width - line) < TOLERANCE || Math.abs(q.x - line) < TOLERANCE;
-    const a = Math.max(lo, horizontal ? q.x : q.y), b = Math.min(lo + len, horizontal ? q.x + q.width : q.y + q.depth);
-    return touches && b - a > TOLERANCE ? [[a - lo, b - lo] as const] : [];
-  }).sort((p, q) => p[0] - q[0]);
-  if (!cuts.length) return {};
-  // the clear stretches between the void's pieces; the longest one takes the door
-  const free: Array<[number, number]> = [];
-  let at = 0;
-  for (const [a, b] of cuts) { if (a > at) free.push([at, a]); at = Math.max(at, b); }
-  if (at < len) free.push([at, len]);
-  const best = free.sort((p, q) => (q[1] - q[0]) - (p[1] - p[0]))[0];
-  return best && best[1] - best[0] >= type.w ? { at: best[0] + Math.min(0.1, (best[1] - best[0] - type.w) / 2) } : {};
+    const a = Math.max(lo, horizontal ? q.x : q.y) - lo, b = Math.min(lo + len, horizontal ? q.x + q.width : q.y + q.depth) - lo;
+    return touches && b - a >= type.w ? [{ a, b, s: score(q) }] : [];
+  }).filter(x => x.s >= 0);
+  if (!stretches.length) return {};
+  const best = Math.max(...stretches.map(x => x.s));
+  const ok = stretches.filter(x => x.s === best);
+  const q = Math.max(0, Math.min(len * 0.25, len - type.w)); // where the drawing puts it by default
+  if (ok.some(x => q >= x.a - 1e-6 && q + type.w <= x.b + 1e-6)) return {};
+  const x = ok.sort((u, v) => (v.b - v.a) - (u.b - u.a))[0];
+  return { at: x.a + Math.min(0.1, (x.b - x.a - type.w) / 2) };
 }
 
 export interface PlannedDoor { room_id: string; wall: WallSide; type: OpeningType; at?: number }
@@ -267,7 +282,7 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
       const bedroom = rooms.find(q => q.room_id === ownBedroom.get(r.room_id));
       const wall = (bedroom && sharedWall(r, bedroom)) || (entryRoom && sharedWall(r, entryRoom)) || (passage && sharedWall(r, passage)) || spec?.wall || heuristicDoorWall(r, rooms, typeOf, ext);
       const type = spec?.interior || SERVICE_ROOMS.test(t) ? DOOR_SERVICE : DOOR_ROOM;
-      if (wallLength(r, wall) >= type.w + DOOR_CLEAR) doors.set(r.room_id, { room_id: r.room_id, wall, type, ...clearOfVoid(r, wall, type, rooms, typeOf) });
+      if (wallLength(r, wall) >= type.w + DOOR_CLEAR) doors.set(r.room_id, { room_id: r.room_id, wall, type, ...doorStretch(r, wall, type, rooms, typeOf, bedroom ?? entryRoom ?? passage) });
     }
     if (t === 'stairwell' || t === 'passage' || isOutside(t)) continue;
     const sizes = LARGE_ROOMS.test(t) ? [WIN_LARGE, WIN_ROOM, WIN_SMALL]

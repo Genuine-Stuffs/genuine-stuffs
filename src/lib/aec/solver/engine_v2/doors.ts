@@ -168,7 +168,8 @@ export function computePlacement(
         // ── DOOR PLACEMENT ─────────────────────────────────────────────────
         if (!isGarage(type)) {
             const wallScores: Partial<Record<WallSide, number>> = {};
-            // a wall onto an open-to-below void is a drop to the floor below: never a door there
+            // a wall onto an open-to-below void is a drop to the floor below: a door goes there
+            // only in a stretch facing a room (the drawing places it, openings.ts doorStretch)
             const overVoid = new Set<WallSide>();
 
             for (const neighbour of rooms) {
@@ -183,9 +184,10 @@ export function computePlacement(
             // External walls get a penalty — doors prefer internal walls
             const ext = externalEdges(room, buildingW, buildingH);
             const sides: WallSide[] = ['bottom', 'right', 'top', 'left'];
+            const onlyVoid = (w: WallSide) => overVoid.has(w) && wallScores[w] === undefined;
             const ranked = sides
                 .filter(w => !ext[w])           // exclude external walls
-                .sort((a, b) => +overVoid.has(a) - +overVoid.has(b) || (wallScores[b] ?? 0) - (wallScores[a] ?? 0));
+                .sort((a, b) => +onlyVoid(a) - +onlyVoid(b) || (wallScores[b] ?? 0) - (wallScores[a] ?? 0));
 
             const doorWall = ranked[0] ?? sides.find(w => !ext[w]) ?? 'bottom';
             const isInterior = isService(type); // bath/wardrobe = interior swing
