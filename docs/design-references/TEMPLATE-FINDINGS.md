@@ -382,6 +382,8 @@ On the 27 sample plans of the earlier door work (villa fixtures with the owner's
 
 **#1 done (2026-10-20):** the label aliases are in `graph.ts` (type aliases and name keywords; car-space names are checked first, so "Car Porch" is parking, not a porch; gatehouse names now include plain "Security"). Labels recognised 52 → 74 of 83; the 9 left are deliberate (`Cabinet`, `Small cabinet`, the typo `Cym`, `Opt. Wine room`, and T16's estate items). Across every fixture and benchmark brief only 4 rooms change zone, all previously wrong (duplex car porch and gen house, flats security post, hotel generator house). Duplex benchmark 31/28 of 40 (was 30/28); harness 186/186, 240/240.
 
+**#2 done (2026-10-20):** `openingSchedule` numbers doors by role — front door D1, room doors, bath/wardrobe doors, vehicle doors last (ties by size); windows unchanged (largest first). 24 sample plans: the front door is D1 in 0 → 24, a vehicle door D1 in 24 → 0. Browser (villa): D1 0.9 x 2.5 front door, D2 rooms, D3 baths, D4 7.5 m garage door. Seen while checking: an open car porch still gets a "vehicle door" in the schedule (pre-existing; templates draw carports open).
+
 **Recommended next was #1** (the label aliases). It's the change with the broadest evidence, it directly serves your earlier goal that rooms stop defaulting to "private", it's low risk, and it's fully measurable. **#3 is the most valuable planning change**, but it changes the planner's rules, so it needs your go-ahead first.
 
 ## 7. What I couldn't learn here, and what would help

@@ -322,9 +322,11 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
 
 export interface ScheduleRow { tag: string; type: OpeningType; count: number }
 
-/** The plan's opening types, tagged as on the template: doors D1… widest
- * first, windows W1… largest first, over every floor and outbuilding, so a
- * tag means the same in every view. */
+/** The plan's opening types, tagged as on the template: doors D1… by role —
+ * the front door D1, then room doors, bath/wardrobe doors, and vehicle doors
+ * last (the templates' schedules, TEMPLATE-FINDINGS.md §3.6; a garage door
+ * was D1 when doors went widest first) — windows W1… largest first, over
+ * every floor and outbuilding, so a tag means the same in every view. */
 export function openingSchedule(layout: SolvedLayout): { tagOf: (t: OpeningType) => string; rows: ScheduleRow[] } {
   const floors = [...new Set(layout.placed_rooms.map(r => r.floor))];
   const used = new Map<OpeningType, number>();
@@ -339,8 +341,9 @@ export function openingSchedule(layout: SolvedLayout): { tagOf: (t: OpeningType)
   if (ground.entrance) add(ground.entrance.type);
   if (ground.yard) add(ground.yard.type);
   ground.vehicles.forEach(v => add(v.type));
+  const role = (t: OpeningType) => t === DOOR_ENTRANCE ? 0 : t === DOOR_ROOM ? 1 : t === DOOR_SERVICE ? 2 : 3;
   const kind = (k: 'D' | 'W') => [...used.keys()].filter(t => t.kind === k)
-    .sort((a, b) => b.w * b.h - a.w * a.h || b.w - a.w);
+    .sort((a, b) => (k === 'D' ? role(a) - role(b) : 0) || b.w * b.h - a.w * a.h || b.w - a.w);
   const rows: ScheduleRow[] = [];
   for (const k of ['D', 'W'] as const)
     kind(k).forEach((type, i) => rows.push({ tag: `${k}${i + 1}`, type, count: used.get(type)! }));
