@@ -157,7 +157,8 @@ export interface PlannedEntrance { room_id: string; type: OpeningType; x: number
  * `at` is where its leaf starts along the wall (m from the wall's start). */
 export interface PlannedYardDoor { room_id: string; wall: WallSide; type: OpeningType; at: number }
 /** `at`: the opening's start along its wall (m from the wall's start, x for top/bottom, y for left/right). */
-export interface PlannedVehicleDoor { room_id: string; wall: WallSide; at: number; type: OpeningType }
+/** `open`: a carport / car porch / parking bay: its car side is open (no door, not in the schedule). */
+export interface PlannedVehicleDoor { room_id: string; wall: WallSide; at: number; type: OpeningType; open?: boolean }
 export interface FloorOpenings { doors: Map<string, PlannedDoor>; windows: PlannedWindow[]; entrance: PlannedEntrance | null; yard: PlannedYardDoor | null; vehicles: PlannedVehicleDoor[] }
 
 const KITCHENS = /^(kitchen|wet_kitchen|kitchenette|outdoor_kitchen|dirty_kitchen)$/;
@@ -237,14 +238,18 @@ function vehicleDoor(layout: SolvedLayout, r: PlacedRoom, W: number, D: number, 
   const brief: Array<{ room_id?: string; id?: string; name?: string }> = layout.program_reference?.rooms ?? [];
   const name = brief.find(q => q.room_id === r.room_id || q.id === r.room_id)?.name ?? '';
   if (!GARAGES.test(norm(typeOf(r.room_id))) && !/\bgarage\b/i.test(name)) return null;
+  // only an enclosed garage has a door; a carport, car porch or parking bay is open to the street
+  // (the building templates, TEMPLATE-FINDINGS.md §3.5)
+  const open = !(norm(typeOf(r.room_id)) === 'garage' || /\bgarage\b/i.test(name)) || /\b(car ?port|porch|parking)\b/i.test(name);
   const ext = externalEdges(r, W, D);
   const cars = carsIn(name);
   for (const wall of ['bottom', 'left', 'right', 'top'] as WallSide[]) {
     const L = wallLength(r, wall);
     if (!ext[wall] || L < VEHICLE_BAY + 2 * VEHICLE_END) continue;
     const fit = Math.floor((L - 2 * VEHICLE_END) / VEHICLE_BAY + 1e-9);
-    const w = Math.round(Math.min(L - 2 * VEHICLE_END, (cars > 0 ? Math.min(cars, fit) : fit) * VEHICLE_BAY) * 10) / 10;
-    return { room_id: r.room_id, wall, at: (L - w) / 2, type: vehicleType(w) };
+    const w = open ? Math.round((L - 2 * VEHICLE_END) * 10) / 10 // the whole side between end posts
+      : Math.round(Math.min(L - 2 * VEHICLE_END, (cars > 0 ? Math.min(cars, fit) : fit) * VEHICLE_BAY) * 10) / 10;
+    return { room_id: r.room_id, wall, at: (L - w) / 2, type: open ? { kind: 'D', w, h: VEHICLE_H } : vehicleType(w), ...(open ? { open } : {}) };
   }
   return null;
 }
@@ -340,7 +345,7 @@ export function openingSchedule(layout: SolvedLayout): { tagOf: (t: OpeningType)
   const ground = planOpenings(layout, 0);
   if (ground.entrance) add(ground.entrance.type);
   if (ground.yard) add(ground.yard.type);
-  ground.vehicles.forEach(v => add(v.type));
+  ground.vehicles.filter(v => !v.open).forEach(v => add(v.type)); // an open car side isn't a door
   const role = (t: OpeningType) => t === DOOR_ENTRANCE ? 0 : t === DOOR_ROOM ? 1 : t === DOOR_SERVICE ? 2 : 3;
   const kind = (k: 'D' | 'W') => [...used.keys()].filter(t => t.kind === k)
     .sort((a, b) => (k === 'D' ? role(a) - role(b) : 0) || b.w * b.h - a.w * a.h || b.w - a.w);

@@ -943,10 +943,11 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               return (
                 <g key={`veh-${v.room_id}`} data-vehicle-door={v.room_id} data-wall={v.wall}>
                   <rect {...gap} fill="white" />
-                  {horizontal
+                  {/* an open carport side: the gap only, no door */}
+                  {!v.open && (horizontal
                     ? <line x1={s0} y1={edge + sgn * IN} x2={s1} y2={edge + sgn * IN} stroke="#1e293b" strokeWidth={0.8} strokeDasharray="4 2" />
-                    : <line x1={edge + sgn * IN} y1={s0} x2={edge + sgn * IN} y2={s1} stroke="#1e293b" strokeWidth={0.8} strokeDasharray="4 2" />}
-                  {renderTag(tagOf(v.type), tag[0], tag[1])}
+                    : <line x1={edge + sgn * IN} y1={s0} x2={edge + sgn * IN} y2={s1} stroke="#1e293b" strokeWidth={0.8} strokeDasharray="4 2" />)}
+                  {!v.open && renderTag(tagOf(v.type), tag[0], tag[1])}
                 </g>
               );
             })}
