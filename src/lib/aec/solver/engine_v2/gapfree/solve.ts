@@ -29,6 +29,7 @@ import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, place
 import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES, FLAT_BOTTOM_UP, ATRIUM_UP } from "./config";
 import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP, splitGatehouses, placeGatehouses, isGenerator, withoutUnits } from "./outbuildings";
 import { hotelLayout } from "./hotel";
+import { withHallNotes } from "../../structural";
 import { buildingSupport } from "../building_support";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
@@ -340,7 +341,7 @@ function* rearDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: 
 export function solveGapfree(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): SolvedLayout {
     const gen = planDriver(program, envelope, options);
     for (let step = gen.next(); ;) {
-        if (step.done) return step.value as SolvedLayout;
+        if (step.done) return withHallNotes(step.value as SolvedLayout);
         step = gen.next(runBatch(step.value as RestartBatch)); // not done: a batch
     }
 }
@@ -353,7 +354,7 @@ export async function solveGapfreeAsync(
 ): Promise<SolvedLayout> {
     const gen = planDriver(program, envelope, options);
     for (let step = gen.next(); ;) {
-        if (step.done) return step.value as SolvedLayout;
+        if (step.done) return withHallNotes(step.value as SolvedLayout);
         step = gen.next(pickWinner(await runAll(step.value as RestartBatch))); // not done: a batch
     }
 }

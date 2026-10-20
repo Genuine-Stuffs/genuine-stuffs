@@ -175,3 +175,21 @@ export class StructuralEngine {
 }
 
 export const structuralEngine = new StructuralEngine();
+
+/** The plan with a note for each long-span hall that needs an engineer's eye:
+ * a span beyond the long-span range, or columns of the floors above standing
+ * over it (they need a transfer structure). Unchanged when there's none. */
+export function withHallNotes(layout: SolvedLayout): SolvedLayout {
+    if (!layout.placed_rooms?.length || !longSpanRooms(layout).length) return layout;
+    const halls = structuralEngine.generateSkeleton(layout).halls;
+    const brief: any[] = (layout.program_reference as any)?.rooms ?? [];
+    const name = (id: string) => brief.find(q => (q.room_id ?? q.id) === id)?.name ?? id;
+    const notes: NonNullable<SolvedLayout['placement_issues']> = [];
+    for (const h of halls) {
+        if (!h.within_range) notes.push({ room_id: h.room_id, rule: 'LONG_SPAN_OUT_OF_RANGE',
+            detail: `${name(h.room_id)} needs a ${+h.span_m.toFixed(1)} m clear span, beyond the long-span range (portal frame or steel truss, up to about ${LONG_SPAN_MAX_M} m). It needs a structural engineer's own scheme, or a narrower hall.` });
+        if (h.columns_above) notes.push({ room_id: h.room_id, rule: 'LONG_SPAN_TRANSFER',
+            detail: `${h.columns_above} column${h.columns_above > 1 ? 's' : ''} of the floor${h.columns_above > 1 ? 's' : ''} above stand${h.columns_above > 1 ? '' : 's'} over ${name(h.room_id)}, which has no columns: they need a transfer structure (a deeper truss or a transfer beam). Confirm with a structural engineer.` });
+    }
+    return notes.length ? { ...layout, placement_issues: [...(layout.placement_issues ?? []), ...notes] } : layout;
+}

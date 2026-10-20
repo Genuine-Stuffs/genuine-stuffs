@@ -753,8 +753,11 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               <rect x={x - (beam.end_x === beam.start_x ? halfCol * 2 : 0)} y={y - (beam.end_y === beam.start_y ? halfCol * 2 : 0)}
                 width={beam.end_x === beam.start_x ? w * 2 : w} height={beam.end_y === beam.start_y ? h * 2 : h}
                 className="fill-violet-500/25 stroke-violet-700 stroke-[2]" />
-              <text x={x + (beam.end_x - beam.start_x) * scale / 2 + (beam.end_x === beam.start_x ? 6 : 0)} y={y + (beam.end_y - beam.start_y) * scale / 2 - (beam.end_y === beam.start_y ? 5 : 0)}
-                textAnchor={beam.end_x === beam.start_x ? 'start' : 'middle'} style={{ fontSize: '7px', fontWeight: 800, fill: '#5b21b6' }}>
+              {/* along its member: members side by side keep their labels apart */}
+              <text transform={beam.end_x === beam.start_x
+                  ? `translate(${x - 5}, ${y + (beam.end_y - beam.start_y) * scale / 2}) rotate(-90)`
+                  : `translate(${x + (beam.end_x - beam.start_x) * scale / 2}, ${y - 5})`}
+                textAnchor="middle" style={{ fontSize: '7px', fontWeight: 800, fill: '#5b21b6' }}>
                 LONG-SPAN TRUSS {beam.span_m.toFixed(1)} m
               </text>
             </g>
@@ -785,6 +788,24 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               height={size}
               className="fill-red-500 stroke-red-700 stroke-[1]"
             />
+          );
+        })}
+        {/* a long-span hall that needs an engineer's eye: beyond the range, or carrying columns above */}
+        {(skeleton?.halls ?? []).filter(h => h.floor === activeFloor && (!h.within_range || h.columns_above)).map(h => {
+          const r = layout.placed_rooms.find(q => q.room_id === h.room_id && q.floor === h.floor);
+          if (!r) return null;
+          const lines = [
+            ...(!h.within_range ? [`${+h.span_m.toFixed(1)} m SPAN: BEYOND THE LONG-SPAN RANGE`] : []),
+            ...(h.columns_above ? [`CARRIES ${h.columns_above} COLUMN${h.columns_above > 1 ? 'S' : ''} ABOVE: TRANSFER STRUCTURE`] : []),
+          ];
+          const cx = xOffset + (r.x + r.width / 2) * scale, top = yOffset + r.y * scale + 14;
+          return (
+            <g key={`hall-${h.room_id}`} data-hall-flag>
+              <rect x={cx - 150} y={top - 10} width={300} height={lines.length * 11 + 6} rx={3} fill="#fef2f2" stroke="#dc2626" strokeWidth={1} />
+              {lines.map((t, i) => (
+                <text key={i} x={cx} y={top + i * 11} textAnchor="middle" style={{ fontSize: '7.5px', fontWeight: 800, fill: '#b91c1c' }}>{t}</text>
+              ))}
+            </g>
           );
         })}
       </g>
