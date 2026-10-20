@@ -68,12 +68,13 @@ import { AECSitePlan } from '@/components/aec/AECSitePlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { useLayoutOptions, layoutSignature, solveLayoutInWorker, layoutModeSetting } from '@/hooks/use-layout-options';
-import { explainFailure } from '@/lib/aec/solver/engine_v2/failure_messages';
+import { explainFailure, explainUnsupported, isPlan } from '@/lib/aec/solver/engine_v2/failure_messages';
+import { buildingSupport } from '@/lib/aec/solver/engine_v2/building_support';
 import { plotSize } from '@/lib/aec/solver/engine_v2/plot';
 import { withMinimums } from '@/lib/aec/solver/engine_v2/minimums';
 import { withFacades } from '@/lib/aec/solver/engine_v2/facades';
 import { withAtrium } from '@/lib/aec/solver/engine_v2/atrium';
-import { readSetbackIntent, defaultChoice, setbackStudy, SetbackChoice, SetbackStudy } from '@/lib/aec/setbacks';
+import { readSetbackIntent, defaultChoice, setbackStudy, setbackAlternatives, SetbackChoice, SetbackStudy } from '@/lib/aec/setbacks';
 import { renderPrompt } from '@/lib/aec/render_prompt';
 import { ADVISORY_RULES } from '@/lib/aec/solver/engine_v2/placement_validator';
 import { runComplianceCheck, ComplianceReport } from '@/lib/aec/compliance_engine';
@@ -586,6 +587,7 @@ const AIStudio = () => {
         setIsGenerating(true);
         setGeneratedImage(null);
         setVisualUrl(null); // Clear previous vision state
+        setComplianceReport(null); // a new design's check, or none: never the last design's
         
         // Capture prompt BEFORE clearing the input field
         const submittedPrompt = promptText;
@@ -675,8 +677,13 @@ const AIStudio = () => {
             const cleanText = sanitizeResultText(data.result);
             const hasDesignData = !!(finalDesignData && (finalDesignData.rooms || finalDesignData.architectural_layout || finalDesignData.status));
 
+            // A building type the planner doesn't draw yet (hotel, church): say so, and draw,
+            // picture and check nothing (owner's engine brief, capability A)
+            const support = hasDesignData && finalDesignData.rooms ? buildingSupport(finalDesignData) : null;
+            if (support && !support.supported) finalDesignData.unsupported = support;
+
             // Run deterministic client-side solver if spatial program intent is provided
-            if (hasDesignData && finalDesignData.rooms) {
+            if (hasDesignData && finalDesignData.rooms && !finalDesignData.unsupported) {
                 try {
                     // The plot's width x depth from the user's words ("a 15m × 30m plot");
                     // else the square of the stated area; else a standard 15x30m plot.
@@ -735,8 +742,10 @@ const AIStudio = () => {
                     console.log(`[SOLVER] ${solved.solver_status}: ${solved.placed_rooms.length} rooms placed`, solved);
                     console.log('[SOLVER_DEBUG] placedRooms:', JSON.stringify(solved.placed_rooms, null, 2));
 
-                    // Run deterministic compliance check against NBC 2006 rules
-                    try {
+                    // Run deterministic compliance check against NBC 2006 rules, on a plan only:
+                    // with no plan there is nothing to check, so no "passed" either
+                    if (!isPlan(solved)) setComplianceReport(null);
+                    else try {
                         const report = runComplianceCheck({
                             rooms: finalDesignData.rooms,
                             plot_size_sqm: finalDesignData.brief_reference?.plot_size_sqm,
@@ -771,7 +780,7 @@ const AIStudio = () => {
 
             // --- PATH 3: Decoupled High-Priority Rendering ---
             // Only fire if the AI deciphered that an image is appropriate
-            if (data.data?.image_prompt) {
+            if (data.data?.image_prompt && isPlan(finalDesignData?.solvedLayout)) {
                 setIsVisualizing(true);
                 try {
                     const { data: vizData, error: vizError } = await supabase.functions.invoke('ai-studio', {
@@ -869,7 +878,9 @@ const AIStudio = () => {
     // A failed solve has no geometry: explain why instead of drawing an
     // empty plan. Layouts saved before solver_status existed render as before.
     const layoutFailed = stableLayout?.solver_status === 'UNSAT' || stableLayout?.solver_status === 'TIMEOUT';
-    const failureExplanation = layoutFailed ? explainFailure(stableLayout?.solver_failure) : null;
+    const failureExplanation = designPackage?.unsupported
+        ? explainUnsupported(designPackage.unsupported.kind, designPackage.unsupported.rooms)
+        : layoutFailed ? explainFailure(stableLayout?.solver_failure, setbackAlternatives(designPackage?.setback)) : null;
 
     // ── Phase 5: placement issues surfaced from SolveResult, no longer
     // console-only. Distinguishes SEVERE (CORRIDOR_ADJACENCY/EXTERNAL_WALL —
@@ -1357,7 +1368,7 @@ const AIStudio = () => {
                                                                     <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
                                                                     <div>
                                                                         <p className="text-sm font-black text-amber-100">{failureExplanation.title}</p>
-                                                                        <p className="text-xs text-amber-200/80 mt-1">No floor plan was drawn, so nothing below is based on a layout yet.</p>
+                                                                        <p className="text-xs text-amber-200/80 mt-1">No floor plan was drawn, so there is no picture of the building and no building-code check: both need a plan.</p>
                                                                     </div>
                                                                 </div>
                                                                 <div className="space-y-1.5">

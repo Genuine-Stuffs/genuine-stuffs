@@ -168,6 +168,13 @@ export interface SetbackOption {
     squeeze: number | null;
 }
 
+/** For a plan that couldn't fit: the other laws whose setbacks would hold
+ * the rooms (at full size, or squeezed), in words, at most two. */
+export function setbackAlternatives(study: { options: SetbackOption[] } | undefined): string[] {
+    return (study?.options ?? []).filter(o => o.fits || o.squeeze !== null).slice(0, 2).map(o =>
+        `Pick "${o.label}" under Setbacks below, or name it in your brief: it leaves ${Math.round(o.area)} m², ${o.fits ? 'enough for every room at full size' : `enough with every room about ${o.squeeze}% smaller`}.`);
+}
+
 export interface SetbackAdvice {
     /** One line saying what conflicts, with the numbers. */
     message: string;

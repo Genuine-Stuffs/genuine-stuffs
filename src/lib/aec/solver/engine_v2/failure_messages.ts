@@ -5,6 +5,7 @@
  */
 
 import type { SolverFailure, SolverFailureReason } from '../../../../../supabase/functions/ai-studio/schema';
+import type { UnsupportedKind } from './building_support';
 
 export interface FailureExplanation {
     title: string;
@@ -50,12 +51,37 @@ const EXPLAIN: Record<string, Explain> = {
  * Output: a title, one reason per failure code, and de-duplicated suggestions.
  * Never throws; unknown codes fall back to the S-002 wording.
  */
-export function explainFailure(failure: SolverFailure | undefined): FailureExplanation {
+export function explainFailure(failure: SolverFailure | undefined, alternatives: string[] = []): FailureExplanation {
     const reasons = failure?.reasons?.length ? failure.reasons : [{ code: 'S-002', detail: '' }];
     const explained = reasons.map(r => (EXPLAIN[r.code] ?? EXPLAIN['S-002'])(r));
     return {
         title: `We couldn't fit the ${floorName(failure?.floor ?? 0)} of this design`,
         reasons: [...new Set(explained.map(e => e.reason))],
-        suggestions: [...new Set(explained.map(e => e.suggestion))],
+        // the setbacks of another law that would fit come first: the cheapest change
+        suggestions: [...new Set([...alternatives, ...explained.map(e => e.suggestion)])],
+    };
+}
+
+/** A real plan: solved (fully or with compromises) and with rooms placed. */
+export const isPlan = (L: { solver_status?: string; placed_rooms?: unknown[] } | null | undefined): boolean =>
+    !!L && L.solver_status !== 'UNSAT' && L.solver_status !== 'TIMEOUT' && (L.placed_rooms?.length ?? 0) > 0;
+
+/** A brief for a building type the planner doesn't draw yet (building_support.ts). */
+export function explainUnsupported(kind: UnsupportedKind, rooms: string[]): FailureExplanation {
+    const named = rooms.length ? ` (${list(rooms.slice(0, 3))})` : '';
+    return kind === 'assembly' ? {
+        title: "Churches and other assembly buildings aren't supported yet",
+        reasons: [
+            `This brief is for an assembly building${named}. AI Studio plans homes and blocks of flats today.`,
+            'A hall for a congregation needs a column-free long-span roof, seating with aisles, and exits and restrooms sized to the number of people, from the building code. Those are being built; a plan drawn without them would be wrong, so none is drawn.',
+        ],
+        suggestions: ['Nothing to change in your brief: support for assembly buildings is on our roadmap.'],
+    } : {
+        title: "Hotels aren't supported yet",
+        reasons: [
+            `This brief is for a hotel${named}. AI Studio plans homes and blocks of flats today.`,
+            'A hotel needs guest floors along a central corridor, a lift and fire stairs sized to the number of guests, and a restaurant with a long-span roof. Those are being built; a plan drawn without them would be wrong, so none is drawn.',
+        ],
+        suggestions: ['Nothing to change in your brief: support for hotels is on our roadmap.'],
     };
 }
