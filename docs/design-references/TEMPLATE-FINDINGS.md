@@ -380,7 +380,9 @@ On the 27 sample plans of the earlier door work (villa fixtures with the owner's
 | 8 | Bungalow split-bedroom preference | T11, T12 | medium | bungalow benchmark |
 | 9 | Great room (living + dining + kitchen as one space) and courtyard/light-well types | T1–T4, T8–T16; T10, T14 | large (the gap-free engine plans walled rectangles) | — |
 
-**Recommended next: #1** (the label aliases). It's the change with the broadest evidence, it directly serves your earlier goal that rooms stop defaulting to "private", it's low risk, and it's fully measurable. **#3 is the most valuable planning change**, but it changes the planner's rules, so it needs your go-ahead first.
+**#1 done (2026-10-20):** the label aliases are in `graph.ts` (type aliases and name keywords; car-space names are checked first, so "Car Porch" is parking, not a porch; gatehouse names now include plain "Security"). Labels recognised 52 → 74 of 83; the 9 left are deliberate (`Cabinet`, `Small cabinet`, the typo `Cym`, `Opt. Wine room`, and T16's estate items). Across every fixture and benchmark brief only 4 rooms change zone, all previously wrong (duplex car porch and gen house, flats security post, hotel generator house). Duplex benchmark 31/28 of 40 (was 30/28); harness 186/186, 240/240.
+
+**Recommended next was #1** (the label aliases). It's the change with the broadest evidence, it directly serves your earlier goal that rooms stop defaulting to "private", it's low risk, and it's fully measurable. **#3 is the most valuable planning change**, but it changes the planner's rules, so it needs your go-ahead first.
 
 ## 7. What I couldn't learn here, and what would help
 

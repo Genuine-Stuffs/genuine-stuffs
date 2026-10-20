@@ -84,21 +84,37 @@ const TYPE_TO_ZONE: Record<string, ZoneType> = {
     hall:           'circ',
     landing:        'circ',
     stairwell:      'circ',
+    // seen in the building templates (docs/design-references/TEMPLATE-FINDINGS.md §3.1)
+    carport:        'service',
+    parking:        'service',
+    gym:            'private',
+    veranda:        'social',
+    courtyard:      'social',
+    bq:             'private',
+    gen_house:      'service',
 };
 
 // Fallback keyword lists — only consulted when "type" is missing or
 // unrecognised. Kept intentionally small; the Hive's "type" field should
 // cover the overwhelming majority of cases going forward.
 const LABEL_FALLBACK: Array<[ZoneType, string[]]> = [
-    ['circ',    ['corridor', 'hall', 'landing', 'stairwell', 'stair', 'void']],
+    // car spaces first: a "Car Porch" is parking, not an open porch
+    ['service', ['car porch', 'carport', 'car park', 'parking', 'garage', 'place for car',
+                 'gen house', 'generator']],
+    ['circ',    ['corridor', 'hall', 'landing', 'stairwell', 'stair', 'void',
+                 'passage']],
     ['social',  ['living', 'lounge', 'dining', 'foyer', 'family', 'entry',
                  'reception', 'great', 'sunken', 'terrace', 'veranda',
-                 'verandah', 'balcony', 'patio', 'loggia']],
-    ['service', ['kitchen', 'pantry', 'wet', 'laundry', 'garage', 'utility',
-                 'store', 'boiler']],
+                 'verandah', 'balcony', 'patio', 'loggia',
+                 'entrance', 'porch', 'lanai', 'breakfast', 'brkfst',
+                 'courtyard', 'open to sky']],
+    ['service', ['kitchen', 'pantry', 'wet', 'laundry', 'utility',
+                 'store', 'storage', 'boiler', 'technical', 'plant room',
+                 'security']],
     ['private', ['bedroom', 'master', 'bath', 'wc', 'toilet', 'shower',
                  'wardrobe', 'dressing', 'ensuite', 'en-suite', 'study',
-                 'office', 'guest']],
+                 'office', 'guest', 'bed', 'closet', 'w.i.c', 'walk-in',
+                 'linen', 'gym', 'quarter']],
 ];
 
 /** The Hive's "type" is free text: the same room arrives as
@@ -113,6 +129,16 @@ const TYPE_ALIASES: Record<string, string> = {
     living: 'living_room', lounge: 'living_room', sitting_room: 'living_room',
     dining: 'dining_room', family: 'family_room', family_lounge: 'family_room',
     master: 'master_bedroom', corridor: 'circulation',
+    // labels from the building templates (TEMPLATE-FINDINGS.md §3.1), same meaning
+    closet: 'wardrobe', walk_in_closet: 'wardrobe', 'w.i.c.': 'wardrobe', wic: 'wardrobe',
+    linen: 'store', storage: 'store', storeroom: 'store',
+    breakfast: 'dining_room', brkfst: 'dining_room',
+    entrance: 'foyer', entry: 'foyer',
+    passage: 'circulation',
+    car_porch: 'carport', car_park: 'parking',
+    verandah: 'veranda', porch: 'veranda', lanai: 'veranda',
+    technical_room: 'utility', plant_room: 'utility',
+    gym_room: 'gym', open_to_sky: 'courtyard', light_well: 'courtyard',
 };
 
 export function normalizeRoomType(type: string | undefined): string | undefined {

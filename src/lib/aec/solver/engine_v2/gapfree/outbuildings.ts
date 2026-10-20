@@ -105,7 +105,7 @@ export function placeOutbuildings(units: ObUnit[], d: number, W: number, house: 
  * front setback against the front boundary, beside the house's line; the
  * plan says to confirm it with the planning authority. */
 const GATE_TYPE = /^(security(_post|_house|_room)?|gate_?house|guard_?house|gatehouse)$/;
-const GATE_NAME = /\bsecurity (post|house|room)\b|\bgate ?house\b|\bguard ?house\b/i;
+const GATE_NAME = /\bsecurity( (post|house|room))?\b|\bgate ?house\b|\bguard ?house\b/i;
 const GATE_MIN = 2.4, GATE_CLEAR = 1, GATE_SIDE = 0.5;
 const gateSize = (u: ObUnit) => {
     const a = u.rooms.reduce((s, r) => s + r.area, 0), w = Math.max(GATE_MIN, ceilCell(Math.sqrt(a)));
