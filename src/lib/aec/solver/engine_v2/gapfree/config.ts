@@ -64,3 +64,10 @@ export const ATRIUM_UP = flag("ATRIUM_UP", true);
 /** The room below standing under the double-volume void is a strong preference,
  * noted when missed, not a miss (owner 2026-10-20: as a hard rule 46 -> 17 of 50 villas solved). */
 export const ATRIUM_SOFT = flag("ATRIUM_SOFT", true);
+/** An upstairs bathroom prefers to stand over a wet room below (bath, WC,
+ * kitchen, laundry): short soil stacks, as the templates draw it. A preference
+ * that steers the search, never a miss (template findings #3, 2026-10-20).
+ * Owner chose weight 20: duplex 28 -> 35 of 40 solved, stacked 16 -> 24 %;
+ * villas without a void 46 -> 43 of 50 (40 gave 31 % stacked, 42 of 50). */
+export const WET_STACK = flag("WET_STACK", true);
+export const WET_STACK_W = Number(env.WET_STACK_W ?? 20);

@@ -7,7 +7,7 @@ import { RoomGraph, GraphNode, Facade, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARA
 import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
 import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
-import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P, ENTRY_W, ZONES, FLAT_PASSAGE, ATRIUM_SOFT } from "./config";
+import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P, ENTRY_W, ZONES, FLAT_PASSAGE, ATRIUM_SOFT, WET_STACK_W } from "./config";
 
 const CELL = 0.5;
 export { STAIR_IN_HALL, FOYER_VIA_HALL, TERRACE_LIGHT };
@@ -36,6 +36,8 @@ export interface FloorSpec {
     below?: Rect[];            // rects of the floor below (wall stacking)
     atriumRect?: Rect;         // the void above: the room it stands over must contain it
     atriumIn?: Rect;           // planned upwards: the room below, which the void must stay inside
+    wetAbove?: Rect[];         // WET_STACK: the bathrooms of the floor above (planned first)
+    wetBelow?: Rect[];         // WET_STACK: the wet rooms of the floor below (planned first)
     zones?: number[][];        // ZONES: leaves of each full-depth strip, left to right (flat, core, flat)
 }
 
@@ -251,12 +253,34 @@ export function unsupportedWall(rects: Rect[], spec: FloorSpec): number {
     return tot ? bad / tot : 0;
 }
 
+export const isBathType = (t: string) => /bath|toilet|wc|ensuite|en_suite|shower/.test(t);
+export const isWetType = (t: string) => isBathType(t) || /kitchen|laundry|utility/.test(t);
+const overlap = (a: Rect, b: Rect) => Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x)) * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+/** WET_STACK: the mean share of the upper floor's bathrooms not over a wet
+ * room of the lower floor, weighted. Whichever floor was planned first is
+ * fixed; this floor's own wet leaves (or bathrooms) are the moving side. */
+export function wetStackCost(spec: FloorSpec, X: ArrayLike<number>, Y: ArrayLike<number>, Wd: ArrayLike<number>, Ht: ArrayLike<number>): number {
+    const fixed = spec.wetAbove ?? spec.wetBelow;
+    if (!fixed?.length) return 0;
+    let mine = wetIdx.get(spec);
+    if (!mine) { const t = spec.wetAbove ? isWetType : isBathType; mine = spec.leaves.flatMap((l, i) => t(l.type) ? [i] : []); wetIdx.set(spec, mine); }
+    let miss = 0;
+    if (spec.wetAbove) { // this floor is below: each fixed bathroom above wants this floor's wet rooms under it
+        for (const b of fixed) { let ov = 0; for (const i of mine) ov += overlap(b, { x: X[i], y: Y[i], w: Wd[i], h: Ht[i] }); miss += 1 - Math.min(1, ov / (b.w * b.h)); }
+        return WET_STACK_W * miss / fixed.length;
+    }
+    if (!mine.length) return 0;
+    for (const i of mine) { const b = { x: X[i], y: Y[i], w: Wd[i], h: Ht[i] }; let ov = 0; for (const q of fixed) ov += overlap(b, q); miss += 1 - Math.min(1, ov / (b.w * b.h)); }
+    return WET_STACK_W * miss / mine.length;
+}
+const wetIdx = new WeakMap<FloorSpec, number[]>();
+
 export function cost(expr: number[], offs: number[], spec: FloorSpec, stackW: number): number {
     const rects = layout(expr, spec, offs);
     if (!rects) return 1e9;
     let c = 0;
     for (const v of violations(rects, spec)) c += (WEIGHT[v.rule] ?? 10) * v.amount;
-    return c + stackW * unsupportedWall(rects, spec);
+    return c + stackW * unsupportedWall(rects, spec) + wetStackCost(spec, rects.map(r => r.x), rects.map(r => r.y), rects.map(r => r.w), rects.map(r => r.h));
 }
 
 /** Simulated annealing over normalized Polish expressions. */

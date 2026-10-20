@@ -364,6 +364,17 @@ On the 27 sample plans of the earlier door work (villa fixtures with the owner's
 | Room labels the engine recognises (by name only) | 83 labels | 52/83; 31 fall back to "private" |
 | Living room on the garden side | 4–5 of 15 | 13/24 (no preference) |
 
+**#3 result (2026-10-20, duplex benchmark, 40 seeds, `scratch.local/benchwhy.mts`, default / rear opt-in):** the solver alone already puts 85% / 89% of baths and WCs on an outside wall, so no outside-wall term was added. Upper bathrooms at least half over a ground wet room or kitchen: 16% / 19% before. `WET_STACK` is now a soft cost (never a miss) on houses planned downwards: the ground floor's wet rooms are drawn under the bathrooms above.
+
+| Weight | Duplex solved | Duplex stacked | Villas, no void (50) | Villas with void (50) |
+|---|---|---|---|---|
+| off | 28 / 31 | 16% / 19% | 46 | 34 |
+| **20 (shipped)** | **35 / 32** | **24% / 21%** | **43** | 34 (not applied) |
+| 40 | 35 / 30 | 31% / 27% | 42 | 34 (not applied) |
+| 80 | 25 / 28 | 34% / 34% | – | – |
+
+Applied to plans built upwards (villas with a void) it cost 34 → 24–26 of 50, so it is off there. Still well short of "most" in the templates: the ground floor rarely has enough wet rooms to sit under four or five en-suites, and a stronger pull loses solved plans. A narrow service bay (§3.3 item 3) is the likelier route to more.
+
 ## 6. Engine changes, ranked by how technically suitable they are to do next
 
 "Suitable" = strong evidence across templates, fits the engine as it is, low risk, measurable.
@@ -372,7 +383,7 @@ On the 27 sample plans of the earlier door work (villa fixtures with the owner's
 |---|---|---|---|---|
 | 1 | **Residential label aliases** (§3.1): `Bed N`, `Bed Room`, `Passage`, `Entrance`, `Closet`, `W.I.C.`, `Linen`, `Gym`, `Storage`, `Technical room`, `Brkfst`, `Parking`, porches/`Lanai`, `open to sky`, `Security` | 10+ templates; 31/83 labels fall back today | small, low risk (name fallback only; the AI's type still wins) | labels recognised 52 → ~80 of 83; every fixture's zones unchanged |
 | 2 | **Door numbering by role** (D1 = entrance; garage/vehicle doors last) | T1, T3, T9 schedules | small, drawing only | schedule order on the sample plans |
-| 3 | **Wet-room stacking + baths on outside walls** as stronger preferences | most templates; ours 22% / 79% | medium: a new cost term in the gap-free search; **a rule change, needs your OK** | stacking % and outside-wall % on the 50 villa plans, solved count unchanged |
+| 3 | **Wet-room stacking + baths on outside walls** as stronger preferences: **done 2026-10-20 (stacking only, owner chose weight 20)** | most templates; ours 22% / 79% | medium: a new cost term in the gap-free search; **a rule change, needs your OK** | stacking % and outside-wall % on the 50 villa plans, solved count unchanged |
 | 4 | **Column-free car spaces** (no grid column inside a garage/carport; transfer beam flagged) | T6, T10, T11, T16 (every span over 6 m) | medium, structural layer only | columns inside car spaces → 0 on the sample plans |
 | 5 | **Elevations + a section** generated from the plan | T6/T7 (18-page set), T13, T14, T16 | large, new drawing type | owner review; render matching |
 | 6 | Drawing conventions: feet in brackets on dimensions, columns drawn by default, numbered room key with areas, beacon dots on the site plan | T1–T10, T14, T15–T16 | small each | browser check |

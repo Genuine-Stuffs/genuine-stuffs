@@ -25,8 +25,8 @@ import type { PlotEnvelope, SolverOptions } from "../../types";
 import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
-import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
-import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES, FLAT_BOTTOM_UP, ATRIUM_UP } from "./config";
+import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf, isBathType } from "./slice";
+import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES, FLAT_BOTTOM_UP, ATRIUM_UP, WET_STACK } from "./config";
 import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP, splitGatehouses, placeGatehouses, isGenerator, withoutUnits } from "./outbuildings";
 import { hotelLayout } from "./hotel";
 import { withHallNotes } from "../../structural";
@@ -213,6 +213,9 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
                 if (ai >= 0 && fl < prev) spec.atriumRect = pr[ai];
                 const oi = ps.leaves.findIndex(l => l.node?.atriumOver);
                 if (oi >= 0 && fl > prev && spec.leaves.some(l => l.atrium)) spec.atriumIn = pr[oi];
+                // WET_STACK: a house planned downwards puts its ground-floor wet rooms under the
+                // bathrooms above (planned upwards, the term cost 34 -> 26 of 50 villas solved)
+                if (WET_STACK && fl < prev) spec.wetAbove = pr.filter((_, i) => isBathType(ps.leaves[i].type));
             }
             // TYPICAL_FLOOR: the same rooms as the floor above repeat its plan
             let r: Rect[];
