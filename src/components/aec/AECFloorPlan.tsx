@@ -149,7 +149,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
 
   // ── Doors and windows: decided once for the floor (openings.ts) ──────
   const openings = planOpenings(layout, activeFloor);
-  const getExternalEdges = (room: any) => externalEdges(room, buildingW, buildingH);
+  const getExternalEdges = (room: any) => externalEdges(room, buildingW, buildingH, layout.placed_rooms.filter(q => q.floor === activeFloor));
 
   // The front door in sheet units: centred on the entry room's street
   // frontage, swinging in from the street.

@@ -58,13 +58,26 @@ export function roomTypeOf(layout: SolvedLayout, room_id: string): string {
 const isOpen = (t: string) => t === 'circulation' || t === 'hall' || t === 'landing' || t === 'void';
 const isOutside = (t: string) => t === 'balcony' || t === 'terrace';
 
-/** Which of the room's walls are on the building's outline. */
-export const externalEdges = (r: PlacedRoom, W: number, D: number): Record<WallSide, boolean> => ({
-  left:   r.x <= EDGE_TOLERANCE,
-  top:    r.y <= EDGE_TOLERANCE,
-  right:  r.x + r.width >= W - EDGE_TOLERANCE,
-  bottom: r.y + r.depth >= D - EDGE_TOLERANCE,
-});
+/** Which of the room's walls are on the building's outline: on its bounding
+ * box, or — given the floor's rooms — with no room beyond them (the inner
+ * faces of an L-shaped floor, hotel.ts). A rectangular floor has a room
+ * beyond every inner wall, so it reads the same either way. */
+export const externalEdges = (r: PlacedRoom, W: number, D: number, rooms?: PlacedRoom[]): Record<WallSide, boolean> => {
+  const box = {
+    left:   r.x <= EDGE_TOLERANCE,
+    top:    r.y <= EDGE_TOLERANCE,
+    right:  r.x + r.width >= W - EDGE_TOLERANCE,
+    bottom: r.y + r.depth >= D - EDGE_TOLERANCE,
+  };
+  if (!rooms) return box;
+  const e = 1e-6, ov = (a1: number, a2: number, b1: number, b2: number) => Math.min(a2, b2) - Math.max(a1, b1);
+  const beyond = (side: WallSide) => rooms.some(q => q !== r && q.room_id !== r.room_id && (
+    side === 'left' ? Math.abs(q.x + q.width - r.x) < e && ov(r.y, r.y + r.depth, q.y, q.y + q.depth) > e
+    : side === 'right' ? Math.abs(q.x - r.x - r.width) < e && ov(r.y, r.y + r.depth, q.y, q.y + q.depth) > e
+    : side === 'top' ? Math.abs(q.y + q.depth - r.y) < e && ov(r.x, r.x + r.width, q.x, q.x + q.width) > e
+    : Math.abs(q.y - r.y - r.depth) < e && ov(r.x, r.x + r.width, q.x, q.x + q.width) > e));
+  return { left: box.left || !beyond('left'), top: box.top || !beyond('top'), right: box.right || !beyond('right'), bottom: box.bottom || !beyond('bottom') };
+};
 
 const TOLERANCE = 0.3; // metres — shared wall detection threshold
 
@@ -271,7 +284,7 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
   for (const r of rooms) {
     const t = norm(typeOf(r.room_id));
     if (isOpen(t) || r.room_id.startsWith('corridor_floor')) continue;
-    const ext = externalEdges(r, W, D);
+    const ext = externalEdges(r, W, D, rooms);
     if (t !== 'stairwell') {
       const spec = placement?.doors.find(d => d.room_id === r.room_id);
       // a flat's passage opens into its living room; the flat's rooms into the living room or the passage

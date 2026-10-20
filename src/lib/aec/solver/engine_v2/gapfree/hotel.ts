@@ -102,6 +102,80 @@ export function planGuestFloor(rooms: FloorRoom[], BW: number, BD: number, short
     return { rects, width: alongY ? across : len, depth: alongY ? len : across, bay: d };
 }
 
+type Rect = { x: number; y: number; w: number; h: number };
+
+/** An L-shaped guest floor, for when one straight corridor is too short: a
+ * wing along the long side and a wing across the rear, each with rooms both
+ * sides of its corridor. The core (stair, lift, housekeeping) fills the
+ * inside corner, which has no outside wall; the outer corner room has two
+ * (a suite). Planned with the long side along y, turned when x is longer.
+ *
+ *   y=0  [outer corner][V][ rear row ......................]
+ *        [   row A   ][V][==== corridor H =================]
+ *        [   row A   ][V][ core ][ front row ...............]
+ *        [   row A   ][V][ row B ]
+ *   y=L1 [   row A   ][V][ row B ]
+ */
+export function planLFloor(rooms: FloorRoom[], BW: number, BD: number): GuestFloor | null {
+    const turn = BW > BD, LONG = turn ? BW : BD, SHORT = turn ? BD : BW, C = CORRIDOR_W;
+    const core = [...rooms.filter(r => r.kind === 'stair'), ...rooms.filter(r => r.kind === 'lift'), ...rooms.filter(r => r.kind === 'service')];
+    const guests = rooms.filter(r => r.kind === 'room');
+    if (!guests.length) return null;
+    let best: { score: number; rects: Map<string, Rect>; L1: number; L2: number; d: number } | null = null;
+    for (let d = BAY_MIN; d <= BAY_MAX + 1e-9; d += CELL) {
+        const T = 2 * d + C;
+        if (T > SHORT + 1e-9) break;
+        // the core across the inside corner, d × d
+        const cw = core.map(r => r.kind === 'stair' ? STAIR_W : Math.max(r.kind === 'lift' ? LIFT_MIN_W : CELL * 3, ceil(r.area / d)));
+        const coreUsed = cw.reduce((s, v) => s + v, 0);
+        if (core.length && coreUsed > d + 1e-9) continue;
+        if (core.length) cw[cw.length - 1] += d - coreUsed;
+        // the outer corner: the room whose area is nearest d²
+        const corner = [...guests].sort((a, b) => Math.abs(a.area - d * d) - Math.abs(b.area - d * d) || a.room_id.localeCompare(b.room_id))[0];
+        const rest = guests.filter(r => r !== corner).sort((a, b) => b.area - a.area || a.room_id.localeCompare(b.room_id));
+        const w = new Map(rest.map(r => [r.room_id, Math.max(MIN_ROOM_W, ceil(r.area / d), ceil(d / ROOM_ASPECT))]));
+        for (let L2 = T; L2 <= SHORT + 1e-9; L2 += CELL) for (let L1 = T; L1 <= LONG + 1e-9; L1 += CELL) {
+            const caps = { A: L1 - d, B: L1 - T, R: L2 - d - C, F: L2 - T };
+            const rows: Record<keyof typeof caps, FloorRoom[]> = { A: [], B: [], R: [], F: [] };
+            const left = { ...caps };
+            let ok = true;
+            for (const r of rest) {
+                const k = (Object.keys(left) as Array<keyof typeof caps>).filter(k => left[k] + 1e-9 >= w.get(r.room_id)!).sort((a, b) => left[b] - left[a])[0];
+                if (!k) { ok = false; break; }
+                rows[k].push(r); left[k] -= w.get(r.room_id)!;
+            }
+            // every row with length holds a room (the floor has no gaps)
+            if (!ok || (Object.keys(caps) as Array<keyof typeof caps>).some(k => caps[k] > 1e-9 && !rows[k].length)) continue;
+            const ww = new Map(w);
+            for (const k of Object.keys(rows) as Array<keyof typeof caps>) {
+                let slack = Math.round(left[k] / CELL);
+                for (let i = 0; slack > 0; i = (i + 1) % rows[k].length, slack--) ww.set(rows[k][i].room_id, ww.get(rows[k][i].room_id)! + CELL);
+            }
+            const off = rest.reduce((s, r) => s + Math.abs(ww.get(r.room_id)! * d - r.area) / r.area, 0) + Math.abs(d * d - corner.area) / corner.area;
+            const score = L1 * T + (L2 - T) * T + 4 * off;
+            if (best && score >= best.score) continue;
+            const rects = new Map<string, Rect>();
+            rects.set(corner.room_id, { x: 0, y: 0, w: d, h: d });
+            rects.set('corridor', { x: d, y: 0, w: C, h: L1 });
+            if (L2 > d + C + 1e-9) rects.set('corridor2', { x: d + C, y: d, w: L2 - d - C, h: C });
+            let at = d + C;
+            core.forEach((r, i) => { rects.set(r.room_id, { x: at, y: d + C, w: cw[i], h: d }); at += cw[i]; });
+            const run = (row: FloorRoom[], start: number, place: (r: FloorRoom, at: number, len: number) => Rect) => {
+                let p = start;
+                for (const r of row) { const len = ww.get(r.room_id)!; rects.set(r.room_id, place(r, p, len)); p += len; }
+            };
+            run(rows.A, d, (_, p, len) => ({ x: 0, y: p, w: d, h: len }));
+            run(rows.B, T, (_, p, len) => ({ x: d + C, y: p, w: d, h: len }));
+            run(rows.R, d + C, (_, p, len) => ({ x: p, y: 0, w: len, h: d }));
+            run(rows.F, T, (_, p, len) => ({ x: p, y: d + C, w: len, h: d }));
+            best = { score, rects, L1, L2, d };
+        }
+    }
+    if (!best) return null;
+    const rects = turn ? new Map([...best.rects].map(([k, q]) => [k, { x: q.y, y: q.x, w: q.h, h: q.w }])) : best.rects;
+    return { rects, width: turn ? best.L1 : best.L2, depth: turn ? best.L2 : best.L1, bay: best.d };
+}
+
 /** The same rooms (by role and size), so the floor repeats the first one. */
 const signature = (rooms: FloorRoom[]) => rooms.map(r => `${r.kind}:${r.area}`).sort().join('|');
 const ordered = (rooms: FloorRoom[]) => [...rooms].sort((a, b) => a.kind.localeCompare(b.kind) || b.area - a.area || a.room_id.localeCompare(b.room_id));
@@ -122,12 +196,12 @@ export function hotelLayout(program: SpatialProgram, envelope: PlotEnvelope, opt
     if (!floors.length) return { ...base, solver_status: 'UNSAT', solver_failure: { floor: 1, reasons: [{ code: 'S-001', detail: 'no guest floors in the brief' }] } };
     const first = roomsOf(floors[0]);
     const short = { need: 0, have: 0 };
-    const plan = planGuestFloor(first, BW, BD, short);
+    const plan = planGuestFloor(first, BW, BD, short) ?? planLFloor(first, BW, BD);
     if (!plan) {
         // the floor's shape, not its area: the rooms need more corridor than one straight corridor has
         const n = first.filter(r => r.kind === 'room').length;
         return { ...base, solver_status: 'UNSAT', solver_unsat_proven: false,
-            solver_failure: { floor: floors[0], reasons: [{ code: 'H-001', detail: `${n} guest rooms need about ${Math.ceil(short.need)} m of corridor on each side; a straight corridor on this plot is at most ${Math.floor(short.have || Math.max(BW, BD))} m long`,
+            solver_failure: { floor: floors[0], reasons: [{ code: 'H-001', detail: `${n} guest rooms need about ${Math.ceil(short.need)} m of corridor on each side; a straight corridor on this plot is at most ${Math.floor(short.have || Math.max(BW, BD))} m long, and an L-shaped floor doesn't hold them either`,
                 values: { rooms: n, need_m: short.need, have_m: short.have || Math.max(BW, BD) } }] } };
     }
     const placed: PlacedRoom[] = [];
@@ -135,20 +209,19 @@ export function hotelLayout(program: SpatialProgram, envelope: PlotEnvelope, opt
     const firstOrder = ordered(first);
     for (const f of floors) {
         const rooms = roomsOf(f);
-        // a floor with the same rooms repeats the first; any other is planned on its own
-        const own = signature(rooms) === signature(first) ? null : planGuestFloor(rooms, BW, BD);
-        const src = own ?? plan;
-        const idOf = new Map<string, string>(own ? rooms.map(r => [r.room_id, r.room_id]) : ordered(rooms).map((r, k) => [firstOrder[k].room_id, r.room_id]));
-        if (!own && signature(rooms) !== signature(first)) {
-            issues.push({ room_id: rooms[0]?.room_id ?? `floor${f}`, rule: 'AREA_ADJUSTED', detail: `Floor ${f}'s rooms don't fit as a guest floor, so it isn't drawn.` });
+        // a guest floor repeats the first: its outline sits on the floor below, and its core lines up.
+        // A floor with other rooms isn't drawn yet (it would need its own outline), and the plan says so.
+        if (signature(rooms) !== signature(first)) {
+            issues.push({ room_id: rooms[0]?.room_id ?? `floor${f}`, rule: 'AREA_ADJUSTED',
+                detail: `Floor ${f} has different rooms from floor ${floors[0]}, so it isn't drawn: guest floors repeat the first one, so their outline and core line up.` });
             continue;
         }
-        for (const [key, q] of src.rects) {
-            const kindKey = key === 'corridor' ? 'corridor' : (own ? rooms : first).find(r => r.room_id === key)?.kind;
-            const room_id = key === 'corridor' ? `corridor_floor${f}_0` : kindKey === 'stair' ? 'stairwell_void' : idOf.get(key)!;
+        const idOf = new Map<string, string>(ordered(rooms).map((r, k) => [firstOrder[k].room_id, r.room_id]));
+        for (const [key, q] of plan.rects) {
+            const kind = key.startsWith('corridor') ? 'corridor' : first.find(r => r.room_id === key)?.kind;
+            const room_id = key === 'corridor' ? `corridor_floor${f}_0` : key === 'corridor2' ? `corridor_floor${f}_1` : kind === 'stair' ? 'stairwell_void' : idOf.get(key)!;
             placed.push({ room_id, floor: f, x: q.x, y: q.y, width: q.w, depth: q.h });
         }
-        if (own && own.width !== plan.width) issues.push({ room_id: rooms[0].room_id, rule: 'AREA_ADJUSTED', detail: `Floor ${f} has different rooms from floor ${floors[0]}, so it doesn't repeat it.` });
     }
     issues.push({ room_id: 'corridor_floor1_0', rule: 'HOTEL_PENDING_CODE',
         detail: `The guest corridor (${CORRIDOR_W} m wide) and ${first.filter(r => r.kind === 'stair').length || 'no'} fire stair are planning defaults: exits, stairs and corridor widths will be sized from the number of guests under the building code. The ground floor isn't planned yet.` });
