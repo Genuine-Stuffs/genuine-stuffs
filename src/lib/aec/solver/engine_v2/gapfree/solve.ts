@@ -27,7 +27,7 @@ import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf } from "./slice";
 import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES, FLAT_BOTTOM_UP, ATRIUM_UP } from "./config";
-import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP, splitGatehouses, placeGatehouses } from "./outbuildings";
+import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP, splitGatehouses, placeGatehouses, isGenerator, withoutUnits } from "./outbuildings";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
 import type { ValidationIssue } from "../placement_validator";
 import { minWidthFor, maxAspectFor } from "../solver/room_shape";
@@ -320,11 +320,16 @@ function* rearDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: 
         const site_offset = { x: s.left + (be.width - (L.building_width ?? 0)) / 2, y: envelope.depth - s.front - (L.building_depth ?? 0) };
         if (placed) return { ...L, program_reference: program, plot_depth: envelope.depth, outbuildings: placed, site_offset };
     }
-    const L = yield* houseDriver(program, envelope, options);
-    const names = ob.units.map(u => u.label).join(" and ");
+    // a generator house never moves inside the house: it is left off, and the plan says so
+    const gens = ob.units.filter(isGenerator), inside = ob.units.filter(u => !isGenerator(u));
+    const L = yield* houseDriver(gens.length ? withoutUnits(program, gens) : program, envelope, options);
     const why = rear ? "even with the rear setback allowed" : "inside the setbacks";
-    const detail = `${names} can't stand as separate buildings 3 m behind the house ${why}, so they are inside the house. Options: ${rear ? "" : "allow them in the rear setback, "}a deeper plot, or a smaller ground floor.`;
-    return L.solver_status === "UNSAT" ? L : { ...L, placement_issues: [...(L.placement_issues ?? []), { room_id: ob.units[0].id, rule: "OUTBUILDING_NO_FIT", detail }] };
+    const options_ = `Options: ${rear ? "" : "allow them in the rear setback, "}a deeper plot, or a smaller ground floor.`;
+    const notes = [
+        ...(inside.length ? [{ room_id: inside[0].id, rule: "OUTBUILDING_NO_FIT" as const, detail: `${inside.map(u => u.label).join(" and ")} can't stand as a separate building 3 m behind the house ${why}, so ${inside.length > 1 ? "they are" : "it is"} inside the house. ${options_}` }] : []),
+        ...(gens.length ? [{ room_id: gens[0].id, rule: "OUTBUILDING_NO_FIT" as const, detail: `${gens.map(u => u.label).join(" and ")} can't stand 3 m behind the house ${why}, and a generator is never put inside the house (fumes and fire), so it is left off this plan. ${options_}` }] : []),
+    ];
+    return L.solver_status === "UNSAT" ? L : { ...L, program_reference: program, placement_issues: [...(L.placement_issues ?? []), ...notes] };
 }
 
 /** Run the search with restarts one after the other. */

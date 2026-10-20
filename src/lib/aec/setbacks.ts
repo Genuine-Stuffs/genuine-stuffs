@@ -32,8 +32,9 @@ export interface SetbackChoice {
     use: BuildingUse;
     density: Density;   // NBC only
     corner: boolean;
-    /** The user allows the BQ and generator house in the rear setback when
-     * they don't fit inside the setbacks (owner, 2026-10-13). */
+    /** The BQ and generator house may stand in the rear setback when they
+     * don't fit inside the setbacks: the default since 2026-10-20 (owner),
+     * with "Confirm with your planning authority" (was opt-in, 2026-10-13). */
     outbuildingsInRear?: boolean;
 }
 
@@ -103,6 +104,7 @@ export function defaultChoice(intent: SetbackIntent): SetbackChoice {
         use: intent.use ?? 'residential',
         density: intent.density ?? 'medium',
         corner: intent.corner,
+        outbuildingsInRear: true,
     };
 }
 
@@ -120,7 +122,7 @@ export function lawSetbacks(c: SetbackChoice, plot: Plot): Setbacks {
 export function choiceLabel(c: SetbackChoice): string {
     const law = c.law === 'lagos_2019' ? 'Lagos Planning Permit Regulations 2019' : 'National Building Code 2006';
     const band = c.law === 'nbc_2006' && c.use === 'residential' ? `, ${c.density} density` : c.use !== 'residential' ? `, ${c.use}` : '';
-    return `${law}${band}${c.corner ? ', corner plot' : ''}${c.outbuildingsInRear ? ', outbuildings in the rear setback' : ''}`;
+    return `${law}${band}${c.corner ? ', corner plot' : ''}${c.outbuildingsInRear === false ? ', outbuildings kept out of the setbacks' : ''}`;
 }
 
 const fmt = (s: Setbacks) => `front ${s.front} m, rear ${s.rear} m, sides ${s.left} m / ${s.right} m`;

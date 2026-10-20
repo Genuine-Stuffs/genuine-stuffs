@@ -689,7 +689,7 @@ const AIStudio = () => {
                     const envelope = { width: plotWidth, depth: plotDepth, setbacks: setback.plan.setbacks };
                     // One seed for both runs, so the plan shown first is
                     // the same geometry as its entry in the options list.
-                    const solverOptions = { floors_override: briefFloors, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting() };
+                    const solverOptions = { floors_override: briefFloors, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting(), outbuildings_in_rear_setback: setback.plan.choice.outbuildingsInRear !== false };
                     const program = { ...finalDesignData };
                     const solved = await solveLayoutInWorker(finalDesignData, envelope, solverOptions);
                     finalDesignData.solvedLayout = solved;
@@ -832,7 +832,7 @@ const AIStudio = () => {
             const envelope = { width: study.plot.width, depth: study.plot.depth, setbacks: setback.plan.setbacks };
             const solved = await solveLayoutInWorker(
                 designPackage, envelope,
-                { floors_override: study.storeys, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting(), outbuildings_in_rear_setback: !!choice.outbuildingsInRear });
+                { floors_override: study.storeys, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting(), outbuildings_in_rear_setback: choice.outbuildingsInRear !== false });
             setDesignPackage((prev: any) => prev ? { ...prev, setback, solvedLayout: solved, solvedLayoutOptions: undefined } : prev);
             toast.success(`Re-planned under ${setback.plan.label}`);
         } catch (err) {
@@ -1491,7 +1491,7 @@ const AIStudio = () => {
                                                                 )}
                                                                 {(stableLayout?.outbuildings ?? []).some((b: any) => b.in_rear_setback) && (
                                                                     <p className="px-3 py-2 rounded-lg text-[10px] bg-amber-900/40 text-amber-200">
-                                                                        At your choice, {(stableLayout?.outbuildings ?? []).filter((b: any) => b.in_rear_setback).map((b: any) => b.label).join(' and ')} stand{(stableLayout?.outbuildings ?? []).filter((b: any) => b.in_rear_setback).length > 1 ? '' : 's'} in the rear setback, 3 m behind the house. Confirm with your planning authority.
+                                                                        {(stableLayout?.outbuildings ?? []).filter((b: any) => b.in_rear_setback).map((b: any) => b.label).join(' and ')} stand{(stableLayout?.outbuildings ?? []).filter((b: any) => b.in_rear_setback).length > 1 ? '' : 's'} in the rear setback, 3 m behind the house. Confirm with your planning authority.
                                                                     </p>
                                                                 )}
                                                                 {setback.options.length > 0 && (

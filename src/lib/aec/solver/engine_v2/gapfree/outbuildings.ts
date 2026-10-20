@@ -48,6 +48,16 @@ export function splitOutbuildings(program: any): { house: any; units: ObUnit[] }
     return { house, units };
 }
 
+/** A generator house: never planned inside the house (fumes, fire; owner 2026-10-20). */
+export const isGenerator = (u: ObUnit) => /\bgen(erator)?\b/i.test(u.label) || /^gen/.test(norm(u.id));
+
+/** The program without these units' rooms (and links to them). */
+export function withoutUnits(program: any, units: ObUnit[]): any {
+    const gone = new Set(units.flatMap(u => u.rooms.map(r => r.room_id)));
+    const rooms: any[] = program?.rooms ?? [];
+    return { ...program, rooms: rooms.filter((r, i) => !gone.has(r.room_id ?? r.id ?? `room_${i}`)).map(r => ({ ...r, adjacencies: (r.adjacencies ?? r.adjacent_to ?? []).filter((m: string) => !gone.has(m)) })) };
+}
+
 /** A building's own depth: near square, at least 3 m, no deeper than the strip. */
 const depthOf = (u: ObUnit, dMax: number) => Math.min(dMax, Math.max(MIN_DEPTH, ceilCell(Math.sqrt(u.rooms.reduce((s, r) => s + r.area, 0)))));
 const widthOf = (u: ObUnit, dMax: number) => u.rooms.reduce((s, r) => s + Math.max(MIN_ROOM_W, ceilCell(r.area / depthOf(u, dMax))), 0);
