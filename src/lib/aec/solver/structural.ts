@@ -66,6 +66,34 @@ export function longSpanRooms(layout: SolvedLayout) {
     });
 }
 
+/** A beam's depth for its span, by the rule file's span-to-depth ratio
+ * (simply supported), in 50 mm steps, never under 450 mm. */
+export function beamDepthMm(span: number): number {
+    const ratio = complianceRules.structural_parameters.beam_design.span_to_depth_ratio.simply_supported;
+    return Math.max(Math.ceil((span * 1000) / ratio / 50) * 50, 450);
+}
+
+/** Each placed room's structural span on the plan, by room id: the grid bay
+ * its floor spans the shorter way (the largest bay it lies across, each
+ * way), or its own span for a long-span hall. The pre-screen reads this
+ * instead of the AI's stated span. */
+export function planSpans(layout: SolvedLayout): Map<string, { span: number; hall: boolean }> {
+    const out = new Map<string, { span: number; hall: boolean }>();
+    const grid = structuralGridOf(layout);
+    if (!grid) return out;
+    const bay = (ls: number[], lo: number, hi: number) => Math.max(0, ...ls.slice(0, -1).map((v, i) => [v, ls[i + 1]])
+        .filter(([s, e]) => e > lo + 1e-6 && s < hi - 1e-6).map(([s, e]) => e - s));
+    const halls = new Set(longSpanRooms(layout).map(r => `${r.room_id}@${r.floor}`));
+    for (const r of layout.placed_rooms) {
+        if (/^(corridor|stair)/.test(r.room_id)) continue;
+        const hall = halls.has(`${r.room_id}@${r.floor}`);
+        const span = hall ? Math.min(r.width, r.depth) : Math.min(bay(grid.xs, r.x, r.x + r.width), bay(grid.ys, r.y, r.y + r.depth));
+        const had = out.get(r.room_id);
+        if (!had || span > had.span) out.set(r.room_id, { span, hall });
+    }
+    return out;
+}
+
 export class StructuralEngine {
 
     /**
@@ -101,7 +129,6 @@ export class StructuralEngine {
 
         const structParams = complianceRules.structural_parameters;
         const colWidth = structParams.beam_design.beam_width_mm / 1000;
-        const ratio = structParams.beam_design.span_to_depth_ratio.simply_supported;
         const { xs, ys } = grid;
 
         // the structural-system selector (capability D): a long-span room stands clear of columns
@@ -120,7 +147,7 @@ export class StructuralEngine {
             }
             const beam = (kind: Beam['kind'], from: { id: string; x: number; y: number }, to: { id: string; x: number; y: number }) => {
                 const span = Math.hypot(to.x - from.x, to.y - from.y);
-                const depthMm = Math.max(Math.ceil((span * 1000) / ratio / 50) * 50, 450);
+                const depthMm = beamDepthMm(span);
                 const b: Beam = {
                     id: `F${floor}_B${beams.length + 1}`, floor, kind,
                     start_support_id: from.id, end_support_id: to.id,

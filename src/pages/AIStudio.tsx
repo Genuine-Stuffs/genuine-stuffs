@@ -131,7 +131,8 @@ const AIStudio = () => {
     const [visualUrl, setVisualUrl] = useState<string | null>(null);
     const [designPackage, setDesignPackage] = useState<any | null>(null);
     const layoutOptions = useLayoutOptions();
-    const [complianceReport, setComplianceReport] = useState<ComplianceReport | null>(null);
+    // the pre-screen's inputs from the brief; the report itself is worked out on the plan shown (below)
+    const [complianceInput, setComplianceInput] = useState<Parameters<typeof runComplianceCheck>[0] | null>(null);
     const [replanning, setReplanning] = useState(false);
     const [promptText, setPromptText] = useState("");
     // the prompt kept across a reload onto the newer build (lib/appVersion)
@@ -587,7 +588,7 @@ const AIStudio = () => {
         setIsGenerating(true);
         setGeneratedImage(null);
         setVisualUrl(null); // Clear previous vision state
-        setComplianceReport(null); // a new design's check, or none: never the last design's
+        setComplianceInput(null); // a new design's check, or none: never the last design's
         
         // Capture prompt BEFORE clearing the input field
         const submittedPrompt = promptText;
@@ -744,19 +745,12 @@ const AIStudio = () => {
 
                     // Run deterministic compliance check against NBC 2006 rules, on a plan only:
                     // with no plan there is nothing to check, so no "passed" either
-                    if (!isPlan(solved)) setComplianceReport(null);
-                    else try {
-                        const report = runComplianceCheck({
-                            rooms: finalDesignData.rooms,
-                            plot_size_sqm: finalDesignData.brief_reference?.plot_size_sqm,
-                            region: finalDesignData.brief_reference?.region || 'lagos_residential',
-                            use_type: finalDesignData.brief_reference?.use_type || 'residential',
-                        });
-                        setComplianceReport(report);
-                    } catch (complianceErr) {
-                        console.error("Compliance engine error:", complianceErr);
-                        setComplianceReport(null);
-                    }
+                    setComplianceInput(!isPlan(solved) ? null : {
+                        rooms: finalDesignData.rooms,
+                        plot_size_sqm: finalDesignData.brief_reference?.plot_size_sqm,
+                        region: finalDesignData.brief_reference?.region || 'lagos_residential',
+                        use_type: finalDesignData.brief_reference?.use_type || 'residential',
+                    });
                 } catch (solverErr) {
                     console.error("Client-side TS Solver failed to generate layout:", solverErr);
                 }
@@ -834,7 +828,7 @@ const AIStudio = () => {
         setHasActiveSession(false);
         setMessages([]);
         setDesignPackage(null);
-        setComplianceReport(null);
+        setComplianceInput(null);
         setGeneratedImage(null);
         setVisualUrl(null);
         setPromptText("");
@@ -874,6 +868,14 @@ const AIStudio = () => {
     const layoutChoices: any[] = designPackage?.solvedLayoutOptions ?? [];
 
     const stableLayout = useMemo(() => designPackage?.solvedLayout, [layoutKey]);
+
+    // The pre-screen on the plan shown: its spans from the plan's column grid, so a
+    // re-plan or another layout option is checked as drawn; none without a plan
+    const complianceReport: ComplianceReport | null = useMemo(() => {
+        if (!complianceInput || !isPlan(stableLayout)) return null;
+        try { return runComplianceCheck({ ...complianceInput, solved: stableLayout }); }
+        catch (err) { console.error("Compliance engine error:", err); return null; }
+    }, [complianceInput, layoutKey]);
 
     // A failed solve has no geometry: explain why instead of drawing an
     // empty plan. Layouts saved before solver_status existed render as before.

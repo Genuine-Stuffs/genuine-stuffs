@@ -14,7 +14,8 @@
 
 import rules from './compliance_rules.json';
 import { catalogueEntry } from './solver/engine_v2/room_catalogue';
-import { LONG_SPAN_MAX_M } from './solver/structural';
+import { LONG_SPAN_MAX_M, planSpans, beamDepthMm } from './solver/structural';
+import type { SolvedLayout } from '../../../supabase/functions/ai-studio/schema';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -37,6 +38,9 @@ export interface SpatialProgram {
     plot_size_sqm?: number;
     floors?: number;
   };
+  /** The drawn plan: spans are read from it (its column grid) instead of
+   * the AI's stated span_m, where the room is placed on it (owner 2026-10-20). */
+  solved?: SolvedLayout;
 }
 
 export interface RuleResult {
@@ -161,7 +165,26 @@ function checkMinimumWidth(room: Room): RuleResult | null {
   );
 }
 
-function checkStructuralSpan(room: Room, useType: string): RuleResult | null {
+/** The span check on the plan: the grid bay the room's floor spans. Up to
+ * 4.5 m passes; 4.5–6 m warns, naming the beam depth the plan carries it on
+ * (owner 2026-10-20: a pre-screen, the beams are sized by rule of thumb). */
+function checkPlanSpan(room: Room, onPlan: { span: number; hall: boolean }): RuleResult {
+  const maxSpan = rules.structural_parameters.beam_design.max_span_m.typical_residential;
+  const s = +onPlan.span.toFixed(2);
+  if (onPlan.hall) {
+    if (s > LONG_SPAN_MAX_M) return fail('MAX_SPAN', room,
+      `${room.name} spans ${s}m on the plan, beyond the long-span range (portal frame or steel truss, up to about ${LONG_SPAN_MAX_M}m). A structural engineer's own scheme is needed.`,
+      `≤ ${LONG_SPAN_MAX_M}m`, `${s}m`);
+    return pass('MAX_SPAN', room, `${room.name} is a hall on a long-span roof: ${s}m clear on the plan, within the ${LONG_SPAN_MAX_M}m range, with no columns inside.`, `≤ ${LONG_SPAN_MAX_M}m`, `${s}m`);
+  }
+  if (s <= maxSpan + 1e-6) return pass('MAX_SPAN', room, `${room.name} spans ${s}m on the plan's column grid, within the ${maxSpan}m residential limit.`, `≤ ${maxSpan}m`, `${s}m`);
+  return warn('MAX_SPAN', room,
+    `${room.name} spans ${s}m on the plan's column grid, over the ${maxSpan}m residential limit; the plan carries it on ${beamDepthMm(s)}mm deep beams between grid columns. Structural engineer to verify.`,
+    `≤ ${maxSpan}m`, `${s}m`);
+}
+
+function checkStructuralSpan(room: Room, useType: string, onPlan?: { span: number; hall: boolean }): RuleResult | null {
+  if (onPlan) return checkPlanSpan(room, onPlan);
   if (room.span_m === undefined) return null;
   // a hall (auditorium, restaurant, overflow hall) is on the long-span system, not the
   // framed house limit (owner's engine brief, capability D)
@@ -234,6 +257,7 @@ export function runComplianceCheck(program: SpatialProgram): ComplianceReport {
   const results: RuleResult[] = [];
   const region = program.region || 'lagos_residential';
   const useType = program.use_type || 'residential';
+  const spans = program.solved ? planSpans(program.solved) : null;
 
   // 1. Spatial checks — every room
   for (const room of program.rooms) {
@@ -243,7 +267,7 @@ export function runComplianceCheck(program: SpatialProgram): ComplianceReport {
     const widthResult = checkMinimumWidth(room);
     if (widthResult) results.push(widthResult);
 
-    const spanResult = checkStructuralSpan(room, useType);
+    const spanResult = checkStructuralSpan(room, useType, spans?.get(room.room_id));
     if (spanResult) results.push(spanResult);
 
     const stairResults = checkStaircase(room);
