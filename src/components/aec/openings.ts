@@ -77,7 +77,8 @@ function heuristicDoorWall(room: PlacedRoom, rooms: PlacedRoom[], typeOf: (id: s
     if (n.room_id === room.room_id) continue;
     const nRight = n.x + n.width, nBottom = n.y + n.depth;
     const nType = typeOf(n.room_id);
-    const score = ['circulation', 'hall', 'landing', 'stairwell'].includes(nType) ? 10
+    const score = nType === 'void' ? -100 // a drop to the floor below
+      : ['circulation', 'hall', 'landing', 'stairwell'].includes(nType) ? 10
       : (currentType === 'bathroom' && ['bedroom', 'master_bedroom'].includes(nType)) ? 9
       : ['living_room', 'dining_room', 'family_room'].includes(nType) ? 8
       : ['bathroom', 'wardrobe', 'dressing', 'store', 'garage'].includes(nType) ? 0
@@ -93,7 +94,31 @@ function heuristicDoorWall(room: PlacedRoom, rooms: PlacedRoom[], typeOf: (id: s
   return ranked[0] ?? 'bottom';
 }
 
-export interface PlannedDoor { room_id: string; wall: WallSide; type: OpeningType }
+/** `at`: where the door leaf starts along its wall (m from the wall's start), when a
+ * quarter along would open onto a void; a quarter along when absent. */
+/** A door on a wall that partly faces an open-to-below void: set in the
+ * longest stretch of that wall clear of the void (a drop to the floor below). */
+function clearOfVoid(r: PlacedRoom, wall: WallSide, type: OpeningType, rooms: PlacedRoom[], typeOf: (id: string) => string): { at?: number } {
+  const horizontal = wall === 'top' || wall === 'bottom';
+  const lo = horizontal ? r.x : r.y, len = horizontal ? r.width : r.depth;
+  const line = wall === 'top' ? r.y : wall === 'bottom' ? r.y + r.depth : wall === 'left' ? r.x : r.x + r.width;
+  const cuts = rooms.filter(q => q.room_id !== r.room_id && typeOf(q.room_id) === 'void').flatMap(q => {
+    const touches = horizontal ? Math.abs(q.y + q.depth - line) < TOLERANCE || Math.abs(q.y - line) < TOLERANCE
+      : Math.abs(q.x + q.width - line) < TOLERANCE || Math.abs(q.x - line) < TOLERANCE;
+    const a = Math.max(lo, horizontal ? q.x : q.y), b = Math.min(lo + len, horizontal ? q.x + q.width : q.y + q.depth);
+    return touches && b - a > TOLERANCE ? [[a - lo, b - lo] as const] : [];
+  }).sort((p, q) => p[0] - q[0]);
+  if (!cuts.length) return {};
+  // the clear stretches between the void's pieces; the longest one takes the door
+  const free: Array<[number, number]> = [];
+  let at = 0;
+  for (const [a, b] of cuts) { if (a > at) free.push([at, a]); at = Math.max(at, b); }
+  if (at < len) free.push([at, len]);
+  const best = free.sort((p, q) => (q[1] - q[0]) - (p[1] - p[0]))[0];
+  return best && best[1] - best[0] >= type.w ? { at: best[0] + Math.min(0.1, (best[1] - best[0] - type.w) / 2) } : {};
+}
+
+export interface PlannedDoor { room_id: string; wall: WallSide; type: OpeningType; at?: number }
 /** `at`: the window's centre along its wall (m from the wall's start, x for
  * top/bottom, y for left/right); centred when absent. */
 export interface PlannedWindow { room_id: string; wall: WallSide; type: OpeningType; at?: number }
@@ -242,7 +267,7 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
       const bedroom = rooms.find(q => q.room_id === ownBedroom.get(r.room_id));
       const wall = (bedroom && sharedWall(r, bedroom)) || (entryRoom && sharedWall(r, entryRoom)) || (passage && sharedWall(r, passage)) || spec?.wall || heuristicDoorWall(r, rooms, typeOf, ext);
       const type = spec?.interior || SERVICE_ROOMS.test(t) ? DOOR_SERVICE : DOOR_ROOM;
-      if (wallLength(r, wall) >= type.w + DOOR_CLEAR) doors.set(r.room_id, { room_id: r.room_id, wall, type });
+      if (wallLength(r, wall) >= type.w + DOOR_CLEAR) doors.set(r.room_id, { room_id: r.room_id, wall, type, ...clearOfVoid(r, wall, type, rooms, typeOf) });
     }
     if (t === 'stairwell' || t === 'passage' || isOutside(t)) continue;
     const sizes = LARGE_ROOMS.test(t) ? [WIN_LARGE, WIN_ROOM, WIN_SMALL]

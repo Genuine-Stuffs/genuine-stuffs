@@ -496,7 +496,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
       const wall = door.wall;
       const horizontal = wall === 'top' || wall === 'bottom';
       const along = horizontal ? rw : rh;
-      const start = Math.max(0, Math.min(along * 0.25, along - R - 2));
+      const start = door.at !== undefined ? door.at * scale : Math.max(0, Math.min(along * 0.25, along - R - 2));
       const tagAt = start + R + 9 <= along - 7 ? start + R + 9 : Math.max(7, start - 9);
       const inset = Math.min(9, (horizontal ? rh : rw) / 2);
       const dx = wall === 'right' ? rx + rw : wall === 'left' ? rx : rx + start;

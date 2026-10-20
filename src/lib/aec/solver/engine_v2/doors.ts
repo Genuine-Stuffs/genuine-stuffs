@@ -168,11 +168,14 @@ export function computePlacement(
         // ── DOOR PLACEMENT ─────────────────────────────────────────────────
         if (!isGarage(type)) {
             const wallScores: Partial<Record<WallSide, number>> = {};
+            // a wall onto an open-to-below void is a drop to the floor below: never a door there
+            const overVoid = new Set<WallSide>();
 
             for (const neighbour of rooms) {
                 if (neighbour.room_id === id) continue;
                 const wall = sharedWall(room, neighbour);
                 if (!wall) continue;
+                if (neighbour.type === 'void') { overVoid.add(wall); continue; }
                 const score = wallScore(neighbour.type, type, id);
                 wallScores[wall] = Math.max(wallScores[wall] ?? 0, score);
             }
@@ -182,7 +185,7 @@ export function computePlacement(
             const sides: WallSide[] = ['bottom', 'right', 'top', 'left'];
             const ranked = sides
                 .filter(w => !ext[w])           // exclude external walls
-                .sort((a, b) => (wallScores[b] ?? 0) - (wallScores[a] ?? 0));
+                .sort((a, b) => +overVoid.has(a) - +overVoid.has(b) || (wallScores[b] ?? 0) - (wallScores[a] ?? 0));
 
             const doorWall = ranked[0] ?? sides.find(w => !ext[w]) ?? 'bottom';
             const isInterior = isService(type); // bath/wardrobe = interior swing
