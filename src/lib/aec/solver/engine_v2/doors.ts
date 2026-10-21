@@ -118,6 +118,13 @@ const isOpenAir  = (type: string) => ['balcony', 'terrace', 'veranda', 'verandah
 function wallScore(neighbourType: string, currentType: string, currentId = ''): number {
     // A declared balcony opens from the room it serves (template step (i));
     // the hall-surplus terrace (terrace_f*) stays on the hall.
+    // a veranda or porch is a way into the house: it opens into the living room or foyer,
+    // never a bedroom (the bungalow's front veranda opened into bedroom 3, owner 2026-10-21)
+    if (/^(veranda|verandah|porch)$/.test(currentType)) {
+        if (['living_room', 'family_room', 'dining_room', 'foyer'].includes(neighbourType)) return 130;
+        if (isCorridor(neighbourType)) return 110;
+        if (isBedroom(neighbourType)) return 2;
+    }
     if (isOpenAir(currentType) && !currentId.startsWith('terrace_f')) {
         if (isBedroom(neighbourType)) return 120;
         if (['living_room', 'family_room', 'dining_room'].includes(neighbourType)) return 110;
