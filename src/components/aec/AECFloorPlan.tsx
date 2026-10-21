@@ -808,7 +808,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
           if (!r) return null;
           const lines = [
             ...(!h.within_range ? [`${+h.span_m.toFixed(1)} m SPAN: BEYOND THE LONG-SPAN RANGE`] : []),
-            ...(h.columns_above ? [h.car ? `NO COLUMNS IN THE PARKING: ${h.columns_above} COLUMN${h.columns_above > 1 ? 'S' : ''} ABOVE ON A TRANSFER BEAM` : `CARRIES ${h.columns_above} COLUMN${h.columns_above > 1 ? 'S' : ''} ABOVE: TRANSFER STRUCTURE`] : []),
+            ...(h.columns_above ? [h.clear ? `NO COLUMNS IN THE ${h.clear === 'car' ? 'PARKING' : 'ROOM'}: ${h.columns_above} COLUMN${h.columns_above > 1 ? 'S' : ''} ABOVE ON A TRANSFER BEAM` : `CARRIES ${h.columns_above} COLUMN${h.columns_above > 1 ? 'S' : ''} ABOVE: TRANSFER STRUCTURE`] : []),
           ];
           const cx = xOffset + (r.x + r.width / 2) * scale, top = yOffset + r.y * scale + 14;
           return (

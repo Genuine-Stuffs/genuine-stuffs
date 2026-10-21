@@ -52,7 +52,7 @@ export interface StructuralSkeleton {
     outbuildings: Array<{ id: string; x: number; y: number; grid: StructuralGrid | null }>;
     /** Halls on the long-span system: columns only around them, a long-span
      * member across them on each grid line that crosses them. */
-    halls: Array<{ room_id: string; floor: number; span_m: number; within_range: boolean; columns_above?: number; car?: boolean }>;
+    halls: Array<{ room_id: string; floor: number; span_m: number; within_range: boolean; columns_above?: number; clear?: 'car' | 'living' }>;
 }
 
 /** Rooms the room catalogue marks long-span (auditorium, restaurant, overflow
@@ -67,18 +67,28 @@ export function longSpanRooms(layout: SolvedLayout) {
     });
 }
 
-/** Garages, carports and parking that a grid column would stand inside: kept
- * clear for parking, as every template does (T6, T10, T11, T16; findings #4),
- * with a transfer beam on each grid line that crosses them. */
-export function carSpaces(layout: SolvedLayout, grid = structuralGridOf(layout)) {
-    if (!grid) return [];
+/** What keeps a room clear of grid columns: a car space ("car": garages,
+ * carports, parking, as every template does: T6, T10, T11, T16; findings #4)
+ * or a living, dining, family or entertainment room up to 7 m across
+ * ("living": no template stands a column in one, and T29, T30, T37 run them
+ * to 6.3–6.7 m; addendum A.4 item 4). Null for any other room. */
+export const CLEAR_LIVING_MAX_M = 7;
+const LIVING_TYPES = new Set(['living_room', 'dining_room', 'family_room', 'entertainment']);
+export function clearKind(layout: SolvedLayout, r: { room_id: string; width: number; depth: number }): 'car' | 'living' | null {
     const brief: any[] = (layout.program_reference as any)?.rooms ?? [];
+    const src = brief.find(q => (q.room_id ?? q.id) === r.room_id);
+    const t = normalizeRoomType(src?.type) ?? '';
+    if (GARAGE_TYPES.has(t) || /\b(garage|car ?port|car ?porch|car ?park|parking)\b/i.test(src?.name ?? '')) return 'car';
+    if (LIVING_TYPES.has(t) && Math.min(r.width, r.depth) <= CLEAR_LIVING_MAX_M + 1e-6) return 'living';
+    return null;
+}
+
+/** Car spaces and living rooms (clearKind) that a grid column would stand
+ * inside: kept clear, with a transfer beam on each grid line that crosses them. */
+export function clearSpaces(layout: SolvedLayout, grid = structuralGridOf(layout)) {
+    if (!grid) return [];
     const e = 1e-6, across = (ls: number[], lo: number, hi: number) => ls.some(v => v > lo + e && v < hi - e);
-    return layout.placed_rooms.filter(r => {
-        const src = brief.find(q => (q.room_id ?? q.id) === r.room_id);
-        const car = GARAGE_TYPES.has(normalizeRoomType(src?.type) ?? '') || /\b(garage|car ?port|car ?porch|car ?park|parking)\b/i.test(src?.name ?? '');
-        return car && across(grid.xs, r.x, r.x + r.width) && across(grid.ys, r.y, r.y + r.depth);
-    });
+    return layout.placed_rooms.filter(r => clearKind(layout, r) && across(grid.xs, r.x, r.x + r.width) && across(grid.ys, r.y, r.y + r.depth));
 }
 
 /** A beam's depth for its span, by the rule file's span-to-depth ratio
@@ -99,7 +109,7 @@ export function planSpans(layout: SolvedLayout): Map<string, { span: number; hal
     const bay = (ls: number[], lo: number, hi: number) => Math.max(0, ...ls.slice(0, -1).map((v, i) => [v, ls[i + 1]])
         .filter(([s, e]) => e > lo + 1e-6 && s < hi - 1e-6).map(([s, e]) => e - s));
     const halls = new Set(longSpanRooms(layout).map(r => `${r.room_id}@${r.floor}`));
-    const cars = new Set(carSpaces(layout, grid).map(r => `${r.room_id}@${r.floor}`));
+    const cars = new Set(clearSpaces(layout, grid).map(r => `${r.room_id}@${r.floor}`));
     for (const r of layout.placed_rooms) {
         if (/^(corridor|stair)/.test(r.room_id)) continue;
         const k = `${r.room_id}@${r.floor}`, hall = halls.has(k);
@@ -150,7 +160,7 @@ export class StructuralEngine {
         // the structural-system selector (capability D): a long-span room stands clear of columns
         const longSpan = longSpanRooms(layout);
         // ... and so does a car space (a transfer beam instead of a truss)
-        const cars = carSpaces(layout, grid), clear = [...longSpan, ...cars];
+        const cars = clearSpaces(layout, grid), clear = [...longSpan, ...cars];
         const e = 1e-6;
         const inside = (h: { x: number; y: number; width: number; depth: number }, x: number, y: number) =>
             x > h.x + e && x < h.x + h.width - e && y > h.y + e && y < h.y + h.depth - e;
@@ -197,7 +207,7 @@ export class StructuralEngine {
                     beam(cars.includes(h) ? 'transfer' : 'long_span', a, b);
                 }
                 const span = acrossX ? h.width : h.depth;
-                halls.push({ room_id: h.room_id, floor, span_m: span, within_range: span <= LONG_SPAN_MAX_M + e, ...(cars.includes(h) ? { car: true } : {}) });
+                halls.push({ room_id: h.room_id, floor, span_m: span, within_range: span <= LONG_SPAN_MAX_M + e, ...(cars.includes(h) ? { clear: clearKind(layout, h)! } : {}) });
             }
             // a secondary beam's ends land on the primary beams of the grid lines it spans between
             const bay = (lines: number[], v: number) => lines[Math.max(0, lines.findIndex((l, k) => k + 1 < lines.length && v >= l - 1e-9 && v < lines[k + 1] - 1e-9))];
@@ -251,7 +261,7 @@ export const structuralEngine = new StructuralEngine();
  * a span beyond the long-span range, or columns of the floors above standing
  * over it (they need a transfer structure). Unchanged when there's none. */
 export function withHallNotes(layout: SolvedLayout): SolvedLayout {
-    if (!layout.placed_rooms?.length || !(longSpanRooms(layout).length || carSpaces(layout).length)) return layout;
+    if (!layout.placed_rooms?.length || !(longSpanRooms(layout).length || clearSpaces(layout).length)) return layout;
     const halls = structuralEngine.generateSkeleton(layout).halls;
     const brief: any[] = (layout.program_reference as any)?.rooms ?? [];
     const name = (id: string) => brief.find(q => (q.room_id ?? q.id) === id)?.name ?? id;
@@ -259,8 +269,8 @@ export function withHallNotes(layout: SolvedLayout): SolvedLayout {
     for (const h of halls) {
         if (!h.within_range) notes.push({ room_id: h.room_id, rule: 'LONG_SPAN_OUT_OF_RANGE',
             detail: `${name(h.room_id)} needs a ${+h.span_m.toFixed(1)} m clear span, beyond the long-span range (portal frame or steel truss, up to about ${LONG_SPAN_MAX_M} m). It needs a structural engineer's own scheme, or a narrower hall.` });
-        if (h.columns_above && h.car) notes.push({ room_id: h.room_id, rule: 'LONG_SPAN_TRANSFER',
-            detail: `${name(h.room_id)} is kept clear of columns for parking, so ${h.columns_above} column${h.columns_above > 1 ? 's' : ''} of the floor above stand${h.columns_above > 1 ? '' : 's'} on a transfer beam across its ${+h.span_m.toFixed(1)} m span (at least ${beamDepthMm(h.span_m)} mm deep by the span rule; a column load may need it deeper). Confirm with a structural engineer.` });
+        if (h.columns_above && h.clear) notes.push({ room_id: h.room_id, rule: 'LONG_SPAN_TRANSFER',
+            detail: `${name(h.room_id)} is kept clear of columns ${h.clear === 'car' ? 'for parking' : 'as a living space'}, so ${h.columns_above} column${h.columns_above > 1 ? 's' : ''} of the floor above stand${h.columns_above > 1 ? '' : 's'} on a transfer beam across its ${+h.span_m.toFixed(1)} m span (at least ${beamDepthMm(h.span_m)} mm deep by the span rule; a column load may need it deeper). Confirm with a structural engineer.` });
         else if (h.columns_above) notes.push({ room_id: h.room_id, rule: 'LONG_SPAN_TRANSFER',
             detail: `${h.columns_above} column${h.columns_above > 1 ? 's' : ''} of the floor${h.columns_above > 1 ? 's' : ''} above stand${h.columns_above > 1 ? '' : 's'} over ${name(h.room_id)}, which has no columns: they need a transfer structure (a deeper truss or a transfer beam). Confirm with a structural engineer.` });
     }
