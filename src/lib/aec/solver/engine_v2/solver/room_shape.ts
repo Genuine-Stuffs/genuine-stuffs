@@ -11,13 +11,16 @@ import complianceRules from '../../../compliance_rules.json';
 // Master plan v1.0 Phase 1 ABSOLUTE_MIN_WIDTH_M (values FINAL unless the
 // owner amends), keyed by graph.ts's normalized types. Moved here from
 // feasibility.ts so the gate (F-002) and the search use one table.
+// Owner 2026-10-21: kitchen 2.1 -> 2.0 m (NBC 1.8 m) and toilet / WC / powder room
+// 1.2 -> 1.0 m (WC + basin): the 0.5 m planning grid made them 2.5 m and 1.5 m
+// (bungalow benchmark 20 -> 30 of 40 solved, duplex 35 -> 38 of 40).
 export const ABSOLUTE_MIN_WIDTH_M: Record<string, number> = {
     foyer: 1.8, living_room: 3.0, dining_room: 2.7, family_room: 3.0, entertainment: 2.7,
-    kitchen: 2.1, utility: 1.5, garage: 3.0, laundry: 1.5, store: 1.2, boiler_room: 1.2,
+    kitchen: 2.0, utility: 1.5, garage: 3.0, laundry: 1.5, store: 1.2, boiler_room: 1.2,
     bedroom: 2.7, master_bedroom: 3.0, bathroom: 1.5, wardrobe: 1.2, dressing: 1.5,
     office: 2.4, study: 2.4,
     void: 1.0, circulation: 1.0, hall: 1.2, landing: 1.2, stairwell: 2.4,
-    toilet: 1.2, wc: 1.2, powder_room: 1.2,
+    toilet: 1.0, wc: 1.0, powder_room: 1.0,
     balcony: 1.5, terrace: 1.5, veranda: 1.5, verandah: 1.5, patio: 1.5,
     gen_house: 2.0, generator_house: 2.0, generator: 2.0,
 };
