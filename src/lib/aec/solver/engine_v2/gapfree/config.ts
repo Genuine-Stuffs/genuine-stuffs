@@ -75,5 +75,8 @@ export const WET_STACK_W = Number(env.WET_STACK_W ?? 20);
  * or porch, which then stands on the street (a veranda named "front" always does):
  * the bungalow benchmark had its front door in 23/40 plans (2026-10-21). */
 export const VERANDA_FRONT = flag("VERANDA_FRONT", true);
+/** A store or pantry whose only brief link is the kitchen opens off the kitchen, as an
+ * en-suite off its bedroom ("kitchen with a rear store": missed in 4/20 bungalow plans). */
+export const STORE_OFF_KITCHEN = flag("STORE_OFF_KITCHEN", true);
 /** A bedroom the brief wants away from the road (quiet.ts) on the street wall: a soft cost. */
 export const QUIET_W = Number(env.QUIET_W ?? 15);

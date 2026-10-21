@@ -300,6 +300,12 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
   const suites = graph ? deriveSuites(graph, floor) : [];
   const suiteSubs = new Set(suites.flatMap(x => x.subIds));
   const ownBedroom = new Map(suites.flatMap(s => s.subIds.map(id => [id, s.bedroomId] as const)));
+  // a store or pantry linked only to a kitchen opens into it (gapfree STORE_OFF_KITCHEN)
+  for (const n of graph?.nodes.values() ?? []) {
+    if (!/^(store|pantry)$/.test(n.type) || n.neighbors.size !== 1 || ownBedroom.has(n.id)) continue;
+    const k = graph!.nodes.get([...n.neighbors][0]);
+    if (k && k.floor === floor && /kitchen/.test(k.type)) ownBedroom.set(n.id, k.id);
+  }
   const sharedWall = (a: PlacedRoom, b: PlacedRoom): WallSide | null => {
     const ov = (a1: number, a2: number, b1: number, b2: number) => Math.min(a2, b2) - Math.max(a1, b1);
     const e = 1e-6, need = DOOR_ROOM.w + DOOR_CLEAR;

@@ -7,7 +7,7 @@ import { RoomGraph, GraphNode, Facade, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARA
 import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
 import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
-import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P, ENTRY_W, ZONES, FLAT_PASSAGE, ATRIUM_SOFT, WET_STACK_W, VERANDA_FRONT, QUIET_W } from "./config";
+import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P, ENTRY_W, ZONES, FLAT_PASSAGE, ATRIUM_SOFT, WET_STACK_W, VERANDA_FRONT, QUIET_W, STORE_OFF_KITCHEN } from "./config";
 
 const CELL = 0.5;
 export { STAIR_IN_HALL, FOYER_VIA_HALL, TERRACE_LIGHT };
@@ -405,6 +405,13 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
     const suiteSub = new Set(parentOf.keys());
     const entrances = new Set<string>();
     for (const [id, e] of unitEntrances(graph, floor)) { entrances.add(e); if (!parentOf.has(id)) parentOf.set(id, e); }
+    // STORE_OFF_KITCHEN: a store or pantry linked only to a kitchen on this floor opens off it
+    if (STORE_OFF_KITCHEN) for (const id of ids) {
+        const n = graph.nodes.get(id)!;
+        if (!/^(store|pantry)$/.test(n.type) || parentOf.has(id) || n.neighbors.size !== 1) continue;
+        const k = graph.nodes.get([...n.neighbors][0]);
+        if (k && k.floor === floor && /kitchen/.test(k.type)) parentOf.set(id, k.id);
+    }
     const leaves: Leaf[] = [];
     let hallIds: string[] = [];
     // VERANDA_FRONT: the ground floor's way in is its front veranda or porch when it has
