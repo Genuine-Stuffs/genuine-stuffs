@@ -324,7 +324,8 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
       const passage = entry && !r.room_id.startsWith('passage_') ? rooms.find(q => q.room_id === `passage_${entry}`) : undefined;
       const bedroom = rooms.find(q => q.room_id === ownBedroom.get(r.room_id));
       const wall = (bedroom && sharedWall(r, bedroom)) || (entryRoom && sharedWall(r, entryRoom)) || (passage && sharedWall(r, passage)) || spec?.wall || heuristicDoorWall(r, rooms, typeOf, ext);
-      const type = spec?.interior || SERVICE_ROOMS.test(t) ? DOOR_SERVICE : DOOR_ROOM;
+      // a store, pantry or meter room takes the 0.8 m service door too (a 1.0 m wide meter room fits it; owner 2026-10-21)
+      const type = spec?.interior || SERVICE_ROOMS.test(t) || /^(store|storage|pantry)$/.test(t) ? DOOR_SERVICE : DOOR_ROOM;
       if (wallLength(r, wall) >= type.w + DOOR_CLEAR) doors.set(r.room_id, { room_id: r.room_id, wall, type, ...doorStretch(r, wall, type, rooms, typeOf, bedroom ?? entryRoom ?? passage) });
     }
     if (t === 'stairwell' || t === 'passage' || isOutside(t)) continue;
