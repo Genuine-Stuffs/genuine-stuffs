@@ -8,22 +8,23 @@
  * the law in force, or the user asks for less than it requires, the plan
  * says so and offers the other choices — the rule is never bent silently.
  *
- * Sources (docs/design-references, owner-supplied 2026-10-09):
- * - Lagos 2019: residential 6 front / 3 sides / 3 rear; commercial 9 / 6 / 3;
- *   mixed use 6 / 4.5 / 4.5; residential plots of 150 m² or less 3 m on one
- *   side and 1.5 m on the other; a corner plot keeps the front setback on
- *   every side facing a road.
+ * Sources (docs/design-references, owner-supplied 2026-10-09; corrected
+ * 2026-10-21 from the regulations' own text, reports/Hotel and church
+ * design guidelines.md):
+ * - Lagos 2019 (Physical Planning Permit Regulations): residential 6 front /
+ *   3 sides / 3 rear; commercial 9 / 4.5 / 4.5, or 3 / 3 / 3 in a traditional
+ *   core area such as Lagos Island (Reg 7(2)B); mixed use 7.5 / 4.5 / 4.5, or
+ *   4.5 / 3 / 3 in a core area (Reg 7(2)C); residential plots of 150 m² or
+ *   less 3 m on one side and 1.5 m on the other; a corner plot keeps the
+ *   front setback on every side facing a road.
+ * - Lagos 2019, places of worship (Schedule 4B item 5): 9 / 4.5 / 4.5 on a
+ *   standard plot (1,500 m² or more), 6 / 3 / 3 on a sub-standard one
+ *   (600–1,499 m²); under 600 m² is below the minimum plot.
+ * - Hotels: no table of their own, so the commercial rule (Reg 7(2)B).
  * - NBC 2006: medium density 6 / 3 / 3 (FRN 2006, Akure study fig. 2; the
  *   study quotes 4.5–6 m at the front). High 4.5 / 2 / 2 and low
  *   7.5 / 4.5 / 4.5 are from secondary summaries, not yet checked against
  *   the code's own text.
- * - Hotels (hospitality) and places of worship (assembly), owner's engine
- *   brief 2026-10-20, capability E: no Lagos 2019 or NBC 2006 setback figure
- *   for either was found (web search 2026-10-20: the regulation's schedule
- *   isn't published online; only enforcement news and a 15 m setback from
- *   high-tension lines). Documented fallback: the Lagos commercial figures,
- *   9 / 6 / 3, and every such plan says so (USE_FALLBACK) and asks the user
- *   to confirm with LASPPPA. Replace with the cited figures when found.
  */
 
 import { programNeed } from './solver/engine_v2/gapfree/need';
@@ -39,6 +40,8 @@ export interface SetbackChoice {
     use: BuildingUse;
     density: Density;   // NBC only
     corner: boolean;
+    /** A traditional core area (Lagos Island and the like): tighter commercial and mixed-use setbacks. */
+    core?: boolean;
     /** The BQ and generator house may stand in the rear setback when they
      * don't fit inside the setbacks: the default since 2026-10-20 (owner),
      * with "Confirm with your planning authority" (was opt-in, 2026-10-13). */
@@ -51,6 +54,7 @@ export interface SetbackIntent {
     use?: BuildingUse;
     density?: Density;
     corner: boolean;
+    core?: boolean;
     stated: Partial<Setbacks>;
 }
 
@@ -58,17 +62,28 @@ export interface Plot { width: number; depth: number }
 
 const LAGOS: Record<BuildingUse, Setbacks> = {
     residential: { front: 6, rear: 3, left: 3, right: 3 },
-    commercial: { front: 9, rear: 3, left: 6, right: 6 },
-    mixed: { front: 6, rear: 4.5, left: 4.5, right: 4.5 },
-    // no source found: the commercial figures, said on every plan (USE_FALLBACK)
-    hospitality: { front: 9, rear: 3, left: 6, right: 6 },
-    assembly: { front: 9, rear: 3, left: 6, right: 6 },
+    commercial: { front: 9, rear: 4.5, left: 4.5, right: 4.5 },     // Reg 7(2)B(2)
+    mixed: { front: 7.5, rear: 4.5, left: 4.5, right: 4.5 },        // Reg 7(2)C
+    hospitality: { front: 9, rear: 4.5, left: 4.5, right: 4.5 },    // hotels: the commercial rule
+    assembly: { front: 9, rear: 4.5, left: 4.5, right: 4.5 },       // Schedule 4B item 5, standard plot
 };
-/** Uses with no setback source of their own, and what the plan says about it. */
-const USE_FALLBACK: Partial<Record<BuildingUse, string>> = {
-    hospitality: 'No Lagos or national setback rule for hotels was found in our sources, so the commercial setbacks are used (front 9 m, sides 6 m, rear 3 m). Confirm them with the planning authority (LASPPPA in Lagos).',
-    assembly: 'No Lagos or national setback rule for places of worship or other assembly buildings was found in our sources, so the commercial setbacks are used (front 9 m, sides 6 m, rear 3 m). Confirm them with the planning authority (LASPPPA in Lagos).',
+/** Traditional core areas (Lagos Island and the like): Reg 7(2)B(1), 7(2)C. */
+const LAGOS_CORE: Partial<Record<BuildingUse, Setbacks>> = {
+    commercial: { front: 3, rear: 3, left: 3, right: 3 },
+    hospitality: { front: 3, rear: 3, left: 3, right: 3 },
+    mixed: { front: 4.5, rear: 3, left: 3, right: 3 },
 };
+/** A place of worship on a sub-standard plot (600–1,499 m²), Schedule 4B item 5; under 600 m² the plot is too small. */
+const WORSHIP_STANDARD_M2 = 1500, WORSHIP_MIN_M2 = 600;
+const WORSHIP_SUBSTANDARD: Setbacks = { front: 6, rear: 3, left: 3, right: 3 };
+/** What the plan says about a use's plot rule (place of worship plot sizes). */
+function useNote(c: SetbackChoice, plot: Plot): string | undefined {
+    if (c.law !== 'lagos_2019' || c.use !== 'assembly') return undefined;
+    const a = plot.width * plot.depth;
+    if (a < WORSHIP_MIN_M2 - 1e-9) return `A place of worship in Lagos needs a plot of at least ${WORSHIP_MIN_M2} m² (Planning Permit Regulations 2019, Schedule 4B); this plot is ${Math.round(a)} m².`;
+    if (a < WORSHIP_STANDARD_M2 - 1e-9) return `A ${Math.round(a)} m² plot is a sub-standard plot for a place of worship (under ${WORSHIP_STANDARD_M2} m², Schedule 4B): setbacks 6 m front, 3 m sides and rear.`;
+    return undefined;
+}
 const USE_WORD: Record<BuildingUse, string> = { residential: 'residential', commercial: 'commercial', mixed: 'mixed use', hospitality: 'hotel', assembly: 'place of worship / assembly' };
 const NBC_RESIDENTIAL: Record<Density, Setbacks> = {
     high: { front: 4.5, rear: 2, left: 2, right: 2 },
@@ -101,6 +116,7 @@ export function readSetbackIntent(userTexts: string[]): SetbackIntent {
         // the building, not a room in it: a villa's "Home Office" kept villas on the commercial setbacks (fixed 2026-10-20)
         else if (/\b(office (building|block|complex|tower|space)s?|(shopping )?(plaza|mall)s?|shopping (centre|center|complex)|(commercial|retail) (building|property|use|development|complex)s?|shops? and offices?)\b/i.test(t)) intent.use = 'commercial';
         if (/\bcorner\s+(plot|piece|lot)\b/i.test(t)) intent.corner = true;
+        if (/\b(lagos\s+island|traditional\s+core|core\s+area|isale\s+eko|idumota|marina,?\s+lagos)\b/i.test(t)) intent.core = true;
         const put = (side: string, v: number) => {
             const s = side.toLowerCase();
             if (s === 'front') intent.stated.front = v;
@@ -123,13 +139,17 @@ export function defaultChoice(intent: SetbackIntent): SetbackChoice {
         use: intent.use ?? 'residential',
         density: intent.density ?? 'medium',
         corner: intent.corner,
+        ...(intent.core ? { core: true } : {}),
         outbuildingsInRear: true,
     };
 }
 
 /** The minimum setbacks a law requires on this plot. */
 export function lawSetbacks(c: SetbackChoice, plot: Plot): Setbacks {
-    const base = c.law === 'nbc_2006' && c.use === 'residential' ? NBC_RESIDENTIAL[c.density] : LAGOS[c.use];
+    const area = plot.width * plot.depth;
+    const base = c.law === 'nbc_2006' && c.use === 'residential' ? NBC_RESIDENTIAL[c.density]
+        : c.use === 'assembly' && area < WORSHIP_STANDARD_M2 - 1e-9 ? WORSHIP_SUBSTANDARD
+        : (c.core && LAGOS_CORE[c.use]) || LAGOS[c.use];
     const s = { ...base };
     if (c.law === 'lagos_2019' && c.use === 'residential' && plot.width * plot.depth <= LAGOS_SMALL_PLOT_M2 + 1e-9) {
         s.left = 3; s.right = 1.5;
@@ -141,7 +161,7 @@ export function lawSetbacks(c: SetbackChoice, plot: Plot): Setbacks {
 export function choiceLabel(c: SetbackChoice): string {
     const law = c.law === 'lagos_2019' ? 'Lagos Planning Permit Regulations 2019' : 'National Building Code 2006';
     const band = c.law === 'nbc_2006' && c.use === 'residential' ? `, ${c.density} density` : c.use !== 'residential' ? `, ${USE_WORD[c.use]}` : '';
-    return `${law}${band}${c.corner ? ', corner plot' : ''}${c.outbuildingsInRear === false ? ', outbuildings kept out of the setbacks' : ''}`;
+    return `${law}${band}${c.core && LAGOS_CORE[c.use] ? ', traditional core area' : ''}${c.corner ? ', corner plot' : ''}${c.outbuildingsInRear === false ? ', outbuildings kept out of the setbacks' : ''}`;
 }
 
 const fmt = (s: Setbacks) => `front ${s.front} m, rear ${s.rear} m, sides ${s.left} m / ${s.right} m`;
@@ -155,7 +175,7 @@ export interface SetbackPlan {
     label: string;
     /** Sides where the user asked for less than the law requires. */
     below: Array<keyof Setbacks>;
-    /** Said on the plan when the use has no setback source of its own. */
+    /** Said on the plan about the use's plot rule (a place of worship on a small plot). */
     fallback?: string;
 }
 
@@ -163,7 +183,8 @@ export function planSetbacks(choice: SetbackChoice, plot: Plot, stated: Partial<
     const law = lawSetbacks(choice, plot);
     const setbacks = { ...law, ...stated };
     const below = (Object.keys(stated) as Array<keyof Setbacks>).filter(k => (stated[k] ?? Infinity) < law[k] - 1e-9);
-    return { choice, setbacks, law, label: choiceLabel(choice), below, ...(USE_FALLBACK[choice.use] ? { fallback: USE_FALLBACK[choice.use] } : {}) };
+    const note = useNote(choice, plot);
+    return { choice, setbacks, law, label: choiceLabel(choice), below, ...(note ? { fallback: note } : {}) };
 }
 
 export const buildableOf = (plot: Plot, s: Setbacks) => {
