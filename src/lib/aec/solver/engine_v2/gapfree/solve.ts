@@ -29,6 +29,7 @@ import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, place
 import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES, FLAT_BOTTOM_UP, ATRIUM_UP, WET_STACK, HALL_NARROW } from "./config";
 import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP, splitGatehouses, placeGatehouses, isGenerator, withoutUnits } from "./outbuildings";
 import { hotelLayout } from "./hotel";
+import { assemblyLayout } from "./assembly";
 import { withHallNotes } from "../../structural";
 import { buildingSupport } from "../building_support";
 import { annealSpine, spineSpec, spineRects, spineFootprints, SpineState, STAIR as SPINE_STAIR } from "./spine";
@@ -298,6 +299,8 @@ function* houseDriver(program: SpatialProgram, envelope: PlotEnvelope, options?:
 export function* planDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
     // a hotel: guest floors along a central corridor, stacked (hotel.ts)
     if (buildingSupport(program).kind === 'hotel') return hotelLayout(program, envelope, options);
+    // a place of worship / assembly hall: three bands about a clear-span hall, to the codes (assembly.ts)
+    if (buildingSupport(program).kind === 'assembly') return assemblyLayout(program, envelope, options);
     // a security post is a gatehouse at the front gate (owner 2026-10-19), planned apart from the house
     const s = envelope.setbacks;
     const gate = OUTBUILDINGS ? splitGatehouses(program, s.front) : null;

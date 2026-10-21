@@ -183,6 +183,14 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
         gap: { x: x0, y: ry - T / 2 - 0.5, w: R, h: T + 1 }, tag: [x0 + R / 2, ry - 16], swing: { x: x0, y: ry, w: R, h: R } as Box };
     }
     const x = d.wall === 'left' ? rx : rx + r.width * scale, y0 = ry + d.at * scale, s = d.wall === 'left' ? 1 : -1;
+    // an assembly hall's exit: double doors swinging OUT (NBC §7.13.10; Lagos Reg 24(11): rooms over 50 people)
+    if ((layout as any).assembly && d.type.w >= 1.2) {
+      const h = R / 2, o = -s; // o: outward, away from the room
+      const leaves = [[x, y0, x + o * h, y0], [x, y0 + R, x + o * h, y0 + R]];
+      const arcs = [`M ${x + o * h} ${y0} A ${h} ${h} 0 0 ${o > 0 ? 1 : 0} ${x} ${y0 + h}`, `M ${x + o * h} ${y0 + R} A ${h} ${h} 0 0 ${o > 0 ? 0 : 1} ${x} ${y0 + h}`];
+      return { ...d, R, leaf: leaves[0], leaves, arcs, arc: '', gap: { x: x - T / 2 - 0.5, y: y0, w: T + 1, h: R },
+        tag: [x + o * (h + 10), y0 + R / 2], swing: { x, y: y0, w: 0, h: 0 } as Box };
+    }
     return { ...d, R, leaf: [x, y0, x + s * R, y0], arc: `M ${x + s * R} ${y0} A ${R} ${R} 0 0 ${s > 0 ? 0 : 1} ${x} ${y0 + R}`,
       gap: { x: x - T / 2 - 0.5, y: y0, w: T + 1, h: R }, tag: [x - s * 16, y0 + R / 2], swing: { x: s > 0 ? x : x - R, y: y0, w: R, h: R } as Box };
   })()).filter((y): y is NonNullable<typeof y> => !!y);
@@ -704,7 +712,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
         })()}
 
         {/* ── Label ── */}
-        {showLabel && !isStair(room) && (
+        {showLabel && !isStair(room) && !((layout as any).assembly?.seating && resolveRoomType(room.room_id) === 'auditorium') && (
           <text textAnchor="middle" style={{ pointerEvents: 'none' }}>
             {/* the room's number in the room key */}
             {keyNumber(roomKeys, activeFloor, room.room_id) && <tspan data-room-no
@@ -924,23 +932,58 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
             ))}
             {activeRooms.map((room, idx) => renderRoom(room, idx, 'over'))}
 
+            {/* An assembly hall's seating (gapfree/assembly.ts, regulations/assembly.ts): straight rows in blocks of
+                at most 14 seats, a 1.5 m centre aisle and 1.1 m aisles between blocks and at the walls, from 2.2 m
+                in front of the stage */}
+            {!showStructure && activeFloor === 0 && (layout as any).assembly?.seating && (() => {
+              const st = (layout as any).assembly.seating, hall = activeRooms.find(r => resolveRoomType(r.room_id) === 'auditorium');
+              if (!hall) return null;
+              const SEAT = 0.5, PITCH = 0.95, ROW = 0.45, CENTRE = 1.5, SIDE = 1.1, GAP = 2.2;
+              const per = st.seatsPerRow / st.blocks, bw = per * SEAT;
+              // block x-positions: wall aisle, blocks with aisles between, the centre aisle in the middle
+              const xs: number[] = []; let x = hall.x + SIDE;
+              for (let b = 0; b < st.blocks; b++) { xs.push(x); x += bw + (b === st.blocks / 2 - 1 ? CENTRE : SIDE); }
+              const rows: React.ReactNode[] = [];
+              for (let r = 0; r < st.rows; r++) for (let b = 0; b < st.blocks; b++) {
+                const y = hall.y + GAP + r * PITCH;
+                if (y + ROW > hall.y + hall.depth) break;
+                rows.push(<rect key={`${r}-${b}`} x={xOffset + xs[b] * scale} y={yOffset + y * scale} width={bw * scale} height={ROW * scale} fill="#e2e8f0" stroke="#94a3b8" strokeWidth={0.4} />);
+              }
+              return <g data-seating={`${st.rows}x${st.seatsPerRow}`} style={{ pointerEvents: 'none' }}>
+                {rows}
+                <text x={xOffset + (hall.x + hall.width / 2) * scale} y={yOffset + (hall.y + GAP + st.rows * PITCH + 0.35) * scale} textAnchor="middle"
+                  style={{ fontSize: '7.5px', fontWeight: 900, fill: '#334155', letterSpacing: '0.06em' }}>{resolveRoomName(hall.room_id).toUpperCase()} · {st.rows * st.seatsPerRow} SEATS IN {st.rows} ROWS · LAST ROW {st.lastRowFromStage} M FROM THE STAGE</text>
+              </g>;
+            })()}
+
             {/* Front door: a gap in the street wall, the leaf swinging in, its tag outside */}
             {entrance && !showStructure && (
               <g data-entrance={entrance.room_id}>
                 <rect x={entrance.x0} y={entrance.y - WALL_PX.ext / 2 - 0.5} width={entrance.R} height={WALL_PX.ext + 1} fill="white" />
+                {(layout as any).assembly ? (() => {
+                  // an assembly hall's main entrance: leaves of at most 1.22 m, swinging OUT to the street (NBC §7.13.7, §7.13.10)
+                  const n = Math.max(2, Math.ceil(entrance.type.w / 1.219 - 1e-9)), w = entrance.R / n;
+                  return Array.from({ length: n }, (_, i) => {
+                    const hx = entrance.x0 + i * w + (i % 2 ? w : 0), dir = i % 2 ? -1 : 1;
+                    return <g key={i}>
+                      <line x1={hx} y1={entrance.y} x2={hx} y2={entrance.y + w} stroke="#1e293b" strokeWidth={1.5} />
+                      <path d={`M ${hx} ${entrance.y + w} A ${w} ${w} 0 0 ${dir > 0 ? 0 : 1} ${hx + dir * w} ${entrance.y}`} fill="none" stroke="#1e293b" strokeWidth={0.8} />
+                    </g>;
+                  });
+                })() : <>
                 <line x1={entrance.x0} y1={entrance.y} x2={entrance.x0} y2={entrance.y - entrance.R} stroke="#1e293b" strokeWidth={1.5} />
                 <path d={`M ${entrance.x0} ${entrance.y - entrance.R} A ${entrance.R} ${entrance.R} 0 0 1 ${entrance.x0 + entrance.R} ${entrance.y}`}
-                  fill="none" stroke="#1e293b" strokeWidth={0.8} />
-                {renderTag(tagOf(entrance.type), entrance.x0 + entrance.R / 2, entrance.y + 16)}
+                  fill="none" stroke="#1e293b" strokeWidth={0.8} /></>}
+                {renderTag(tagOf(entrance.type), entrance.x0 + entrance.R / 2, entrance.y + ((layout as any).assembly ? 26 : 16))}
               </g>
             )}
 
             {/* Yard doors (kitchen, laundry): a gap in the outside wall, the leaf swinging in, its tag outside */}
             {!showStructure && yards.map(yard => (
-              <g key={`yard-${yard.room_id}`} data-yard={yard.room_id} data-wall={yard.wall}>
+              <g key={`yard-${yard.room_id}-${yard.wall}-${yard.at}`} data-yard={yard.room_id} data-wall={yard.wall} data-exit={(yard as any).leaves ? 'out' : undefined}>
                 <rect x={yard.gap.x} y={yard.gap.y} width={yard.gap.w} height={yard.gap.h} fill="white" />
-                <line x1={yard.leaf[0]} y1={yard.leaf[1]} x2={yard.leaf[2]} y2={yard.leaf[3]} stroke="#1e293b" strokeWidth={1.5} />
-                <path d={yard.arc} fill="none" stroke="#1e293b" strokeWidth={0.8} />
+                {((yard as any).leaves ?? [yard.leaf]).map((l: number[], i: number) => <line key={i} x1={l[0]} y1={l[1]} x2={l[2]} y2={l[3]} stroke="#1e293b" strokeWidth={1.5} />)}
+                {((yard as any).arcs ?? [yard.arc]).map((a: string, i: number) => <path key={`a${i}`} d={a} fill="none" stroke="#1e293b" strokeWidth={0.8} />)}
                 {renderTag(tagOf(yard.type), yard.tag[0], yard.tag[1])}
               </g>
             ))}

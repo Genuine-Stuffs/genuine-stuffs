@@ -27,6 +27,12 @@ const vehicleType = (w: number): OpeningType => {
   if (!vehicleTypes.has(w)) vehicleTypes.set(w, { kind: 'D', w, h: VEHICLE_H });
   return vehicleTypes.get(w)!;
 };
+/** An assembly exit of a given clear width: double or triple doors 2.4 m high, one type per width. */
+const exitTypes = new Map<number, OpeningType>();
+const exitType = (w: number): OpeningType => {
+  if (!exitTypes.has(w)) exitTypes.set(w, { kind: 'D', w, h: 2.4 });
+  return exitTypes.get(w)!;
+};
 const WIN_LARGE: OpeningType = { kind: 'W', w: 1.8, h: 1.2 };
 const WIN_ROOM: OpeningType = { kind: 'W', w: 1.2, h: 1.2 };
 const WIN_SMALL: OpeningType = { kind: 'W', w: 0.6, h: 0.6 };
@@ -360,7 +366,27 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
   const named = (id: string) => briefRooms.find(q => q.room_id === id || q.id === id)?.name ?? '';
   const quarters = floor === 0 ? laundryDoor(rooms, W, D, typeOf, kept, yard, q => QUARTERS.test(norm(typeOf(q.room_id))) || QUARTERS_NAME.test(named(q.room_id))) : null;
   // a laundry's or quarters' own door into the house stays; the outside door is extra
-  return { doors, windows: kept, entrance, yard, yards: [yard, laundry, quarters].filter((y): y is PlannedYardDoor => !!y), vehicles };
+  const yards = [yard, laundry, quarters].filter((y): y is PlannedYardDoor => !!y);
+  // an assembly hall's exits, sized from its occupant load (gapfree/assembly.ts): the main
+  // entrance on the foyer's street wall, the others in the hall's side walls
+  const assembly = (layout as any).assembly as { exits: Array<{ wall: WallSide; at: number; width: number; main?: boolean }> } | undefined;
+  let mainEntrance = entrance;
+  if (floor === 0 && assembly?.exits?.length) {
+    const hall = rooms.find(r => roomTypeOf(layout, r.room_id) === 'auditorium' || /auditorium|sanctuary|nave/i.test(String((program?.rooms ?? []).find((q: any) => (q.room_id ?? q.id) === r.room_id)?.name ?? '')));
+    for (const e of assembly.exits) {
+      const type = exitType(e.width);
+      if (e.main) { if (entrance) mainEntrance = { ...entrance, type, x: entrance.x }; continue; }
+      if (!hall) continue;
+      const start = e.wall === 'top' || e.wall === 'bottom' ? hall.x : hall.y;
+      yards.push({ room_id: hall.room_id, wall: e.wall, type, at: Math.max(0, e.at - start) });
+    }
+    // no window where an exit stands
+    for (let i = kept.length - 1; i >= 0; i--) {
+      const w = kept[i];
+      if (yards.some(y => y.room_id === w.room_id && y.wall === w.wall && w.at !== undefined && Math.abs(w.at - (y.at + y.type.w / 2)) < (w.type.w + y.type.w) / 2)) kept.splice(i, 1);
+    }
+  }
+  return { doors, windows: kept, entrance: mainEntrance, yard, yards, vehicles };
 }
 
 export interface ScheduleRow { tag: string; type: OpeningType; count: number }
@@ -384,7 +410,7 @@ export function openingSchedule(layout: SolvedLayout): { tagOf: (t: OpeningType)
   if (ground.entrance) add(ground.entrance.type);
   ground.yards.forEach(y => add(y.type));
   ground.vehicles.filter(v => !v.open).forEach(v => add(v.type)); // an open car side isn't a door
-  const role = (t: OpeningType) => t === DOOR_ENTRANCE ? 0 : t === DOOR_ROOM ? 1 : t === DOOR_SERVICE ? 2 : 3;
+  const role = (t: OpeningType) => t === DOOR_ENTRANCE || t === ground.entrance?.type ? 0 : t === DOOR_ROOM ? 1 : t === DOOR_SERVICE ? 2 : 3;
   const kind = (k: 'D' | 'W') => [...used.keys()].filter(t => t.kind === k)
     .sort((a, b) => (k === 'D' ? role(a) - role(b) : 0) || b.w * b.h - a.w * a.h || b.w - a.w);
   const rows: ScheduleRow[] = [];

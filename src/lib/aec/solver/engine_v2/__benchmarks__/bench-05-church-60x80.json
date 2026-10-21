@@ -116,9 +116,9 @@
    "name": "Accessible WC",
    "type": "restroom",
    "floor": 0,
-   "area_m2": 4,
-   "width_m": 2.0,
-   "span_m": 2.0,
+   "area_m2": 5,
+   "width_m": 2.2,
+   "span_m": 2.2,
    "uses_intermediate_columns": false,
    "adjacencies": [
     "c05"
