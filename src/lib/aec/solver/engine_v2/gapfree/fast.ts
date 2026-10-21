@@ -90,7 +90,7 @@ function intrinsicCost(c: Ctx, i: number, w: number, h: number): number {
     const rects: Rect[] = c.spec.leaves.map(() => ({ x: 0, y: 0, w: 1, h: 1 }));
     rects[i] = { x: 0, y: 0, w, h };
     const spec = c.spec;
-    const solo: FloorSpec = { leaves: [spec.leaves[i]], W: spec.W, D: spec.D, pairs: [], floor: 1, stairCells: spec.stairCells };
+    const solo: FloorSpec = { leaves: [spec.leaves[i]], W: spec.W, D: spec.D, pairs: [], floor: 1, stairCells: spec.stairCells, narrowHall: spec.narrowHall };
     let s = 0;
     for (const vi of violations([rects[i]], solo)) if (!["EXTERNAL_WALL", "FRONT", "FACADE", "ATRIUM", "ATRIUM_SOFT", "REACH", "CIRC_CONNECTED"].includes(vi.rule)) s += (WEIGHT[vi.rule] ?? 10) * vi.amount;
     c.intrinsic[key] = s;

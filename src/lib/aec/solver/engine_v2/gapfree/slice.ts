@@ -39,6 +39,7 @@ export interface FloorSpec {
     wetAbove?: Rect[];         // WET_STACK: the bathrooms of the floor above (planned first)
     wetBelow?: Rect[];         // WET_STACK: the wet rooms of the floor below (planned first)
     quiet?: number[];          // bedrooms the brief wants off the street (quiet.ts)
+    narrowHall?: boolean;      // HALL_NARROW: a one-storey house's hall may be 1.0 m wide
     zones?: number[][];        // ZONES: leaves of each full-depth strip, left to right (flat, core, flat)
 }
 
@@ -140,7 +141,8 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
     spec.leaves.forEach((l, i) => {
         const r = rects[i], w_m = r.w * CELL, h_m = r.h * CELL, a = w_m * h_m;
         if (l.hall) {
-            if (Math.min(r.w, r.h) < 3) v.push({ rule: "HALL_WIDTH", leaf: i, amount: 3 - Math.min(r.w, r.h) });
+            const hallMin = spec.narrowHall ? 2 : 3;
+            if (Math.min(r.w, r.h) < hallMin) v.push({ rule: "HALL_WIDTH", leaf: i, amount: hallMin - Math.min(r.w, r.h) });
             if (spec.stairCells && !placeStair(r, spec.stairCells)) {
                 const [a2, b2] = spec.stairCells;
                 const short = Math.max(0, Math.min(a2, b2) - Math.min(r.w, r.h)) + Math.max(0, Math.max(a2, b2) - Math.max(r.w, r.h));

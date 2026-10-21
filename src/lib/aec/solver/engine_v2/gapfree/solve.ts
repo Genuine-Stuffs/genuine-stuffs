@@ -26,7 +26,7 @@ import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
 import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf, isBathType } from "./slice";
-import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES, FLAT_BOTTOM_UP, ATRIUM_UP, WET_STACK } from "./config";
+import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES, FLAT_BOTTOM_UP, ATRIUM_UP, WET_STACK, HALL_NARROW } from "./config";
 import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP, splitGatehouses, placeGatehouses, isGenerator, withoutUnits } from "./outbuildings";
 import { hotelLayout } from "./hotel";
 import { withHallNotes } from "../../structural";
@@ -203,6 +203,8 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
         for (const fl of up ? p.floorIds : [...p.floorIds].reverse()) {
             const spec = specFor(p.graph, fl, W, D, p.duplex, squeeze);
             if (!spec) { ok = false; break; }
+            // HALL_NARROW (trial): a one-storey house has no stair in its hall
+            if (HALL_NARROW && p.floorIds.length === 1) spec.narrowHall = true;
             if (prev === undefined) { if (STAIR_IN_HALL && p.duplex) spec.stairCells = [5, 8]; }
             else {
                 const pr = rects.get(prev)!, ps = specs.get(prev)!;

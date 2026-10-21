@@ -78,5 +78,8 @@ export const VERANDA_FRONT = flag("VERANDA_FRONT", true);
 /** A store or pantry whose only brief link is the kitchen opens off the kitchen, as an
  * en-suite off its bedroom ("kitchen with a rear store": missed in 4/20 bungalow plans). */
 export const STORE_OFF_KITCHEN = flag("STORE_OFF_KITCHEN", true);
+/** A one-storey house's hall (no stair in it) may be 1.0 m wide, not 1.5 m (owner 2026-10-21:
+ * bungalow benchmark solved 26 -> 38 of 40, its whole brief met 24 -> 29). */
+export const HALL_NARROW = flag("HALL_NARROW", true);
 /** A bedroom the brief wants away from the road (quiet.ts) on the street wall: a soft cost. */
 export const QUIET_W = Number(env.QUIET_W ?? 15);
