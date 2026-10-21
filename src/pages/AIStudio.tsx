@@ -67,6 +67,7 @@ import AECFloorPlan from '@/components/aec/AECFloorPlan';
 import { AECSitePlan } from '@/components/aec/AECSitePlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import AECMassingView from '@/components/aec/AECMassingView';
+import { AECElevations } from '@/components/aec/AECElevations';
 import { useLayoutOptions, layoutSignature, solveLayoutInWorker, layoutModeSetting } from '@/hooks/use-layout-options';
 import { explainFailure, explainUnsupported, isPlan } from '@/lib/aec/solver/engine_v2/failure_messages';
 import { buildingSupport } from '@/lib/aec/solver/engine_v2/building_support';
@@ -1415,6 +1416,7 @@ const AIStudio = () => {
                                                                 )}
                                                                 <AECSitePlan layout={stableLayout} setbacks={designPackage?.setback?.plan?.setbacks} />
                                                                 <AECFloorPlan layout={stableLayout} />
+                                                                <AECElevations layout={stableLayout} />
                                                                 <AECMassingView layout={stableLayout} />
                                                                 <AECBillOfQuantities layout={stableLayout} materials={designPackage.material_schedule || []} />
                                                             </>
