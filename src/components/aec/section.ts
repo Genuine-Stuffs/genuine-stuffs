@@ -15,9 +15,10 @@ import type { WallSide } from '@/lib/aec/solver/engine_v2/doors';
 import { computeWalls, WALL_THICKNESS, type WallRoomKind, type WallKind } from './walls';
 import { planOpenings, roomTypeOf, openingSchedule } from './openings';
 import { STOREY_H, PARAPET_H } from './elevations';
+import { stairPlan } from './stair';
 
 export const SLAB_T = 0.15;
-const HEAD_H = 2.1, TREAD = 0.28, E = 1e-6;
+const HEAD_H = 2.1, E = 1e-6;
 
 /** The cut on the plan: the line x = at (`axis` 'x', running front to back) or y = at. */
 export interface SectionCut { axis: 'x' | 'y'; at: number; length: number }
@@ -30,7 +31,13 @@ export interface Section {
   walls: CutWall[];
   slabs: Slab[];
   parapets: Array<{ at: number; base: number; h: number; t: number }>;
-  stair: { a: number; b: number; up: 1 | -1; risers: number; rise: number; going: number } | null;
+  /** The stair: each flight from its foot to its head along the section (a, b) and heights (h0, h1);
+   * `cut` for the flight the section passes through, else seen beyond. */
+  stair: {
+    kind: 'dogleg' | 'straight'; risers: number; rise: number; going: number; steep: boolean;
+    flights: Array<{ a: number; b: number; h0: number; h1: number; risers: number; cut: boolean }>;
+    landing: { a: number; b: number; h: number } | null;
+  } | null;
   levels: Array<{ h: number; label: string }>;
   top: number;
 }
@@ -60,24 +67,14 @@ export function sectionCut(layout: SolvedLayout): SectionCut | null {
   if (!rooms.length) return null;
   const W = Math.max(...rooms.map(r => r.x + r.width)), D = Math.max(...rooms.map(r => r.y + r.depth));
   const st = rooms.find(r => r.floor === 0 && r.room_id === 'stairwell');
-  if (st) return st.depth >= st.width ? { axis: 'x', at: st.x + st.width / 2, length: D } : { axis: 'y', at: st.y + st.depth / 2, length: W };
+  // through the middle of the first flight, so it is cut and the second seen beyond
+  if (st) {
+    const f = stairPlan(layout, st).flights[0].rect;
+    return st.depth >= st.width ? { axis: 'x', at: f.x + f.w / 2, length: D } : { axis: 'y', at: f.y + f.h / 2, length: W };
+  }
   // off any wall line: the middle of the ground room at the house's centre
   const mid = rooms.find(r => r.floor === 0 && r.x < W / 2 && r.x + r.width > W / 2 && r.y < D / 2 && r.y + r.depth > D / 2);
   return { axis: 'x', at: mid ? mid.x + mid.width / 2 : W / 2, length: D };
-}
-
-/** The stair's flight starts at the end that opens onto the hall (as the floor plan draws it). */
-function flightStartsAtMin(layout: SolvedLayout, st: PlacedRoom): boolean {
-  const alongX = st.width > st.depth;
-  const others = layout.placed_rooms.filter(r => r.floor === st.floor && r !== st && wallKind(layout, r) === 'open');
-  const openAt = (atMin: boolean) => others.reduce((sum, r) => {
-    const touches = alongX ? Math.abs((atMin ? st.x : st.x + st.width) - (atMin ? r.x + r.width : r.x)) < 0.01
-      : Math.abs((atMin ? st.y : st.y + st.depth) - (atMin ? r.y + r.depth : r.y)) < 0.01;
-    const overlap = alongX ? Math.min(st.y + st.depth, r.y + r.depth) - Math.max(st.y, r.y) : Math.min(st.x + st.width, r.x + r.width) - Math.max(st.x, r.x);
-    return touches && overlap > 0 ? sum + overlap : sum;
-  }, 0);
-  const atMin = openAt(true), atMax = openAt(false);
-  return atMin !== atMax ? atMin > atMax : false;
 }
 
 export function section(layout: SolvedLayout): Section | null {
@@ -164,15 +161,19 @@ export function section(layout: SolvedLayout): Section | null {
     }
   }
   out.parapets = [...ends.values()].map(e => ({ ...e, h: PARAPET_H, t: WALL_THICKNESS.ext }));
-  // the stair: one straight flight along the stairwell, as the plan draws it
+  // the stair (stair.ts): the dog-leg's two flights and half landing, as the plan draws it
   const st = rooms.find(r => r.floor === 0 && r.room_id === 'stairwell');
   if (st && crosses(st) && floors.length > 1) {
-    const [a, b] = spanOf(st), run = b - a;
-    const n = Math.max(2, Math.round(run / TREAD));
-    const startMin = flightStartsAtMin(layout, st);
-    // plan-min end, on the section, is at the left when the section runs with the plan, else at the right
-    const startLeft = cut.axis === 'x' ? !startMin : startMin;
-    out.stair = { a, b, up: startLeft ? 1 : -1, risers: n, rise: STOREY_H / n, going: run / n };
+    const sp = stairPlan(layout, st);
+    const H = (k: number) => k * sp.rise;
+    let done = 0;
+    const flights = sp.flights.map((f, i) => {
+      const h0 = H(done); done += f.risers;
+      const cutHere = cut.axis === 'x' ? f.rect.x < cut.at - E && f.rect.x + f.rect.w > cut.at + E : f.rect.y < cut.at - E && f.rect.y + f.rect.h > cut.at + E;
+      return { a: along(f.from), b: along(f.to), h0, h1: H(done), risers: f.risers, cut: cutHere || sp.flights.length === 1 || (i === 0 && !sp.flights.some((g, k) => k > 0)) };
+    });
+    const ld = sp.landing && (() => { const [p, q] = cut.axis === 'x' ? [sp.landing.y, sp.landing.y + sp.landing.h] : [sp.landing.x, sp.landing.x + sp.landing.w]; return { a: Math.min(along(p), along(q)), b: Math.max(along(p), along(q)), h: sp.landingH }; })();
+    out.stair = { kind: sp.kind, risers: sp.risers, rise: sp.rise, going: sp.going, steep: sp.steep, flights, landing: ld || null };
   }
   out.levels = [{ h: 0, label: '±0.00 GROUND FLOOR' },
     ...floors.slice(1).map(f => ({ h: f * STOREY_H, label: `+${(f * STOREY_H).toFixed(2)} ${['', 'FIRST', 'SECOND', 'THIRD'][f] ?? `FLOOR ${f}`} FLOOR` })),

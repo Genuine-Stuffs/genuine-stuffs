@@ -4,6 +4,7 @@ import { structuralEngine } from '@/lib/aec/solver/structural';
 import { computeWalls, WALL_THICKNESS, WallRoomKind } from './walls';
 import { planOpenings, openingSchedule, roomTypeOf, externalEdges, DOOR_ROOM, type OpeningType } from './openings';
 import { sectionCut } from './section';
+import { stairPlan } from './stair';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Ruler, ShieldAlert, Layers } from 'lucide-react';
@@ -359,63 +360,56 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
     </g>
   );
 
-  // ── Stair: one straight flight along the stairwell's long side, starting
-  // at the end that opens onto the hall. Upstairs the void shows the same
-  // flight with DN from its top end.
-  const TREAD = 0.28; // metres
+  // ── Stair: the dog-leg in its stairwell (stair.ts; owner 2026-10-21) — two
+  // flights and a half landing, the walking line from the hall end. Upstairs
+  // the void shows the same stair with DN from its top.
   const isStair = (room: any) => room.room_id === 'stairwell' || room.room_id === 'stairwell_void';
   const groundStair = placed_rooms.find(r => r.floor === 0 && r.room_id === 'stairwell');
-  const stairStartsAtMin = (st: any): boolean => {
-    const floorRooms = placed_rooms.filter(r => r.floor === st.floor && r !== st);
-    const alongX = st.width > st.depth;
-    const openAt = (atMin: boolean) => floorRooms
-      .filter(r => wallKindOf(r) === 'open')
-      .reduce((sum, r) => {
-        const touches = alongX
-          ? Math.abs((atMin ? st.x : st.x + st.width) - (atMin ? r.x + r.width : r.x)) < 0.01
-          : Math.abs((atMin ? st.y : st.y + st.depth) - (atMin ? r.y + r.depth : r.y)) < 0.01;
-        const overlap = alongX
-          ? Math.min(st.y + st.depth, r.y + r.depth) - Math.max(st.y, r.y)
-          : Math.min(st.x + st.width, r.x + r.width) - Math.max(st.x, r.x);
-        return touches && overlap > 0 ? sum + overlap : sum;
-      }, 0);
-    const atMin = openAt(true), atMax = openAt(false);
-    // No hall at either end: start at the front (bottom / right), where the
-    // entrance is drawn.
-    return atMin !== atMax ? atMin > atMax : false;
-  };
 
-  const renderStair = (room: any, rx: number, ry: number, rw: number, rh: number) => {
-    const alongX = room.width > room.depth;
+  const renderStair = (room: any) => {
     const up = room.room_id === 'stairwell';
-    // The void repeats the ground flight; DN runs from the flight's top end.
-    const base = up ? room : (groundStair ?? room);
-    const startAtMin = stairStartsAtMin(base) === up;
-    const run = alongX ? rw : rh;
-    const n = Math.max(2, Math.round((alongX ? room.width : room.depth) / TREAD));
-    const step = run / n;
+    const sp = stairPlan(layout, up ? room : (groundStair ?? room));
+    const X = (x: number) => xOffset + x * scale, Y = (y: number) => yOffset + y * scale;
     const c = '#334155';
-    const treads = Array.from({ length: n - 1 }, (_, i) => {
-      const o = (i + 1) * step;
-      return alongX
-        ? <line key={i} x1={rx + o} y1={ry} x2={rx + o} y2={ry + rh} stroke={c} strokeWidth={0.7} />
-        : <line key={i} x1={rx} y1={ry + o} x2={rx + rw} y2={ry + o} stroke={c} strokeWidth={0.7} />;
+    const lines: React.ReactNode[] = [];
+    sp.flights.forEach((f, fi) => {
+      const r = f.rect;
+      lines.push(<rect key={`f${fi}`} x={X(r.x)} y={Y(r.y)} width={r.w * scale} height={r.h * scale} fill="none" stroke={c} strokeWidth={0.8} />);
+      const n = Math.round(Math.abs(f.to - f.from) / sp.going);
+      for (let k = 1; k < n; k++) {
+        const v = f.from + Math.sign(f.to - f.from) * k * sp.going;
+        lines.push(sp.alongX
+          ? <line key={`t${fi}-${k}`} x1={X(v)} y1={Y(r.y)} x2={X(v)} y2={Y(r.y + r.h)} stroke={c} strokeWidth={0.7} />
+          : <line key={`t${fi}-${k}`} x1={X(r.x)} y1={Y(v)} x2={X(r.x + r.w)} y2={Y(v)} stroke={c} strokeWidth={0.7} />);
+      }
     });
-    // Arrow along the centre line, from the start end to the far end.
-    const m = step * 0.6;
-    const [ax0, ay0, ax1, ay1] = alongX
-      ? (startAtMin ? [rx + m, ry + rh / 2, rx + rw - m, ry + rh / 2] : [rx + rw - m, ry + rh / 2, rx + m, ry + rh / 2])
-      : (startAtMin ? [rx + rw / 2, ry + m, rx + rw / 2, ry + rh - m] : [rx + rw / 2, ry + rh - m, rx + rw / 2, ry + m]);
-    const dx = Math.sign(ax1 - ax0), dy = Math.sign(ay1 - ay0), h = Math.min(6, step * 1.2);
-    const head = `M ${ax1} ${ay1} L ${ax1 - dx * h - dy * h * 0.6} ${ay1 - dy * h - dx * h * 0.6} L ${ax1 - dx * h + dy * h * 0.6} ${ay1 - dy * h + dx * h * 0.6} Z`;
+    // the walking line: up the first flight, across the landing, up the second
+    const mid = (f: typeof sp.flights[0]) => sp.alongX ? f.rect.y + f.rect.h / 2 : f.rect.x + f.rect.w / 2;
+    const pt = (along: number, across: number) => sp.alongX ? [X(along), Y(across)] : [X(across), Y(along)];
+    const inset = sp.going * 0.5;
+    const f1 = sp.flights[0], f2 = sp.flights[1];
+    const s1 = Math.sign(f1.to - f1.from);
+    let path: number[][] = [pt(f1.from + s1 * inset, mid(f1))];
+    if (f2 && sp.landing) {
+      const lm = sp.alongX ? (Math.min(sp.landing.x, sp.landing.x + sp.landing.w) + sp.landing.w / 2) : sp.landing.y + sp.landing.h / 2;
+      path.push(pt(lm, mid(f1)), pt(lm, mid(f2)), pt(f2.to - s1 * -inset, mid(f2)));
+    } else path.push(pt(f1.to - s1 * inset, mid(f1)));
+    if (!up) path = path.reverse();
+    const [ax1, ay1] = path[path.length - 1], [bx, by] = path[path.length - 2];
+    const L = Math.hypot(ax1 - bx, ay1 - by) || 1, dx = (ax1 - bx) / L, dy = (ay1 - by) / L, h = 5;
+    const head = `M ${ax1} ${ay1} L ${ax1 - dx * h - dy * h * 0.6} ${ay1 - dy * h + dx * h * 0.6} L ${ax1 - dx * h + dy * h * 0.6} ${ay1 - dy * h - dx * h * 0.6} Z`;
+    // the label just past the start of the walking line, away from the stair
+    const [lx0, ly0] = path[0], [nx, ny] = path[1], ln = Math.hypot(lx0 - nx, ly0 - ny) || 1;
+    const [lx, ly] = [lx0, ly0];
+    const [tx, ty] = [lx0 + (lx0 - nx) / ln * 11, ly0 + (ly0 - ny) / ln * 11 + 3];
     return (
-      <g opacity={up ? 1 : 0.6} style={{ pointerEvents: 'none' }}>
-        {treads}
-        <line x1={ax0} y1={ay0} x2={ax1} y2={ay1} stroke={c} strokeWidth={1} />
+      <g data-stair={sp.kind} opacity={up ? 1 : 0.6} style={{ pointerEvents: 'none' }}>
+        {sp.landing && <rect x={X(sp.landing.x)} y={Y(sp.landing.y)} width={sp.landing.w * scale} height={sp.landing.h * scale} fill="none" stroke={c} strokeWidth={0.8} />}
+        {lines}
+        <polyline points={path.map(p => p.join(',')).join(' ')} fill="none" stroke={c} strokeWidth={1} />
         <path d={head} fill={c} />
-        <text x={ax0 + (alongX ? dx * 4 : 6)} y={ay0 + (alongX ? -4 : dy * 9)}
-          textAnchor={alongX && dx < 0 ? 'end' : 'start'}
-          style={{ fontSize: '8px', fontWeight: 900, fill: c, letterSpacing: '0.08em' }}>
+        <circle cx={lx} cy={ly} r={1.8} fill={c} />
+        <text x={tx} y={ty} textAnchor="middle" style={{ fontSize: '8px', fontWeight: 900, fill: c, letterSpacing: '0.08em' }}>
           {up ? 'UP' : 'DN'}
         </text>
       </g>
@@ -643,7 +637,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
         })}
 
         {/* ── Stair: treads and arrow instead of a door and a name ── */}
-        {isStair(room) && !showStructure && renderStair(room, rx, ry, rw, rh)}
+        {isStair(room) && !showStructure && renderStair(room)}
 
         {/* ── Door at its real width, a quarter along its wall, tagged
             beside its swing inside the room ── */}

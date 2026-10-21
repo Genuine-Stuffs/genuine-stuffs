@@ -92,21 +92,30 @@ export const AECSection: React.FC<{ layout: SolvedLayout }> = ({ layout }) => {
               <rect key={`p${i}`} data-section-parapet x={X(p.at) - p.t * scale / 2} y={Y(p.base + p.h)} width={p.t * scale} height={p.h * scale} fill={INK} />
             ))}
 
-            {/* the stair: one straight flight, risers drawn, its waist below */}
+            {/* the stair: the flight the cut passes through solid, the one beyond dashed, the half landing */}
             {s.stair && (() => {
-              const { a, b, up, risers, rise, going } = s.stair;
-              const x0 = up === 1 ? a : b, dir = up;
-              let d = `M ${X(x0)} ${Y(0)}`;
-              for (let k = 0; k < risers; k++) {
-                d += ` L ${X(x0 + dir * k * going)} ${Y((k + 1) * rise)} L ${X(x0 + dir * (k + 1) * going)} ${Y((k + 1) * rise)}`;
-              }
+              const { flights, landing, risers, rise, going, kind, steep } = s.stair;
               const waist = 0.18 * scale;
+              const first = flights[0];
               return (
-                <g data-section-stair>
-                  <path d={d} fill="none" stroke={INK} strokeWidth={1.4} />
-                  <line x1={X(x0 + dir * going)} y1={Y(0) + waist * 0.4} x2={X(x0 + dir * risers * going)} y2={Y(STOREY) + waist} stroke={INK} strokeWidth={1} />
-                  <text x={X(x0 + dir * (b - a) * 0.72)} y={Y(0.45)} textAnchor="middle" style={{ fontSize: '6.5px', fontWeight: 800, fill: '#b91c1c' }}>
-                    {risers} RISERS × {Math.round(rise * 1000)} mm, GOING {Math.round(going * 1000)} mm
+                <g data-section-stair={kind}>
+                  {flights.map((f, i) => {
+                    const dir = Math.sign(f.b - f.a), g = Math.abs(f.b - f.a) / Math.max(1, f.risers - 1);
+                    let d = `M ${X(f.a)} ${Y(f.h0)}`;
+                    for (let k = 0; k < f.risers; k++) {
+                      const h = f.h0 + (k + 1) * rise, x = f.a + dir * k * g;
+                      d += ` L ${X(x)} ${Y(h)}` + (k < f.risers - 1 ? ` L ${X(x + dir * g)} ${Y(h)}` : '');
+                    }
+                    return (
+                      <g key={i} data-section-flight={f.cut ? 'cut' : 'beyond'}>
+                        <path d={d} fill="none" stroke={INK} strokeWidth={f.cut ? 1.4 : 0.8} strokeDasharray={f.cut ? undefined : '3 2'} />
+                        {f.cut && <line x1={X(f.a + dir * g * 0.5)} y1={Y(f.h0) + waist * 0.4} x2={X(f.b)} y2={Y(f.h1) + waist} stroke={INK} strokeWidth={1} />}
+                      </g>
+                    );
+                  })}
+                  {landing && <rect data-section-landing x={X(landing.a)} y={Y(landing.h)} width={(landing.b - landing.a) * scale} height={0.15 * scale} fill={INK} />}
+                  <text x={X((first.a + first.b) / 2)} y={Y(0) - 4} textAnchor="middle" style={{ fontSize: '6.5px', fontWeight: 800, fill: steep ? '#b91c1c' : '#334155' }}>
+                    {kind === 'dogleg' ? 'DOG-LEG STAIR: ' : ''}{risers} RISERS × {Math.round(rise * 1000)} mm, GOING {Math.round(going * 1000)} mm{steep ? ' (TOO STEEP)' : ''}
                   </text>
                 </g>
               );
