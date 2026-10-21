@@ -391,6 +391,8 @@ function toLayout(p: Prepared, best: Fp): SolvedLayout {
     const typeOf = (id: string) => p.graph.nodes.get(id)?.type ?? (id.startsWith("stair") ? "stairwell" : id.startsWith("corridor") || id.startsWith("passage_") ? "circulation" : id.startsWith("atrium_") ? "atrium" : "balcony");
     const issues = p.floorIds.flatMap(fl => {
         const subs = new Set(deriveSuites(p.graph, fl).flatMap(x => x.subIds));
+        // a store that opens off its kitchen (STORE_OFF_KITCHEN) is reached through it, as a suite's sub-room
+        for (const l of best.specs.get(fl)?.leaves ?? []) if (l.reachVia && /^(store|pantry)$/.test(l.type)) subs.add(l.id);
         return validatePlacement(placed.filter(q => q.floor === fl), typeOf, id => id, best.W * CELL, best.D * CELL, fl, subs);
     });
     const solved = hard.length === 0;
