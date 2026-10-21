@@ -204,11 +204,14 @@ function moveWindow(windows: PlannedWindow[], r: PlacedRoom, wall: WallSide, at:
 }
 
 const LAUNDRIES = /^(laundry|laundry_room|washing|washing_area)$/;
+/** A boys' quarters or staff room inside the house: self-contained, entered from outside (T29's staff room). */
+const QUARTERS = /^(bq|staff_room|maid_room|maids_room|staff_quarters)$/;
+const QUARTERS_NAME = /\b(boys'? ?quarters?|b\.?q\.?|staff room|maid'?s? room|domestic staff)\b/i;
 /** A ground-floor laundry's door to the yard, as the templates draw it (T21 "Washing",
  * T26 kitchen yard, T29 washing area, T30 laundry in the back yard): on an outside
  * wall, never the street's — the rear first, then a side — at the wall's start. */
-function laundryDoor(rooms: PlacedRoom[], W: number, D: number, typeOf: (id: string) => string, windows: PlannedWindow[], taken: PlannedYardDoor | null): PlannedYardDoor | null {
-  for (const r of rooms.filter(q => LAUNDRIES.test(norm(typeOf(q.room_id))))) {
+function laundryDoor(rooms: PlacedRoom[], W: number, D: number, typeOf: (id: string) => string, windows: PlannedWindow[], taken: PlannedYardDoor | null, which: (r: PlacedRoom) => boolean = q => LAUNDRIES.test(norm(typeOf(q.room_id)))): PlannedYardDoor | null {
+  for (const r of rooms.filter(which)) {
     const ext = externalEdges(r, W, D, rooms);
     const wall = (['top', 'left', 'right'] as WallSide[]).find(w => ext[w] && wallLength(r, w) >= DOOR_ROOM.w + YARD_END * 2
       && !(taken && taken.room_id === r.room_id && taken.wall === w));
@@ -343,8 +346,12 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
     && !vehicles.some(v => v.room_id === w.room_id && v.wall === w.wall));
   const yard = floor === 0 ? yardDoor(layout, rooms, W, D, typeOf, kept) : null;
   const laundry = floor === 0 ? laundryDoor(rooms, W, D, typeOf, kept, yard) : null;
-  // a laundry's own door into the house stays; its outside door is extra
-  return { doors, windows: kept, entrance, yard, yards: [yard, laundry].filter((y): y is PlannedYardDoor => !!y), vehicles };
+  // a boys' quarters / staff room inside the house has its own way in from the yard, as a laundry does
+  const briefRooms: Array<{ room_id?: string; id?: string; name?: string }> = layout.program_reference?.rooms ?? [];
+  const named = (id: string) => briefRooms.find(q => q.room_id === id || q.id === id)?.name ?? '';
+  const quarters = floor === 0 ? laundryDoor(rooms, W, D, typeOf, kept, yard, q => QUARTERS.test(norm(typeOf(q.room_id))) || QUARTERS_NAME.test(named(q.room_id))) : null;
+  // a laundry's or quarters' own door into the house stays; the outside door is extra
+  return { doors, windows: kept, entrance, yard, yards: [yard, laundry, quarters].filter((y): y is PlannedYardDoor => !!y), vehicles };
 }
 
 export interface ScheduleRow { tag: string; type: OpeningType; count: number }
