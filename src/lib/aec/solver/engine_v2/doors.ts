@@ -102,6 +102,15 @@ function sharedWall(
     return null;
 }
 
+/** Length of wall two touching rooms share (0 when they don't touch). */
+function sharedLength(a: PlacedRect, b: PlacedRect): number {
+    const ox = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
+    const oy = Math.min(a.y + a.depth, b.y + b.depth) - Math.max(a.y, b.y);
+    return Math.abs(ox) < TOLERANCE ? Math.max(0, oy) : Math.abs(oy) < TOLERANCE ? Math.max(0, ox) : Math.max(0, Math.max(ox, oy));
+}
+/** Room for a 0.9 m door leaf (openings.ts doorStretch needs a stretch at least the door wide). */
+const DOOR_FIT_M = 0.9;
+
 // ── Wall priority scoring ──────────────────────────────────────────────────
 
 const isOpenAir  = (type: string) => ['balcony', 'terrace', 'veranda', 'verandah', 'patio'].includes(type);
@@ -121,6 +130,10 @@ function wallScore(neighbourType: string, currentType: string, currentId = ''): 
     if (isService(currentType) && isBedroom(neighbourType))  return 90;
 
     if (isGarage(neighbourType))  return 0;  // never door into garage
+    // a bedroom, study or office never opens through the kitchen, laundry or a store
+    // while any other wall will do (owner, 2026-10-21: the guest bedroom into the kitchen)
+    if (/^(bedroom|master_bedroom|study|office|prayer_room|gym)$/.test(currentType)
+        && /^(kitchen|laundry|store|utility|pantry|boiler_room)$/.test(neighbourType)) return 1;
     if (isService(neighbourType)) return 5;  // avoid service-to-service
     return 20;
 }
@@ -176,6 +189,9 @@ export function computePlacement(
                 if (neighbour.room_id === id) continue;
                 const wall = sharedWall(room, neighbour);
                 if (!wall) continue;
+                // a neighbour scores a wall only where a door fits in the wall it shares: a hall
+                // touching 0.5 m of a bedroom's wall left the door to the kitchen beside it (owner, 2026-10-21)
+                if (neighbour.type !== 'void' && sharedLength(room, neighbour) < DOOR_FIT_M) continue;
                 if (neighbour.type === 'void') { overVoid.add(wall); continue; }
                 const score = wallScore(neighbour.type, type, id);
                 wallScores[wall] = Math.max(wallScores[wall] ?? 0, score);

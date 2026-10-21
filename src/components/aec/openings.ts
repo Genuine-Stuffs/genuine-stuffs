@@ -129,6 +129,8 @@ function doorStretch(r: PlacedRoom, wall: WallSide, type: OpeningType, rooms: Pl
     if (SERVICE_ROOMS.test(own) && /bedroom/.test(t)) return 90;
     if (/^(living_room|family_room|dining_room)$/.test(t)) return 60;
     if (SERVICE_ROOMS.test(t) || /garage|store|wardrobe/.test(t)) return 5;
+    // a bedroom, study or office never opens through the kitchen or laundry while another stretch will do
+    if (/^(bedroom|master_bedroom|study|office|prayer_room|gym)$/.test(own) && /^(kitchen|laundry|utility|pantry|boiler_room)$/.test(t)) return 1;
     return 20;
   };
   const stretches = rooms.filter(q => q.room_id !== r.room_id).flatMap(q => {
