@@ -124,7 +124,7 @@ export function section(layout: SolvedLayout): Section | null {
         }
         const d = o.doors.get(r.room_id);
         if (d && d.wall === side && hit(d.at ?? Math.max(0, Math.min(len * 0.25, len - d.type.w)), d.type.w)) gaps.push({ y0: base, y1: base + d.type.h, glass: false, tag: tagOf(d.type) });
-        if (o.yard && o.yard.room_id === r.room_id && o.yard.wall === side && hit(o.yard.at, o.yard.type.w)) gaps.push({ y0: base, y1: base + o.yard.type.h, glass: false, tag: tagOf(o.yard.type) });
+        for (const y of o.yards) if (y.room_id === r.room_id && y.wall === side && hit(y.at, y.type.w)) gaps.push({ y0: base, y1: base + y.type.h, glass: false, tag: tagOf(y.type) });
         for (const v of o.vehicles) if (v.room_id === r.room_id && v.wall === side && hit(v.at, v.type.w)) gaps.push({ y0: base, y1: base + v.type.h, glass: false, tag: v.open ? '' : tagOf(v.type) });
         if (o.entrance && o.entrance.room_id === r.room_id && side === 'bottom' && cut.axis === 'x' && Math.abs(cut.at - o.entrance.x) < o.entrance.type.w / 2)
           gaps.push({ y0: base, y1: base + o.entrance.type.h, glass: false, tag: tagOf(o.entrance.type) });

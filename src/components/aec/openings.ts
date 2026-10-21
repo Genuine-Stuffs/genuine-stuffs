@@ -159,7 +159,8 @@ export interface PlannedYardDoor { room_id: string; wall: WallSide; type: Openin
 /** `at`: the opening's start along its wall (m from the wall's start, x for top/bottom, y for left/right). */
 /** `open`: a carport / car porch / parking bay: its car side is open (no door, not in the schedule). */
 export interface PlannedVehicleDoor { room_id: string; wall: WallSide; at: number; type: OpeningType; open?: boolean }
-export interface FloorOpenings { doors: Map<string, PlannedDoor>; windows: PlannedWindow[]; entrance: PlannedEntrance | null; yard: PlannedYardDoor | null; vehicles: PlannedVehicleDoor[] }
+/** `yards`: every outside door to the yard (the kitchen's `yard`, then a laundry's), for the drawings and the schedule. */
+export interface FloorOpenings { doors: Map<string, PlannedDoor>; windows: PlannedWindow[]; entrance: PlannedEntrance | null; yard: PlannedYardDoor | null; yards: PlannedYardDoor[]; vehicles: PlannedVehicleDoor[] }
 
 const KITCHENS = /^(kitchen|wet_kitchen|kitchenette|outdoor_kitchen|dirty_kitchen)$/;
 const YARD_END = 0.3; // the yard door's leaf starts this far from the wall's end
@@ -188,15 +189,34 @@ function yardDoor(layout: SolvedLayout, rooms: PlacedRoom[], W: number, D: numbe
   // the end nearer the outbuilding (or, on a side wall, the rear)
   const along = wall === 'top' ? t.x - r.x : t.y - r.y;
   const at = along > L / 2 ? L - YARD_END - DOOR_ROOM.w : YARD_END;
-  // the wall's window into the rest of the wall
-  const i = windows.findIndex(w => w.room_id === r.room_id && w.wall === wall);
-  if (i >= 0) {
-    const [lo, hi] = at === YARD_END ? [at + DOOR_ROOM.w + YARD_END, L - YARD_END] : [YARD_END, at - YARD_END];
-    const type = [windows[i].type, WIN_ROOM, WIN_SMALL].filter(s => s.w <= windows[i].type.w).find(s => hi - lo >= s.w);
-    if (type) windows[i] = { ...windows[i], type, at: (lo + hi) / 2 };
-    else windows.splice(i, 1);
-  }
+  moveWindow(windows, r, wall, at, L);
   return { room_id: r.room_id, wall, type: DOOR_ROOM, at };
+}
+
+/** A door at `at` on a room's outside wall: that wall's window moves into the rest of the wall, dropped only when nothing fits. */
+function moveWindow(windows: PlannedWindow[], r: PlacedRoom, wall: WallSide, at: number, L: number) {
+  const i = windows.findIndex(w => w.room_id === r.room_id && w.wall === wall);
+  if (i < 0) return;
+  const [lo, hi] = at === YARD_END ? [at + DOOR_ROOM.w + YARD_END, L - YARD_END] : [YARD_END, at - YARD_END];
+  const type = [windows[i].type, WIN_ROOM, WIN_SMALL].filter(s => s.w <= windows[i].type.w).find(s => hi - lo >= s.w);
+  if (type) windows[i] = { ...windows[i], type, at: (lo + hi) / 2 };
+  else windows.splice(i, 1);
+}
+
+const LAUNDRIES = /^(laundry|laundry_room|washing|washing_area)$/;
+/** A ground-floor laundry's door to the yard, as the templates draw it (T21 "Washing",
+ * T26 kitchen yard, T29 washing area, T30 laundry in the back yard): on an outside
+ * wall, never the street's — the rear first, then a side — at the wall's start. */
+function laundryDoor(rooms: PlacedRoom[], W: number, D: number, typeOf: (id: string) => string, windows: PlannedWindow[], taken: PlannedYardDoor | null): PlannedYardDoor | null {
+  for (const r of rooms.filter(q => LAUNDRIES.test(norm(typeOf(q.room_id))))) {
+    const ext = externalEdges(r, W, D, rooms);
+    const wall = (['top', 'left', 'right'] as WallSide[]).find(w => ext[w] && wallLength(r, w) >= DOOR_ROOM.w + YARD_END * 2
+      && !(taken && taken.room_id === r.room_id && taken.wall === w));
+    if (!wall) continue;
+    moveWindow(windows, r, wall, YARD_END, wallLength(r, wall));
+    return { room_id: r.room_id, wall, type: DOOR_ROOM, at: YARD_END };
+  }
+  return null;
 }
 
 const ENTRY_NAME = /foyer|entrance|entry|lobby|porch/i;
@@ -322,7 +342,9 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
   const kept = windows.filter(w => !(entrance && w.room_id === entrance.room_id && w.wall === 'bottom')
     && !vehicles.some(v => v.room_id === w.room_id && v.wall === w.wall));
   const yard = floor === 0 ? yardDoor(layout, rooms, W, D, typeOf, kept) : null;
-  return { doors, windows: kept, entrance, yard, vehicles };
+  const laundry = floor === 0 ? laundryDoor(rooms, W, D, typeOf, kept, yard) : null;
+  // a laundry's own door into the house stays; its outside door is extra
+  return { doors, windows: kept, entrance, yard, yards: [yard, laundry].filter((y): y is PlannedYardDoor => !!y), vehicles };
 }
 
 export interface ScheduleRow { tag: string; type: OpeningType; count: number }
@@ -344,7 +366,7 @@ export function openingSchedule(layout: SolvedLayout): { tagOf: (t: OpeningType)
   (layout.outbuildings ?? []).forEach(() => add(DOOR_ROOM));
   const ground = planOpenings(layout, 0);
   if (ground.entrance) add(ground.entrance.type);
-  if (ground.yard) add(ground.yard.type);
+  ground.yards.forEach(y => add(y.type));
   ground.vehicles.filter(v => !v.open).forEach(v => add(v.type)); // an open car side isn't a door
   const role = (t: OpeningType) => t === DOOR_ENTRANCE ? 0 : t === DOOR_ROOM ? 1 : t === DOOR_SERVICE ? 2 : 3;
   const kind = (k: 'D' | 'W') => [...used.keys()].filter(t => t.kind === k)

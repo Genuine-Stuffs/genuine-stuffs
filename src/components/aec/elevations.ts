@@ -128,7 +128,7 @@ export function elevations(layout: SolvedLayout): Elevation[] {
         put(r, 'window', w.type, wallStart(r, side) + (w.at ?? len / 2) - w.type.w / 2, HEAD_H - w.type.h);
       }
       if (o.entrance && side === 'bottom') { const r = byId(o.entrance.room_id); if (r) put(r, 'door', o.entrance.type, o.entrance.x - o.entrance.type.w / 2, 0); }
-      if (o.yard && o.yard.wall === side) { const r = byId(o.yard.room_id); if (r) put(r, 'door', o.yard.type, wallStart(r, side) + o.yard.at, 0); }
+      for (const y of o.yards) if (y.wall === side) { const r = byId(y.room_id); if (r) put(r, 'door', y.type, wallStart(r, side) + y.at, 0); }
       for (const v of o.vehicles) if (v.wall === side) { const r = byId(v.room_id); if (r) put(r, v.open ? 'open' : 'vehicle', v.type, wallStart(r, side) + v.at, 0); }
     }
     const levels = [{ h: 0, label: '±0.00 GROUND FLOOR' },
