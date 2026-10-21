@@ -136,7 +136,9 @@ function specFor(graph: RoomGraph, floor: number, W: number, D: number, duplex: 
     const zones = ZONES && units.length === 2
         ? [units[0], undefined, units[1]].map(u => leaves.map((l, i) => i).filter(i => (leaves[i].node?.unit ?? leaves[i].unit) === u))
         : undefined;
-    return { leaves, W, D, pairs, floor, soft, ...(zones && zones.every(z => z.length) ? { zones } : {}) };
+    // bedrooms the brief wants away from the road (quiet.ts)
+    const quiet = leaves.map((l, i) => l.node?.quiet ? i : -1).filter(i => i >= 0);
+    return { leaves, W, D, pairs, floor, soft, ...(zones && zones.every(z => z.length) ? { zones } : {}), ...(quiet.length ? { quiet } : {}) };
 }
 
 /** Candidate footprints (cells): two sizes × three proportions. A side

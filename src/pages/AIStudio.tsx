@@ -76,6 +76,7 @@ import { plotSize } from '@/lib/aec/solver/engine_v2/plot';
 import { withMinimums } from '@/lib/aec/solver/engine_v2/minimums';
 import { withFacades } from '@/lib/aec/solver/engine_v2/facades';
 import { withAtrium } from '@/lib/aec/solver/engine_v2/atrium';
+import { withQuietBedrooms } from '@/lib/aec/solver/engine_v2/quiet';
 import { readSetbackIntent, defaultChoice, setbackStudy, setbackAlternatives, SetbackChoice, SetbackStudy } from '@/lib/aec/setbacks';
 import { renderPrompt } from '@/lib/aec/render_prompt';
 import { ADVISORY_RULES } from '@/lib/aec/solver/engine_v2/placement_validator';
@@ -698,6 +699,8 @@ const AIStudio = () => {
                     finalDesignData.rooms = withFacades(finalDesignData, userTexts).rooms;
                     // "double-volume atrium over living area": the upper floor is open above that room
                     finalDesignData.rooms = withAtrium(finalDesignData, userTexts).rooms;
+                    // "bedrooms on the quiet side away from the road": the plan prefers them off the street wall
+                    finalDesignData.rooms = withQuietBedrooms(finalDesignData, userTexts).rooms;
                     
                     // Pass brief_reference floors to solver so duplex upper floor packs correctly.
                     // Guard both field names (floors / storeys) for schema compatibility.

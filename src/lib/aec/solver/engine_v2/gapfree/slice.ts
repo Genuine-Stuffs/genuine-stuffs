@@ -7,7 +7,7 @@ import { RoomGraph, GraphNode, Facade, NO_WINDOW_TYPES, STREET_FRONT_TYPES, GARA
 import { roomShapeOk, meetsNbcMinimums, minWidthFor } from "../solver/room_shape";
 import { isConnectorType, isSubRoom } from "../placement_validator";
 import { makeCtx, fastLayout, fastCost } from "./fast";
-import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P, ENTRY_W, ZONES, FLAT_PASSAGE, ATRIUM_SOFT, WET_STACK_W } from "./config";
+import { STAIR_IN_HALL, FAST, FOYER_VIA_HALL, LANDING_VIA_HALL, BALCONY_SERVED, TERRACE_LIGHT, SPEC_HUB, SMALL_TOL, REPAIR_P, ENTRY_W, ZONES, FLAT_PASSAGE, ATRIUM_SOFT, WET_STACK_W, VERANDA_FRONT, QUIET_W } from "./config";
 
 const CELL = 0.5;
 export { STAIR_IN_HALL, FOYER_VIA_HALL, TERRACE_LIGHT };
@@ -38,6 +38,7 @@ export interface FloorSpec {
     atriumIn?: Rect;           // planned upwards: the room below, which the void must stay inside
     wetAbove?: Rect[];         // WET_STACK: the bathrooms of the floor above (planned first)
     wetBelow?: Rect[];         // WET_STACK: the wet rooms of the floor below (planned first)
+    quiet?: number[];          // bedrooms the brief wants off the street (quiet.ts)
     zones?: number[][];        // ZONES: leaves of each full-depth strip, left to right (flat, core, flat)
 }
 
@@ -275,12 +276,22 @@ export function wetStackCost(spec: FloorSpec, X: ArrayLike<number>, Y: ArrayLike
 }
 const wetIdx = new WeakMap<FloorSpec, number[]>();
 
+/** Bedrooms the brief wants away from the road: the share of them on the street wall, weighted. */
+export function quietCost(spec: FloorSpec, Y: ArrayLike<number>, Ht: ArrayLike<number>): number {
+    const q = spec.quiet;
+    if (!q?.length) return 0;
+    let n = 0;
+    for (const i of q) if (Y[i] + Ht[i] === spec.D) n++;
+    return QUIET_W * n / q.length;
+}
+
 export function cost(expr: number[], offs: number[], spec: FloorSpec, stackW: number): number {
     const rects = layout(expr, spec, offs);
     if (!rects) return 1e9;
     let c = 0;
     for (const v of violations(rects, spec)) c += (WEIGHT[v.rule] ?? 10) * v.amount;
-    return c + stackW * unsupportedWall(rects, spec) + wetStackCost(spec, rects.map(r => r.x), rects.map(r => r.y), rects.map(r => r.w), rects.map(r => r.h));
+    return c + stackW * unsupportedWall(rects, spec) + wetStackCost(spec, rects.map(r => r.x), rects.map(r => r.y), rects.map(r => r.w), rects.map(r => r.h))
+        + quietCost(spec, rects.map(r => r.y), rects.map(r => r.h));
 }
 
 /** Simulated annealing over normalized Polish expressions. */
@@ -396,6 +407,10 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
     for (const [id, e] of unitEntrances(graph, floor)) { entrances.add(e); if (!parentOf.has(id)) parentOf.set(id, e); }
     const leaves: Leaf[] = [];
     let hallIds: string[] = [];
+    // VERANDA_FRONT: the ground floor's way in is its front veranda or porch when it has
+    // no foyer or entrance of its own (or the brief calls it "front"): it stands on the street
+    const noEntrance = floor === 0 && !ids.some(id => ENTRANCE.has(graph.nodes.get(id)!.type));
+    const streetVeranda = (n: GraphNode) => VERANDA_FRONT && floor === 0 && n.type === "veranda" && (noEntrance || /\bfront\b/i.test(n.label));
     for (const id of ids) {
         const n = graph.nodes.get(id)!;
         if ((n.type === "stairwell" || (n.zone === "circ" && /stair/i.test(n.label))) && STAIR_IN_HALL) { hallIds.push(id); continue; }
@@ -409,7 +424,7 @@ export function floorLeaves(graph: RoomGraph, floor: number, W: number, D: numbe
         leaves.push({
             id, type: n.type, area: n.area, node: n,
             needsExt: !NO_WINDOW_TYPES.has(n.type) && !sub,
-            front: STREET_FRONT_TYPES.has(n.type),
+            front: STREET_FRONT_TYPES.has(n.type) || streetVeranda(n),
             connector: isConnectorType(n.type),
             reachVia: parentOf.get(id),
             garage: GARAGE_TYPES.has(n.type), hardSpan: n.usesIntermediateColumns,

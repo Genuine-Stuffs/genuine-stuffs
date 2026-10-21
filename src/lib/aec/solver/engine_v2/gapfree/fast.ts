@@ -1,7 +1,7 @@
 // Fast scorer: the same weighted cost as cost() in slice.ts, without
 // allocating. Rules that depend only on a room's own size are memoised per
 // (leaf, w, h); positions are scored on preallocated typed arrays.
-import { FloorSpec, Rect, violations, WEIGHT, outside, ATRIUM_RULE, placeStair, hallPieces, unsupportedWall, ENTRANCE, servedLink, wetStackCost } from "./slice";
+import { FloorSpec, Rect, violations, WEIGHT, outside, ATRIUM_RULE, placeStair, hallPieces, unsupportedWall, ENTRANCE, servedLink, wetStackCost, quietCost } from "./slice";
 import { FOYER_VIA_HALL, TERRACE_LIGHT, LANDING_VIA_HALL, ENTRY_W } from "./config";
 
 const DOOR = 2, PASSAGE = 3;
@@ -180,6 +180,7 @@ export function fastCost(c: Ctx, stackW: number): number {
         s += stackW * unsupportedWall(rects, c.spec);
     }
     if (c.spec.wetAbove || c.spec.wetBelow) s += wetStackCost(c.spec, c.X, c.Y, c.Wd, c.Ht);
+    if (c.spec.quiet) s += quietCost(c.spec, c.Y, c.Ht);
     return s;
 }
 export { placeStair };

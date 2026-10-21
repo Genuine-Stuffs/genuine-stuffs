@@ -46,6 +46,8 @@ export interface HiveRoom {
     facade?: Facade;
     /** The upper floor is left open above this room (a double-volume atrium). */
     atrium_over?: boolean;
+    /** The prompt wants the bedrooms away from the road (quiet.ts). */
+    quiet?: boolean;
 }
 
 /** A compass side of the building. The plan's north arrow points up and the
@@ -194,6 +196,8 @@ export interface GraphNode {
     facade?: Facade;
     /** The brief's double-volume space stands over this room. */
     atriumOver?: boolean;
+    /** A bedroom the brief wants off the street (quiet.ts). */
+    quiet?: boolean;
 }
 
 export interface RoomGraph {
@@ -229,6 +233,7 @@ export function buildGraph(rooms: HiveRoom[]): RoomGraph {
             ...(r.min_area_m2 ? { minArea: r.min_area_m2 } : {}),
             ...(r.facade ? { facade: r.facade } : {}),
             ...(r.atrium_over ? { atriumOver: true } : {}),
+            ...(r.quiet ? { quiet: true } : {}),
         });
         const floorList = floors.get(r.floor ?? 0) ?? [];
         floorList.push(r.room_id);

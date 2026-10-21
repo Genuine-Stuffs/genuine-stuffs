@@ -71,3 +71,9 @@ export const ATRIUM_SOFT = flag("ATRIUM_SOFT", true);
  * villas without a void 46 -> 43 of 50 (40 gave 31 % stacked, 42 of 50). */
 export const WET_STACK = flag("WET_STACK", true);
 export const WET_STACK_W = Number(env.WET_STACK_W ?? 20);
+/** A ground floor with no foyer or entrance is entered through its front veranda
+ * or porch, which then stands on the street (a veranda named "front" always does):
+ * the bungalow benchmark had its front door in 23/40 plans (2026-10-21). */
+export const VERANDA_FRONT = flag("VERANDA_FRONT", true);
+/** A bedroom the brief wants away from the road (quiet.ts) on the street wall: a soft cost. */
+export const QUIET_W = Number(env.QUIET_W ?? 15);
