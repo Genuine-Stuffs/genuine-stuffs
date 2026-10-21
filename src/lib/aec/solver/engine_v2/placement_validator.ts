@@ -70,6 +70,13 @@ function sharesWall(a: PlacedRoom, b: PlacedRoom): boolean {
            (Math.abs(a.x - bR) < TOL && overlapY);
 }
 
+/** Length of wall two touching rooms share (0 when they don't touch). */
+function sharedLength(a: PlacedRoom, b: PlacedRoom): number {
+    const ox = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
+    const oy = Math.min(a.y + a.depth, b.y + b.depth) - Math.max(a.y, b.y);
+    return Math.abs(ox) < TOL ? Math.max(0, oy) : Math.abs(oy) < TOL ? Math.max(0, ox) : 0;
+}
+
 function touchesExternal(r: PlacedRoom, buildingW: number, buildingH: number, tol = 0.5): boolean {
     return r.x <= tol || r.y <= tol ||
         (r.x + r.width) >= buildingW - tol ||
@@ -108,7 +115,11 @@ export function validatePlacement(
             }
         }
 
-        if (isHabitable(type) && !touchesExternal(room, buildingW, buildingH)) {
+        // upstairs, a room opening onto a balcony or terrace takes its daylight through it, as
+        // the planner counts it (gapfree TERRACE_LIGHT): the flats' living rooms open onto their balconies
+        const litByBalcony = floorIndex > 0 && rooms.some(q => q !== room && /^(balcony|terrace)$/.test(typeOf(q.room_id))
+            && sharedLength(room, q) >= 0.9);
+        if (isHabitable(type) && !touchesExternal(room, buildingW, buildingH) && !litByBalcony) {
             issues.push({
                 room_id: room.room_id,
                 rule: 'EXTERNAL_WALL',

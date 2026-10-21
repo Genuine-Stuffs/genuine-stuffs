@@ -540,7 +540,9 @@ function unflaggedMisses(p: Prepared, placed: PlacedRoom[], best: Fp, issues: Va
         const r = byId.get(l.id);
         if (!r) continue;
         const onEdge = r.x <= 0.5 || r.y <= 0.5 || r.x + r.width >= W - 0.5 || r.y + r.depth >= D - 0.5;
-        const lit = TERRACE_LIGHT && fl > 0 && placed.some(t => t.floor === fl && t.room_id.startsWith("terrace_f") && sharedM(r, t) >= 1.0);
+        // a terrace or a balcony of the brief (a flat's own) gives daylight upstairs, as the planner counts it (slice.ts)
+        const lit = TERRACE_LIGHT && fl > 0 && placed.some(t => t.floor === fl && t !== r
+            && (t.room_id.startsWith("terrace_f") || /^(balcony|terrace)$/.test(p.graph.nodes.get(t.room_id)?.type ?? "")) && sharedM(r, t) >= 1.0);
         if (!onEdge && !lit && !has("EXTERNAL_WALL", l.id))
             out.push({ room_id: l.id, rule: "EXTERNAL_WALL", detail: `${label(l.id)} has no outside wall for a window.` });
     }
