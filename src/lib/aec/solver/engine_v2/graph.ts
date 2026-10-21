@@ -94,6 +94,8 @@ const TYPE_TO_ZONE: Record<string, ZoneType> = {
     courtyard:      'social',
     bq:             'private',
     gen_house:      'service',
+    // the addendum's templates (TEMPLATE-FINDINGS.md, Addendum A.3): a prayer room (T29 "God room")
+    prayer_room:    'private',
 };
 
 // Fallback keyword lists — only consulted when "type" is missing or
@@ -104,19 +106,24 @@ const LABEL_FALLBACK: Array<[ZoneType, string[]]> = [
     ['service', ['car porch', 'carport', 'car park', 'parking', 'garage', 'place for car',
                  'gen house', 'generator']],
     ['circ',    ['corridor', 'hall', 'landing', 'stairwell', 'stair', 'void',
-                 'passage']],
+                 'passage', 'mezzanine']],
     ['social',  ['living', 'lounge', 'dining', 'foyer', 'family', 'entry',
                  'reception', 'great', 'sunken', 'terrace', 'veranda',
                  'verandah', 'balcony', 'patio', 'loggia',
                  'entrance', 'porch', 'lanai', 'breakfast', 'brkfst',
-                 'courtyard', 'open to sky']],
+                 'courtyard', 'open to sky',
+                 // the addendum's templates (A.3): formal sitting room, TV room, home cinema, bar
+                 'drawing', 'tv', 'entertainment', 'theatre', 'theater', 'cinema', 'bar', 'dinning',
+                 'main ent', 'ent. deck']],
     ['service', ['kitchen', 'pantry', 'wet', 'laundry', 'utility',
                  'store', 'storage', 'boiler', 'technical', 'plant room',
-                 'security']],
+                 'security', 'washing', 'lndry', 'util', 'mech']],
     ['private', ['bedroom', 'master', 'bath', 'wc', 'toilet', 'shower',
                  'wardrobe', 'dressing', 'ensuite', 'en-suite', 'study',
                  'office', 'guest', 'bed', 'closet', 'w.i.c', 'walk-in',
-                 'linen', 'gym', 'quarter']],
+                 'linen', 'gym', 'quarter',
+                 'washroom', 'wash room', 'god room', 'prayer', 'nook', 'dress',
+                 'vanity', 'cabin', 'clothset']],
 ];
 
 /** The Hive's "type" is free text: the same room arrives as
@@ -141,6 +148,18 @@ const TYPE_ALIASES: Record<string, string> = {
     verandah: 'veranda', porch: 'veranda', lanai: 'veranda',
     technical_room: 'utility', plant_room: 'utility',
     gym_room: 'gym', open_to_sky: 'courtyard', light_well: 'courtyard',
+    // the addendum's templates (TEMPLATE-FINDINGS.md, Addendum A.3/A.4 item 1); outdoor
+    // spaces (garden, lawn, yard, pool, deck) are left out: they are not rooms the plan encloses
+    drawing: 'living_room', drawing_room: 'living_room', formal_drawing: 'living_room',
+    tv_lounge: 'entertainment', tv_room: 'entertainment', 'tv/entertainment_room': 'entertainment',
+    entertainment_room: 'entertainment', theatre: 'entertainment', theater: 'entertainment', home_cinema: 'entertainment',
+    washing: 'laundry', washing_area: 'laundry', wd: 'laundry', lndry: 'laundry', laundry_room: 'laundry',
+    util: 'utility', 'util.': 'utility', mech: 'utility', mech_room: 'utility', mechanical_room: 'utility',
+    wash_room: 'bathroom', // not "washroom": the room catalogue's public restroom (assembly)
+    god_room: 'prayer_room', pooja_room: 'prayer_room', prayer: 'prayer_room',
+    reading_nook: 'study', dress: 'dressing', makeup_vanity: 'dressing', clothset: 'wardrobe',
+    dinning: 'dining_room', bar_counter: 'dining_room', // not "bar": the hotel catalogue's bar
+    mezzanine: 'circulation', mezzanine_bridge: 'circulation',
 };
 
 export function normalizeRoomType(type: string | undefined): string | undefined {
