@@ -1,8 +1,8 @@
 {
  "brief_reference": {
-  "plot_size_sqm": 2400,
+  "plot_size_sqm": 4800,
   "floors": 1,
-  "project_id": "GS-BENCH-05-CHURCH-40x60",
+  "project_id": "GS-BENCH-05-CHURCH-60x80",
   "use_type": "assembly"
  },
  "rooms": [
@@ -11,15 +11,15 @@
    "name": "Main Auditorium (1,000 seats)",
    "type": "auditorium",
    "floor": 0,
-   "area_m2": 650,
-   "width_m": 25.5,
-   "span_m": 25.5,
+   "area_m2": 705,
+   "width_m": 33.9,
+   "span_m": 33.9,
    "uses_intermediate_columns": false,
    "adjacencies": [
     "c02",
-    "c03",
     "c04",
-    "c05"
+    "c05",
+    "c16"
    ]
   },
   {
@@ -27,14 +27,15 @@
    "name": "Altar / Stage",
    "type": "stage",
    "floor": 0,
-   "area_m2": 100,
-   "width_m": 10.0,
-   "span_m": 10.0,
+   "area_m2": 163,
+   "width_m": 12.8,
+   "span_m": 12.8,
    "uses_intermediate_columns": false,
    "adjacencies": [
     "c01",
     "c03",
-    "c09"
+    "c09",
+    "c17"
    ]
   },
   {
@@ -42,28 +43,27 @@
    "name": "Choir and Instrument Area",
    "type": "choir",
    "floor": 0,
-   "area_m2": 60,
-   "width_m": 7.7,
-   "span_m": 7.7,
+   "area_m2": 80,
+   "width_m": 8.9,
+   "span_m": 8.9,
    "uses_intermediate_columns": false,
    "adjacencies": [
-    "c01",
     "c02"
    ]
   },
   {
    "room_id": "c04",
-   "name": "Overflow / Children's Section",
+   "name": "Overflow / Children's Church",
    "type": "overflow",
    "floor": 0,
-   "area_m2": 150,
-   "width_m": 12.2,
-   "span_m": 12.2,
+   "area_m2": 230,
+   "width_m": 15.2,
+   "span_m": 15.2,
    "uses_intermediate_columns": false,
    "adjacencies": [
     "c01",
     "c05",
-    "c13"
+    "c15"
    ]
   },
   {
@@ -71,22 +71,36 @@
    "name": "Entrance Foyer",
    "type": "foyer",
    "floor": 0,
-   "area_m2": 120,
-   "width_m": 11.0,
-   "span_m": 11.0,
+   "area_m2": 200,
+   "width_m": 14.1,
+   "span_m": 14.1,
    "uses_intermediate_columns": false,
    "adjacencies": [
     "c01",
     "c04",
     "c06",
     "c07",
-    "c11",
-    "c12"
+    "c08",
+    "c12",
+    "c14"
    ]
   },
   {
    "room_id": "c06",
-   "name": "Male Restrooms",
+   "name": "Female Restrooms (17 WCs)",
+   "type": "restroom",
+   "floor": 0,
+   "area_m2": 55,
+   "width_m": 7.4,
+   "span_m": 7.4,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c05"
+   ]
+  },
+  {
+   "room_id": "c07",
+   "name": "Male Restrooms (6 WCs, 8 urinals)",
    "type": "restroom",
    "floor": 0,
    "area_m2": 40,
@@ -98,13 +112,13 @@
    ]
   },
   {
-   "room_id": "c07",
-   "name": "Female Restrooms",
+   "room_id": "c08",
+   "name": "Accessible WC",
    "type": "restroom",
    "floor": 0,
-   "area_m2": 50,
-   "width_m": 7.1,
-   "span_m": 7.1,
+   "area_m2": 4,
+   "width_m": 2.0,
+   "span_m": 2.0,
    "uses_intermediate_columns": false,
    "adjacencies": [
     "c05"
@@ -126,7 +140,21 @@
   },
   {
    "room_id": "c10",
-   "name": "Office",
+   "name": "Pastor's Office",
+   "type": "office",
+   "floor": 0,
+   "area_m2": 20,
+   "width_m": 4.5,
+   "span_m": 4.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c09",
+    "c11"
+   ]
+  },
+  {
+   "room_id": "c11",
+   "name": "Administration Office",
    "type": "office",
    "floor": 0,
    "area_m2": 15,
@@ -134,24 +162,38 @@
    "span_m": 3.9,
    "uses_intermediate_columns": false,
    "adjacencies": [
-    "c09"
+    "c10"
    ]
   },
   {
-   "room_id": "c11",
+   "room_id": "c12",
    "name": "Ushers' Room",
-   "type": "office",
+   "type": "ushers_room",
    "floor": 0,
    "area_m2": 12,
    "width_m": 3.5,
    "span_m": 3.5,
    "uses_intermediate_columns": false,
    "adjacencies": [
-    "c05"
+    "c05",
+    "c13"
    ]
   },
   {
-   "room_id": "c12",
+   "room_id": "c13",
+   "name": "Counting Room",
+   "type": "office",
+   "floor": 0,
+   "area_m2": 10,
+   "width_m": 3.2,
+   "span_m": 3.2,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c12"
+   ]
+  },
+  {
+   "room_id": "c14",
    "name": "Bookshop",
    "type": "shop",
    "floor": 0,
@@ -164,7 +206,7 @@
    ]
   },
   {
-   "room_id": "c13",
+   "room_id": "c15",
    "name": "Nursing Mothers' Room",
    "type": "nursing_room",
    "floor": 0,
@@ -174,6 +216,32 @@
    "uses_intermediate_columns": false,
    "adjacencies": [
     "c04"
+   ]
+  },
+  {
+   "room_id": "c16",
+   "name": "Sound and Media Booth",
+   "type": "office",
+   "floor": 0,
+   "area_m2": 12,
+   "width_m": 3.5,
+   "span_m": 3.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c01"
+   ]
+  },
+  {
+   "room_id": "c17",
+   "name": "Instrument Store",
+   "type": "instrument_store",
+   "floor": 0,
+   "area_m2": 12,
+   "width_m": 3.5,
+   "span_m": 3.5,
+   "uses_intermediate_columns": false,
+   "adjacencies": [
+    "c02"
    ]
   }
  ]

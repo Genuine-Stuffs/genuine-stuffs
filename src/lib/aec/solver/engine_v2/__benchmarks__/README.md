@@ -15,17 +15,21 @@ items the engine doesn't model yet (the post is listed as a room).
 The hotel and church briefs need features that don't exist yet (lift cores,
 seating, clear spans).
 
-The hotel brief (`bench-04-hotel-30x40`, 2026-10-20) is hand-written too: per
-guest floor 12 standard rooms (24 m², en-suite inside the room) and 3 suites
-(40 m²), a housekeeping store, a lift core and a stair off a central corridor;
-the ground floor as the prompt lists it. Room sizes are planning assumptions,
-not code figures; the restaurant's area for 60 seats in particular should
-come from the occupancy engine (capability C) once it exists.
+The hotel and church briefs were rewritten on 2026-10-21 (owner: the example
+prompts are test inputs, never sources of truth; plans follow the codes).
+Both are sized by `src/lib/aec/regulations/` from the Lagos Physical Planning
+Permit Regulations 2019 and the NBC 2006 (reports/Hotel and church design
+guidelines.md):
 
-The church brief (`bench-05-church-40x60`, 2026-10-21) is hand-written from the
-owner's benchmark prompt: one storey, the auditorium for 1,000 seats at an
-assumed 0.65 m² a seat with aisles (650 m²), stage, choir, overflow /
-children's section, foyer, restrooms, vestry, office, ushers' room, bookshop
-and nursing mothers' room. **Every size is a planning assumption**, to be
-replaced by the occupancy engine (capability C) once the owner supplies the
-NBC / Lagos figures.
+- `bench-04-hotel-30x40`: 3-star, 47 rooms, 4 storeys on 30 x 40 m outside
+  the traditional core. Commercial setbacks 9 / 4.5 / 4.5 m, 70% coverage, two
+  1.2 m escape stairs (Lagos Reg 24(12)), a guest lift and a service lift,
+  3 accessible rooms, rooms 24 m² and suites 40 m² (3-star targets 15 + 5 and
+  24 + 10 m²), 19 parking bays.
+- `bench-05-church-60x80`: 1,000 seats on a 60 x 80 m standard plot (the
+  earlier 40 x 60 m broke the 50% coverage and the parking rule). Hall
+  33.9 x 20.8 m (straight rows, 0.95 m pitch, 14 seats between aisles),
+  stage 163 m², choir 80 m², occupant load about 1,170 so 4 exits with a
+  3 m main entrance, 17 + 6 WCs and 8 urinals, 10 wheelchair spaces, 95
+  parking bays. Its plan sizes are defaults the user can change; the
+  plot, exits and toilet floor are law.
