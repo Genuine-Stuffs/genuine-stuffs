@@ -3,6 +3,7 @@ import { SolvedLayout } from 'supabase/functions/ai-studio/schema';
 import { structuralEngine } from '@/lib/aec/solver/structural';
 import { computeWalls, WALL_THICKNESS, WallRoomKind } from './walls';
 import { planOpenings, openingSchedule, roomTypeOf, externalEdges, DOOR_ROOM, type OpeningType } from './openings';
+import { sectionCut } from './section';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Ruler, ShieldAlert, Layers } from 'lucide-react';
@@ -1054,6 +1055,30 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                   </g>
                 );
               });
+            })()}
+
+            {/* the section line A–A (through the stair), as the templates mark it on every plan */}
+            {(() => {
+              const c = sectionCut(layout);
+              if (!c) return null;
+              const ink = '#b91c1c', over = 22; // px past the outline: inside the dimension chains
+              const P = (x: number, y: number) => [xOffset + x * scale, yOffset + y * scale] as const;
+              const [s0, s1] = c.axis === 'x' ? [P(c.at, 0), P(c.at, c.length)] : [P(0, c.at), P(c.length, c.at)];
+              const ends = c.axis === 'x' ? [[s0[0], s0[1] - over], [s1[0], s1[1] + over]] : [[s0[0] - over, s0[1]], [s1[0] + over, s1[1]]];
+              // looking towards the plan's left (a cut along y) or towards the rear (a cut along x)
+              const [dx, dy] = c.axis === 'x' ? [-1, 0] : [0, -1];
+              return (
+                <g data-section-line style={{ pointerEvents: 'none' }}>
+                  <line x1={ends[0][0]} y1={ends[0][1]} x2={ends[1][0]} y2={ends[1][1]} stroke={ink} strokeWidth={0.9} strokeDasharray="10 3 2 3" />
+                  {ends.map(([x, y], i) => (
+                    <g key={i}>
+                      <polygon points={`${x + dx * 13},${y + dy * 13} ${x + dx * 5 - dy * 4},${y + dy * 5 - dx * 4} ${x + dx * 5 + dy * 4},${y + dy * 5 + dx * 4}`} fill={ink} />
+                      <circle cx={x} cy={y} r={6} fill="white" stroke={ink} strokeWidth={1} />
+                      <text x={x} y={y + 2.6} textAnchor="middle" style={{ fontSize: '7px', fontWeight: 900, fill: ink }}>A</text>
+                    </g>
+                  ))}
+                </g>
+              );
             })()}
 
             {/* Structure overlay */}
