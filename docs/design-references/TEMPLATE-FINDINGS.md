@@ -385,6 +385,8 @@ Applied to plans built upwards (villas with a void) it cost 34 → 24–26 of 50
 
 **#6 drawing conventions (2026-10-21), four commits:** dimension chains read metres with feet and inches in brackets (4.5m (14'-9"); metres alone where a bay is too narrow), and the plan header's floor levels now read the 3.2 m storey; the grid's columns are drawn on every plan as solid squares (red with the beams in the structure view); a numbered room key (0.1, 1.1…; `roomKey.ts`) with each room's area, each floor's enclosed area, terraces and balconies apart, and the house total, the number above each room's name; red survey beacons B1–B4 at the plot corners on the site plan.
 
+**#7 tried as a grid rule (2026-10-21), not kept:** letting the structural grid take a 2.0 or 2.5 m bay wherever every floor has a bath, WC, store, wardrobe, laundry, stair or hall exactly that wide on the same strip changed nothing on the 24 sample plans: columns in rooms 16 → 16, upper wall on structure 66.8 % → 66.8 %. On 21 plans the only such strip is the 2.5 m hall/stair strip the grid already takes as a corridor bay; the other 3 are one-storey plans (100 % on structure already), one of which picked a different grid scoring the same. T2's and T6's service bays exist because the rooms are planned around them; our planner never lines wet rooms up in a strip on every floor, so the grid has nothing to take. The gain needs the planner to make the strip (a service-zone preference in the gap-free search, like the flats' core zone `ZONES`), a larger change and a rule change for the owner.
+
 ## 6. Engine changes, ranked by how technically suitable they are to do next
 
 "Suitable" = strong evidence across templates, fits the engine as it is, low risk, measurable.
@@ -397,7 +399,7 @@ Applied to plans built upwards (villas with a void) it cost 34 → 24–26 of 50
 | 4 | **Column-free car spaces** (no grid column inside a garage/carport; transfer beam flagged): **done 2026-10-21** | T6, T10, T11, T16 (every span over 6 m) | medium, structural layer only | columns inside car spaces → 0 on the sample plans |
 | 5 | **Elevations + a section** generated from the plan: **done 2026-10-21** | T6/T7 (18-page set), T13, T14, T16 | large, new drawing type | owner review; render matching |
 | 6 | Drawing conventions: feet in brackets on dimensions, columns drawn by default, numbered room key with areas, beacon dots on the site plan: **done 2026-10-21** | T1–T10, T14, T15–T16 | small each | browser check |
-| 7 | Narrow 2.0–2.5 m service bay for wet rooms/stair | T2, T6 | medium-high (grid search) | on-structure % and columns in rooms |
+| 7 | Narrow 2.0–2.5 m service bay for wet rooms/stair: **tried 2026-10-21 as a grid rule, no gain, not kept** (see below) | T2, T6 | medium-high (grid search) | on-structure % and columns in rooms |
 | 8 | Bungalow split-bedroom preference | T11, T12 | medium | bungalow benchmark |
 | 9 | Great room (living + dining + kitchen as one space) and courtyard/light-well types | T1–T4, T8–T16; T10, T14 | large (the gap-free engine plans walled rectangles) | — |
 
