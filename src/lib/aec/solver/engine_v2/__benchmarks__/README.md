@@ -21,3 +21,11 @@ guest floor 12 standard rooms (24 m², en-suite inside the room) and 3 suites
 the ground floor as the prompt lists it. Room sizes are planning assumptions,
 not code figures; the restaurant's area for 60 seats in particular should
 come from the occupancy engine (capability C) once it exists.
+
+The church brief (`bench-05-church-40x60`, 2026-10-21) is hand-written from the
+owner's benchmark prompt: one storey, the auditorium for 1,000 seats at an
+assumed 0.65 m² a seat with aisles (650 m²), stage, choir, overflow /
+children's section, foyer, restrooms, vestry, office, ushers' room, bookshop
+and nursing mothers' room. **Every size is a planning assumption**, to be
+replaced by the occupancy engine (capability C) once the owner supplies the
+NBC / Lagos figures.
