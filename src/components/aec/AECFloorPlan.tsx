@@ -904,6 +904,12 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
             {/* Rooms */}
             {activeRooms.map((room, idx) => renderRoom(room, idx, 'base'))}
             {renderWalls()}
+            {/* the grid's columns, drawn on every plan as solid squares (T14; Nigerian drawings do);
+                the structure view shows them in red with the beams */}
+            {!showStructure && activeCols.map(col => (
+              <rect key={col.id} data-plan-column x={xOffset + col.x * scale - col.width_m * scale / 2} y={yOffset + col.y * scale - col.depth_m * scale / 2}
+                width={col.width_m * scale} height={col.depth_m * scale} fill="#0f172a" />
+            ))}
             {activeRooms.map((room, idx) => renderRoom(room, idx, 'over'))}
 
             {/* Front door: a gap in the street wall, the leaf swinging in, its tag outside */}
