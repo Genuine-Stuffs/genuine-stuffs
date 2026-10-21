@@ -420,3 +420,211 @@ Applied to plans built upwards (villas with a void) it cost 34 → 24–26 of 50
 - **Nigerian site items:** BQ, generator house, overhead tank, borehole, septic tank and soakaway don't appear in any template. Nigerian approved drawings (any LASPPPA-approved set) would fill this gap.
 - **Setbacks:** no template dimensions its setbacks; T8, T14 and T16 show the house on its plot without figures. Our Lagos 6 / 3 / 3 residential figures can't be checked against this set.
 - **CAD/PDF originals:** none are in the folder (only listing photos). T10's and T14's sheets are low resolution; T6/T7's 18-page set was readable only at title level. If you have the CAD or PDF files, the structural sheets (beam and footing sizes) and electrical layouts would read properly.
+
+---
+
+## Addendum — new templates, 2026-10-21
+
+Source: 21 folders added to `docs/design-references/templates/Building Floorplan Design/` on 2026-10-21 (37 folders now). The 16 folders already covered (T1–T16, §1) were skipped; none of their files changed (262 + 224 = the 486 files there now). Same reading key as above (**[read]**, **[grid]**, **[inferred]**, **[thumb]**); new template IDs continue at **T17**. Image numbers (#) count from 0 in sorted file-name order, as in §1.
+
+### A.1 Inventory of the new folders
+
+**What's in them:** 223 `.webp` images and 1 `.DS_Store` (macOS folder metadata, no content). **No `.dwg`, `.dxf`, PDF or ZIP files**, again despite folder names saying "PDF", "CAD" or "2D CAD": each folder holds only listing photos and exported sheets. Nothing is unreadable or needs conversion; every image opened.
+
+| ID | Folder (verbatim) | Images | Drawing sheets (image #) | Readable? |
+|---|---|---|---|---|
+| T17 | `17x33 Feet Small House Plan 5x10 Meters 3 Bed 2 Bath PDF Plan (A4 Hard Copy)` | 15 | #14 CAD plans + schedule (`s-l960.webp`); #1, #6 coloured furnished plans; #7 drawing-set index | yes |
+| T18 | `20x30 Feet House Plan 6x9 Meter 5 Bed 4 Bath Terrace Roof (PDF &A4 Hard Copy)` | 7 | #6 CAD plans, 3 floors (`s-l960.webp`) | yes |
+| T19 | `21x33 Feet Small House Plan 6.5x10 Meter 2 Beds 1 Bath Terrace PDF &A4 Hard Copy` | 14 | #13 ground plan + terrace roof plan (`s-l960.webp`) | yes |
+| T20 | `22x30 Feet Small House 6.6x9 Meter 2 Bed 3 Bath Shed Roof PDF, CAD &A4 Hard Copy` | 22 | #21 CAD plans (`s-l960.webp`) | yes |
+| T21 | `23x30 Feet House Plan 7x9 Meter 3 Beds 3 Baths Terrace PDF Plan (A4 Hard Copy)` | 8 | #7 CAD plans (`s-l960.webp`) | yes |
+| T22 | `26x36 Feet House Plans 8x11 Meter 2 Beds 2 Baths Terrace Roof PDF (A4 Hard Copy)` | 18 | #17 CAD plan, one storey (`s-l960.webp`); #1 drawing-set index | yes |
+| T23 | `36x23 Feet House Design Plan 11x7 Meter 3 Bed 3 Baths Hip Roof PDF (A4 Hard Copy` | 10 | #0 CAD plans (`s-l1600 (1).webp`); #1 drawing-set index (sections, elevations, roof, footing) [thumb] | yes |
+| T24 | `40x36 Feet House design Plans 12x11 Meter 4 Beds 3 Baths Hip Roof (A4 Hard Copy)` | 9 | #0 CAD plans (`s-l1600 (1).webp`); #1 drawing-set index [thumb] | yes |
+| T25 | `43x40 Feet House Plan 13x13.4 Meter 4 Beds 3 Bath CAD, PDF Files & A4 Hard Copy` | 21 | #20 CAD plans (`s-l960.webp`) | yes |
+| T26 | `5 bedroom House Plan` | 5 | #2 coloured ground plan (`s-l960 (2).webp`), #3 coloured upper plan (`s-l960 (3).webp`), areas only, no dimensions | yes (labels and floor areas; room sizes not written) |
+| T27 | `60x40 Modern 4Bedroom 2Bathroom House Plans Blueprints Custom, 270m2-2912sqft` | 11 | #2 CAD plan, one storey (`s-l960 (2).webp`); #8 front and side elevations; #9 sheet index (24x36 sheets) | yes (#2: labels too small to read at listing resolution, see A.2) |
+| T28 | `Cottage Farmhouse Plan 3 bed 3.5 bath (51'x48') Custom House Plans and Blueprint` | 4 | #1 ground plan (`s-l960 (1).webp`), #2 upper plan (`s-l960 (2).webp`); #3 sheet list | yes |
+| T29 | `Custom House Plans 15x11 Meter 49x36 Feet 5 Beds 5 Baths Hip Roof (A4 Hard Copy)` | 9 | #0 CAD plans (`s-l1600 (1).webp`); #1 drawing-set index [thumb] | yes |
+| T30 | `Custom Luxury Farm House Plan 5 Bedroom, 2 Kitchen, DrawingRoom Pdf Architect` | 5 | #2 ground plan (`s-l960 (2).webp`), #3 first-floor plan (`s-l960 (3).webp`) | yes |
+| T31 | `Custom Luxury House Plan 4 Bedroom Modern Villa Design 2D CAD 3DFloor Plan` | 8 + `.DS_Store` | #2, #3 coloured 3D plans on the site; #4 roof terrace; #5 ground-floor furniture plan (`s-l960 (5).webp`); #6 sheet index | yes |
+| T32 | `Home Designs 5x10 Meter 17x33 Feet 2 Bedrooms Terrace Roof PDF (A4 Hard Copy)` | 12 | #11 layout plans (`s-l960.webp`); #1 terrace and roof plans; #3 drawing-set index | yes |
+| T33 | `House Plan(35x65) , 5 bedrooms, 4 Bath, 2 Kitchen, Tv Lounge, Drawing Blue Print` | 6 | #2 ground (`s-l960 (1).webp`), #3 first (`s-l960 (2).webp`), #4 second-floor plan (`s-l960 (3).webp`); #0 sheet list | yes |
+| T34 | `House Plans 7.5x13 Meter 25x43 Feet 3 Bed 4 Bath Terrace Roof PDF (A4 Hard Copy)` | 9 | #8 CAD plans (`s-l960.webp`) | yes |
+| T35 | `Modern 3 Bedroom 2 Bathroom House Floor Plan Blueprints+CAD File,235 m2:2530sqft` | 9 | #1 CAD plans (`s-l1600 (2).webp`); #6 front elevation | partly (see A.2) |
+| T36 | `Modern Farmhouse House Plan 3 Bedroom & 2 Bathroom` | 8 | #0 ground plan (`s-l1600 (1).webp`), #7 upper plan (`s-l960.webp`); #2–#6 phone photos of the printed set (elevations, section, electrical) | yes (#2–#6 only as photos) |
+| T37 | `Modern House Plan 16x18 Meter 54x59 Feet 3 Beds 3 Baths Full Plan (A4 Hard Copy)` | 10 | #9 CAD plans (`s-l960.webp`) | yes |
+
+**Provenance of the new set [inferred from drafting style and labels]:** T17–T25, T29, T32, T34 and T37 are the same Southeast-Asian studio as T1–T10 (SamHousePlans watermark, "Page 2" sheets, metric with feet in brackets). T27, T28, T36 are US (feet). T35 is European-style. **T30 and T33 are South Asian** (Pakistani/Indian labels: "drawing", "TV lounge", "car porch", "open to sky", "chief kitchen", "lawn", "servant"). **T26 reads as West African** ("TV/ENTERTAINMENT ROOM", "KITCHEN YARD", "PANTRY", "ENTRY PORCH" [read on the contact sheet, confirmed in A.2]; colonial-style render with palms) — the first template in the set that may be Nigerian [inferred: no title block names the country]. T31 is South Asian/Middle Eastern villa drafting.
+
+### A.2 Per-template extraction
+
+Image #s refer to A.1; sizes are as written on the sheet (metres, or feet-inches where the sheet uses them).
+
+### T17 — 5 x 10 m, 2 storeys, 3 bed 1 WC + 1 WC, flat roof [read]
+- **Grid:** one 5 m bay across (A–B); rows from the front 3 / 3.5 / 3.5 m [read]. No column inside the house: **widest clear span 5 m** [read].
+- **Ground:** `Hall` (front-left, main door `MD1`, straight stair along the left wall rising to the rear), `Living rm` 3x3.3, `Dining` 3.5x3.3, `Kitchen` 3.5x3.3 (island; rear door `D2` to the yard), `WD` 1.5x1.5 (washer/dryer), `WC` 1.5x1.5 (rear-left) [read].
+- **First:** `Hall` (landing), `WC` 1.8x2, `Bedroom 3` 3x3.5, `Bedroom 2` 3x3.5, `Bedroom 1` 3x5 (front, sliding door `SD` to a 1.3 m front balcony projecting past the ground floor) [read]. One WC per floor, no en-suite.
+- **Schedule (on the plan sheet):** `MD1` 1x2.2, `D2` 0.8x2.2, `D3` 0.65x2.2, `SD` 1.5x2.2; `W1` 1.8x1.4, `W2` 1.2x1.4, `W3` 0.8x0.6 m [read]. **Doors are 2.2 m high and the main door 1.0 m wide; windows 1.4 m high.**
+- **Conventions:** green section flags 1–4 on the grid lines; feet in brackets. #7 indexes the full set (elevations, sections, electrical/lighting, roof, footing) [thumb].
+
+### T18 — house 6 x 9 m on an 8 x 16 m plot, 3 storeys + roof terrace, 5 bed 4 bath [read]
+- **Plot and setbacks:** plot 8 m x 16 m [read]; front 4.5 m (the parking apron), rear 2.5 m [read]; sides ≈ 1 m each [inferred: (8 − 6) / 2, not dimensioned].
+- **Grid:** one 6 m bay across; rows 4.5 / 4.5 m; columns (red squares) only on the outer walls → **widest clear span 6 m** [read].
+- **Ground:** `Kitchen` (rear), `Dining` (6-seat), `Living rm` (front, double doors), `Bath`, `Parking` (front-left, one car, a 2.5 m strip running from the street 4.5 m into the house under the first floor), straight stair along the left wall [read].
+- **First:** `Bed 2`, `Bed 3` (rear), `Closet` x3, `Master Bed` (front, double doors to a small front balcony), `Bath` x2 back to back [read].
+- **Second:** `Bed 4`, `Bed 5`, `Closet` x2, `Bath`, `Balcony` = the roof terrace over the master bedroom (front half) [read]. The same straight stair repeats on every floor.
+
+### T19 — 6.5 x 10 m, single storey + roof terrace, 2 bed 1 bath [read]
+- **Grid:** A–B–C 3.5 / 3 m; rows from the rear 3 / 3 / 4 m [read]; a dashed site line ~0.5–1 m round the house [inferred]. **Widest span 3.5 m** [grid].
+- **Rooms:** `Bath` (WC, basin, shower), `Closet` x2, `Bed 2` 3x3 [grid], `Bed 1` 3x3 [grid], `Kitchen` (galley along the left wall, side door `D2` to the yard), `Dining`, `Living rm` (front; main door `D1`) [read].
+- **Stair:** an **external** straight stair up the right-hand side wall to the roof terrace (Terrace roof plan beside it) [read].
+- **Tags:** `D1`, `D2`; `W1`–`W4`; section arrows 1–3 [read].
+
+### T20 — 6.6 x 9 m (house body 5.5 m), 2 storeys, 2 bed 3 bath, shed roof [read]
+- **Grid:** A–B–C–D 3.6 / 1.9 / 1.1 m; rows 4.8 / 3.2 m + a 1 m front step [read]. **Widest span 4.8 m** (the A–B bay is 3.6 m across) [read].
+- **Ground:** `Kitchen` (rear-left, rear door `D2`), `Bath` (rear-right), `Dining`, `Living rm` (front, `D1`), straight stair with winders and `Storage` beside it, `Parking` (front-right, 3 m wide, **outside the house body** under a pergola drawn on the first-floor plan) [read].
+- **First:** `Bath` x2 side by side on the left, `Bed 2` + `Closet` (rear), `Master Bed` + `Closet` (front), `Balcony` 1 m deep along the front [read]. Both upper baths stand over the kitchen side [inferred from the shared grid].
+
+### T21 — 7 x 9 m, 2 storeys, 3 bed 3 WC, terrace roof [read]
+- **Grid:** 3.2 / 3.8 m across; rows from the rear 3 / 2 / 4 m [read]. **Widest span 3.8 m** [read].
+- **Ground:** `Washing` 1.7x3.2 (laundry, rear-left, `D2` to the rear yard), `WC` 2.5x1.3, `Kitchen` 3.8x3, straight stair with `Storage` under it, `Dining` 3.8x2, `Living` 3.8x4 (front, `MD1`), `Parking` 5x3.2 (front-left, **inside the footprint under the first-floor balcony**) [read].
+- **First:** `Bedroom 2` 3.2x3, `Bedroom 3` 3.8x2.5, `WC` 2.5x1.5 and `WC` 2.5x1.6 (side by side, back to back), `Bedroom 1` 3.8x4, `Balcony` over the parking, closets [read]. The upper WCs stand over the kitchen [grid].
+
+### T22 — 11 x 8 m, single storey, 2 bed 2 WC, terrace roof [read]
+- **Grid:** 4 / 2 / 4 / 1 m across; rows 4 / 4 m [read]. **Widest span 4 m.**
+- **Rooms:** `Bedroom 1` + `Closet` (rear-left), `WC` (in the 2 m strip), `Living` (rear-right, the garden side), `kitchen` with `wd` (washer-dryer), `Dining` (front-left, open to the kitchen), second `WC` (in the 2 m strip), `Bedroom 2` + `Closet` (front), `Entrance` (a recessed covered entrance at the front-right) → `MD1` into the living [read].
+- **Pattern:** both WCs share the **2 m service strip** between the room bays (as T2/T6); the living room faces the rear garden, kitchen and dining the street.
+
+### T23 — 11 x 7 m (10 m house + 1 m service yard), 2 storeys, 3 bed 3 bath, hip roof [read]
+- **Grid:** 3.5 / 2.5 / 4 / 1 m across; rows 3.5 / 3.5 m + a 1.2 m front porch [read]. **Widest span 5 m** (the car parking, no column inside) [read].
+- **Ground:** `Dining` 3.5x3.5 and `Living` 3.5x3.5 (one open room, `MD1` to the porch), `Bar` 3.5x2.5 (counter with stools, open to the dining), `WC` 1.7x2.4, `Kitchen` 3.5x2.5 (side door `D2` to the 1 m yard where the `wd` washer stands), `Store` (under the stair), straight stair in the **2.5 m bay**, `Car Parking` 5x5 (front-right, inside the footprint, under the first floor) [read].
+- **First:** three bedrooms with closets (one with a bay window `W4`), two baths in the 2.5 m bay (one with a tub), the master over the car parking [read].
+- **Pattern:** the 2.5 m bay carries the stair and the wet rooms on both floors (service bay). Section flags 1–5.
+
+### T24 — 12 x 11 m, 2 storeys, 4 bed 3 WC, hip roof [read]
+- **Grid:** A–E 4 / 2.4 / 3.7 / 1.9 m; rows from the rear 3 / 2.5 / 3.5 / 2 m [read]. **Widest span 5.6 m** (car parking, no column drawn inside) [read].
+- **Ground:** `Kitchen` 4x3 (rear door `D2`, `WD` corner), `WC` 1.8x3, `Bedroom 4` 3.7x3 (**a ground-floor bedroom**), `Hall` 2.5x2.4, `Dining` 4x2.5, `Office` 3.7x2.5, `Living rm` 4x3.5 (front, `MD1`), `Storage` 2.4x1.5 (under the stair), stair in the 2.4 m bay, `Car Parking` 5.6x5.5 (two cars, front-right, under a first-floor balcony) [read].
+- **First:** `Bedroom 3` 4x4.25, `WC` 2.4x3 (**over the ground WC**), `WC` 3.7x1.4 (master's), `Master Bed` 3.7x5.2, `Bedroom 2` 4x4.75, `Balcony` 4x1.4, `Balcony` 5.5x3.1 over the car parking with a `Garden` planter strip [read].
+- **Tags:** `MD1`, `D2`, `D3`, `SD1`/`SD2` (sliding), `FW1`; `W1`–`W6`; section markers on all four sides [read].
+
+### T25 — 13 x 13.4 m overall (house 7.5 x 12 m + carport), 2 storeys, 4 bed 3 bath [read]
+- **Grid:** A–B–C 3.75 / 3.75 m, then a 1 m strip and a 5.5 m carport; rows from the rear 4.5 / 3 / 4.5 / 1.4 m [read]. **Widest span 4.5 m** (rooms); carport 5.5 m clear [read].
+- **Ground:** `Kitchen` (rear-left, `D2` rear door, `WD`), `Bed 4` + `Closet` + `Bath` (**a ground-floor en-suite**), straight stair in a 2.8 m side bump-out, `Living rm` + `Dining` (one open front room), two `D1` doors to a 1.4 m front porch, `Parking` (left, **outside the house body**, roofed — its outline repeats on the first-floor plan [inferred]) [read].
+- **First:** `Bed 3` + `Bath`, `Bed 2` + `Closet`, `Office`, `Master Bed` + `Bath` + `Closet`, `Balcony` (front) [read].
+
+### T26 — 2 storeys, 5 bed 5 bath + visitors' WC, ground 179 m², upper 147 m² [read; no dimensions on the sheets]
+- **Likely West African** [inferred from labels and the render; no title block names the country].
+- **Ground:** `TV/ENTERTAINMENT ROOM` (rear-left), `DINING` (open to the kitchen; breakfast counter with 5 stools), `KITCHEN` (island), `KITCHEN YARD` (an **outdoor tiled yard behind the kitchen with its own door**), `PANTRY`, `LOUNGE` (front centre), `ENTRY PORCH` (projecting, double doors into the lounge), `BEDROOM 02` + `BATH` + wardrobe (left wing), `BEDROOM 01` + `BATH` + wardrobe (right wing), stair (centre, two flights) with an unlabelled WC + basin beside it = the visitors' toilet [inferred] [read].
+- **Upper:** `MASTER BEDROOM` + `BALCONY` (front), `WALK-IN CLOSET`, `MASTER BATH` (tub + shower), `STUDY / OFFICE`, `BEDROOM 03` + `BATH` + `BALCONY` (rear), `BEDROOM 04` + `WALK-IN CLOSET` + `BATH` + `BALCONY` [read].
+- **Pattern:** every bedroom en-suite, **two of them on the ground floor**; a balcony off every upper bedroom; kitchen yard + pantry. No BQ, gen house or car space drawn (render #0: a paved forecourt with a car).
+
+### T27 — single storey, 270 m² (2912 sqft), 4 bed 2 bath + WC [read, small text]
+- **Numbered room key in each room with its area (as T15/T16)** [read; small digits approximate]: `1 FRONT PORCH` ~25.00 m², `2 HALLWAY` ~20 m², `3 DINING AND LIVING ROOM` 70.52 m², `4 KITCHEN` 9.54 m², `5 BOILER ROOM` 8.78 m², `STORAGE` 2.10 m², `6 BATHROOM` ~7.2 m², `WC` ~2.2 m², `7 BEDROOM` ~11–12 m², `8 BEDROOM 2` ~12.8 m², `9 BEDROOM 3` ~17.5 m², `10 BACK PORCH` 19.63 m², `11 BATHROOM 2` ~4 m², `12 LAUNDRY ROOM` ~4.6 m², `13 BEDROOM 4` 14.20 m².
+- **Layout:** one 70.5 m² dining-living room across the front-left with French doors to a full-width front porch; a central hallway; three bedrooms in the right wing, bedroom 4 by the kitchen; a back porch wrapping the bedroom wing. Level marks ±0.00 / 0.02 [read]. The big room's span isn't dimensioned [~7–8 m inferred].
+- **Set:** 24x36 sheets at 1/8" = 1'-0" (#9) [read].
+
+### T28 — US farmhouse, 1.5 storeys, 47'-6" x 50'-8" incl. a wrap-around porch, 3 bed 3.5 bath [read]
+- **Ground:** `MASTER BEDROOM` 15'x16' + `BATH` (freestanding tub) + `CLOSET` (a rear wing), `KITCHEN` (island), `PANTRY` (under the stair), `DINING ROOM` + `LIVING ROOM` (one open room 31'-6" ≈ 9.6 m wide, three pairs of French doors to the porch), `LAUNDRY`, `BATH` (the half bath), `COVERED PORCH` [read].
+- **Upper (26'-6" x 42'-8"):** `BEDROOM` 12'x11' + `BATH` + `CLOSET`, `BEDROOM` 13'x10' + `BATH` + `CLOSET`, `READING NOOK` (landing at the gable windows); eaves either side [read].
+- **Widest span 31'-6" ≈ 9.6 m** (timber frame, no column drawn) [read]. Sheet list (#3): floor plan with WINDOW & DOOR SCHEDULE, elevations, roof plan, foundation plan, electrical plan, 3D views [read].
+
+### T29 — 14.9 x 11 m, 2 storeys, 5 bed 5 bath, hip roof [read]
+- **Grid:** 0.9 / 5.2 / 2.5 / 2.7 / 3.6 / 1 m across; rows from the rear 4.4 / 2.3 / 2.3 / 2 m + a 0.8 m washing strip outside the rear wall [read]. **Level marks ±0.00 (house) and −0.30 (parking)** [read]. **Widest span 6.3 m** (the living room, under a double-height void) [read].
+- **Ground:** `Washing area` (outside the rear wall, with `WD`), `Kitchen` 2.3x2.4 (small enclosed cooking kitchen), `Bar Counter` 4x3.1 (an open "dry" kitchen counter between the kitchen and the dining), `Dining`, `WC` 2.4x1.3, **`Bedroom 5 Staff room` 2.7x2.4 (a staff room with its own outside door)**, `WC` 2.1x1 (visitors'), `Hall` 2.5x2.5, `Storage` 2.8x2.1, U-stair, `Living rm` 6.3x4.6, `Entrance` (recessed porch), `Parking` (front-left 5.2 m wide, 300 mm down, under the master bedroom) [read].
+- **First:** `Bathroom` 2.5x4.4 + `Walk in closet` 2x4.4 + `Master Bedroom` 5.2x4.6 + `Balcony` 5.2x1.8, `Bedroom 2` 3x4.4, two `Bathroom` 1.7x2.8 **back to back** between bedrooms 2 and 3, `Closet` 1.8x1.6, `Bedroom 3` 3x4.4, `Bedroom 4` 3x4.6, **`God room`** (prayer room by the stair), an open-to-below void over the living room [read].
+
+### T30 — South Asian, 2 storeys, corner plot, 5 bed, "2 Kitchen", sizes in feet-inches W x L [read]
+- **Plot and setbacks:** roads on the front and the right side; `lawn` 15-00x12-00 and `car porch` 15-00x12-00 across the front (front ≈ 12' ≈ 3.7 m [inferred]); `back yard 04-00 wide` (rear ≈ 1.2 m), `passage to back yard 04-00 wide` (left ≈ 1.2 m), `passage to laundry 03-0? wide` (right ≈ 0.9 m) [read].
+- **Ground:** `laundry` 14-07x08-06 (outside, in the back yard), `chief kitchen` 10-09x05-08 + `chief kitchen` 10-09x11-00 (two kitchens side by side [a working and a show kitchen, inferred]) + `kitchen island`, `master suite` 14-00x17-00 + `washroom` 09-00x05-00 (with a `CABIN` WC cubicle) + `w.t` + `MAKEUP TABLE`, `bed room` 15-00x14-00 + `washroom` 06-00x09-00, `casual living space` 16-09x18-09, `stair hall` 15-09x12-00 (curved stair), `double height t.v lounge`, `formal drawing` 16-00x21-00 + `dressing` + `wash room` 06-00x08-00 (a guest suite off the drawing room), `double height main ent.` 08-00x10-00, `ent. deck` 08-00x08-00, `formal dining` 11-00x14-06 [read].
+- **First:** the same household again — `master suite`, two `chief kitchen`s, `washroom`s, `bed room`s 15-00x14-00 and 16-00x21-00, `casual living space`, `stair hall`, `mezzanine bridge` across the double-height void, `over look balcony`, `cov terrace` 16-00x5-0?, `terrace` 14-07x08-06 (over the laundry), balconies [read]. **One household per floor** [inferred].
+- **Widest span ≈ 21' (6.4 m)** (formal drawing; first-floor bed room 16'x21') [read].
+
+### T31 — South Asian / Middle Eastern villa, 4 bed [partly readable]
+- The CAD furniture plan (#5) is rotated and its labels too small at listing resolution; the coloured plans (#2, #3) have no labels. **Read:** a corner plot with roads on the left and the front.
+- **Inferred from #2:** two cars side by side at the **rear-left inside the footprint**, reached by a side driveway along the left boundary; a dog-leg stair by a powder room; a central lounge; dining under a double-height void; kitchen on the right; three bedrooms, two with mirrored back-to-back WCs; a long front verandah across the front onto a lawn.
+
+### T32 — 5 x 10 m, 3 levels (ground, first, terrace floor), 2 bed 2 WC [read]
+- **Grid:** 2.9 / 2.3 m across; rows from the front 1.5 (steps) / 1 / 2.4 / 5.1 m [read]. **Widest span 2.9 m.**
+- **Ground:** `wd`, `WC` (0.9 m wide), `kitchen` (galley, sliding doors), `Dinning` [sic], `store` (under the stair), straight stair along the right wall, `Living Rm` (front, an **angled** glazed front wall with a sliding door) [read].
+- **First:** `Bed` + `Clothset` [sic], `Bed 1` + `Clothset`, `WC` 2x2, front balcony strip [read]. Roof: an **overhead water tank** on the roof slab (render #5) [thumb]. Red walls on the layout sheet [inferred: load-bearing].
+
+### T33 — South Asian, 35' x 65' plot (≈ 10.7 x 19.8 m), 2 storeys + roof terrace, 5 bed 4 bath, "2 Kitchen" [read]
+- **Ground:** `OPEN TO SKY` strips along the rear and the left side (light and air courts inside the plot), `BED ROOM` x2 each with `BATH`, `MAKEUP VANITY`, `WARDROBE` / `DRESS`, `CABIN GLASS` (glass shower cabin), `TV.LOUNGE` (fireplace), `KITCHEN`, `STAIR HALL` (U-stair) with a `BATH` under it, `DRAWING` (front formal sitting room, fireplace, its own door from the porch), `CAR PORCH` (two cars side by side, front-left, open), `OPEN TO SKY` (front-right garden), `ROAD` [read].
+- **First:** the same again (`BED ROOM` x3 with `BATH` / `DRESS` / `MAKEUP VANITY`, `KITCHEN` with `MIC` and `FRG`, `TV.LOUNGE`, `STAIR HALL`) + `TERRACE` over the car porch. **Second:** `BATH`, `STAIR HALL`, `TERRACE`, `BAR B.Q` [read].
+- **Set (#0):** working, electrical, sewer drawings, boundary wall detail, renders/elevations, legends, door-window schedule [read].
+
+### T34 — 7.5 x 13 m, 2 storeys, 3 bed 4 bath, terrace roof [read]
+- **Grid:** A–B–C 4.5 / 3 m; rows from the rear 4.5 / 4.5 / 4 m [read]. **Widest span 4.5 m.**
+- **Ground:** `Kitchen` (rear-left, breakfast counter, `D2` rear door), `WC` by the stair, straight stair (rear-right, 2.3 m wide), `Dining`, `Living rm` (front-right, bay window `W6`), an unlabelled covered front space 4.5 x 4 m (front-left; `D1` opens from it into the dining) [inferred: car porch] [read].
+- **First:** `Bed 3` + `Bath` (rear; **over the ground WC**, same 2.3 m strip), a central `Bath` + `Closet`, `Bed 1` (front-left, 6.4 m deep, `D4` to a front balcony), `Bed 2` + `Bath` + `Closet` [read].
+
+### T35 — 235 m² (ground 115 m², first 80 m² + 40 m² terrace), 2 storeys, 3 bed 2 bath [partly readable]
+- **Read:** the floor areas above; grid A–C x 1–4 with section lines both ways; numbered room tags (as T15/T16). Legible labels: ground `bathroom`, `storage`, `garage` (an **integral one-car garage** inside the footprint), `hallway`, `kitchen`, `living room + dining room`; first `hallway`, `bathroom` x2, `bedroom1`–`bedroom3`, a 40 m² terrace over the garage. Dimensions illegible at listing resolution.
+
+### T36 — US farmhouse, 1.5 storeys, 35'-8" x 44'-8" incl. veranda, 3 bed 2 bath [read]
+- **Ground:** `SCREENED PORCH` 10'x10', `BEDROOM 1` 15'x12' 9' clg, `BATH` + `LINEN`, `CABINETS` + `UTIL.`, `DINING` 10'x10' 9' clg, `KITCHEN` 11'x8' 9' clg, `LIVING AREA` 17'-4"x14' 9' clg (corner fireplace), `FOYER`, straight stair, `VERANDA (8' DEPTH)` wrapping the front and left side, `SLIDING FRENCH DOORS` [read].
+- **Upper:** `BEDROOM 3` 11'-4"x11'-6" 10' vaulted clg, `BEDROOM 2` 11'-4"x10' 10' vaulted clg, `BATH`, `BALCONY` (an **indoor gallery with a seat overlooking the living area**), `RAISED CLG` [read].
+- **Convention:** **every room labelled with its ceiling height** ("9' clg", "10' vaulted clg"). **Widest span 17'-4" ≈ 5.3 m.**
+
+### T37 — 16.6 x 18 m, 2 storeys, 3 bed 3 bath + pool [read]
+- **Grid:** A–D 6.00 / 4.70 / 5.90 m; rows from the rear 6.40 / 4.90 / 6.70 m [read]. **Widest span 6.70 m** (garage, no column) and 6.40 m (dining-kitchen) [read].
+- **Ground:** `DINING` + `KITCHEN` (one room), `PATIO` (open to the pool), `POOL`, `PANTRY`, `LNDRY`, **`THEATRE`**, `FOYER`, `ENTRY` (recessed), `BED 1` + `BATH` (ground-floor suite), a second `BATH` by the foyer, `GARDEN` (an internal front court), `GARAGE` (two cars, enclosed, front-left, door to the laundry) [read].
+- **First:** `BED 2` + `BATH`, `BED 3`, `OFFICE`, **`MECH`** (plant room), `OPEN` (open sitting area), `DECK` (roof deck over bed 1) [read].
+
+### A.3 Across the new templates
+
+**Room labels the engine doesn't know.** All 82 distinct labels read in A.2 were passed to `classifyRoom` **by name only**, as in §3.1 (`scratch.local/tplnew/labels.mts`, 2026-10-21). **27 of 82 fall back to "private"**:
+
+| Label (verbatim) | Template | Engine today | Should be |
+|---|---|---|---|
+| `Drawing`, `formal drawing` | T30, T33 | private, by fallback | social (the formal sitting room; South Asian and Nigerian usage) |
+| `TV/ENTERTAINMENT ROOM` | T26 | private, by fallback | social (as `TV lounge`, which is recognised) |
+| `Washing`, `Washing area`, `WD`/`wd`, `Lndry`, `Util.` | T21, T29, T17/T22–T25, T37, T36 | private, by fallback | service (laundry) |
+| `Wash room` | T30 | private, by fallback | bathroom (South Asian "washroom") |
+| `washroom` | T30 | **service** (recognised, but as a utility) | bathroom |
+| `God room` | T29 | private, by fallback | a prayer room (quiet, habitable) |
+| `Theatre`, `Reading nook` | T37, T28 | private, by fallback | social / private habitable |
+| `Mech`, `Mech room` | T37 | private, by fallback | utility (plant room, no window needed) |
+| `Garden`, `Lawn`, `Back yard`, `Pool`, `Deck` | T24, T30, T37 | private, by fallback | outside spaces (open-air, not rooms) |
+| `Dress`, `Makeup vanity`, `Clothset` [sic], `Cabin glass` | T33, T32, T30 | private, by fallback | wardrobe / bath sub-rooms |
+| `Mezzanine bridge`, `Ent. deck`, `Double height main ent.` | T30 | private, by fallback | circulation / void / entrance |
+| `Dinning` [sic] | T32 | private, by fallback | dining |
+| `Bar`, `Bar Counter` | T23, T29 | private (no warning) | social (a dry-kitchen counter open to the dining) |
+
+**Room sizes (metres, read).** Bedrooms 3x3 (T19, T21) to 5.2x4.6 (T29 master); kitchens 2.3x2.4 (T29 cooking kitchen) to 4x3 (T24); WCs 1.5x1.5 (T17), 1.7x2.4, 2.5x1.3–1.6 (T21, T23); laundries 1.5x1.5 (T17) to 1.7x3.2 (T21); stores/pantries 2.4x1.5–2.8x2.1 (T24, T29); car spaces 5x3.2 (one car, T21), 5x5 (T23), 5.6x5.5 (two cars, T24), 6x6.7 (garage, T37).
+
+**Widest clear spans.** 2.9–5 m in the small Southeast-Asian houses (T17, T19–T22, T25, T32, T34); 5.0–5.6 m car spaces (T23, T24, T25 carport); **over 6 m: T37 garage 6.70 m and dining-kitchen 6.40 m, T29 living room 6.3 m (under a double-height void), T30 formal drawing ≈ 6.4 m (21'), T28 open living 9.6 m (US timber frame), T27 dining-living 70.5 m² (≈ 7–8 m inferred)** [read except where marked].
+
+**Setbacks (only three sheets show them).** T18: front 4.5 m (the parking apron), rear 2.5 m, sides ≈ 1 m [read / inferred]. T30: front ≈ 3.7 m (lawn and car porch, 12'), rear 1.2 m (4'), sides 1.2 m and 0.9 m (4', 3') [read in feet]. T33: open-to-sky courts along the rear and one side inside a 35' x 65' plot [read; widths inferred ≈ 1–1.5 m]. All far tighter than Lagos residential setbacks.
+
+**Adjacency and placement patterns.**
+- **Car space inside the footprint under the upper floor** (T18, T21, T23, T24, T29, T33; T34 [inferred]), as in T1–T10. **Outside the house body, roofed** (T20 pergola, T25 carport): new. **Integral enclosed garage** (T35, T37). **At the rear, reached by a side drive** (T31 [inferred]). T29's parking is **300 mm below** the house floor.
+- **A ground-floor bedroom suite** in multi-storey houses: T24, T25, T26 (two), T29 (the staff room), T37, and the master downstairs in the US 1.5-storey T28 and T36.
+- **Wet over wet:** T21 and T20 (upper WCs over the kitchen), T24 and T34 (upper bath over the ground WC); **back-to-back baths** T18, T21, T29. **A narrow service strip** carrying WCs and/or the stair: T22 (2 m), T23 (2.5 m), T24 (2.4 m).
+- **Laundry outside or to a yard:** T26 `KITCHEN YARD`, T29 `Washing area` outside the rear wall, T30 `laundry` in the back yard, T21 `Washing` with a door to the yard; the kitchen's rear/side door to the yard in T17, T19, T22–T25.
+- **Two kitchens:** T29 (enclosed cooking kitchen + open bar counter = "wet + dry"), T30 and T33 (one kitchen per floor, a household per floor [inferred]).
+- **Double-height spaces and galleries:** T29 (void over the living room), T30 (main entrance and TV lounge, crossed by a mezzanine bridge), T36 (indoor balcony over the living area).
+- **Stairs:** straight flights in the small Southeast-Asian houses (T17–T25, T32, T34); U/dog-leg in T26, T29, T33, T31 [inferred]; curved in T30; **external** to a roof terrace in T19.
+- **Nigerian site items:** T29's `Staff room` (a domestic staff room with its own outside door) is the nearest thing to a BQ; T32 has an overhead water tank on the roof [thumb]. Still no generator house, borehole or septic tank in any template.
+
+**Door / window schedule conventions.** T17 prints the schedule on the plan sheet: `MD1` 1x2.2, `D2` 0.8x2.2, `D3` 0.65x2.2, `SD` 1.5x2.2; `W1` 1.8x1.4, `W2` 1.2x1.4, `W3` 0.8x0.6 m [read]. `MD1` (main door), `SD`/`SD1`/`SD2` (sliding), `FW1` (T24) and `D1`–`D4` / `W1`–`W6` tags by type across T17–T25, T34. T28 ships a separate WINDOW & DOOR SCHEDULE sheet; T33 lists one in its set.
+
+**Drawing conventions.** Green section flags on the grid (T17, T23, T24, T25); numbered room tags with areas (T27, T35, as T15/T16); **ceiling height written in every room** (T36: "9' clg", "10' vaulted clg"); level marks ±0.00 / −0.30 (T29), ±0.00 / 0.02 (T27); floor areas per floor in the title (T26, T35).
+
+### A.4 What changed
+
+**New compared with the 2026-10-20 findings, and the engine change each implies:**
+
+1. **New room types** — `Drawing` / `formal drawing`, `TV/ENTERTAINMENT ROOM`, `Washing` / `WD` / `Lndry` / `Util.`, `Wash room` / `washroom` (= bathroom), `God room`, `Theatre`, `Mech`, `Kitchen yard`, `Bar` / `Bar Counter`, outdoor `Garden` / `Lawn` / `Back yard` / `Pool` / `Deck`, and suite sub-rooms `Dress` / `Makeup vanity` / `Cabin glass`. 27 of 82 labels fall back to "private". **Engine change:** extend the label aliases (as #1 did on 2026-10-20): drawing and TV/entertainment room → social; washing, WD, laundry, util → laundry (service); washroom / wash room → bathroom; mech → utility; god room → a quiet habitable room; theatre → social; bar / bar counter → social (dining-side); garden, lawn, yard, pool, deck → outside spaces the plan doesn't enclose; dress, makeup vanity, cabin glass → suite sub-rooms. Fix `washroom` (now service). Measure: labels recognised, as in §5.
+2. **A staff room inside the house** (T29 `Bedroom 5 Staff room`, ground floor, own outside door) and a **kitchen yard** (T26): **Engine change:** let a brief's BQ/staff room stand inside the house on the ground floor with its own outside door when the brief says so (today a BQ is always an outbuilding), and treat a kitchen yard as the kitchen's outside service court.
+3. **Setback values:** front 3.7–4.5 m, rear 1.2–2.5 m, sides 0.9–1.2 m (T18, T30) — much tighter than Lagos residential rules. **No engine change:** the user picks the law (setback-sources rule); these are foreign plot conventions, not Nigerian law. Noted only.
+4. **Span exceptions:** habitable rooms over 6 m (T37 6.4 m, T29 6.3 m under a void, T30 ≈ 6.4 m, T28 9.6 m timber, T27 ≈ 7–8 m inferred). **Engine change (candidate):** a living / dining / drawing room may take one bay over 6 m (to about 7 m) with a deeper beam flagged, as the car spaces now do (#4); the pre-screen already warns at 4.5–6 m naming the beam depth.
+5. **Adjacency rules:** (a) a ground-floor en-suite bedroom in T24, T25, T26, T29, T37 (and T28, T36) — **engine change (candidate):** when a duplex brief asks for a guest/parents' bedroom downstairs, keep its bath en-suite on the ground floor (check the duplex benchmark, which already has one); (b) the laundry opens to an outside yard (T21, T26, T29, T30) — **engine change:** a laundry/washing room prefers an outside wall with a door, like the kitchen's yard door; (c) a wet+dry kitchen pair (T29) — **engine change:** a "dry kitchen"/"bar counter" in a brief sits between the enclosed kitchen and the dining; (d) roofed carport outside the house body (T20, T25) — supported by the outbuilding/site plan path only as an open car porch; **candidate:** a carport room on the house's side, outside the footprint.
+6. **Drawing conventions:** ceiling heights written in each room (T36) — **candidate** for the plan (we now have a fixed 3.2 m storey; a "2.9 m clg" note per room would follow it). Level mark for a lowered car space (T29 −0.30) — **candidate** for the section/elevations.
+
+**Contradictions with the earlier findings (not overwritten):**
+- §3.3 finding 1 said **"Habitable rooms stay within 6 m everywhere"** and finding 2 **"every span over 6 m is a car space"**. The new set contradicts both: T37 (dining-kitchen 6.40 m), T29 (living 6.3 m), T30 (formal drawing ≈ 6.4 m) and T28 (living 9.6 m, timber) are habitable rooms over 6 m. Both findings held for T1–T16 only.
+- The §1 provenance caveat said **no BQ, generator house, overhead water tank, borehole, septic tank or soakaway in any template**. Now: T29 has a staff room (the nearest thing to a BQ) and T32 an overhead water tank on its roof [thumb]; the generator house, borehole and septic tank are still absent.
+- §3.6 listed entrance doors as 0.9–1.0 x 2.5 m; **T17's main door is 1.0 x 2.2 m**, the same height as its room doors. Windows in T17 are 1.4 m high where ours are 1.2 m. Both within the spread of the set; no change implied yet.
+- §4's car-space row ("open carport under the upper floor" vs "enclosed integral garage") gains a third way: **a roofed carport outside the house body** (T20, T25), and a fourth: **parking at the rear reached by a side drive** (T31 [inferred]).
