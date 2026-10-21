@@ -4,7 +4,7 @@ import { structuralEngine } from '@/lib/aec/solver/structural';
 import { computeWalls, WALL_THICKNESS, WallRoomKind } from './walls';
 import { planOpenings, openingSchedule, roomTypeOf, externalEdges, DOOR_ROOM, type OpeningType } from './openings';
 import { sectionCut } from './section';
-import { stairPlan } from './stair';
+import { stairPlan, STAIR_STOREY_H } from './stair';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Ruler, ShieldAlert, Layers } from 'lucide-react';
@@ -110,6 +110,11 @@ interface FloorDrawingProps {
   /** D1…/W1… for an opening type, the same on every floor (openings.ts). */
   tagOf: (t: OpeningType) => string;
 }
+
+/** Metres with feet and inches in brackets, as the templates dimension (T1–T10): 4.5m (14'-9"). */
+const feet = (m: number) => { const inch = Math.round(m / 0.0254); return `${Math.floor(inch / 12)}'-${inch % 12}"`; };
+/** The dimension label for a length that has `px` of drawing to sit in (metres alone when the feet don't fit). */
+const dimLabel = (m: number, px: number) => { const both = `${+m.toFixed(2)}m (${feet(m)})`; return px >= both.length * 4.6 ? both : `${+m.toFixed(2)}m`; };
 
 const FloorDrawing: React.FC<FloorDrawingProps> = ({
   layout, floor: activeFloor, scale, xOffset, yOffset, showStructure, skeleton,
@@ -841,7 +846,6 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               const g = skeleton.grid;
               const xs = g?.xs ?? [0, buildingW], ys = g?.ys ?? [0, buildingH];
               const ink = '#475569', red = '#b91c1c', R = 8, AT = 70;
-              const fmt = (m: number) => `${+m.toFixed(2)}m`;
               const X = (m: number) => xOffset + m * scale, Y = (m: number) => yOffset + m * scale;
               const bot = Y(buildingH), left = X(0);
               const text = { fontSize: '8px', fontWeight: 700, fill: '#1e293b' } as const;
@@ -856,8 +860,8 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                   {ps.slice(1).map((p, i) => {
                     const m = horizontal ? (X(ps[i]) + X(p)) / 2 : (Y(ps[i]) + Y(p)) / 2;
                     return horizontal
-                      ? <text key={`d${i}`} x={m} y={bot + off - 3} textAnchor="middle" style={text}>{fmt(p - ps[i])}</text>
-                      : <text key={`d${i}`} x={left - off - 3} y={m} textAnchor="middle" transform={`rotate(-90, ${left - off - 3}, ${m})`} style={text}>{fmt(p - ps[i])}</text>;
+                      ? <text key={`d${i}`} x={m} y={bot + off - 3} textAnchor="middle" style={text}>{dimLabel(p - ps[i], (p - ps[i]) * scale)}</text>
+                      : <text key={`d${i}`} x={left - off - 3} y={m} textAnchor="middle" transform={`rotate(-90, ${left - off - 3}, ${m})`} style={text}>{dimLabel(p - ps[i], (p - ps[i]) * scale)}</text>;
                   })}
                 </g>
               );
@@ -1043,7 +1047,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                     {xs.map((x, i) => <line key={`t${i}`} x1={x - 3} y1={top - 13} x2={x + 3} y2={top - 19} stroke={ink} strokeWidth={1} />)}
                     {xs.slice(1).map((x, i) => (
                       <text key={`d${i}`} x={(xs[i] + x) / 2} y={top - 19} textAnchor="middle" style={text}>
-                        {`${+((x - xs[i]) / scale).toFixed(2)}m`}
+                        {dimLabel((x - xs[i]) / scale, x - xs[i])}
                       </text>
                     ))}
                   </g>
@@ -1055,7 +1059,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
             {(() => {
               const c = sectionCut(layout);
               if (!c) return null;
-              const ink = '#b91c1c', over = 22; // px past the outline: inside the dimension chains
+              const ink = '#b91c1c', over = 15; // px past the outline: inside the dimension chains and their labels
               const P = (x: number, y: number) => [xOffset + x * scale, yOffset + y * scale] as const;
               const [s0, s1] = c.axis === 'x' ? [P(c.at, 0), P(c.at, c.length)] : [P(0, c.at), P(c.length, c.at)];
               const ends = c.axis === 'x' ? [[s0[0], s0[1] - over], [s1[0], s1[1] + over]] : [[s0[0] - over, s0[1]], [s1[0] + over, s1[1]]];
@@ -1221,7 +1225,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
             </CardTitle>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
-                Drawn automatically • Floor heights {shown.map(f => `+${f * 3.0}m`).join(' / ')}
+                Drawn automatically • Floor levels {shown.map(f => f === 0 ? '±0.00' : `+${(f * STAIR_STOREY_H).toFixed(2)}`).join(' / ')} m
               </span>
             </div>
           </div>
