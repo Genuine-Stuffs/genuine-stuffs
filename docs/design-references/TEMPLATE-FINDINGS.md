@@ -383,6 +383,8 @@ Applied to plans built upwards (villas with a void) it cost 34 → 24–26 of 50
 
 **Stair fixed (owner 2026-10-21: dog-leg):** `stair.ts` lays a dog-leg in the stairwell the planner already reserves (2.5 × 4.0 m): two 1.15 m flights with a 0.2 m well, 18 risers of 178 mm (3.2 m storey), 300 mm going, a 1.6 m half landing at the far end; the first flight starts at the hall end and the second arrives back there. The floor plans (UP below, DN above, the walking line) and section A–A (cut through the first flight, the second dashed beyond, the landing slab) draw that one stair. No room placement change. A stairwell under 2.0 m wide falls back to a straight flight, flagged "too steep" when its risers pass 190 mm (common practice; the NBC figure is still to confirm). On the 24 sample plans: every section's stair is now 178 mm risers.
 
+**#6 drawing conventions (2026-10-21), four commits:** dimension chains read metres with feet and inches in brackets (4.5m (14'-9"); metres alone where a bay is too narrow), and the plan header's floor levels now read the 3.2 m storey; the grid's columns are drawn on every plan as solid squares (red with the beams in the structure view); a numbered room key (0.1, 1.1…; `roomKey.ts`) with each room's area, each floor's enclosed area, terraces and balconies apart, and the house total, the number above each room's name; red survey beacons B1–B4 at the plot corners on the site plan.
+
 ## 6. Engine changes, ranked by how technically suitable they are to do next
 
 "Suitable" = strong evidence across templates, fits the engine as it is, low risk, measurable.
@@ -394,7 +396,7 @@ Applied to plans built upwards (villas with a void) it cost 34 → 24–26 of 50
 | 3 | **Wet-room stacking + baths on outside walls** as stronger preferences: **done 2026-10-20 (stacking only, owner chose weight 20)** | most templates; ours 22% / 79% | medium: a new cost term in the gap-free search; **a rule change, needs your OK** | stacking % and outside-wall % on the 50 villa plans, solved count unchanged |
 | 4 | **Column-free car spaces** (no grid column inside a garage/carport; transfer beam flagged): **done 2026-10-21** | T6, T10, T11, T16 (every span over 6 m) | medium, structural layer only | columns inside car spaces → 0 on the sample plans |
 | 5 | **Elevations + a section** generated from the plan: **done 2026-10-21** | T6/T7 (18-page set), T13, T14, T16 | large, new drawing type | owner review; render matching |
-| 6 | Drawing conventions: feet in brackets on dimensions, columns drawn by default, numbered room key with areas, beacon dots on the site plan | T1–T10, T14, T15–T16 | small each | browser check |
+| 6 | Drawing conventions: feet in brackets on dimensions, columns drawn by default, numbered room key with areas, beacon dots on the site plan: **done 2026-10-21** | T1–T10, T14, T15–T16 | small each | browser check |
 | 7 | Narrow 2.0–2.5 m service bay for wet rooms/stair | T2, T6 | medium-high (grid search) | on-structure % and columns in rooms |
 | 8 | Bungalow split-bedroom preference | T11, T12 | medium | bungalow benchmark |
 | 9 | Great room (living + dining + kitchen as one space) and courtyard/light-well types | T1–T4, T8–T16; T10, T14 | large (the gap-free engine plans walled rectangles) | — |

@@ -90,6 +90,15 @@ export const AECSitePlan: React.FC<{ layout: SolvedLayout; setbacks?: Setbacks }
             <rect x={X(0)} y={Y(0)} width={W} height={D} fill="#f0fdf4" />
             <path data-site-fence d={`M${X(gate.x)},${Y(plot.d)} L${X(0)},${Y(plot.d)} L${X(0)},${Y(0)} L${X(plot.w)},${Y(0)} L${X(plot.w)},${Y(plot.d)} L${X(gate.x + gate.w)},${Y(plot.d)}`}
               fill="none" stroke={INK} strokeWidth={2.2} />
+            {/* survey beacons at the plot's corners, as a survey plan marks them, numbered clockwise from the rear left */}
+            <g data-site-beacons>
+              {[[0, 0, -1, -1], [plot.w, 0, 1, -1], [plot.w, plot.d, 1, 1], [0, plot.d, -1, 1]].map(([x, y, sx, sy], i) => (
+                <g key={i} data-beacon={i + 1}>
+                  <circle cx={X(x)} cy={Y(y)} r={3.4} fill={SETBACK} stroke="white" strokeWidth={0.8} />
+                  <text x={X(x) + sx * 6} y={Y(y) + sy * 6 + (sy > 0 ? 4 : 0)} textAnchor={sx < 0 ? 'end' : 'start'} style={{ fontSize: '6.5px', fontWeight: 800, fill: SETBACK }}>B{i + 1}</text>
+                </g>
+              ))}
+            </g>
             {/* the gate leaves */}
             <g data-site-gate stroke={INK} strokeWidth={1} fill="none">
               <line x1={X(gate.x)} y1={Y(plot.d)} x2={X(gate.x) + gate.w * scale / 2 * 0.7} y2={Y(plot.d) - gate.w * scale / 2 * 0.7} />
@@ -169,8 +178,9 @@ export const AECSitePlan: React.FC<{ layout: SolvedLayout; setbacks?: Setbacks }
               <rect y={14} width={10} height={7} fill="#fef3c7" stroke={INK} /><text x={14} y={20.5}>Outbuilding</text>
               <line x1={0} y1={31} x2={10} y2={31} stroke={SETBACK} strokeDasharray="3 2" /><text x={14} y={34}>Setback line</text>
               {driveway && <><rect y={40} width={10} height={7} fill="url(#site-paving)" stroke="#94a3b8" /><text x={14} y={46.5}>Driveway</text></>}
-              <text y={64} style={{ fontSize: '7.5px', fontWeight: 900, fill: INK }}>PLOT {Math.round(plot.w * plot.d)} m²</text>
-              <text y={76}>Site coverage {coverage}%</text>
+              <circle cx={5} cy={53.5} r={3} fill={SETBACK} /><text x={14} y={56}>Beacon (B1–B4)</text>
+              <text y={70} style={{ fontSize: '7.5px', fontWeight: 900, fill: INK }}>PLOT {Math.round(plot.w * plot.d)} m²</text>
+              <text y={82}>Site coverage {coverage}%</text>
             </g>
 
             {/* scale bar */}
