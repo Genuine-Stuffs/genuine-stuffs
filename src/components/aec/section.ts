@@ -42,14 +42,15 @@ export interface Section {
   top: number;
 }
 
-const wallKind = (layout: SolvedLayout, r: PlacedRoom): WallRoomKind => {
+export const wallKind = (layout: SolvedLayout, r: PlacedRoom): WallRoomKind => {
   const t = roomTypeOf(layout, r.room_id);
   if (r.room_id.startsWith('terrace_f') || t === 'balcony' || t === 'terrace') return 'outside';
   if (/^(circulation|hall|landing|void|stairwell)$/.test(t)) return 'open';
   return 'room';
 };
 
-const nameOf = (layout: SolvedLayout, r: PlacedRoom): string => {
+/** A placed room's name: the brief's, or the solver's own rooms by id. */
+export const roomName = (layout: SolvedLayout, r: PlacedRoom): string => {
   if (r.room_id === 'stairwell') return 'Stair';
   if (r.room_id === 'stairwell_void') return 'Stair void';
   if (r.room_id.startsWith('corridor_floor')) return r.floor === 0 ? 'Hall' : 'Landing';
@@ -99,7 +100,7 @@ export function section(layout: SolvedLayout): Section | null {
 
   for (const f of floors) {
     const here = byFloor.get(f)!, base = f * STOREY_H;
-    for (const r of here) { const [a, b] = spanOf(r); out.rooms.push({ a, b, floor: f, name: nameOf(layout, r), kind: wallKind(layout, r) }); }
+    for (const r of here) { const [a, b] = spanOf(r); out.rooms.push({ a, b, floor: f, name: roomName(layout, r), kind: wallKind(layout, r) }); }
     // the plan's walls that the cut crosses, with the doors and windows in them
     const all = rooms.filter(r => r.floor === f);
     const segs = computeWalls(all.map(r => ({ x: r.x, y: r.y, width: r.width, depth: r.depth, kind: wallKind(layout, r) })));

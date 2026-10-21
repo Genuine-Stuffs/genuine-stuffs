@@ -5,6 +5,7 @@ import { computeWalls, WALL_THICKNESS, WallRoomKind } from './walls';
 import { planOpenings, openingSchedule, roomTypeOf, externalEdges, DOOR_ROOM, type OpeningType } from './openings';
 import { sectionCut } from './section';
 import { stairPlan, STAIR_STOREY_H } from './stair';
+import { roomKey, keyNumber, type FloorKey } from './roomKey';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Ruler, ShieldAlert, Layers } from 'lucide-react';
@@ -109,6 +110,8 @@ interface FloorDrawingProps {
   captionY?: number;
   /** D1…/W1… for an opening type, the same on every floor (openings.ts). */
   tagOf: (t: OpeningType) => string;
+  /** The numbered room key (roomKey.ts): each room's number shows above its name. */
+  roomKeys: FloorKey[];
 }
 
 /** Metres with feet and inches in brackets, as the templates dimension (T1–T10): 4.5m (14'-9"). */
@@ -118,7 +121,7 @@ const dimLabel = (m: number, px: number) => { const both = `${+m.toFixed(2)}m ($
 
 const FloorDrawing: React.FC<FloorDrawingProps> = ({
   layout, floor: activeFloor, scale, xOffset, yOffset, showStructure, skeleton,
-  plot_width, plot_depth, showPlot, captionY, tagOf,
+  plot_width, plot_depth, showPlot, captionY, tagOf, roomKeys,
 }) => {
   const { placed_rooms } = layout;
   const activeRooms = placed_rooms.filter(r => r.floor === activeFloor);
@@ -409,6 +412,8 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
     const [tx, ty] = [lx0 + (lx0 - nx) / ln * 11, ly0 + (ly0 - ny) / ln * 11 + 3];
     return (
       <g data-stair={sp.kind} opacity={up ? 1 : 0.6} style={{ pointerEvents: 'none' }}>
+        {keyNumber(roomKeys, activeFloor, room.room_id) && <text data-room-no x={X(room.x) + 4} y={Y(room.y) + 9}
+          style={{ fontSize: '6.5px', fontWeight: 800, fill: '#64748b' }}>{keyNumber(roomKeys, activeFloor, room.room_id)}</text>}
         {sp.landing && <rect x={X(sp.landing.x)} y={Y(sp.landing.y)} width={sp.landing.w * scale} height={sp.landing.h * scale} fill="none" stroke={c} strokeWidth={0.8} />}
         {lines}
         <polyline points={path.map(p => p.join(',')).join(' ')} fill="none" stroke={c} strokeWidth={1} />
@@ -701,6 +706,13 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
         {/* ── Label ── */}
         {showLabel && !isStair(room) && (
           <text textAnchor="middle" style={{ pointerEvents: 'none' }}>
+            {/* the room's number in the room key */}
+            {keyNumber(roomKeys, activeFloor, room.room_id) && <tspan data-room-no
+              x={labelX}
+              y={labelY - (labelLines.length + 0.45) * labelFs * 1.4 * labelK}
+              style={{ fontSize: `${Math.max(6, labelFs * 0.75) * labelK}px`, fontWeight: 800, fill: '#64748b' }}>
+              {keyNumber(roomKeys, activeFloor, room.room_id)}
+            </tspan>}
             {labelLines.map((line, i) => (
               <tspan
                 key={i}
@@ -1164,7 +1176,13 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   const SCHED_ROW = 16;
   const schedRows = Math.max(...(['D', 'W'] as const).map(k => schedule.rows.filter(r => r.type.kind === k).length), 0);
   const schedY = bottom + below + 42;
-  const sheetH = schedY + schedRows * SCHED_ROW + 20;
+  // the numbered room key under the schedule: one column per floor shown
+  const keys = roomKey(layout);
+  const KEY_ROW = 11;
+  const keyShown = keys.filter(k => shown.includes(k.floor));
+  const keyY = schedY + schedRows * SCHED_ROW + 34;
+  const keyRows = Math.max(0, ...keyShown.map(k => k.rows.length)) + 3;
+  const sheetH = keyY + keyRows * KEY_ROW + 20;
 
   // Generate structural skeleton
   const skeleton = useMemo(() => structuralEngine.generateSkeleton(layout), [layout]);
@@ -1301,7 +1319,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
               <FloorDrawing key={f} layout={layout} floor={f} scale={scale}
                 xOffset={xOffsetOf(k)} yOffset={yOffset} showStructure={showStructure}
                 skeleton={skeleton} plot_width={plot_width} plot_depth={plot_depth}
-                showPlot={!sheet} captionY={sheet ? bottom + 96 : undefined} tagOf={schedule.tagOf} />
+                showPlot={!sheet} captionY={sheet ? bottom + 96 : undefined} tagOf={schedule.tagOf} roomKeys={keys} />
             ))}
 
             {/* North arrow — bottom-left */}
@@ -1389,6 +1407,43 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
                   {col('W', cx + 20, 'WINDOWS')}
                 </g>
               ) : null;
+            })()}
+            {/* the numbered room key with areas, as on T15/T16 */}
+            {(() => {
+              const colW = 190, x0 = sheetW / 2 - keyShown.length * colW / 2;
+              const m2 = (a: number) => `${a.toFixed(1)} m²`;
+              const all = keys.reduce((s, k) => s + k.enclosed, 0);
+              return (
+                <g className="room-key" data-room-key>
+                  {keyShown.map((k, c) => {
+                    const x = x0 + c * colW;
+                    return (
+                      <g key={k.floor}>
+                        <text x={x} y={keyY - 12} style={{ fontSize: '7px', fontWeight: 900, fill: '#64748b', letterSpacing: '0.15em' }}>ROOMS · {floorName(k.floor)}</text>
+                        {k.rows.map((r, i) => (
+                          <g key={r.no} data-key-row={r.no} style={{ fontSize: '7px', fontWeight: 600, fill: r.open ? '#64748b' : '#1e293b' }}>
+                            <text x={x} y={keyY + i * KEY_ROW}>{r.no}</text>
+                            <text x={x + 20} y={keyY + i * KEY_ROW}>{r.name.length > 28 ? `${r.name.slice(0, 27)}…` : r.name}{r.open ? ' (open)' : ''}</text>
+                            <text x={x + colW - 18} y={keyY + i * KEY_ROW} textAnchor="end">{m2(r.area)}</text>
+                          </g>
+                        ))}
+                        <line x1={x} y1={keyY + (k.rows.length - 0.6) * KEY_ROW} x2={x + colW - 18} y2={keyY + (k.rows.length - 0.6) * KEY_ROW} stroke="#94a3b8" strokeWidth={0.5} />
+                        <text x={x + 20} y={keyY + (k.rows.length + 0.3) * KEY_ROW} style={{ fontSize: '7px', fontWeight: 800, fill: '#1e293b' }}>Floor area</text>
+                        <text x={x + colW - 18} y={keyY + (k.rows.length + 0.3) * KEY_ROW} textAnchor="end" style={{ fontSize: '7px', fontWeight: 800, fill: '#1e293b' }}>{m2(k.enclosed)}</text>
+                        {k.open > 0 && <>
+                          <text x={x + 20} y={keyY + (k.rows.length + 1.3) * KEY_ROW} style={{ fontSize: '7px', fontWeight: 600, fill: '#64748b' }}>Terraces and balconies</text>
+                          <text x={x + colW - 18} y={keyY + (k.rows.length + 1.3) * KEY_ROW} textAnchor="end" style={{ fontSize: '7px', fontWeight: 600, fill: '#64748b' }}>{m2(k.open)}</text>
+                        </>}
+                      </g>
+                    );
+                  })}
+                  {keys.length > 1 && (
+                    <text x={sheetW / 2} y={keyY + (keyRows - 0.4) * KEY_ROW} textAnchor="middle" style={{ fontSize: '7.5px', fontWeight: 900, fill: '#1e293b', letterSpacing: '0.08em' }}>
+                      HOUSE FLOOR AREA {m2(all).toUpperCase()} (ALL FLOORS, ENCLOSED ROOMS)
+                    </text>
+                  )}
+                </g>
+              );
             })()}
           </svg>
 
