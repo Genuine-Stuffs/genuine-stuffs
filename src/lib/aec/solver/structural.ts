@@ -9,6 +9,7 @@ import { SolvedLayout } from "../../../../supabase/functions/ai-studio/schema";
 import complianceRules from "../compliance_rules.json";
 import { structuralGridOf, MAX_BAY_M, type StructuralGrid } from "./structural_grid";
 import { catalogueEntry } from "./engine_v2/room_catalogue";
+import { normalizeRoomType, GARAGE_TYPES } from "./engine_v2/graph";
 
 /** The long-span system's range (owner's engine brief, capability D: portal
  * frame or steel truss, about 12–30 m clear). Beyond it a hall needs an
@@ -29,7 +30,7 @@ export interface Beam {
     floor: number;
     /** primary: on a grid line, column to column; secondary: under an upper
      * wall off the grid, from one primary beam to the next. */
-    kind: 'primary' | 'secondary' | 'long_span';
+    kind: 'primary' | 'secondary' | 'long_span' | 'transfer';
     /** What each end rests on: a column (primary) or a primary beam. */
     start_support_id: string;
     end_support_id: string;
@@ -51,7 +52,7 @@ export interface StructuralSkeleton {
     outbuildings: Array<{ id: string; x: number; y: number; grid: StructuralGrid | null }>;
     /** Halls on the long-span system: columns only around them, a long-span
      * member across them on each grid line that crosses them. */
-    halls: Array<{ room_id: string; floor: number; span_m: number; within_range: boolean; columns_above?: number }>;
+    halls: Array<{ room_id: string; floor: number; span_m: number; within_range: boolean; columns_above?: number; car?: boolean }>;
 }
 
 /** Rooms the room catalogue marks long-span (auditorium, restaurant, overflow
@@ -63,6 +64,20 @@ export function longSpanRooms(layout: SolvedLayout) {
         if (Math.min(r.width, r.depth) <= MAX_BAY_M + 1e-6) return false;
         const src = brief.find(q => (q.room_id ?? q.id) === r.room_id);
         return !!src && !!catalogueEntry({ type: src.type, name: src.name })?.longSpan;
+    });
+}
+
+/** Garages, carports and parking that a grid column would stand inside: kept
+ * clear for parking, as every template does (T6, T10, T11, T16; findings #4),
+ * with a transfer beam on each grid line that crosses them. */
+export function carSpaces(layout: SolvedLayout, grid = structuralGridOf(layout)) {
+    if (!grid) return [];
+    const brief: any[] = (layout.program_reference as any)?.rooms ?? [];
+    const e = 1e-6, across = (ls: number[], lo: number, hi: number) => ls.some(v => v > lo + e && v < hi - e);
+    return layout.placed_rooms.filter(r => {
+        const src = brief.find(q => (q.room_id ?? q.id) === r.room_id);
+        const car = GARAGE_TYPES.has(normalizeRoomType(src?.type) ?? '') || /\b(garage|car ?port|car ?porch|car ?park|parking)\b/i.test(src?.name ?? '');
+        return car && across(grid.xs, r.x, r.x + r.width) && across(grid.ys, r.y, r.y + r.depth);
     });
 }
 
@@ -84,10 +99,11 @@ export function planSpans(layout: SolvedLayout): Map<string, { span: number; hal
     const bay = (ls: number[], lo: number, hi: number) => Math.max(0, ...ls.slice(0, -1).map((v, i) => [v, ls[i + 1]])
         .filter(([s, e]) => e > lo + 1e-6 && s < hi - 1e-6).map(([s, e]) => e - s));
     const halls = new Set(longSpanRooms(layout).map(r => `${r.room_id}@${r.floor}`));
+    const cars = new Set(carSpaces(layout, grid).map(r => `${r.room_id}@${r.floor}`));
     for (const r of layout.placed_rooms) {
         if (/^(corridor|stair)/.test(r.room_id)) continue;
-        const hall = halls.has(`${r.room_id}@${r.floor}`);
-        const span = hall ? Math.min(r.width, r.depth) : Math.min(bay(grid.xs, r.x, r.x + r.width), bay(grid.ys, r.y, r.y + r.depth));
+        const k = `${r.room_id}@${r.floor}`, hall = halls.has(k);
+        const span = hall || cars.has(k) ? Math.min(r.width, r.depth) : Math.min(bay(grid.xs, r.x, r.x + r.width), bay(grid.ys, r.y, r.y + r.depth));
         const had = out.get(r.room_id);
         if (!had || span > had.span) out.set(r.room_id, { span, hall });
     }
@@ -133,12 +149,15 @@ export class StructuralEngine {
 
         // the structural-system selector (capability D): a long-span room stands clear of columns
         const longSpan = longSpanRooms(layout);
+        // ... and so does a car space (a transfer beam instead of a truss)
+        const cars = carSpaces(layout, grid), clear = [...longSpan, ...cars];
         const e = 1e-6;
         const inside = (h: { x: number; y: number; width: number; depth: number }, x: number, y: number) =>
             x > h.x + e && x < h.x + h.width - e && y > h.y + e && y < h.y + h.depth - e;
         const halls: StructuralSkeleton['halls'] = [];
+        let unlanded = 0;
         for (let floor = 0; floor < grid.floors; floor++) {
-            const here = longSpan.filter(h => h.floor === floor);
+            const here = clear.filter(h => h.floor === floor);
             const at = new Map<string, Column>();
             for (const y of ys) for (const x of xs) {
                 if (here.some(h => inside(h, x, y))) continue; // inside a hall: no column
@@ -175,26 +194,51 @@ export class StructuralEngine {
                 };
                 for (const v of lines) {
                     const a = acrossX ? edge(h.x, v) : edge(v, h.y), b = acrossX ? edge(h.x + h.width, v) : edge(v, h.y + h.depth);
-                    beam('long_span', a, b);
+                    beam(cars.includes(h) ? 'transfer' : 'long_span', a, b);
                 }
                 const span = acrossX ? h.width : h.depth;
-                halls.push({ room_id: h.room_id, floor, span_m: span, within_range: span <= LONG_SPAN_MAX_M + e });
+                halls.push({ room_id: h.room_id, floor, span_m: span, within_range: span <= LONG_SPAN_MAX_M + e, ...(cars.includes(h) ? { car: true } : {}) });
             }
             // a secondary beam's ends land on the primary beams of the grid lines it spans between
             const bay = (lines: number[], v: number) => lines[Math.max(0, lines.findIndex((l, k) => k + 1 < lines.length && v >= l - 1e-9 && v < lines[k + 1] - 1e-9))];
             for (const s of grid.secondary) if (s.floor === floor) {
                 const vertical = s.x1 === s.x2;
-                const end = (x: number, y: number) => along.get(vertical ? `h${y},${bay(xs, x)}` : `v${x},${bay(ys, y)}`)!;
-                beam('secondary', { id: end(s.x1, s.y1).id, x: s.x1, y: s.y1 }, { id: end(s.x2, s.y2).id, x: s.x2, y: s.y2 });
+                // inside a car space the grid beam is gone: the secondary runs on along its own line
+                // to the next member of this floor it meets (a transfer beam, or the grid beam beyond)
+                const reach = (x: number, y: number, dx: number, dy: number) => {
+                    let best: { m: Beam; x: number; y: number; d: number } | undefined;
+                    for (const m of beams) {
+                        if (m.floor !== floor || m.kind === 'secondary') continue;
+                        const mv = m.start_x === m.end_x;
+                        if (mv === (dx === 0)) continue; // parallel
+                        const px = mv ? m.start_x : x, py = mv ? y : m.start_y;
+                        const lo = mv ? Math.min(m.start_y, m.end_y) : Math.min(m.start_x, m.end_x), hi = mv ? Math.max(m.start_y, m.end_y) : Math.max(m.start_x, m.end_x);
+                        const t = mv ? py : px;
+                        if (t < lo - 1e-6 || t > hi + 1e-6) continue;
+                        const d = (px - x) * dx + (py - y) * dy;
+                        if (d >= -1e-6 && (!best || d < best.d)) best = { m, x: px, y: py, d };
+                    }
+                    return best;
+                };
+                const end = (x: number, y: number, ox: number, oy: number) => {
+                    const m = along.get(vertical ? `h${y},${bay(xs, x)}` : `v${x},${bay(ys, y)}`);
+                    if (m) return { id: m.id, x, y };
+                    const r = reach(x, y, Math.sign(x - ox), Math.sign(y - oy));
+                    return r && { id: r.m.id, x: r.x, y: r.y };
+                };
+                const a = end(s.x1, s.y1, s.x2, s.y2), b = end(s.x2, s.y2, s.x1, s.y1);
+                if (!a || !b) { unlanded++; continue; }
+                beam('secondary', a, b);
             }
         }
 
         // columns of the floors above standing over a hall need a transfer structure: counted, not hidden
         for (const h of halls) {
-            const r = longSpan.find(q => q.room_id === h.room_id && q.floor === h.floor)!;
+            const r = clear.find(q => q.room_id === h.room_id && q.floor === h.floor)!;
             const n = columns.filter(c => c.floor > h.floor && inside(r, c.x, c.y)).length;
             if (n) h.columns_above = n;
         }
+        if (unlanded) console.warn(`[Structural Engine] ${unlanded} secondary beam(s) with no member to rest on (car space / hall)`);
         console.log(`[Structural Engine] Grid x ${xs.join('/')} m, y ${ys.join('/')} m: ${columns.length} columns and ${beams.length} beams (${grid.secondary.length} secondary) across ${grid.floors} floor(s).`);
         // the outbuildings' members after the house's, so house ids are unchanged
         return { columns: [...columns, ...obColumns], beams: [...beams, ...obBeams], grid, outbuildings, halls };
@@ -207,7 +251,7 @@ export const structuralEngine = new StructuralEngine();
  * a span beyond the long-span range, or columns of the floors above standing
  * over it (they need a transfer structure). Unchanged when there's none. */
 export function withHallNotes(layout: SolvedLayout): SolvedLayout {
-    if (!layout.placed_rooms?.length || !longSpanRooms(layout).length) return layout;
+    if (!layout.placed_rooms?.length || !(longSpanRooms(layout).length || carSpaces(layout).length)) return layout;
     const halls = structuralEngine.generateSkeleton(layout).halls;
     const brief: any[] = (layout.program_reference as any)?.rooms ?? [];
     const name = (id: string) => brief.find(q => (q.room_id ?? q.id) === id)?.name ?? id;
@@ -215,7 +259,9 @@ export function withHallNotes(layout: SolvedLayout): SolvedLayout {
     for (const h of halls) {
         if (!h.within_range) notes.push({ room_id: h.room_id, rule: 'LONG_SPAN_OUT_OF_RANGE',
             detail: `${name(h.room_id)} needs a ${+h.span_m.toFixed(1)} m clear span, beyond the long-span range (portal frame or steel truss, up to about ${LONG_SPAN_MAX_M} m). It needs a structural engineer's own scheme, or a narrower hall.` });
-        if (h.columns_above) notes.push({ room_id: h.room_id, rule: 'LONG_SPAN_TRANSFER',
+        if (h.columns_above && h.car) notes.push({ room_id: h.room_id, rule: 'LONG_SPAN_TRANSFER',
+            detail: `${name(h.room_id)} is kept clear of columns for parking, so ${h.columns_above} column${h.columns_above > 1 ? 's' : ''} of the floor above stand${h.columns_above > 1 ? '' : 's'} on a transfer beam across its ${+h.span_m.toFixed(1)} m span (at least ${beamDepthMm(h.span_m)} mm deep by the span rule; a column load may need it deeper). Confirm with a structural engineer.` });
+        else if (h.columns_above) notes.push({ room_id: h.room_id, rule: 'LONG_SPAN_TRANSFER',
             detail: `${h.columns_above} column${h.columns_above > 1 ? 's' : ''} of the floor${h.columns_above > 1 ? 's' : ''} above stand${h.columns_above > 1 ? '' : 's'} over ${name(h.room_id)}, which has no columns: they need a transfer structure (a deeper truss or a transfer beam). Confirm with a structural engineer.` });
     }
     return notes.length ? { ...layout, placement_issues: [...(layout.placement_issues ?? []), ...notes] } : layout;

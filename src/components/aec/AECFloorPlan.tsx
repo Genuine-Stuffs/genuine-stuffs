@@ -747,18 +747,18 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
             ? beam.width_m * scale
             : beam.span_m  * scale;
           const halfCol = (beam.width_m * scale) / 2;
-          // a hall's long-span member (truss / portal frame): drawn heavier, with its span
-          if (beam.kind === 'long_span') return (
+          // a hall's long-span member (truss / portal frame), or a car space's transfer beam: drawn heavier, with its span
+          if (beam.kind === 'long_span' || beam.kind === 'transfer') return (
             <g key={beam.id} data-long-span>
               <rect x={x - (beam.end_x === beam.start_x ? halfCol * 2 : 0)} y={y - (beam.end_y === beam.start_y ? halfCol * 2 : 0)}
                 width={beam.end_x === beam.start_x ? w * 2 : w} height={beam.end_y === beam.start_y ? h * 2 : h}
-                className="fill-violet-500/25 stroke-violet-700 stroke-[2]" />
+                className={beam.kind === 'transfer' ? "fill-orange-500/25 stroke-orange-700 stroke-[2]" : "fill-violet-500/25 stroke-violet-700 stroke-[2]"} />
               {/* along its member: members side by side keep their labels apart */}
               <text transform={beam.end_x === beam.start_x
                   ? `translate(${x - 5}, ${y + (beam.end_y - beam.start_y) * scale / 2}) rotate(-90)`
                   : `translate(${x + (beam.end_x - beam.start_x) * scale / 2}, ${y - 5})`}
-                textAnchor="middle" style={{ fontSize: '7px', fontWeight: 800, fill: '#5b21b6' }}>
-                LONG-SPAN TRUSS {beam.span_m.toFixed(1)} m
+                textAnchor="middle" style={{ fontSize: '7px', fontWeight: 800, fill: beam.kind === 'transfer' ? '#c2410c' : '#5b21b6' }}>
+                {beam.kind === 'transfer' ? `TRANSFER BEAM ${beam.span_m.toFixed(1)} m, MIN ${Math.round(beam.depth_m * 1000)} mm DEEP` : `LONG-SPAN TRUSS ${beam.span_m.toFixed(1)} m`}
               </text>
             </g>
           );
@@ -796,7 +796,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
           if (!r) return null;
           const lines = [
             ...(!h.within_range ? [`${+h.span_m.toFixed(1)} m SPAN: BEYOND THE LONG-SPAN RANGE`] : []),
-            ...(h.columns_above ? [`CARRIES ${h.columns_above} COLUMN${h.columns_above > 1 ? 'S' : ''} ABOVE: TRANSFER STRUCTURE`] : []),
+            ...(h.columns_above ? [h.car ? `NO COLUMNS IN THE PARKING: ${h.columns_above} COLUMN${h.columns_above > 1 ? 'S' : ''} ABOVE ON A TRANSFER BEAM` : `CARRIES ${h.columns_above} COLUMN${h.columns_above > 1 ? 'S' : ''} ABOVE: TRANSFER STRUCTURE`] : []),
           ];
           const cx = xOffset + (r.x + r.width / 2) * scale, top = yOffset + r.y * scale + 14;
           return (
