@@ -55,18 +55,24 @@ export const CHOIR_SHARE = cite(0.1, 'LifeWay: choir 10-12% of seats', 'default'
 export const CHOIR_M2_PER_SINGER = cite(0.8, 'planning assumption', 'default');
 export const HALL_HEIGHT_MAX = cite(7.5, 'Lagos PPR 2019 Schedule 4B item 4 (excluding domes and towers; an overall 9.12 m also appears)', 'warn');
 
-/** A straight-row hall: blocks of seats between aisles, rows from the stage back. Metres. */
+/** A wheelchair space: two seats' width (0.92 m least), 1.22 m deep for entry from the aisle behind. */
+export const WHEELCHAIR_SPACE = cite({ w: 1.0, d: 1.22 }, 'ADA 2010 802.1.2-802.1.3 (0.92 m wide, 1.22 m deep)');
+
+/** A straight-row hall: blocks of seats between aisles, rows from the stage back. Metres.
+ * The wheelchair spaces take two seats each at the aisle ends of the back row (a companion
+ * seat beside each, the cross aisle behind), so the rows hold the seats plus one per space. */
 export function seatingLayout(seats: number) {
-    const per = SEATS_BETWEEN_AISLES.value, w = SEAT_W.value;
+    const per = SEATS_BETWEEN_AISLES.value, w = SEAT_W.value, wc = wheelchairSpaces(seats);
     // two blocks either side of the centre aisle, then wall blocks; widen until the depth is within reach
     let blocks = 2;
     for (;;) {
         const perRow = blocks * per;
-        const rows = Math.ceil(seats / perRow - 1e-9);
+        const rows = Math.ceil((seats + wc) / perRow - 1e-9);
         const depth = rows * ROW_PITCH.value;
         const width = perRow * w + CENTRE_AISLE.value + 2 * SIDE_AISLE.value + Math.max(0, blocks - 2) * SIDE_AISLE.value;
         if (STAGE_FRONT_GAP.value + depth <= LAST_ROW_MAX_M.value || blocks >= 6)
-            return { blocks, seatsPerRow: perRow, rows, seatingDepth: round1(depth), width: round1(width), lastRowFromStage: round1(STAGE_FRONT_GAP.value + depth) };
+            return { blocks, seatsPerRow: perRow, rows, seatingDepth: round1(depth), width: round1(width), lastRowFromStage: round1(STAGE_FRONT_GAP.value + depth),
+                wheelchair: wheelchairEnds(blocks, wc), wheelchairSpaces: wc, seatCount: rows * perRow - 2 * wc };
         blocks += 2;
     }
 }
@@ -91,6 +97,16 @@ export function toilets(load: number) {
         floor: { femaleWC: up(half / 75), maleWC: up(half / 150), basins: up(load / 200), source: 'IBC 2021 Table 2902.1 (places of worship)' },
         default: { femaleWC: up(half / 35), maleWC: up(half / 100), urinals: up(half / 80), basinsEach: Math.max(2, up(half / 100)), accessibleWC: 1, source: 'Scottish Technical Handbook 3.12 / LifeWay level (default)' },
     };
+}
+/** The wheelchair spaces at each block's ends on the back row, spread over every aisle end,
+ * the centre aisle's first (ADA 221.2.3: dispersed, not all in one place). */
+function wheelchairEnds(blocks: number, spaces: number) {
+    const ends: Array<{ block: number; side: 'left' | 'right'; spaces: number }> = [];
+    const mid = blocks / 2;
+    // the centre aisle's ends, then outwards block by block
+    for (let k = 0; k < mid; k++) ends.push({ block: mid - 1 - k, side: 'right', spaces: 0 }, { block: mid + k, side: 'left', spaces: 0 }, { block: mid - 1 - k, side: 'left', spaces: 0 }, { block: mid + k, side: 'right', spaces: 0 });
+    for (let i = 0; i < spaces; i++) ends[i % ends.length].spaces++;
+    return ends.filter(e => e.spaces);
 }
 /** Wheelchair spaces (ADA 221.2; UK 1%): the larger. */
 export function wheelchairSpaces(seats: number) {

@@ -946,15 +946,23 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               const xs: number[] = []; let x = hall.x + SIDE;
               for (let b = 0; b < st.blocks; b++) { xs.push(x); x += bw + (b === st.blocks / 2 - 1 ? CENTRE : SIDE); }
               const rows: React.ReactNode[] = [];
+              // the back row's aisle ends: wheelchair spaces (1.0 x 1.22 m, two seats' width), a companion seat beside each
+              const WS = 1.0, WSD = 1.22, ends = (b: number, side: string) => (st.wheelchair ?? []).find((e: any) => e.block === b && e.side === side)?.spaces ?? 0;
               for (let r = 0; r < st.rows; r++) for (let b = 0; b < st.blocks; b++) {
                 const y = hall.y + GAP + r * PITCH;
                 if (y + ROW > hall.y + hall.depth) break;
-                rows.push(<rect key={`${r}-${b}`} x={xOffset + xs[b] * scale} y={yOffset + y * scale} width={bw * scale} height={ROW * scale} fill="#e2e8f0" stroke="#94a3b8" strokeWidth={0.4} />);
+                const back = r === st.rows - 1, L = back ? ends(b, 'left') * WS : 0, R = back ? ends(b, 'right') * WS : 0;
+                rows.push(<rect key={`${r}-${b}`} x={xOffset + (xs[b] + L) * scale} y={yOffset + y * scale} width={(bw - L - R) * scale} height={ROW * scale} fill="#e2e8f0" stroke="#94a3b8" strokeWidth={0.4} />);
+                for (const [x0, n] of back ? [[xs[b], L / WS], [xs[b] + bw - R, R / WS]] as const : []) for (let i = 0; i < n; i++)
+                  rows.push(<g key={`ws-${b}-${x0}-${i}`} data-wheelchair="1">
+                    <rect x={xOffset + (x0 + i * WS + 0.04) * scale} y={yOffset + y * scale} width={(WS - 0.08) * scale} height={WSD * scale} fill="#dbeafe" stroke="#2563eb" strokeWidth={0.6} />
+                    <text x={xOffset + (x0 + i * WS + WS / 2) * scale} y={yOffset + (y + WSD / 2) * scale} textAnchor="middle" dominantBaseline="central" style={{ fontSize: `${Math.max(5, 0.7 * scale)}px`, fill: '#2563eb' }}>♿</text>
+                  </g>);
               }
               return <g data-seating={`${st.rows}x${st.seatsPerRow}`} style={{ pointerEvents: 'none' }}>
                 {rows}
-                <text x={xOffset + (hall.x + hall.width / 2) * scale} y={yOffset + (hall.y + GAP + st.rows * PITCH + 0.35) * scale} textAnchor="middle"
-                  style={{ fontSize: '7.5px', fontWeight: 900, fill: '#334155', letterSpacing: '0.06em' }}>{resolveRoomName(hall.room_id).toUpperCase()} · {st.rows * st.seatsPerRow} SEATS IN {st.rows} ROWS · LAST ROW {st.lastRowFromStage} M FROM THE STAGE</text>
+                <text x={xOffset + (hall.x + hall.width / 2) * scale} y={yOffset + (hall.y + GAP + (st.rows - 1) * PITCH + (st.wheelchairSpaces ? WSD : PITCH) + 0.35) * scale} textAnchor="middle"
+                  style={{ fontSize: '7.5px', fontWeight: 900, fill: '#334155', letterSpacing: '0.06em' }}>{resolveRoomName(hall.room_id).toUpperCase()} · {st.seatCount ?? st.rows * st.seatsPerRow} SEATS IN {st.rows} ROWS{st.wheelchairSpaces ? ` + ${st.wheelchairSpaces} WHEELCHAIR SPACES` : ''} · LAST ROW {st.lastRowFromStage} M FROM THE STAGE</text>
               </g>;
             })()}
 

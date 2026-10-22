@@ -246,7 +246,9 @@ function checks(p: AssemblyPlan, seats: number) {
         detail: `${p.seating.rows} rows of ${p.seating.seatsPerRow} in ${p.seating.blocks} blocks (at most ${A.SEATS_BETWEEN_AISLES.value} between aisles), ${A.ROW_PITCH.value} m row pitch, ${A.CENTRE_AISLE.value} m centre aisle, ${A.SIDE_AISLE.value} m side aisles; last row ${p.seating.lastRowFromStage} m from the stage (at most ${A.LAST_ROW_MAX_M.value} m).` });
     lines.push({ rule: 'Clear span', ok: p.width <= A.PORTAL_SPAN_MAX.value,
         detail: `The hall is ${p.width} m across, one clear span with no column inside: a steel portal frame up to ${A.PORTAL_SPAN_MAX.value} m (${A.PORTAL_SPAN_MAX.source}). Hall no higher than ${A.HALL_HEIGHT_MAX.value} m (${A.HALL_HEIGHT_MAX.source}).` });
-    lines.push({ rule: 'Wheelchair spaces', ok: true, detail: `${A.wheelchairSpaces(seats)} wheelchair spaces with companion seats in the hall (ADA 221.2; UK 1%).` });
+    const st = p.seating, need = A.wheelchairSpaces(seats);
+    lines.push({ rule: 'Wheelchair spaces', ok: st.wheelchairSpaces >= need && st.seatCount + st.wheelchairSpaces >= seats,
+        detail: `${st.wheelchairSpaces} wheelchair spaces (${A.WHEELCHAIR_SPACE.value.w} x ${A.WHEELCHAIR_SPACE.value.d} m) at the aisle ends of the back row, each beside a companion seat, with ${st.seatCount} fixed seats (at least ${need} for ${seats} seats: ADA 221.2; UK 1%; ${A.WHEELCHAIR_SPACE.source}).` });
     return lines;
 }
 
