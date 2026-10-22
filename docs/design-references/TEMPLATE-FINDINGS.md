@@ -628,3 +628,131 @@ Image #s refer to A.1; sizes are as written on the sheet (metres, or feet-inches
 - The §1 provenance caveat said **no BQ, generator house, overhead water tank, borehole, septic tank or soakaway in any template**. Now: T29 has a staff room (the nearest thing to a BQ) and T32 an overhead water tank on its roof [thumb]; the generator house, borehole and septic tank are still absent.
 - §3.6 listed entrance doors as 0.9–1.0 x 2.5 m; **T17's main door is 1.0 x 2.2 m**, the same height as its room doors. Windows in T17 are 1.4 m high where ours are 1.2 m. Both within the spread of the set; no change implied yet.
 - §4's car-space row ("open carport under the upper floor" vs "enclosed integral garage") gains a third way: **a roofed carport outside the house body** (T20, T25), and a fourth: **parking at the rear reached by a side drive** (T31 [inferred]).
+
+## Addendum — church templates, 2026-10-22
+
+Source: 20 images the owner attached on 2026-10-22, saved as `docs/design-references/templates/Church Floorplan Design/C1`–`C14`. **Six are exact copies** (same checksum): images 15–20 repeat 1, 3, 11, 12, 13 and 14, so there are **14 distinct templates, C1–C14**. Same reading key as above (**[read]**, **[inferred]**, **[thumb]** = too small to read at the size supplied). All are web images of 386–935 px; no CAD, PDF or full-size sheet. Our engine's church is the benchmark `bench-05-church-60x80` (1,000 seats) as planned at `7d8cbd5`.
+
+### C.1 Inventory
+
+| ID | What it is (verbatim title where there is one) | Origin [inferred unless read] | Seats | Readable? |
+|---|---|---|---|---|
+| C1 | `PLAN 07-194-SMP`, Church Development Services (plan + front elevation + statistics block) | US [read: Virginia Beach address] | 178 + 16 choir = 194 [read] | yes |
+| C2 | `PROPOSED CHURCH ON PLOT No.1299 … CHANGAMWE CHURCH OF GOD IN EAST AFRICA (K) … MOMBASA`, working drawing | Kenya [read] | — | partly: titles yes, dimensions and notes [thumb] |
+| C3 | Sanctuary plan, `Emperor building consult` | Nigeria [inferred: 0815 phone prefix] | — (hall 400 m² [read]) | yes |
+| C4 | 3D cut-away, labels only | — (a rendering, not a drawing [inferred]) | 450–500 [read] | yes, low weight |
+| C5 | `GROUND FLOOR PLAN`, `APPROVAL COLUMN` | Nigeria [read: +234 number] | — | partly: room labels yes, most dimensions [thumb] |
+| C6 | `FLOOR PLAN`, simple rectangle + front wing | US [inferred: feet] | 168 [read, low resolution] | yes |
+| C7 | Traditional Catholic church, labelled parts | — | — | yes, no dimensions |
+| C8 | `proposed chapel, Iowa State Teachers College`, Thorson & Thorson | US [read] | 80 [read, low resolution] | yes |
+| C9 | `FLOOR PLAN`, 81'-0" square | US [inferred: feet] | 300 [read] | yes |
+| C10 | Sanctuary 119'8" square, diagonal fan | US [inferred: feet] | 932 [read, low resolution] | partly |
+| C11 | `23914 S. Alma School Rd., Chandler, AZ` | US [read] | — | yes, no dimensions |
+| C12 | `Sketch of St. Patrick's Church Floor Plan`, "Not drawn to scale" | — | — | yes |
+| C13 | Fan-shaped sanctuary + education and fellowship wings | US [inferred] | — | partly [thumb] |
+| C14 | `PLAN 128`, Church Development Services, plan + front elevation | US [read] | 362 [read] | yes |
+
+### C.2 Per-template extraction
+
+### C1 — 113'-1" x 77'-8" (34.5 x 23.7 m), single storey, fan-shaped sanctuary [read]
+- **Statistics block:** main floor 6,832 sq ft (635 m²), sound booth 164, canopy 402, total 7,398 sq ft; seating main floor 178, choir area 16, total 194 [read]. **Building ≈ 3.3 m² per seat.**
+- **Scope:** "sanctuary with fan shaped seating and dual aisles; chancel area with raised baptistry; fellowship area with partitions for 7 classes; 2 offices with bonus work room; conference room; large nursery; kitchen with pass-thru to fellowship hall" [read]. Wood construction, brick, siding and shingles.
+- **Layout:** foyer at the front centre under a canopy; **men's and women's rooms directly beside the foyer**; a corridor across the front of the sanctuary; the fellowship hall and 6 classrooms on the left wing, kitchen on its front; nursery, work room, office, pastor, conference on the right wing; **sound booth at the back of the sanctuary, "above"** (a mezzanine) [read]; platform with the baptistry behind it, the chancel projecting as a polygon beyond the rear wall.
+
+### C2 — Changamwe Church of God, Mombasa: 4 storeys, church hall below, offices and rooms above [partly read]
+- **Sheets:** `SITE / GROUND FLOOR PLAN`, `TYPICAL 1ST FLOOR PLAN`, `TYPICAL 2ND AND 3RD FLOOR PLAN`, `SECTION 01-01`, door, window and area schedules [read].
+- **Ground:** main church hall, ladies' and gents' toilets at one end, a stair, and **two cars drawn on the plot beside the building** with a `SANITARY LANE` along the side [read]. First floor: the hall's upper level / gallery with offices [inferred]. Second and third: offices, `room`s, `dining room`, `sitting room`, `kitchen`, `passage` — a residence or mission house above the church [read labels; use inferred].
+- **Section:** four floors on a frame with the stair in its own shaft [read]; red structural grid on every plan.
+
+### C3 — Nigerian sanctuary, hall 400 m², stage 50 m² raised 1 m [read]
+- **Bands from the back (top) to the front:** (1) `OFFICE & ADMIN SUITE`, `STRONG ROOM` (with a safe), `INSTRUMENT STORE` (shelving), `VESTRY / BAPTISM TANK`; (2) `BACK STAGE AREA` across the width; (3) `STAGE (approx. 50 sqm) (raised 1m)` with `PULPIT`, `3 SINGERS AREA`, `4 PIECE BAND AREA` (drums, keyboard, guitar, bass, 4 chairs), `3 Microphone`; `BAPTISMAL TANK` (with steps) and `STORAGE ROOM` either side of the stage; (4) `SANCTUARY/CHURCH HALL (400 sqm)`; (5) `FOYER (100 sqm)` with `Welcome Desk`, `Information boards`, `Waiting area`, **`WOMEN'S WC` on one side and `MEN'S WC` on the other, each with an accessible (wheelchair) cubicle** [read].
+- **Band depths on the left dimension line:** 15 m, 9 m, 25 m, 2 m [read]; overall width written "20.0m" [read, low resolution]. Hall 400 m² ≈ 20 x 20 m [inferred].
+- **Seating:** two straight centre blocks, **the two side blocks angled toward the stage**; aisles between [read]. **Fire exits on both side walls at the stage end and at the foyer end**, a `Side exit` beside the storage room, a `Picsle exit` [sic] by the baptismal tank [read].
+- Foyer 100 m² for a 400 m² hall: **foyer = ¼ of the hall** [read numbers].
+
+### C4 — rendering: sanctuary 450–500 seats + balcony, multi-purpose room 350 seats [read labels]
+- Labels: sanctuary, stage (band + preaching), balcony, multi-purpose room (350 seats), classrooms (corner), bathrooms, offices (2–3), utility rooms. A tall gabled hall with **lower single-storey wings around it** holding the rooms. Taken as an image of the massing only (no dimensions; generated-image look [inferred]).
+
+### C5 — Nigerian ground floor plan, 25,500 mm across [partly read]
+- **Overall width 25,500 mm** on a grid A–I of 2.6–2.9 m bays (2,925 / 2,625 / 2,740 / 2,700 / 2,630 / 2,630 / 2,630 / 2,500 / 2,330 [read, partly]); depth grid 1–6 [dimensions thumb].
+- **The altar on the short (left) side** with a canted (polygonal) front, `CHOIR` beside it, `VESTRY` and `STORE` behind; **`CONGREGATION` in many short benches in columns with several aisles**, facing the altar; `ENTRANCE TERRACE` in the middle of the **long** side (bottom) and a second entrance porch on the right short side; rooms with seats (classrooms / children's [inferred]) and an `LT ROOM` [read] on the right. `APPROVAL COLUMN` box: a sheet prepared for planning approval [read].
+
+### C6 — 108' x 52' (32.9 x 15.8 m), sanctuary seating 168 [read]
+- Sanctuary 68' long, **two straight pew blocks and a centre aisle**, chancel at the far end with angled choir pews; `VESTIBULE` across the width with double doors; a **front wing (40') of 3 classrooms, a study, a stair, two porches, men's room and ladies' room** [read].
+
+### C7 — traditional Catholic church [read]
+- `High Altar`, `Front Altar`, `Sanctuary`, `Side Altar` x2, `Ambo`, `Credence`, `Lavabo`, **`Sacristy` x2 flanking the sanctuary**, nave of two pew blocks with a centre aisle and side aisles, `Vestibule` at the entrance, `Confessional`; stairs at the rear corners (a gallery [inferred]) and outside stairs to the sacristies.
+
+### C8 — chapel, nave of 80 [read]
+- Nave **32'-0" (9.75 m) wide**, two pew blocks, side aisles 3'-6" (1.07 m) [read]; chancel, altar, console, sacristy beyond. **A cross-wing at the front:** `FOYER` in the middle, `CONF. ROOM` and `STUDY` / `OFFICE` either side, `COATS`, `LADIES` and `MEN` flanking the foyer, a stair down [read]. Overall depth ≈ 69' [read, low resolution].
+
+### C9 — 81'-0" square (24.7 m), sanctuary seating 300 on the diagonal [read]
+- **Chancel in one corner** (with `CHOIR` 23 chairs, `PIANO`, `ORGAN`), the seating fanned toward it, **`NARTHEX` in the opposite corner** [read].
+- A **6' (1.83 m) corridor** wraps two sides [read]; classes 15' x 17'-10", 15'-5" x 13', 13' x 15'-5" (x3); kitchen 18' x 17'-10"; office 12' x 12'; pastor's office 12' x 17' with its own WC; women's and men's rooms side by side off the corridor; a drinking fountain by the foyer [read].
+
+### C10 — 119'-8" square (36.5 m), diagonal fan of ≈ 932 seats [read, low resolution]
+- **The largest template and the nearest to our 1,000 seats.** Chancel in a corner with the choir (≈ 87 [read, low resolution]), baptistry and dressing rooms behind; **the seating fanned in blocks around the corner**, the `NARTHEX` along the opposite diagonal [read].
+- Offices, `USHERS`, `PASTOR'S OFFICE`, `SECRETARY`, `COUNSELING`, `ASSOCIATE MINISTER` along the top wall; `ELEV. LOBBY`, `ELEV.`, `EQUIP.`, `STORAGE`, `COATS`, `ELEC.` on the left; **four stairs marked "DN" at the corners** (a balcony above [inferred]) [read].
+- **Footprint 1,330 m² for ≈ 932 seats: 1.4 m² per seat** [read dimensions; seat count low resolution].
+
+### C11 — Chandler, Arizona: diagonal sanctuary, overflow behind [read]
+- `ALTAR` thrust into a corner, `Music Platform`, `SACRISTY`; `SANCTUARY` fanned; **`FELLOWSHIP HALL / OVERFLOW` directly behind the last rows, opening into the sanctuary**; `NARTHEX ENTRANCE` (polygonal) with two stairs; `Parent's Lounge`, `ELEV`, `Elev Equip`, `Tech` booth inside the seating; exits on three sides.
+
+### C12 — St. Patrick's (sketch, not to scale) [read]
+- **Cruciform:** nave, `East Transept` and `West Transept` (seating angled to the crossing), `Choir`, `Crossing`, `Sanctuary` raised with a `Ramp`; `Sacristy`, `Confessionals`, `Utility Areas`; `Vestibule or Narthex`, `Vestibule Entry`, `Church Porch`; `Rest Rooms` including an accessible one by the narthex; `Sign-in Room`; `East Entry` and `West Entry` at the transept ends.
+
+### C13 — fan sanctuary with education and fellowship wings [partly read]
+- Fan sanctuary with `PLATFORM` and baptistry; `SUNDAY SCHOOL CLASSROOM`s on the left wing; `FELLOWSHIP` hall with `KITCHEN` and `STORAGE` on the right; `NURSERY`, `OFFICE`, `LOBBY`, `FOYER` and restrooms across the front [read; sizes thumb].
+
+### C14 — `PLAN 128`, 112'-7" x 117'-7" (34.3 x 35.8 m), sanctuary 362 [read]
+- Fan sanctuary ("362 seating cap."), `CHANCEL` with `BAPTISTRY` and two `DRESS RM`s behind; along the rear wall `OFFICE` 10'3" x 12'0", `STORAGE` 10'3" x 12'0", `PASTOR'S OFFICE` 20'0" x 13'0" (with WC and closet), `SECRETARY` 10'4" x 12'0" [read].
+- **`TEMP. CLASS`es on both sides of the sanctuary** (15'0" x 31'8", 154 sq ft, 14'9" x 16'0") — partitions that open into it [inferred from the name]; `NARTHEX` 32'0" x 19'0" (56 m², **0.15 m² per seat**); `PORTICO` 28' x 12'; **restrooms 13' x 13' on each side of the narthex**; `JAN.` [read].
+
+### C.3 Across the church templates
+
+**Room labels.** New against the room catalogue: `Narthex`, `Vestibule`, `Portico`, `Chancel`, `Crossing`, `Transept`, `Sacristy`, `Credence`, `Lavabo`, `Ambo`, `Confessional`, `Baptistry` / `Baptismal tank`, `Back stage area`, `Strong room`, `Dress room`, `Temp. class`, `Fellowship hall`, `Sunday school classroom`, `Parent's lounge`, `Sign-in room`, `Tech` / `Sound booth`, `LT room`, `Welcome desk`, `Work room`, `Conference room`, `Counseling`, `Associate minister`. Not yet measured through `classifyRoom`; done with the engine change below if needed.
+
+**Layouts (how the sanctuary sits among the rooms).**
+- **Rectangle with bands front and back** (C3, C6, C8; C1 and C13 add side wings): our engine's pattern (`planAssembly`: rear band, nave, front band).
+- **Square with the stage in a corner and the seats fanned** (C9, C10, C11): used for **300–930 seats**. It keeps the last row close (C10: ≈ 932 seats inside a 36.5 m square).
+- **Cruciform with transepts** (C7, C12): traditional Catholic; seats on three sides of the crossing.
+- **Altar on a short side, entrance on the long side** (C5, Nigerian): the shallowest hall for its seats.
+
+**Seating.** Straight blocks with a centre aisle in the small halls (C6, C7, C8, 80–170 seats); **the side blocks angled toward the stage** from about 200 seats (C1, C3, C13, C14); full fans in the square plans. Side aisles 3'-6" (1.07 m, C8); a 6' corridor (1.83 m, C9).
+
+**Where things go (counted over the 14).**
+| Pattern | Templates | Our church (`7d8cbd5`) |
+|---|---|---|
+| **Toilets on both sides of the foyer/narthex** (women one side, men the other) | C1, C3, C8, C12, C14 (C6 in the front wing) | **both restrooms on one side**, stacked to the right of the foyer |
+| Accessible cubicle inside each WC | C3 (C12 a separate accessible restroom) | a separate 5 m² accessible WC |
+| **Sound / tech booth at the back of the sanctuary** facing the stage | C1 (raised, "above"), C11 (`Tech` in the seating) | in the front band, **not touching the hall** (a lobby between) |
+| Vestry / sacristy / pastor beside or behind the stage | C3, C7, C8, C10, C14 | behind the stage (rear band) ✓ |
+| Back-stage band behind the stage | C3 | the stage's rear band ✓ |
+| **Strong room (safe) / counting behind the stage**, away from the public | C3 | counting room in the front band by the foyer |
+| **Overflow / fellowship hall adjoining the sanctuary**, able to open into it | C11 (behind), C14 (temp. classes at the sides), C1 (fellowship hall partitioned into classes) | overflow off the foyer, **not touching the hall** |
+| Kitchen with a pass-through to the fellowship hall | C1, C13, C9 | none in the brief |
+| Nursery / parent's lounge near the sanctuary | C1, C11, C13 | nursing mothers' room by the overflow |
+| Fire exits on both side walls, at both ends of the hall | C3 (4 + side exit) | 4 exits: main + 3 side ✓ |
+| Parking drawn on the site | C2 | not drawn yet |
+| **No leftover rooms**: every space on the sheet is named for a use | all 14 | **2 stores the brief never asked for (48 + 62 m²) and 2 lobbies (40 + 40 m²)** |
+
+**Foyer size.** C3 100 m² for a 400 m² hall (¼ of it); C14 0.15 m² per seat; ours 200 m² for 1,000 seats (0.2 m² per seat, the LifeWay range in `regulations/assembly.ts`) ✓.
+
+**Building per seat.** C1 3.3 m² (with fellowship, classes and offices); C10 1.4 m² (sanctuary level only); ours 1.85 m² (1,848 m² for 1,000 + 10 wheelchair places, with a 230 m² overflow).
+
+### C.4 What changed
+
+1. **Our church carries ≈ 190 m² that no template has** — two stores made from lobby pieces nobody reaches (48 + 62 m²) and two lobbies (40 + 40 m²) — against a brief of 1,624 m². Every template names every space. **Engine change (the owner's option A, 2026-10-22):** a band's left-over piece goes to the room beside it (or the band gets shallower) instead of becoming a store; measure the footprint, the parking check and every code check on the church benchmark.
+2. **Toilets flank the foyer** in 5 of the 6 templates with a foyer (C1, C3, C8, C12, C14). **Engine change (candidate):** in the front band, the women's and men's restrooms take the two sides of the foyer.
+3. **The sound / media booth faces the stage from the back of the hall** (C1, C11). **Engine change (candidate):** the booth must share a wall with the hall's rear wall (a link to the nave, not just to the foyer).
+4. **The overflow adjoins the hall** so it can open into it (C11, C14; C1). **Engine change (candidate):** an overflow / fellowship hall links to the nave as well as the foyer.
+5. **The strong room / counting room sits behind the stage**, away from the public (C3, Nigerian). **Candidate:** move the counting room to the rear band (a brief link to the vestry / office).
+6. **Square plans with a corner stage for 300–930 seats** (C9–C11) and **side blocks angled to the stage** (C1, C3, C13, C14). **Candidate, larger:** an angled-seating option inside the same rectangle (drawing only: the side blocks turned ≈ 15–30°), then a corner-stage layout. Not before 1–5.
+7. **A kitchen with a pass-through to the fellowship hall** (C1, C9, C13) and **Sunday-school classrooms** (C1, C6, C13, C14): **brief items, not code.** Candidate additions to a church brief when the prompt asks for a fellowship hall.
+8. **Parking drawn on the site** (C2): already next in sequence (the church site plan).
+
+**Contradictions with our engine and earlier findings (not averaged away):**
+- `regulations/assembly.ts` plans **straight rows only**; most templates over ≈ 200 seats angle the side blocks or fan the seats. The straight rows meet the codes; the angle is a sight-line preference, not a rule.
+- C5 (Nigerian) puts the **altar on a short side with the entrance on the long side**; C3 (also Nigerian) and every other template put the entrance opposite the stage. Our engine does the latter.
+- C3 shows **accessible cubicles inside the men's and women's WCs**; our benchmark brief has a separate accessible WC (5 m²). Both are allowed (NBC §6.3.8; ADA 213); no change implied.
+- C2 (Kenya) puts **residential / office floors over the church hall**, which our assembly engine does not do (single storey). Noted only.
