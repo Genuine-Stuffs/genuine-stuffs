@@ -142,7 +142,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
   const sourceRooms: any[] = layout.program_reference?.rooms ?? [];
 
   const resolveRoomName = (room_id: string): string => {
-    if (room_id === 'stairwell_void') return 'STAIR VOID';
+    if (room_id.startsWith('stairwell_void')) return 'STAIR VOID';
     // gap-free engine: the open roof of the floor below
     if (room_id.startsWith('terrace_f')) return 'Terrace';
     if (room_id.startsWith('passage_')) return 'Passage';
@@ -379,12 +379,14 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
   // ── Stair: the dog-leg in its stairwell (stair.ts; owner 2026-10-21) — two
   // flights and a half landing, the walking line from the hall end. Upstairs
   // the void shows the same stair with DN from its top.
-  const isStair = (room: any) => room.room_id === 'stairwell' || room.room_id === 'stairwell_void';
+  const isStair = (room: any) => /^stairwell(_void)?(_\d+)?$/.test(room.room_id);
   const groundStair = placed_rooms.find(r => r.floor === 0 && r.room_id === 'stairwell');
 
   const renderStair = (room: any) => {
-    const up = room.room_id === 'stairwell';
-    const sp = stairPlan(layout, up ? room : (groundStair ?? room));
+    const up = !room.room_id.includes('_void');
+    // the stair below a void: stairwell_void_2 stands over stairwell_2
+    const below = placed_rooms.find(r => r.floor === 0 && r.room_id === room.room_id.replace('_void', '')) ?? groundStair;
+    const sp = stairPlan(layout, up ? room : (below ?? room));
     const X = (x: number) => xOffset + x * scale, Y = (y: number) => yOffset + y * scale;
     const c = '#334155';
     const lines: React.ReactNode[] = [];
@@ -1232,7 +1234,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
 
   const sourceRooms: any[] = layout.program_reference?.rooms ?? [];
   const resolveRoomName = (room_id: string): string => {
-    if (room_id === 'stairwell_void') return 'STAIR VOID';
+    if (room_id.startsWith('stairwell_void')) return 'STAIR VOID';
     if (room_id.startsWith('terrace_f')) return 'Terrace';
     if (room_id.startsWith('passage_')) return 'Passage';
     if (room_id.startsWith('atrium_')) return 'Open to Below';

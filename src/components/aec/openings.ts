@@ -48,7 +48,7 @@ const norm = (t: string) => t.toLowerCase().replace(/[\s-]+/g, '_');
 
 /** The room's type: synthetic solver rooms by id, the rest from the brief. */
 export function roomTypeOf(layout: SolvedLayout, room_id: string): string {
-  if (room_id === 'stairwell' || room_id === 'stairwell_void') return 'stairwell';
+  if (/^stairwell(_void)?(_\d+)?$/.test(room_id)) return 'stairwell'; // a hotel's second stair: stairwell_2 / stairwell_void_2
   if (room_id.startsWith('corridor_floor')) return 'circulation';
   if (room_id.startsWith('terrace_f')) return 'balcony';
   // a flat's inner passage (engine FLAT_PASSAGE): walled, a door into its living room

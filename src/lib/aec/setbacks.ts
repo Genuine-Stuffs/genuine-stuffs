@@ -116,7 +116,9 @@ export function readSetbackIntent(userTexts: string[]): SetbackIntent {
         // the building, not a room in it: a villa's "Home Office" kept villas on the commercial setbacks (fixed 2026-10-20)
         else if (/\b(office (building|block|complex|tower|space)s?|(shopping )?(plaza|mall)s?|shopping (centre|center|complex)|(commercial|retail) (building|property|use|development|complex)s?|shops? and offices?)\b/i.test(t)) intent.use = 'commercial';
         if (/\bcorner\s+(plot|piece|lot)\b/i.test(t)) intent.corner = true;
-        if (/\b(lagos\s+island|traditional\s+core|core\s+area|isale\s+eko|idumota|marina,?\s+lagos)\b/i.test(t)) intent.core = true;
+        // "outside the traditional core" is not a core-area plot
+        const notCore = /\b(outside|not\s+in|beyond|away\s+from)\s+(the\s+|a\s+)?(traditional\s+)?core(\s+area)?\b/i.test(t);
+        if (!notCore && /\b(lagos\s+island|traditional\s+core|core\s+area|isale\s+eko|idumota|marina,?\s+lagos)\b/i.test(t)) intent.core = true;
         const put = (side: string, v: number) => {
             const s = side.toLowerCase();
             if (s === 'front') intent.stated.front = v;

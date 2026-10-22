@@ -15,7 +15,7 @@ export function roomKey(layout: SolvedLayout): FloorKey[] {
   const floors = [...new Set(layout.placed_rooms.map(r => r.floor))].sort((a, b) => a - b);
   return floors.map(f => {
     const rooms = layout.placed_rooms
-      .filter(r => r.floor === f && r.width > 0 && r.depth > 0 && r.room_id !== 'stairwell_void' && !r.room_id.startsWith('atrium_'))
+      .filter(r => r.floor === f && r.width > 0 && r.depth > 0 && !r.room_id.startsWith('stairwell_void') && !r.room_id.startsWith('atrium_'))
       .sort((a, b) => a.y - b.y || a.x - b.x); // rear to front, left to right: the order the plan reads in
     const rows: KeyRow[] = [];
     for (const r of rooms) {

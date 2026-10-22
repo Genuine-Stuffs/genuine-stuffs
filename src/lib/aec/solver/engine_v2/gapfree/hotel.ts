@@ -19,12 +19,14 @@ import type { PlotEnvelope, SolverOptions } from '../../types';
 import { catalogueEntry } from '../room_catalogue';
 import { hiveRooms } from './need';
 import { maxAspectFor, minWidthFor } from '../solver/room_shape';
+import * as HR from '../../../regulations/hotel';
 
 const CELL = 0.5;
 /** Planning defaults until capability C sizes them from the building code. */
 export const CORRIDOR_W = 1.8, STAIR_W = 2.5, LIFT_MIN_W = 2.0;
-/** A guest room is shaped as a bedroom is elsewhere in the planner. */
-const ROOM_ASPECT = maxAspectFor({ type: 'bedroom' }), MIN_ROOM_W = minWidthFor({ type: 'bedroom', zone: 'private' });
+/** A guest room module holds its bathroom, so it runs longer than a house bedroom (2:1): the midscale
+ * module is 3.66 x 7.9 m and upscale 4.1 x 8.7 m (Cornell, regulations/hotel.ts ROOM_BAY), so 2.4:1. */
+const ROOM_ASPECT = Math.max(maxAspectFor({ type: 'bedroom' }), 2.4), MIN_ROOM_W = minWidthFor({ type: 'bedroom', zone: 'private' });
 const BAY_MIN = 4.5, BAY_MAX = 8.0;
 const ceil = (m: number) => Math.ceil(m / CELL - 1e-9) * CELL;
 /** centimetres: sums of half-metres and the 1.8 m corridor drift in the last digits */
@@ -58,7 +60,12 @@ export interface GuestFloor {
  * null when no bay depth does. */
 export function planGuestFloor(rooms: FloorRoom[], BW: number, BD: number, short?: { need: number; have: number }): GuestFloor | null {
     const alongY = BD >= BW, L = alongY ? BD : BW, C = alongY ? BW : BD;
-    const core = [...rooms.filter(r => r.kind === 'stair'), ...rooms.filter(r => r.kind === 'lift'), ...rooms.filter(r => r.kind === 'service')];
+    // the stairs at the corridor's two ends, on opposite rows (Lagos Reg 24(12): two stairs; NBC §7.11.4:
+    // no dead end over 6.1 m), the lifts and housekeeping in the middle of row A
+    const stairs = rooms.filter(r => r.kind === 'stair');
+    const s1 = stairs[0], s2 = stairs[1];
+    const mid = [...stairs.slice(2), ...rooms.filter(r => r.kind === 'lift'), ...rooms.filter(r => r.kind === 'service')];
+    const core = [...stairs, ...mid.filter(r => r.kind !== 'stair')];
     const guests = rooms.filter(r => r.kind === 'room').sort((a, b) => b.area - a.area || a.room_id.localeCompare(b.room_id));
     let best: { d: number; A: FloorRoom[]; B: FloorRoom[]; w: Map<string, number>; len: number; score: number } | null = null;
     for (let d = BAY_MIN; d <= BAY_MAX + 1e-9 && 2 * d + CORRIDOR_W <= C + 1e-9; d += CELL) {
@@ -67,7 +74,7 @@ export function planGuestFloor(rooms: FloorRoom[], BW: number, BD: number, short
         // as wide as its area over the bay asks, and no narrower than the bay over the bedroom proportion
         for (const r of guests) w.set(r.room_id, Math.max(MIN_ROOM_W, ceil(r.area / d), ceil(d / ROOM_ASPECT)));
         const A: FloorRoom[] = [], B: FloorRoom[] = [];
-        let la = core.reduce((s, r) => s + w.get(r.room_id)!, 0), lb = 0;
+        let la = (s1 ? w.get(s1.room_id)! : 0) + mid.reduce((s, r) => s + w.get(r.room_id)!, 0), lb = s2 ? w.get(s2.room_id)! : 0;
         for (const r of guests) { if (lb <= la) { B.push(r); lb += w.get(r.room_id)!; } else { A.push(r); la += w.get(r.room_id)!; } }
         const len = Math.max(la, lb);
         if (short && (!short.need || len < short.need)) { short.need = len; short.have = L; }
@@ -84,13 +91,15 @@ export function planGuestFloor(rooms: FloorRoom[], BW: number, BD: number, short
         let slack = Math.round((len - has) / CELL);
         for (let k = 0; slack > 0 && row.length; k = (k + 1) % row.length, slack--) w.set(row[k].room_id, w.get(row[k].room_id)! + CELL);
     };
-    const lenA = core.reduce((s, r) => s + w.get(r.room_id)!, 0) + A.reduce((s, r) => s + w.get(r.room_id)!, 0);
-    const lenB = B.reduce((s, r) => s + w.get(r.room_id)!, 0);
-    pad(A.length ? A : core.filter(r => r.kind === 'service'), lenA);
+    const lenA = (s1 ? w.get(s1.room_id)! : 0) + mid.reduce((s, r) => s + w.get(r.room_id)!, 0) + A.reduce((s, r) => s + w.get(r.room_id)!, 0);
+    const lenB = (s2 ? w.get(s2.room_id)! : 0) + B.reduce((s, r) => s + w.get(r.room_id)!, 0);
+    pad(A.length ? A : mid.filter(r => r.kind === 'service'), lenA);
     pad(B, lenB);
-    // row A: half its guest rooms, the core in the middle of the floor, the rest
+    // row A: the first stair at its start, half its guest rooms, the lifts and housekeeping in the middle, the rest;
+    // row B: its guest rooms, the second stair at the far end
     const half = Math.ceil(A.length / 2);
-    const rowA = [...A.slice(0, half), ...core, ...A.slice(half)];
+    const rowA = [...(s1 ? [s1] : []), ...A.slice(0, half), ...mid, ...A.slice(half)];
+    const rowB = [...B, ...(s2 ? [s2] : [])];
     const rects = new Map<string, { x: number; y: number; w: number; h: number }>();
     const put = (row: FloorRoom[], across: number) => {
         let at = 0;
@@ -101,17 +110,18 @@ export function planGuestFloor(rooms: FloorRoom[], BW: number, BD: number, short
         }
     };
     put(rowA, 0);
-    put(B, d + CORRIDOR_W);
+    put(rowB, d + CORRIDOR_W);
     rects.set('corridor', alongY ? { x: d, y: 0, w: CORRIDOR_W, h: len } : { x: 0, y: d, w: len, h: CORRIDOR_W });
     const across = 2 * d + CORRIDOR_W;
     for (const [k, q] of rects) rects.set(k, { x: cm(q.x), y: cm(q.y), w: cm(q.w), h: cm(q.h) });
     const runs = alongY ? 'y' as const : 'x' as const;
-    const coreFrom = core.length ? rowA.slice(0, half).reduce((t, r) => t + w.get(r.room_id)!, 0) : 0;
-    const coreTo = coreFrom + core.reduce((t, r) => t + w.get(r.room_id)!, 0);
+    const s1w = s1 ? w.get(s1.room_id)! : 0, s2w = s2 ? w.get(s2.room_id)! : 0;
+    const coreFrom = s1w + A.slice(0, half).reduce((t, r) => t + w.get(r.room_id)!, 0);
+    const coreTo = coreFrom + mid.reduce((t, r) => t + w.get(r.room_id)!, 0);
     const strips: Strip[] = [
-        ...(half ? [{ runs, at: 0, depth: d, from: 0, to: cm(coreFrom) }] : []),
+        ...(half ? [{ runs, at: 0, depth: d, from: cm(s1w), to: cm(coreFrom) }] : []),
         ...(A.length > half ? [{ runs, at: 0, depth: d, from: cm(coreTo), to: cm(len) }] : []),
-        ...(B.length ? [{ runs, at: cm(d + CORRIDOR_W), depth: d, from: 0, to: cm(len) }] : []),
+        ...(B.length ? [{ runs, at: cm(d + CORRIDOR_W), depth: d, from: 0, to: cm(len - s2w) }] : []),
     ];
     return { rects, width: cm(alongY ? across : len), depth: cm(alongY ? len : across), bay: d, strips };
 }
@@ -217,10 +227,11 @@ export function planGround(rooms0: Array<{ room_id: string; name?: string; type?
     { rects: Map<string, Rect>; short?: number } | null {
     const rects = new Map<string, Rect>();
     const kind = (r: any) => kindOf(r), entry = (r: any) => catalogueEntry(r);
-    const stairUp = first.find(r => r.kind === 'stair'), liftUp = first.find(r => r.kind === 'lift'), servUp = first.find(r => r.kind === 'service');
+    const stairsUp = first.filter(r => r.kind === 'stair'), liftUp = first.find(r => r.kind === 'lift'), servUp = first.find(r => r.kind === 'service');
     const lift0 = rooms0.find(r => kind(r) === 'lift');
     // the stair and lift where they are above; the housekeeping slot joins the lift core
-    if (stairUp) rects.set('stairwell', g.rects.get(stairUp.room_id)!);
+    // every stair where it is above (the second as stairwell_2)
+    stairsUp.forEach((st, k) => rects.set(k ? `stairwell_${k + 1}` : 'stairwell', g.rects.get(st.room_id)!));
     if (liftUp && lift0) {
         let q = g.rects.get(liftUp.room_id)!;
         const s = servUp ? g.rects.get(servUp.room_id) : undefined;
@@ -342,7 +353,8 @@ export function hotelLayout(program: SpatialProgram, envelope: PlotEnvelope, opt
         const idOf = new Map<string, string>(ordered(rooms).map((r, k) => [firstOrder[k].room_id, r.room_id]));
         for (const [key, q] of plan.rects) {
             const kind = key.startsWith('corridor') ? 'corridor' : first.find(r => r.room_id === key)?.kind;
-            const room_id = key === 'corridor' ? `corridor_floor${f}_0` : key === 'corridor2' ? `corridor_floor${f}_1` : kind === 'stair' ? 'stairwell_void' : idOf.get(key)!;
+            const k = first.filter(r => r.kind === 'stair').findIndex(r => r.room_id === key);
+            const room_id = key === 'corridor' ? `corridor_floor${f}_0` : key === 'corridor2' ? `corridor_floor${f}_1` : kind === 'stair' ? (k > 0 ? `stairwell_void_${k + 1}` : 'stairwell_void') : idOf.get(key)!;
             placed.push({ room_id, floor: f, x: q.x, y: q.y, width: q.w, depth: q.h });
         }
     }
@@ -359,11 +371,42 @@ export function hotelLayout(program: SpatialProgram, envelope: PlotEnvelope, opt
     const gens = rooms0.filter(r => /^(gen_?house|generator)/.test(String(r.type ?? '').toLowerCase()));
     if (gens.length) issues.push({ room_id: gens[0].room_id, rule: 'OUTBUILDING_NO_FIT',
         detail: `${gens.map(r => r.name ?? r.room_id).join(' and ')} stands outside the hotel (a generator is never inside a building people sleep in); its place on the site isn't drawn yet.` });
-    issues.push({ room_id: 'corridor_floor1_0', rule: 'HOTEL_PENDING_CODE',
-        detail: `The guest corridor (${CORRIDOR_W} m wide) and ${first.filter(r => r.kind === 'stair').length || 'no'} fire stair are planning defaults: exits, stairs and corridor widths will be sized from the number of guests under the building code.` });
+    // the plan against the codes (regulations/hotel.ts), every rule with its source
+    issues.push(...hotelChecks(program, plan, first, floors.length + 1, envelope, s.left + s.right, s.front + s.rear));
     return {
         ...base, placed_rooms: placed, building_width: plan.width, building_depth: plan.depth,
         site_offset: { x: s.left + (BW - plan.width) / 2, y: envelope.depth - s.front - plan.depth },
         solver_status: 'SOLVED', placement_issues: issues,
     };
+}
+
+/** The guest floor and the site against the hotel rules (regulations/hotel.ts). */
+function hotelChecks(program: SpatialProgram, plan: GuestFloor, first: FloorRoom[], storeys: number, envelope: PlotEnvelope, sideSetbacks: number, frontRear: number): NonNullable<SolvedLayout['placement_issues']> {
+    void sideSetbacks; void frontRear;
+    const out: NonNullable<SolvedLayout['placement_issues']> = [];
+    const say = (ok: boolean, rule: string, detail: string, source: string) => out.push({ room_id: 'corridor_floor1_0', rule: ok ? 'CODE_MET' : 'CODE_MISSED', detail: `${rule}: ${detail} (${source})` });
+    const corr = plan.rects.get('corridor'), alongY = !!corr && corr.h > corr.w, len = corr ? (alongY ? corr.h : corr.w) : 0;
+    const stairs = first.filter(r => r.kind === 'stair').map(r => plan.rects.get(r.room_id)!).filter(Boolean);
+    const at = (q: Rect) => alongY ? [q.y, q.y + q.h] : [q.x, q.x + q.w];
+    const ends = stairs.map(at), lo = Math.min(...ends.map(e => e[0]), len), hi = Math.max(...ends.map(e => e[1]), 0);
+    const deadEnd = stairs.length ? Math.max(lo, len - hi) : len;
+    // the farthest point of the corridor from its nearest stair
+    const centres = ends.map(e => (e[0] + e[1]) / 2);
+    let travel = 0;
+    for (let p = 0; p <= len; p += 0.5) travel = Math.max(travel, Math.min(...centres.map(c => Math.abs(p - c))));
+    say(stairs.length >= HR.STAIRS_MIN.value, 'Escape stairs', `${stairs.length} stairs at least ${HR.STAIR_WIDTH_MIN.value} m wide (at least ${HR.STAIRS_MIN.value})`, HR.STAIRS_MIN.source);
+    say(deadEnd <= HR.DEAD_END_M.value + 1e-6, 'Dead ends', `the corridor runs ${deadEnd.toFixed(1)} m past its last stair (at most ${HR.DEAD_END_M.value} m)`, HR.DEAD_END_M.source);
+    say(travel <= HR.MAX_TRAVEL_M.value + 1e-6, 'Travel to a stair', `at most ${travel.toFixed(1)} m along the corridor to a stair (at most ${HR.MAX_TRAVEL_M.value} m)`, HR.MAX_TRAVEL_M.source);
+    say(CORRIDOR_W >= HR.CORRIDOR_MIN.value, 'Corridor', `${CORRIDOR_W} m wide (at least ${HR.CORRIDOR_MIN.value} m, 1-hour enclosure)`, HR.CORRIDOR_MIN.source);
+    const all = hiveRooms(program), keys = all.filter(r => kindOf(r) === 'room' && (catalogueEntry(r)?.type === 'guest_room' || /guest room|suite/i.test(String(r.name ?? ''))));
+    const stars = (Number((program as any).brief_reference?.stars) || 3) as HR.Stars;
+    const lifts = HR.lifts(storeys, keys.length, stars), hasLift = first.some(r => r.kind === 'lift'), hasService = first.filter(r => r.kind === 'lift').length > 1 || first.some(r => r.kind === 'service' && /lift/i.test(r.name));
+    say((!lifts.guest || hasLift) && (!lifts.service || hasService), 'Lifts', `${storeys} storeys and ${keys.length} rooms at ${stars} stars need ${lifts.guest} guest and ${lifts.service} service lift; the plan has ${hasLift ? 'a guest lift' : 'no guest lift'} and ${hasService ? 'a service lift' : 'no service lift'}`, lifts.source);
+    const grade = HR.ROOM_BY_STARS[stars], small = keys.filter(r => (r.area_m2 ?? 0) < Math.max(HR.ROOM_LEGAL_MIN.value, grade.bedroom + grade.bathroom) - 1e-6);
+    say(!small.length, 'Room sizes', `every room at least ${HR.ROOM_LEGAL_MIN.value} m² (law) and ${grade.bedroom} + ${grade.bathroom} m² (the ${stars}-star target)${small.length ? `; under it: ${small.map(r => r.name).join(', ')}` : ''}`, `${HR.ROOM_LEGAL_MIN.source}; ${HR.ROOM_SOURCE}`);
+    const acc = keys.filter(r => /accessible/i.test(String(r.name ?? ''))).length, needAcc = HR.accessibleRooms(keys.length);
+    say(acc >= needAcc, 'Accessible rooms', `${acc} accessible rooms for ${keys.length} (at least ${needAcc})`, 'NBC 2006 §6.3.8.6; ADA 224.2; UK Approved Document M (1 in 20)');
+    const dining = all.filter(r => catalogueEntry(r)?.type === 'restaurant').reduce((t, r) => t + (r.area_m2 ?? 0), 0);
+    for (const c of HR.checkHotelSite(keys.length, plan.width * plan.depth, { width: envelope.width, depth: envelope.depth }, dining)) say(c.ok, c.rule, c.detail, c.source);
+    return out;
 }

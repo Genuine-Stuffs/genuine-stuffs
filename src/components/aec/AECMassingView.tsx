@@ -142,7 +142,7 @@ async function mountThreeViewer(
 
     const sourceRoom = sourceRooms.find(r => r.room_id === room.room_id || r.id === room.room_id);
     const roomType   = sourceRoom?.type ?? '';
-    const isVoid     = room.room_id === 'stairwell_void' || room.room_id.startsWith('atrium_'); // open to below: see-through
+    const isVoid     = room.room_id.startsWith('stairwell_void') || room.room_id.startsWith('atrium_'); // open to below: see-through
     const floorBase  = room.floor * FLOOR_H;
 
     const roomId = room.room_id.toLowerCase();

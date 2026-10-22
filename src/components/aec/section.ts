@@ -52,7 +52,8 @@ export const wallKind = (layout: SolvedLayout, r: PlacedRoom): WallRoomKind => {
 /** A placed room's name: the brief's, or the solver's own rooms by id. */
 export const roomName = (layout: SolvedLayout, r: PlacedRoom): string => {
   if (r.room_id === 'stairwell') return 'Stair';
-  if (r.room_id === 'stairwell_void') return 'Stair void';
+  if (/^stairwell_\d+$/.test(r.room_id)) return `Stair ${r.room_id.slice(10)}`;
+  if (r.room_id.startsWith('stairwell_void')) return 'Stair void';
   if (r.room_id.startsWith('corridor_floor')) return r.floor === 0 ? 'Hall' : 'Landing';
   if (r.room_id.startsWith('terrace_f')) return 'Terrace';
   if (r.room_id.startsWith('atrium_')) return 'Open to below';
@@ -135,7 +136,7 @@ export function section(layout: SolvedLayout): Section | null {
     }
     // the floor slab (on the ground, a slab on grade); none in an open-to-below void or over the stair
     for (const r of here) {
-      if (f > 0 && (r.room_id === 'stairwell_void' || r.room_id.startsWith('atrium_'))) continue;
+      if (f > 0 && (r.room_id.startsWith('stairwell_void') || r.room_id.startsWith('atrium_'))) continue;
       const [a, b] = spanOf(r);
       out.slabs.push({ a, b, top: base, t: SLAB_T });
     }

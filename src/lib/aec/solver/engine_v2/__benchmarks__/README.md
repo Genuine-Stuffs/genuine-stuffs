@@ -21,11 +21,15 @@ Both are sized by `src/lib/aec/regulations/` from the Lagos Physical Planning
 Permit Regulations 2019 and the NBC 2006 (reports/Hotel and church design
 guidelines.md):
 
-- `bench-04-hotel-30x40`: 3-star, 47 rooms, 4 storeys on 30 x 40 m outside
-  the traditional core. Commercial setbacks 9 / 4.5 / 4.5 m, 70% coverage, two
-  1.2 m escape stairs (Lagos Reg 24(12)), a guest lift and a service lift,
-  3 accessible rooms, rooms 24 m² and suites 40 m² (3-star targets 15 + 5 and
-  24 + 10 m²), 19 parking bays.
+- `bench-04-hotel-30x40`: 3-star, 34 rooms, 4 storeys on 30 x 40 m outside
+  the traditional core. Commercial setbacks 9 / 4.5 / 4.5 m leave 21 x 26.5 m,
+  which holds 10 rooms and a suite per guest floor on a double-loaded
+  corridor (12 need 29 m of corridor a side). Two 1.2 m escape stairs at the
+  corridor's ends (Lagos Reg 24(12); dead ends <= 6.1 m), a guest lift and a
+  service lift, 2 accessible rooms (one on the ground floor, the first floor's
+  suite), a 40-seat restaurant, rooms 24 m² and suites 40 m² (3-star targets
+  15 + 5 and 24 + 10 m²), 14 parking bays. The ground floor fits inside the
+  guest floors' outline.
 - `bench-05-church-60x80`: 1,000 seats on a 60 x 80 m standard plot (the
   earlier 40 x 60 m broke the 50% coverage and the parking rule). Hall
   33.9 x 20.8 m (straight rows, 0.95 m pitch, 14 seats between aisles),
