@@ -227,17 +227,20 @@ export function planGround(rooms0: Array<{ room_id: string; name?: string; type?
     { rects: Map<string, Rect>; short?: number } | null {
     const rects = new Map<string, Rect>();
     const kind = (r: any) => kindOf(r), entry = (r: any) => catalogueEntry(r);
-    const stairsUp = first.filter(r => r.kind === 'stair'), liftUp = first.find(r => r.kind === 'lift'), servUp = first.find(r => r.kind === 'service');
-    const lift0 = rooms0.find(r => kind(r) === 'lift');
-    // the stair and lift where they are above; the housekeeping slot joins the lift core
+    const stairsUp = first.filter(r => r.kind === 'stair'), servUp = first.find(r => r.kind === 'service');
     // every stair where it is above (the second as stairwell_2)
     stairsUp.forEach((st, k) => rects.set(k ? `stairwell_${k + 1}` : 'stairwell', g.rects.get(st.room_id)!));
-    if (liftUp && lift0) {
-        let q = g.rects.get(liftUp.room_id)!;
-        const s = servUp ? g.rects.get(servUp.room_id) : undefined;
-        if (s) q = { x: Math.min(q.x, s.x), y: Math.min(q.y, s.y), w: Math.max(q.x + q.w, s.x + s.w) - Math.min(q.x, s.x), h: Math.max(q.y + q.h, s.y + s.h) - Math.min(q.y, s.y) };
-        rects.set(lift0.room_id, q);
-    } else if (servUp) return null;
+    // each lift under the same lift above (the service lift under the service lift)
+    const service = (r: { name?: string; type?: string }) => /service/i.test(`${r.name ?? ''} ${r.type ?? ''}`);
+    const liftsUp = first.filter(r => r.kind === 'lift'), lifts0 = rooms0.filter(r => kind(r) === 'lift');
+    if (liftsUp.length && !lifts0.length) return null;
+    const free = new Set(liftsUp);
+    for (const l0 of lifts0) {
+        const up = [...free].find(u => service(u) === service(l0)) ?? [...free][0];
+        if (up) { rects.set(l0.room_id, g.rects.get(up.room_id)!); free.delete(up); }
+    }
+    // under the housekeeping room: the linen store (housekeeping's stock beside the service lift)
+    if (servUp) rects.set('aux_store_0', g.rects.get(servUp.room_id)!);
     const corridors = [...g.rects].filter(([k]) => k.startsWith('corridor')).map(([k, q]) => [k, { ...q }] as const);
     let strips = g.strips.map(s => ({ ...s }));
     const items = rooms0.filter(r => !['stair', 'lift', 'corridor'].includes(kind(r)) && !/^(gen_?house|generator|bq)/.test(String(r.type ?? '').toLowerCase()));
@@ -362,6 +365,7 @@ export function hotelLayout(program: SpatialProgram, envelope: PlotEnvelope, opt
     const rooms0 = all.filter(r => r.floor === 0);
     const ground = rooms0.length ? planGround(rooms0, plan, first) : null;
     if (ground && !ground.short) {
+        if (ground.rects.has('aux_store_0')) base.program_reference = { ...program, rooms: [...(program.rooms ?? []), { room_id: 'aux_store_0', name: 'Linen Store', type: 'store', floor: 0, area_m2: 0, adjacencies: [] } as any] } as SpatialProgram;
         for (const [key, q] of ground.rects) {
             const room_id = key === 'corridor' ? 'corridor_floor0_0' : key === 'corridor2' ? 'corridor_floor0_1' : key;
             placed.push({ room_id, floor: 0, x: cm(q.x), y: cm(q.y), width: cm(q.w), depth: cm(q.h) });
