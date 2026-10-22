@@ -48,6 +48,7 @@ import { SolverConfig, ReservedRect } from "./solver/types";
 import { GRID_RESOLUTION_M } from "./solver/units";
 import { ValidationIssue } from "./placement_validator";
 import { solveGapfree } from "./gapfree/solve";
+import { buildingSupport } from "./building_support";
 
 // Per attempt, per floor. Kept short deliberately — trying several
 // candidates only pays off if each one is cheap enough that the total
@@ -418,12 +419,16 @@ function summarizeFailures(attempts: SolvedLayout[], last: SolvedLayout): Solved
 // existing callers (AIStudio.tsx); solveLayoutVariants is new.
 // ──────────────────────────────────────────────────────────────────────────
 
+/** A hotel or an assembly building has its own engine (gapfree/hotel.ts,
+ * gapfree/assembly.ts) whatever the layout mode: the house planners don't know its rooms. */
+const ownEngine = (program: SpatialProgram) => !!buildingSupport(program).kind;
+
 export function solveLayoutV2(
     program: SpatialProgram,
     envelope: PlotEnvelope,
     options?: SolverOptions
 ): SolvedLayout {
-    if (options?.layoutMode === 'gapfree') return solveGapfree(program, envelope, options);
+    if (options?.layoutMode === 'gapfree' || ownEngine(program)) return solveGapfree(program, envelope, options);
     const { successes, lastAttempt } = solveLayoutCandidates(program, envelope, options, /* stopAtFirstSuccess */ true);
     return successes[0] ?? lastAttempt;
 }
@@ -443,7 +448,7 @@ export function solveLayoutVariants(
 ): SolvedLayout[] {
     // The gap-free engine returns its one best plan (its search already
     // compares every footprint); no separate options list yet.
-    if (options?.layoutMode === 'gapfree') return [solveGapfree(program, envelope, options)];
+    if (options?.layoutMode === 'gapfree' || ownEngine(program)) return [solveGapfree(program, envelope, options)];
     const { successes, lastAttempt, graph } = solveLayoutCandidates(program, envelope, options, /* stopAtFirstSuccess */ false);
     if (successes.length === 0) return [lastAttempt];
     return successes
