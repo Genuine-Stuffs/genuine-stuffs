@@ -226,8 +226,9 @@ export function planAssembly(program: SpatialProgram, BW: number, BD: number): A
     const sides = ex.count - 1, hallTop = rearD, hallBot = rearD + naveD;
     for (let k = 0; k < sides; k++) {
         const wall = k % 2 === 0 ? 'left' : 'right';
-        // spread along the hall: the front quarter, then the back quarter, alternating sides
-        const at = k < 2 ? hallBot - naveD / 4 - ex.otherWidth / 2 : hallTop + naveD / 4 - ex.otherWidth / 2;
+        // the first pair at the stage end, as far from the main entrance as the hall allows (NBC 2006
+        // §7.8.12; fire exits by the stage in template C3), any more in the front quarter, alternating sides
+        const at = k < 2 ? hallTop + naveD / 4 - ex.otherWidth / 2 : hallBot - naveD / 4 - ex.otherWidth / 2;
         exits.push({ wall, at: cm(at), width: ex.otherWidth });
     }
     return { rects, width: cm(W), depth: cm(D), seating: hall, exits, load };
