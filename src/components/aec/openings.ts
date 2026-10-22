@@ -312,6 +312,12 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
     const k = graph!.nodes.get([...n.neighbors][0]);
     if (k && k.floor === floor && /kitchen/.test(k.type)) ownBedroom.set(n.id, k.id);
   }
+  // a restaurant's kitchen opens into the restaurant it serves, not the public hall
+  for (const n of graph?.nodes.values() ?? []) {
+    if (n.floor !== floor || !/kitchen/.test(n.type)) continue;
+    const dining = [...n.neighbors].map(id => graph!.nodes.get(id)).find(q => q?.type === 'restaurant');
+    if (dining) ownBedroom.set(n.id, dining.id);
+  }
   const sharedWall = (a: PlacedRoom, b: PlacedRoom): WallSide | null => {
     const ov = (a1: number, a2: number, b1: number, b2: number) => Math.min(a2, b2) - Math.max(a1, b1);
     const e = 1e-6, need = DOOR_ROOM.w + DOOR_CLEAR;
