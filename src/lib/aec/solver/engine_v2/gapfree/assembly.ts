@@ -145,6 +145,9 @@ function score(rs: Room[], placed: Map<string, Rect>, centre: Room, centreRect: 
  * each side (room order, lobby share) is the one where every room can be
  * reached and none is thin. The band deepens until the centre room fits
  * between the sides. Its depth. */
+const LOBBY = [1.25, 1.4, 1.6], LOBBY_FRONT = [1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3, 1.4, 1.5, 1.6];
+/** A band arrangement's cost per m² left over: below an unreachable room (1000) or a thin one (50), about a twentieth of a proportion step. */
+const SPARE_COST = 0.05;
 function band(centre: Room, others: Room[], width: number, minDepth: number, y: number, rects: Map<string, Rect>, edgeRoom?: { id: string; rect: Rect }, centreMaxW?: number): number {
     const left: Room[] = [], right: Room[] = [];
     let la = 0, ra = 0;
@@ -154,11 +157,16 @@ function band(centre: Room, others: Room[], width: number, minDepth: number, y: 
         if (toLeft) { left.push(r); la += r.area; } else { right.push(r); ra += r.area; }
     }
     let best: { depth: number; map: Map<string, Rect>; cost: number } | null = null;
-    for (const lobby of [1.25, 1.4, 1.6]) {
-        let depth = Math.max(minDepth, (centre.area + (la + ra) * lobby) / width);
+    // the lobby allowance on each side: the same both sides behind the stage (its rooms reach the
+    // hall only through their lobby); on the street band, each side its own, as little as lets its
+    // rooms reach the foyer (a big room needs almost none, a row of small ones more; church
+    // templates C1-C14 name every space, 2026-10-22)
+    const pairs: Array<[number, number]> = edgeRoom ? LOBBY_FRONT.flatMap(a => LOBBY_FRONT.map(b => [a, b] as [number, number])) : LOBBY.map(f => [f, f] as [number, number]);
+    for (const [fl, fr] of pairs) {
+        let depth = Math.max(minDepth, (centre.area + la * fl + ra * fr) / width);
         let lw = 0, rw = 0, cw = 0;
         for (let k = 0; k < 200; k++, depth += 0.25) {
-            lw = la * lobby / depth; rw = ra * lobby / depth; cw = width - lw - rw;
+            lw = la * fl / depth; rw = ra * fr / depth; cw = width - lw - rw;
             if (centreMaxW !== undefined && cw > centreMaxW) { const extra = (cw - centreMaxW) / 2; lw += extra; rw += extra; cw = centreMaxW; }
             if (cw * depth >= centre.area - 1e-6 && cw >= Math.min(8, width / 3)) break;
         }
@@ -183,7 +191,8 @@ function band(centre: Room, others: Room[], width: number, minDepth: number, y: 
                 if (!sideBest || c < sideBest.c) sideBest = { m, c };
             }
             for (const [k, v] of sideBest!.m) map.set(k, v);
-            cost += sideBest!.c;
+            // then the least space left over (on the street band, where it becomes a store nobody asked for)
+            cost += sideBest!.c + (edgeRoom ? SPARE_COST * Math.max(0, spare) : 0);
         }
         if (!best || cost < best.cost) best = { depth, map, cost };
     }
