@@ -170,7 +170,8 @@ export interface PlannedYardDoor { room_id: string; wall: WallSide; type: Openin
 /** `open`: a carport / car porch / parking bay: its car side is open (no door, not in the schedule). */
 export interface PlannedVehicleDoor { room_id: string; wall: WallSide; at: number; type: OpeningType; open?: boolean }
 /** `yards`: every outside door to the yard (the kitchen's `yard`, then a laundry's), for the drawings and the schedule. */
-export interface FloorOpenings { doors: Map<string, PlannedDoor>; windows: PlannedWindow[]; entrance: PlannedEntrance | null; yard: PlannedYardDoor | null; yards: PlannedYardDoor[]; vehicles: PlannedVehicleDoor[] }
+/** `inner`: a second door between two rooms, beside a room's own (an overflow hall's into the main hall): on the plan, the section and the schedule, never on an elevation. */
+export interface FloorOpenings { doors: Map<string, PlannedDoor>; windows: PlannedWindow[]; entrance: PlannedEntrance | null; yard: PlannedYardDoor | null; yards: PlannedYardDoor[]; vehicles: PlannedVehicleDoor[]; inner: PlannedYardDoor[] }
 
 const KITCHENS = /^(kitchen|wet_kitchen|kitchenette|outdoor_kitchen|dirty_kitchen)$/;
 const YARD_END = 0.3; // the yard door's leaf starts this far from the wall's end
@@ -379,6 +380,7 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
   // entrance on the foyer's street wall, the others in the hall's side walls
   const assembly = (layout as any).assembly as { exits: Array<{ wall: WallSide; at: number; width: number; main?: boolean }> } | undefined;
   let mainEntrance = entrance;
+  const inner: PlannedYardDoor[] = [];
   // an assembly lobby the foyer's or hall's own door doesn't open into has a door of its own into
   // the foyer, else the hall (the vestry's lobby behind the stage had none, 2026-10-28)
   if (assembly) {
@@ -395,6 +397,18 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
       const hi = fw === 'top' || fw === 'bottom' ? Math.min(hallRoom.x + hallRoom.width, foyerRoom.x + foyerRoom.width) : Math.min(hallRoom.y + hallRoom.depth, foyerRoom.y + foyerRoom.depth);
       const start = fw === 'top' || fw === 'bottom' ? hallRoom.x : hallRoom.y;
       if (hi - lo >= type.w + DOOR_CLEAR) doors.set(hallRoom.room_id, { room_id: hallRoom.room_id, wall: fw, type, at: (lo + hi) / 2 - type.w / 2 - start });
+    }
+    // an overflow hall opens into the main hall as well as the foyer, a double door centred on the
+    // wall they share, as wide as the hall's side exits (templates C1, C11, C14; addendum C.4 item 4)
+    const side = assembly.exits?.find(e => !e.main);
+    for (const ov of rooms.filter(q => norm(typeOf(q.room_id)) === 'overflow')) {
+      const w = hallRoom && side ? sharedWall(ov, hallRoom) : null;
+      if (!w || doors.get(ov.room_id)?.wall === w) continue;
+      const type = exitType(side!.width);
+      const horizontal = w === 'top' || w === 'bottom';
+      const lo = horizontal ? Math.max(ov.x, hallRoom!.x) : Math.max(ov.y, hallRoom!.y);
+      const hi = horizontal ? Math.min(ov.x + ov.width, hallRoom!.x + hallRoom!.width) : Math.min(ov.y + ov.depth, hallRoom!.y + hallRoom!.depth);
+      if (hi - lo >= type.w + DOOR_CLEAR) inner.push({ room_id: ov.room_id, wall: w, type, at: (lo + hi) / 2 - type.w / 2 - (horizontal ? ov.x : ov.y) });
     }
     for (const l of rooms.filter(q => q.room_id.startsWith('corridor_floor'))) {
       const reached = publicRooms.some(q => { const d = doors.get(q.room_id); return !!d && sharedWall(q, l) === d.wall; });
@@ -419,7 +433,7 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
       if (yards.some(y => y.room_id === w.room_id && y.wall === w.wall && w.at !== undefined && Math.abs(w.at - (y.at + y.type.w / 2)) < (w.type.w + y.type.w) / 2)) kept.splice(i, 1);
     }
   }
-  return { doors, windows: kept, entrance: mainEntrance, yard, yards, vehicles };
+  return { doors, windows: kept, entrance: mainEntrance, yard, yards, vehicles, inner };
 }
 
 export interface ScheduleRow { tag: string; type: OpeningType; count: number }
@@ -442,6 +456,7 @@ export function openingSchedule(layout: SolvedLayout): { tagOf: (t: OpeningType)
   const ground = planOpenings(layout, 0);
   if (ground.entrance) add(ground.entrance.type);
   ground.yards.forEach(y => add(y.type));
+  ground.inner.forEach(y => add(y.type));
   ground.vehicles.filter(v => !v.open).forEach(v => add(v.type)); // an open car side isn't a door
   const role = (t: OpeningType) => t === DOOR_ENTRANCE || t === ground.entrance?.type ? 0 : t === DOOR_ROOM ? 1 : t === DOOR_SERVICE ? 2 : 3;
   const kind = (k: 'D' | 'W') => [...used.keys()].filter(t => t.kind === k)

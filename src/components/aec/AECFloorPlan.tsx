@@ -171,7 +171,8 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
 
   // The yard doors (the kitchen's, a laundry's) in sheet units: each leaf `at`
   // along its outside wall, swinging in, its tag outside.
-  const yards = openings.yards.map(d => (() => {
+  // with the inside second doors (an overflow hall's into the main hall), drawn the same way
+  const yards = [...openings.yards, ...openings.inner].map(d => (() => {
     const r = activeRooms.find(q => q.room_id === d.room_id);
     if (!r) return null;
     // (WALL_PX is set further down)
