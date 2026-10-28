@@ -9,7 +9,8 @@ import { roomKey, keyNumber, type FloorKey } from './roomKey';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Ruler, ShieldAlert, Layers, Download, Loader2 } from 'lucide-react';
-import { downloadWatermarkedPlan } from './exportPlan';
+import { downloadPlan as savePlan, PLAN_FORMATS, type PlanFormat } from './exportPlan';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 // ── ROOM FILL COLOURS ─────────────────────────────────────────────────────
 const ROOM_FILLS: Record<string, { fill: string; stroke: string; textColor: string }> = {
@@ -1267,11 +1268,11 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   }, 0);
 
   // a copy of the drawing on screen, marked "GS AI Studio" (exportPlan.ts)
-  const downloadPlan = async () => {
+  const downloadPlan = async (format: PlanFormat) => {
     if (!svgRef.current) return;
     setDownloading(true);
     const what = view === 'sheet' || !isDuplex ? 'floor-plans' : view === 0 ? 'ground-floor-plan' : 'upper-floor-plan';
-    try { await downloadWatermarkedPlan(svgRef.current, `GS-AI-Studio-${what}-${new Date().toISOString().slice(0, 10)}`); }
+    try { await savePlan(format, svgRef.current, `GS-AI-Studio-${what}-${new Date().toISOString().slice(0, 10)}`, layout, shown); }
     catch (err) { console.error('Plan download failed:', err); alert(err instanceof Error ? err.message : 'The download failed.'); }
     finally { setDownloading(false); }
   };
@@ -1325,15 +1326,31 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
             <Layers className="w-3 h-3" />
             COLUMNS & BEAMS
           </button>
-          <button
-            onClick={downloadPlan}
-            disabled={downloading}
-            title="Download this drawing as a picture (PNG), marked GS AI Studio"
-            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold tracking-widest whitespace-nowrap bg-white text-slate-900 hover:bg-slate-200 transition-all disabled:opacity-60"
-          >
-            {downloading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
-            DOWNLOAD
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                disabled={downloading}
+                title="Download this drawing, marked GS AI Studio, in the format you choose"
+                className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold tracking-widest whitespace-nowrap bg-white text-slate-900 hover:bg-slate-200 transition-all disabled:opacity-60"
+              >
+                {downloading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+                DOWNLOAD
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-72">
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-slate-500">Download as (marked GS AI Studio)</DropdownMenuLabel>
+              {PLAN_FORMATS.map(f => (
+                <DropdownMenuItem key={f.format} onSelect={() => downloadPlan(f.format)} className="flex flex-col items-start gap-0 py-2 cursor-pointer">
+                  <span className="text-xs font-bold">{f.label}</span>
+                  <span className="text-[10px] text-slate-500">{f.opensIn}</span>
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <p className="px-2 py-1.5 text-[10px] text-slate-500 leading-snug">
+                DWG: open the DXF in AutoCAD and save it as DWG. Revit (RVT): open the DXF in Revit; a full building model for Revit (IFC) is coming.
+              </p>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Badge className="bg-emerald-600 text-white border-none text-[9px] font-black px-3 py-1 whitespace-nowrap">
             <CheckCircle2 className="w-3 h-3 mr-1" /> READY
           </Badge>
