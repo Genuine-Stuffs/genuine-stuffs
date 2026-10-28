@@ -154,7 +154,14 @@ function band(centre: Room, others: Room[], width: number, minDepth: number, y: 
     const left: Room[] = [], right: Room[] = [];
     let la = 0, ra = 0;
     const linked = (r: Room, side: Room[]) => side.some(q => q.adj.includes(r.room_id) || r.adj.includes(q.room_id));
-    for (const r of [...others].sort((a, b) => b.area - a.area)) {
+    // the two largest restrooms flank the centre room, one each side (toilets either side of the
+    // foyer in 5 of the 6 church templates with a foyer: C1, C3, C8, C12, C14; addendum C.4 item 2)
+    const restrooms = others.filter(r => r.type === 'restroom' && r.area >= 10).sort((a, b) => b.area - a.area).slice(0, 2);
+    if (restrooms.length === 2) {
+        left.push(restrooms[0]); la += restrooms[0].area;
+        right.push(restrooms[1]); ra += restrooms[1].area;
+    }
+    for (const r of [...others].filter(q => !(restrooms.length === 2 && restrooms.includes(q))).sort((a, b) => b.area - a.area)) {
         const toLeft = linked(r, left) && !linked(r, right) ? true : linked(r, right) && !linked(r, left) ? false : la <= ra;
         if (toLeft) { left.push(r); la += r.area; } else { right.push(r); ra += r.area; }
     }
@@ -233,7 +240,9 @@ export function planAssembly(program: SpatialProgram, BW: number, BD: number): A
     // exits from the occupant load: the main entrance on the foyer's street wall, the others in the hall's side walls
     const load = A.occupantLoad(seats, stage.area + (rooms.find(r => r.type === 'choir')?.area ?? 0));
     const ex = A.exitPlan(load);
-    const exits: AssemblyPlan['exits'] = [{ wall: 'bottom', at: cm(W / 2 - ex.mainWidth / 2), width: ex.mainWidth, main: true }];
+    // the main entrance at the middle of the foyer's street wall (the foyer is off centre when the restrooms flank it)
+    const fr = rects.get(foyer.room_id)!;
+    const exits: AssemblyPlan['exits'] = [{ wall: 'bottom', at: cm(fr.x + fr.w / 2 - ex.mainWidth / 2), width: ex.mainWidth, main: true }];
     const sides = ex.count - 1, hallTop = rearD, hallBot = rearD + naveD;
     for (let k = 0; k < sides; k++) {
         const wall = k % 2 === 0 ? 'left' : 'right';
