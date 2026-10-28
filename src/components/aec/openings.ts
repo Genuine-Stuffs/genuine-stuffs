@@ -62,6 +62,8 @@ export function roomTypeOf(layout: SolvedLayout, room_id: string): string {
 }
 
 const isOpen = (t: string) => t === 'circulation' || t === 'hall' || t === 'landing' || t === 'void';
+/** A worship front open to the hall (altar/stage, choir): a raised platform, no door of its own (owner 2026-10-22). */
+export const isPlatform = (t: string) => t === 'stage' || t === 'choir';
 const isOutside = (t: string) => t === 'balcony' || t === 'terrace';
 
 /** Which of the room's walls are on the building's outline: on its bounding
@@ -333,7 +335,7 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
     const t = norm(typeOf(r.room_id));
     if (isOpen(t) || r.room_id.startsWith('corridor_floor')) continue;
     const ext = externalEdges(r, W, D, rooms);
-    if (t !== 'stairwell') {
+    if (t !== 'stairwell' && !isPlatform(t)) {
       const spec = placement?.doors.find(d => d.room_id === r.room_id);
       // a flat's passage opens into its living room; the flat's rooms into the living room or the passage
       const entry = r.room_id.startsWith('passage_') ? r.room_id.slice('passage_'.length)

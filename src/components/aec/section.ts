@@ -13,7 +13,7 @@
 import type { SolvedLayout, PlacedRoom } from 'supabase/functions/ai-studio/schema';
 import type { WallSide } from '@/lib/aec/solver/engine_v2/doors';
 import { computeWalls, WALL_THICKNESS, type WallRoomKind, type WallKind } from './walls';
-import { planOpenings, roomTypeOf, openingSchedule } from './openings';
+import { planOpenings, roomTypeOf, openingSchedule, isPlatform } from './openings';
 import { STOREY_H, PARAPET_H } from './elevations';
 import { stairPlan } from './stair';
 
@@ -46,6 +46,8 @@ export const wallKind = (layout: SolvedLayout, r: PlacedRoom): WallRoomKind => {
   const t = roomTypeOf(layout, r.room_id);
   if (r.room_id.startsWith('terrace_f') || t === 'balcony' || t === 'terrace') return 'outside';
   if (/^(circulation|hall|landing|void|stairwell)$/.test(t)) return 'open';
+  if (isPlatform(t)) return 'platform';
+  if (t === 'auditorium') return 'nave';
   return 'room';
 };
 
@@ -107,6 +109,7 @@ export function section(layout: SolvedLayout): Section | null {
     const segs = computeWalls(all.map(r => ({ x: r.x, y: r.y, width: r.width, depth: r.depth, kind: wallKind(layout, r) })));
     const o = planOpenings(layout, f);
     for (const w of segs) {
+      if (w.kind === 'edge') continue; // a platform's edge is a step in the floor, not a wall to cut
       const across = cut.axis === 'x' ? w.y0 === w.y1 && w.x0 < cut.at - E && w.x1 > cut.at + E : w.x0 === w.x1 && w.y0 < cut.at - E && w.y1 > cut.at + E;
       if (!across) continue;
       const line = cut.axis === 'x' ? w.y0 : w.x0;

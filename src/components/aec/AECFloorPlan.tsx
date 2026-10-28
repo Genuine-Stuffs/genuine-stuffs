@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { SolvedLayout } from 'supabase/functions/ai-studio/schema';
 import { structuralEngine } from '@/lib/aec/solver/structural';
 import { computeWalls, WALL_THICKNESS, WallRoomKind } from './walls';
-import { planOpenings, openingSchedule, roomTypeOf, externalEdges, DOOR_ROOM, type OpeningType } from './openings';
+import { planOpenings, openingSchedule, roomTypeOf, externalEdges, isPlatform, DOOR_ROOM, type OpeningType } from './openings';
 import { sectionCut } from './section';
 import { stairPlan, STAIR_STOREY_H } from './stair';
 import { roomKey, keyNumber, type FloorKey } from './roomKey';
@@ -350,6 +350,9 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
     if (t === 'balcony' || t === 'terrace') return 'outside';
     if (t === 'circulation' || t === 'hall' || t === 'landing' || t === 'void' ||
         t === 'stairwell') return 'open';
+    // a worship front (stage, choir) is a platform open to the hall: its edge, no wall
+    if (isPlatform(t)) return 'platform';
+    if (t === 'auditorium') return 'nave';
     return 'room';
   };
   const wallSegments = computeWalls(activeRooms
@@ -362,11 +365,12 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
       {segments.map((w, i) => {
         const t = WALL_THICKNESS[w.kind] * scale;
         // Run each band half a thickness past its ends so corners close.
-        const ext = w.kind === 'rail' ? 0 : WALL_THICKNESS[w.kind] / 2;
+        const ext = w.kind === 'rail' || w.kind === 'edge' ? 0 : WALL_THICKNESS[w.kind] / 2;
         const horizontal = w.y0 === w.y1;
         const x = xOffset + (horizontal ? w.x0 - ext : w.x0) * scale - (horizontal ? 0 : t / 2);
         const y = yOffset + (horizontal ? w.y0 : w.y0 - ext) * scale - (horizontal ? t / 2 : 0);
         const len = ((horizontal ? w.x1 - w.x0 : w.y1 - w.y0) + ext * 2) * scale;
+        if (w.kind === 'edge') return <rect key={i} x={x} y={y} width={horizontal ? len : t} height={horizontal ? t : len} fill="#475569" />;
         return w.kind === 'rail'
           ? <rect key={i} x={x} y={y} width={horizontal ? len : t} height={horizontal ? t : len}
               fill="#ffffff" stroke="#1e293b" strokeWidth={0.8} />

@@ -3,15 +3,19 @@
 // becomes an external wall (room on one side only), an internal wall (rooms on
 // both sides), a parapet (terrace/balcony edge to open air), or nothing (open
 // plan: hall, landing, void). Pieces of the same kind on a line are merged.
+// A place of worship's front (altar/stage, choir, band) is a raised platform
+// open to the congregation's hall: no wall between platform pieces, only the
+// platform's edge where it meets the hall (owner 2026-10-22, templates C1-C14).
 
-export type WallRoomKind = 'room' | 'open' | 'outside';
+export type WallRoomKind = 'room' | 'open' | 'outside' | 'platform' | 'nave';
 
 export interface WallRoom {
   x: number; y: number; width: number; depth: number;
   kind: WallRoomKind;
 }
 
-export type WallKind = 'ext' | 'int' | 'rail';
+/** `edge`: a raised platform's edge on the floor, not a wall. */
+export type WallKind = 'ext' | 'int' | 'rail' | 'edge';
 
 /** Centreline from (x0,y0) to (x1,y1), metres; horizontal or vertical. */
 export interface WallSegment {
@@ -20,13 +24,15 @@ export interface WallSegment {
 }
 
 // Template drawing: 230 mm block outside, 150 mm partitions.
-export const WALL_THICKNESS: Record<WallKind, number> = { ext: 0.23, int: 0.15, rail: 0.1 };
+export const WALL_THICKNESS: Record<WallKind, number> = { ext: 0.23, int: 0.15, rail: 0.1, edge: 0.05 };
 
 const EPS = 1e-3;
 const key = (v: number) => Math.round(v * 1000);
 
 const classify = (a: WallRoomKind | null, b: WallRoomKind | null): WallKind | null => {
-  const inside = (k: WallRoomKind | null) => k === 'room' || k === 'open';
+  if (a === 'platform' && b === 'platform') return null;
+  if ((a === 'platform' && b === 'nave') || (a === 'nave' && b === 'platform')) return 'edge';
+  const inside = (k: WallRoomKind | null) => k === 'room' || k === 'open' || k === 'platform' || k === 'nave';
   if (inside(a) && inside(b)) return a === 'open' && b === 'open' ? null : 'int';
   if (inside(a) || inside(b)) return 'ext';
   if (a === 'outside' && b === 'outside') return null;
