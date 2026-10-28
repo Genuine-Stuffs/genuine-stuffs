@@ -29,7 +29,8 @@ import {
     ServerCrash,
     HardDrive,
     Zap,
-    Cpu
+    Cpu,
+    ClipboardCheck
 } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,13 @@ const PMDashboard = () => {
     const { theme, setTheme } = useTheme();
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [activeTab, setActiveTab] = useState("overview");
+    // reviewer applications waiting for a decision (the Design Reviewers page decides them)
+    const [pendingReviewers, setPendingReviewers] = useState(0);
+    useEffect(() => {
+        if (authLoading || !(serverClaims.is_admin || serverClaims.is_pm)) return;
+        (supabase as any).from('reviewer_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+            .then(({ count }: { count: number | null }) => setPendingReviewers(count ?? 0));
+    }, [authLoading, serverClaims.is_admin, serverClaims.is_pm]);
     const [isBroadcastOpen, setIsBroadcastOpen] = useState(false);
     const [broadcastMessage, setBroadcastMessage] = useState("");
     const [broadcastSubject, setBroadcastSubject] = useState("Marketplace Update");
@@ -261,6 +269,7 @@ const PMDashboard = () => {
                                 { id: "overview", icon: BarChart3, label: "Overview" },
                                 { id: "vendors", icon: Store, label: "Sellers Waiting" },
                                 { id: "pros", icon: UserCheck, label: "Check Professionals" },
+                                { id: "reviewers", icon: ClipboardCheck, label: "Design Reviewers", badge: pendingReviewers },
                                 { id: "materials", icon: ShoppingBag, label: "Review Listings" },
                                 { id: "reports", icon: AlertTriangle, label: "Problem Reports" },
                                 { id: "team", icon: Users, label: "Team Management" },
@@ -271,6 +280,8 @@ const PMDashboard = () => {
                                     onClick={() => { 
                                         if (item.id === 'system') {
                                             navigate('/pm/system-maintenance');
+                                        } else if (item.id === 'reviewers') {
+                                            navigate('/admin/reviews');
                                         } else {
                                             setActiveTab(item.id); 
                                         }
@@ -280,6 +291,11 @@ const PMDashboard = () => {
                                 >
                                     <item.icon size={18} />
                                     {item.label}
+                                    {(item as { badge?: number }).badge ? (
+                                        <span className="ml-auto min-w-5 h-5 px-1.5 rounded-full bg-amber-500 text-white text-[10px] font-black flex items-center justify-center" title="Applications waiting for approval">
+                                            {(item as { badge?: number }).badge}
+                                        </span>
+                                    ) : null}
                                 </button>
                             ))}
                         </nav>
