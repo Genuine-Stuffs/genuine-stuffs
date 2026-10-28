@@ -65,7 +65,7 @@ const AECBillOfQuantities: React.FC<AECBillOfQuantitiesProps> = ({ materials, la
                     <Calculator className="w-4 h-4 text-primary" />
                 </div>
                 <div>
-                    <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] text-white">Project Bill of Quantities</CardTitle>
+                    <CardTitle className="text-[11px] font-black uppercase tracking-[0.2em] text-white">Your Bill of Quantities</CardTitle>
                     <p className="text-[9px] text-slate-400 font-medium uppercase tracking-widest mt-0.5">Automated Material Take-off & Costing (Est. NGN)</p>
                 </div>
             </div>

@@ -121,6 +121,11 @@ const sanitizeResultText = (raw: any): string | null => {
     return clean.trim() || null;
 };
 
+/** The AI picture of the building above the plan. Off (owner 2026-10-28): it never showed a building
+ * that follows the floor plan. It comes back when the 3D model is built from the plan itself
+ * (ledger §6 item 12); while off, no picture is asked for (none is paid for) and the PDF has no picture page. */
+const SHOW_BUILDING_PICTURE = false;
+
 const AIStudio = () => {
     const { user, role, serverClaims, switchEnvironmentView, reviewerAccess, signOutTo } = useAuth();
     // a reviewer-only account sees AI Studio and nothing else of the site (owner 2026-10-28)
@@ -158,6 +163,14 @@ const AIStudio = () => {
     // Latches to true the moment any prompt is submitted — never resets from API failures
     const [hasActiveSession, setHasActiveSession] = useState(false);
     const isMobile = useIsMobile();
+
+    // Full screen once a design is on screen (owner 2026-10-22): the drawings take the whole
+    // window; the sidebar, the top bar and the prompt bar slide away and come back when the
+    // pointer reaches their edge (left, top, bottom), or while the prompt is being typed.
+    // Desktop only: a phone has no pointer to bring them back.
+    const [fullScreenPref, setFullScreenPref] = useState(true);
+    const [reveal, setReveal] = useState({ side: false, top: false, bottom: false });
+    const [promptFocused, setPromptFocused] = useState(false);
 
     // Static/Frozen Screen logic for DeepSeek effect
     useEffect(() => {
@@ -785,7 +798,7 @@ const AIStudio = () => {
 
             // --- PATH 3: Decoupled High-Priority Rendering ---
             // Only fire if the AI deciphered that an image is appropriate
-            if (data.data?.image_prompt && isPlan(finalDesignData?.solvedLayout)) {
+            if (SHOW_BUILDING_PICTURE && data.data?.image_prompt && isPlan(finalDesignData?.solvedLayout)) {
                 setIsVisualizing(true);
                 try {
                     const { data: vizData, error: vizError } = await supabase.functions.invoke('ai-studio', {
@@ -875,6 +888,23 @@ const AIStudio = () => {
     };
     const setback: SetbackStudy | undefined = designPackage?.setback;
 
+    const fullScreen = fullScreenPref && !isMobile && hasActiveSession && !!designPackage && !isGenerating;
+    useEffect(() => {
+        if (!fullScreen) { setReveal({ side: false, top: false, bottom: false }); return; }
+        // each bar shows while the pointer is at its edge or on the bar itself
+        const onMove = (e: MouseEvent) => setReveal(prev => {
+            const next = {
+                side: e.clientX < (prev.side ? (sidebarOpen ? 264 : 72) : 14),
+                top: e.clientY < (prev.top ? 64 : 12),
+                bottom: e.clientY > window.innerHeight - (prev.bottom ? 140 : 16),
+            };
+            return next.side === prev.side && next.top === prev.top && next.bottom === prev.bottom ? prev : next;
+        });
+        window.addEventListener('mousemove', onMove);
+        return () => window.removeEventListener('mousemove', onMove);
+    }, [fullScreen, sidebarOpen]);
+    const showBottom = !fullScreen || reveal.bottom || promptFocused || !!promptText;
+
     const layoutKey = layoutSignature(designPackage?.solvedLayout);
     const layoutChoices: any[] = designPackage?.solvedLayoutOptions ?? [];
 
@@ -955,9 +985,9 @@ const AIStudio = () => {
 
                 {/* Sidebar (Responsive ChatGPT/DeepSeek style) */}
                 <aside
-                    className={`fixed inset-y-0 left-0 md:relative flex flex-col bg-slate-50 dark:bg-card border-r border-slate-200 dark:border-border transition-all duration-300 z-[60] overflow-hidden flex-shrink-0 
+                    className={`fixed inset-y-0 left-0 ${fullScreen ? `md:fixed md:shadow-2xl ${reveal.side ? 'md:translate-x-0' : 'md:-translate-x-full'}` : 'md:relative'} flex flex-col bg-slate-50 dark:bg-card border-r border-slate-200 dark:border-border transition-all duration-300 z-[60] overflow-hidden flex-shrink-0 
                         ${sidebarOpen ? 'md:w-64' : 'md:w-16'}
-                        ${mobileSidebarOpen ? 'translate-x-0 w-[280px]' : '-translate-x-full md:translate-x-0'}
+                        ${mobileSidebarOpen ? 'translate-x-0 w-[280px]' : `-translate-x-full ${fullScreen ? '' : 'md:translate-x-0'}`}
                     `}
                 >
                     <div className={`py-4 flex flex-col h-full overflow-y-auto overflow-x-hidden custom-scrollbar ${sidebarOpen ? 'px-5' : 'px-2'}`}>
@@ -1164,7 +1194,7 @@ const AIStudio = () => {
                     <div className="mesh-background opacity-20" />
 
                     {/* Top Static Bar - Ultra Thin & Professional */}
-                    <div className="hidden md:flex items-center justify-between px-6 py-1.5 bg-white dark:bg-[#15171a] border-b border-slate-200 dark:border-white/5 z-40 shrink-0 w-full min-h-[52px]">
+                    <div className={`hidden md:flex items-center justify-between px-6 py-1.5 bg-white dark:bg-[#15171a] border-b border-slate-200 dark:border-white/5 z-40 shrink-0 w-full min-h-[52px] transition-transform duration-300 ${fullScreen ? `md:absolute md:top-0 md:left-0 md:right-0 md:shadow-lg ${reveal.top ? 'md:translate-y-0' : 'md:-translate-y-full'}` : ''}`}>
                         <div className="flex items-center gap-4">
                              <div>
                                 <h2 className="text-[12px] font-black uppercase tracking-tight text-slate-800 dark:text-white leading-none">AI Studio</h2>
@@ -1191,6 +1221,15 @@ const AIStudio = () => {
                         </div>
 
                         <div className="flex items-center gap-4">
+                            {hasActiveSession && designPackage && (
+                                <button
+                                    onClick={() => setFullScreenPref(v => !v)}
+                                    className={`h-8 px-3 rounded-lg border text-[9px] font-black uppercase tracking-widest transition-all ${fullScreenPref ? 'border-primary bg-primary/10 text-primary' : 'border-slate-200 dark:border-white/10 text-slate-500'}`}
+                                    title="Full screen: the menus hide until your pointer reaches the edge of the screen"
+                                >
+                                    Full screen {fullScreenPref ? 'on' : 'off'}
+                                </button>
+                            )}
                             <Select value={selectedRole} onValueChange={setSelectedRole}>
                                 <SelectTrigger className="w-64 h-8 rounded-lg bg-white dark:bg-[#1c1d21] border border-slate-200 dark:border-white/10 font-bold text-[9px] uppercase tracking-widest shadow-none hover:border-slate-300 dark:hover:border-white/20 focus:ring-1 ring-primary/20 transition-all flex items-center justify-start gap-3 px-3">
                                     <div className="flex items-center gap-2">
@@ -1225,9 +1264,9 @@ const AIStudio = () => {
                             <div className="w-full max-w-3xl flex flex-col items-center animate-in fade-in slide-in-from-bottom-4 duration-700 mb-[10vh]">
                                 <div className="text-center mb-8 md:mb-12">
                                     <h1 className="text-3xl md:text-[2.75rem] font-semibold text-slate-800 dark:text-slate-100 tracking-tight mb-2">
-                                        What can I <span className="text-primary">design?</span>
+                                        What are you <span className="text-primary">designing today?</span>
                                     </h1>
-                                    <p className="text-[10px] md:text-xs text-slate-400 font-semibold tracking-widest uppercase mb-4 md:mb-0">Studio AI · {selectedRole} Mode</p>
+                                    <p className="text-[10px] md:text-xs text-slate-400 font-semibold tracking-widest uppercase mb-4 md:mb-0">Your brief in, your plans out · {selectedRole} mode</p>
                                 </div>
                                 
                                 <div className="w-full relative">
@@ -1235,7 +1274,7 @@ const AIStudio = () => {
                                         <textarea
                                             value={promptText}
                                             onChange={(e) => setPromptText(e.target.value)}
-                                            placeholder={`Ask anything, create anything as ${selectedRole}...`}
+                                            placeholder={`Describe your building: its type, plot size, storeys and rooms (e.g. a 5-bedroom duplex on a 15 m x 30 m plot in Lekki)...`}
                                             className="w-full min-h-[140px] bg-transparent resize-none p-6 md:p-8 text-slate-900 dark:text-white font-medium outline-none placeholder:text-slate-400 placeholder:text-lg text-lg"
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -1292,8 +1331,8 @@ const AIStudio = () => {
                             <div className="w-full h-full flex flex-col relative animate-in fade-in duration-500">
                                 
                                 {/* Scrollable Chat Log */}
-                                <div className="flex-1 w-full overflow-y-auto custom-scrollbar pt-20 pb-40 px-4 md:px-0">
-                                    <div className="max-w-4xl mx-auto flex flex-col gap-8 md:gap-12 pb-20">
+                                <div className={`flex-1 w-full overflow-y-auto custom-scrollbar pb-40 px-4 ${fullScreen ? 'pt-6 md:px-10' : 'pt-20 md:px-0'}`}>
+                                    <div className={`${fullScreen ? 'max-w-none' : 'max-w-4xl'} mx-auto flex flex-col gap-8 md:gap-12 pb-20`}>
                                         
                                         {messages.map((msg, mIdx) => (
                                             <div key={mIdx} className="flex flex-col gap-6">
@@ -1328,7 +1367,7 @@ const AIStudio = () => {
                                         {/* Latest AI Technical Output (Pinned to the end of the latest response) */}
                                         {!isGenerating && designPackage && (
                                             <div className="w-full space-y-8 mt-4 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                                                {(visualUrl || isVisualizing) && designPackage.status !== 'DISCOVERY' && (
+                                                {SHOW_BUILDING_PICTURE && (visualUrl || isVisualizing) && designPackage.status !== 'DISCOVERY' && (
                                                     <div className="rounded-3xl overflow-hidden bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 shadow-2xl group relative">
                                                         {isVisualizing ? (
                                                             <div className="aspect-[16/9] w-full flex flex-col items-center justify-center p-12 space-y-6">
@@ -1728,19 +1767,26 @@ const AIStudio = () => {
                                         {isGenerating && (
                                             <div className="flex justify-start items-center gap-4 animate-pulse">
                                                 <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">AI is thinking...</span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Drafting your design...</span>
                                             </div>
                                         )}
                                     </div>
                                 </div>
 
                                 {/* Floating Bottom Input Bar */}
-                                <div className="absolute bottom-8 left-0 right-0 flex justify-center px-4 z-50">
+                                {fullScreen && !showBottom && (
+                                    <div className="absolute bottom-3 left-0 right-0 flex justify-center pointer-events-none z-40">
+                                        <span className="px-3 py-1 rounded-full bg-slate-900/70 text-white text-[10px] font-bold tracking-wide">Move your pointer to the bottom edge to refine your design, or to the left and top edges for the menus</span>
+                                    </div>
+                                )}
+                                <div className={`absolute bottom-8 left-0 right-0 flex justify-center px-4 z-50 transition-all duration-300 ${showBottom ? 'translate-y-0 opacity-100' : 'translate-y-[150%] opacity-0 pointer-events-none'}`}>
                                     <div className="w-full max-w-3xl bg-white dark:bg-[#1c1d21] rounded-2xl border border-slate-200 dark:border-white/10 shadow-2xl focus-within:ring-2 ring-primary/20 flex items-center p-2 gap-2">
                                         <input
                                             value={promptText}
                                             onChange={(e) => setPromptText(e.target.value)}
-                                            placeholder="Ask a follow-up or refine the design..."
+                                            placeholder="Refine your design: add or resize a room, move the kitchen, change the plot or setbacks..."
+                                            onFocus={() => setPromptFocused(true)}
+                                            onBlur={() => setPromptFocused(false)}
                                             className="flex-1 bg-transparent px-4 py-2 text-sm font-medium outline-none text-slate-900 dark:text-white"
                                             onKeyDown={(e) => {
                                                 if (e.key === 'Enter') handleGenerate();

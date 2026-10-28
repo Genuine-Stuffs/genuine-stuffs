@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { SolvedLayout } from 'supabase/functions/ai-studio/schema';
 import { structuralEngine } from '@/lib/aec/solver/structural';
 import { computeWalls, WALL_THICKNESS, WallRoomKind } from './walls';
@@ -8,7 +8,8 @@ import { stairPlan, STAIR_STOREY_H } from './stair';
 import { roomKey, keyNumber, type FloorKey } from './roomKey';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Ruler, ShieldAlert, Layers } from 'lucide-react';
+import { CheckCircle2, Ruler, ShieldAlert, Layers, Download, Loader2 } from 'lucide-react';
+import { downloadWatermarkedPlan } from './exportPlan';
 
 // ── ROOM FILL COLOURS ─────────────────────────────────────────────────────
 const ROOM_FILLS: Record<string, { fill: string; stroke: string; textColor: string }> = {
@@ -1167,6 +1168,9 @@ const SHEET_W = 1080, MAX_SCALE = 30, GUTTER = 80;
 
 const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
   const [showStructure, setShowStructure] = useState(false);
+  // the drawing, for its watermarked download (exportPlan.ts)
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [downloading, setDownloading] = useState(false);
   // 'sheet': every floor side by side at one scale, as on the template's
   // sheet; a number: that floor alone.
   const [view, setView] = useState<'sheet' | number>('sheet');
@@ -1262,6 +1266,16 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
     return acc + (isNaN(area) ? 0 : area);
   }, 0);
 
+  // a copy of the drawing on screen, marked "GS AI Studio" (exportPlan.ts)
+  const downloadPlan = async () => {
+    if (!svgRef.current) return;
+    setDownloading(true);
+    const what = view === 'sheet' || !isDuplex ? 'floor-plans' : view === 0 ? 'ground-floor-plan' : 'upper-floor-plan';
+    try { await downloadWatermarkedPlan(svgRef.current, `GS-AI-Studio-${what}-${new Date().toISOString().slice(0, 10)}`); }
+    catch (err) { console.error('Plan download failed:', err); alert(err instanceof Error ? err.message : 'The download failed.'); }
+    finally { setDownloading(false); }
+  };
+
   const viewButton = (v: 'sheet' | number, label: string) => (
     <button
       key={String(v)}
@@ -1278,43 +1292,50 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
 
   return (
     <Card className="mt-8 border-slate-200 dark:border-white/10 overflow-hidden shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] group bg-[#f8fafc] dark:bg-[#0a0c10]">
-      <CardHeader className="bg-slate-900 dark:bg-black py-5 border-b dark:border-white/5 flex flex-row items-center justify-between px-8">
-        <div className="flex items-center gap-4">
-          <div className="p-2.5 rounded-xl bg-primary/20 text-primary border border-primary/20 shadow-inner">
-            <Ruler className="w-5 h-5" />
-          </div>
-          <div>
-            <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white flex items-center gap-3">
-              Floor Plan (Drawn by Our AI)
-              {isDuplex && (
-                <div className="flex bg-white/10 rounded-full p-0.5 ml-2">
-                  {viewButton('sheet', 'SHEET')}
-                  {viewButton(0, 'GROUND FL.')}
-                  {viewButton(1, 'UPPER FL.')}
-                </div>
-              )}
-              <button
-                onClick={() => setShowStructure(!showStructure)}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] transition-all ${
-                  showStructure
-                    ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                    : 'bg-white/10 text-slate-400 hover:bg-white/20'
-                }`}
-              >
-                <Layers className="w-3 h-3" />
-                {showStructure ? 'COLUMNS & BEAMS SHOWN' : 'SHOW COLUMNS & BEAMS'}
-              </button>
-            </CardTitle>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
-                Drawn automatically • Floor levels {shown.map(f => f === 0 ? '±0.00' : `+${(f * STAIR_STOREY_H).toFixed(2)}`).join(' / ')} m
-              </span>
-            </div>
-          </div>
+      {/* one row (owner 2026-10-28): the title, the views, the switches and the download, leaving the space to the drawing */}
+      <CardHeader className="bg-slate-900 dark:bg-black py-2.5 border-b dark:border-white/5 flex flex-row items-center gap-3 px-4 md:px-6 space-y-0 flex-nowrap overflow-x-auto">
+        <div className="p-1.5 rounded-lg bg-primary/20 text-primary border border-primary/20 shrink-0">
+          <Ruler className="w-4 h-4" />
         </div>
-        <div className="flex items-center gap-3">
-          <Badge className="bg-emerald-600 text-white border-none text-[9px] font-black px-4 py-1.5 shadow-lg shadow-emerald-900/20">
-            <CheckCircle2 className="w-3 h-3 mr-1.5" /> READY
+        <div className="min-w-0 flex items-baseline gap-3">
+          <CardTitle className="text-[11px] md:text-[12px] font-black uppercase tracking-[0.18em] text-white truncate">
+            Your AI Studio Floor Plan Design Is Ready
+          </CardTitle>
+          <span className="hidden xl:inline text-[9px] font-bold text-emerald-500 uppercase tracking-widest whitespace-nowrap">
+            Floor levels {shown.map(f => f === 0 ? '±0.00' : `+${(f * STAIR_STOREY_H).toFixed(2)}`).join(' / ')} m
+          </span>
+        </div>
+        <div className="ml-auto flex items-center gap-2 shrink-0">
+          {isDuplex && (
+            <div className="flex bg-white/10 rounded-full p-0.5 whitespace-nowrap">
+              {viewButton('sheet', 'SHEET')}
+              {viewButton(0, 'GROUND')}
+              {viewButton(1, 'UPPER')}
+            </div>
+          )}
+          <button
+            onClick={() => setShowStructure(!showStructure)}
+            title={showStructure ? 'Hide the columns and beams' : 'Show the columns and beams'}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold tracking-widest whitespace-nowrap transition-all ${
+              showStructure
+                ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                : 'bg-white/10 text-slate-400 hover:bg-white/20'
+            }`}
+          >
+            <Layers className="w-3 h-3" />
+            COLUMNS & BEAMS
+          </button>
+          <button
+            onClick={downloadPlan}
+            disabled={downloading}
+            title="Download this drawing as a picture (PNG), marked GS AI Studio"
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold tracking-widest whitespace-nowrap bg-white text-slate-900 hover:bg-slate-200 transition-all disabled:opacity-60"
+          >
+            {downloading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Download className="w-3 h-3" />}
+            DOWNLOAD
+          </button>
+          <Badge className="bg-emerald-600 text-white border-none text-[9px] font-black px-3 py-1 whitespace-nowrap">
+            <CheckCircle2 className="w-3 h-3 mr-1" /> READY
           </Badge>
         </div>
       </CardHeader>
@@ -1334,6 +1355,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
           />
 
           <svg
+            ref={svgRef}
             viewBox={`0 0 ${sheetW} ${sheetH}`}
             className="w-full h-auto drop-shadow-[0_40px_80px_rgba(0,0,0,0.2)] relative z-10"
             style={{ maxWidth: sheet ? undefined : 900 }}

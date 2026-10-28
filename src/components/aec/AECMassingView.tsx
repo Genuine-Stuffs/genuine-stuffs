@@ -261,7 +261,7 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
               <BoxIcon className="w-5 h-5" />
             </div>
             <div>
-              <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white">Structural Massing View</CardTitle>
+              <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white">Your 3D Massing Model</CardTitle>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[9px] font-black text-primary uppercase tracking-widest">
                   {mode === 'three' ? '3D MASSING VIEW' : mode === 'error' ? 'Not available in this browser' : 'Compiling Mesh...'}

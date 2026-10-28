@@ -60,7 +60,7 @@ export const AECSitePlan: React.FC<{ layout: SolvedLayout; setbacks?: Setbacks }
             <MapIcon className="w-5 h-5" />
           </div>
           <div>
-            <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white">Site Plan</CardTitle>
+            <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white">Your Site Plan</CardTitle>
             <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
               The whole plot: house, outbuildings, gate and setbacks
             </span>

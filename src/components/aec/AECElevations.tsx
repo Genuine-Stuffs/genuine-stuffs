@@ -126,7 +126,7 @@ export const AECElevations: React.FC<{ layout: SolvedLayout }> = ({ layout }) =>
             <Building2 className="w-5 h-5" />
           </div>
           <div>
-            <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white">Elevations</CardTitle>
+            <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white">Your Elevations</CardTitle>
             <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
               The four faces of the house, drawn from the plan
             </span>

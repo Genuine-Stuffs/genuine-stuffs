@@ -31,7 +31,7 @@ export const AECSection: React.FC<{ layout: SolvedLayout }> = ({ layout }) => {
             <Layers className="w-5 h-5" />
           </div>
           <div>
-            <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white">Section A–A</CardTitle>
+            <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white">Your Section A–A</CardTitle>
             <span className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">
               A cut through the house at the line A–A on the floor plans
             </span>
