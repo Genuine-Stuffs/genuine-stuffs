@@ -24,6 +24,8 @@ import { hiveRooms } from './need';
 import * as A from '../../../regulations/assembly';
 
 const cm = (m: number) => Math.round(m * 100) / 100;
+/** A rectangle to the centimetre by its edges, not its size: rooms that meet in metres meet on the drawing (a choir 1 cm short of the hall drew two walls, 2026-10-28). */
+const snap = (r: { x: number; y: number; w: number; h: number }) => ({ x: cm(r.x), y: cm(r.y), w: cm(cm(r.x + r.w) - cm(r.x)), h: cm(cm(r.y + r.h) - cm(r.y)) });
 /** The narrowest a band's side may be beside the stage (a store or office). */
 const COL_MIN_W = 2.6;
 
@@ -83,11 +85,11 @@ function squarify(rooms: Room[], r: Rect, rects: Map<string, Rect>, first?: (q: 
         const sum = row.reduce((t, x) => t + x.a, 0);
         if (box.w >= box.h) { // a column on the left of the box
             const w = sum / box.h; let y = box.y;
-            for (const x of row) { const h = x.a / w; rects.set(x.q.room_id, { x: cm(box.x), y: cm(y), w: cm(w), h: cm(h) }); y += h; }
+            for (const x of row) { const h = x.a / w; rects.set(x.q.room_id, { x: box.x, y, w, h }); y += h; }
             box = { x: box.x + w, y: box.y, w: box.w - w, h: box.h };
         } else { // a row along the top of the box
             const h = sum / box.w; let x0 = box.x;
-            for (const x of row) { const w = x.a / h; rects.set(x.q.room_id, { x: cm(x0), y: cm(box.y), w: cm(w), h: cm(h) }); x0 += w; }
+            for (const x of row) { const w = x.a / h; rects.set(x.q.room_id, { x: x0, y: box.y, w, h }); x0 += w; }
             box = { x: box.x, y: box.y + h, w: box.w, h: box.h - h };
         }
     };
@@ -171,7 +173,7 @@ function band(centre: Room, others: Room[], width: number, minDepth: number, y: 
             if (cw * depth >= centre.area - 1e-6 && cw >= Math.min(8, width / 3)) break;
         }
         const centreRect = { x: lw, y, w: cw, h: depth };
-        const map = new Map<string, Rect>([[centre.room_id, { x: cm(lw), y: cm(y), w: cm(cw), h: cm(depth) }]]);
+        const map = new Map<string, Rect>([[centre.room_id, snap({ x: lw, y, w: cw, h: depth })]]);
         let cost = 0;
         for (const [rs, x0, w, tag] of [[left, 0, lw, 'L'], [right, lw + cw, rw, 'R']] as Array<[Room[], number, number, string]>) {
             if (!rs.length) continue;
@@ -204,7 +206,7 @@ function band(centre: Room, others: Room[], width: number, minDepth: number, y: 
 function squarifyOrdered(rooms: Room[], r: Rect, rects: Map<string, Rect>, mirror: boolean) {
     const m = new Map<string, Rect>();
     squarify(rooms, { x: 0, y: 0, w: r.w, h: r.h }, m, undefined, true);
-    for (const [k, q] of m) rects.set(k, { x: cm(mirror ? r.x + r.w - q.x - q.w : r.x + q.x), y: cm(r.y + q.y), w: q.w, h: q.h });
+    for (const [k, q] of m) rects.set(k, snap({ x: mirror ? r.x + r.w - q.x - q.w : r.x + q.x, y: r.y + q.y, w: q.w, h: q.h }));
 }
 
 /** The plan in the building's own frame, or why it can't be drawn. */
@@ -223,7 +225,7 @@ export function planAssembly(program: SpatialProgram, BW: number, BD: number): A
     const rects = new Map<string, Rect>();
     const rearD = band(stage, rear.filter(r => r !== stage), W, A.STAGE_DEPTH.value, 0, rects, undefined, Math.min(hall.stageW, W - 2 * COL_MIN_W));
     const naveD = Math.max(hall.naveDepth, nave.area / W);
-    rects.set(nave.room_id, { x: 0, y: cm(rearD), w: cm(W), h: cm(naveD) });
+    rects.set(nave.room_id, snap({ x: 0, y: rearD, w: W, h: naveD }));
     // the front band's top edge is the hall's back wall: rooms linked to the hall (the media booth) go there first
     const frontD = band(foyer, frontOthers, W, 6, rearD + naveD, rects, { id: nave.room_id, rect: { x: 0, y: rearD, w: W, h: naveD } });
     const D = frontD + naveD + rearD;
