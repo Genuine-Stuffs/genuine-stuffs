@@ -101,7 +101,7 @@ export default function DesignReviews() {
     };
     useEffect(() => { if (allowed) load(); }, [allowed]);
 
-    const loginUrl = `${window.location.origin}/login`;
+    const loginUrl = `${window.location.origin}/reviewers/login`; // the reviewers' own sign-in, straight to AI Studio
     const applyLink = inviteCode ? `${window.location.origin}/reviewers/apply?code=${encodeURIComponent(inviteCode)}` : null;
 
     const act = async (action: Action, app: any) => {

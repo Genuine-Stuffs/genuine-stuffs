@@ -54,7 +54,7 @@ function whatsappNumber(phone: string): string | null {
 
 /** The approval message, the same words on every channel. */
 function approvalText(firstName: string, email: string) {
-    const login = `${SITE_URL()}/login`;
+    const login = `${SITE_URL()}/reviewers/login`; // the reviewers' own sign-in, straight to AI Studio
     return {
         subject: 'Your Genuine Stuffs reviewer application is approved',
         text: `Hello ${firstName},\n\nYour reviewer application for Genuine Stuffs AI Studio is approved.\n\nSign in at ${login} with ${email} and the password you chose when you applied (if you were already signed in, sign out and in again). You will go straight to AI Studio.\n\nUnder each design's drawings there is a "Review this design" panel: score it, name the most important fix, and press "Save review".\n\nThank you for being one of our pioneer reviewers.\nGenuine Stuffs`,

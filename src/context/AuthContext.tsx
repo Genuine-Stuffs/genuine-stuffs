@@ -11,11 +11,15 @@ interface AuthContextType {
     session: Session | null;
     role: Role;
     serverClaims: ServerClaims;
+    /** A reviewer-only account (made by the reviewer application): 'approved' sees AI Studio only, 'waiting' only its status; 'none' for everyone else. */
+    reviewerAccess: ReviewerAccess;
     isLoading: boolean;
     signInWithGoogle: () => Promise<void>;
     signInWithEmail: (email: string, password: string) => Promise<{ user: User | null; session: Session | null }>;
     signInWithOtp: (email: string) => Promise<void>;
     logout: () => Promise<void>;
+    /** Sign out and go to `path` (a reviewer goes back to the reviewer sign-in). */
+    signOutTo: (path: string) => Promise<void>;
     switchEnvironmentView: (newRole: Role) => void;
 }
 
@@ -45,6 +49,19 @@ const roleOf = (user: User | null | undefined, claims: ServerClaims): Role => {
     return (user?.user_metadata?.role as Role) || 'guest';
 };
 
+// An account the reviewer application created (role client, a reviewer status) is a reviewer
+// and nothing else: it never sees the rest of the site (owner 2026-10-28). An existing
+// professional or vendor account that applied keeps its own site; admin and PM are never limited.
+type ReviewerAccess = 'none' | 'approved' | 'waiting';
+const reviewerAccessOf = (user: User | null | undefined, claims: ServerClaims): ReviewerAccess => {
+    const app = user?.app_metadata || {};
+    if (!user || claims.is_admin || claims.is_pm) return 'none';
+    if (app.reviewer_status === undefined && app.is_reviewer === undefined) return 'none';
+    const metaRole = user.user_metadata?.role;
+    if (metaRole === 'professional' || metaRole === 'vendor') return 'none';
+    return claims.is_reviewer ? 'approved' : 'waiting';
+};
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -54,6 +71,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [serverClaims, setServerClaims] = useState<ServerClaims>(NO_CLAIMS);
     const [isLoading, setIsLoading] = useState(true);
     const navigate = useNavigate();
+    // where the next sign-out lands (logout(to)); the auth listener reads it too
+    const afterSignOut = React.useRef("/");
 
     useEffect(() => {
         // Initial session check
@@ -79,7 +98,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setRole('guest');
                 setServerClaims(NO_CLAIMS);
                 setIsLoading(false);
-                navigate("/");
+                navigate(afterSignOut.current);
+                afterSignOut.current = "/";
             } else {
                 setSession(session);
                 setUser(session?.user ?? null);
@@ -135,7 +155,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (error) throw error;
     };
 
-    const logout = async () => {
+    const signOutTo = (path: string) => logout(path);
+    async function logout(to: unknown = "/") {
+        // onClick={logout} passes the click event: only a path counts
+        const dest = typeof to === 'string' ? to : "/";
+        afterSignOut.current = dest;
         // Always force-clear local auth state FIRST, then attempt server-side signout.
         setUser(null);
         setSession(null);
@@ -147,8 +171,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Silently ignore - state is already cleared above
         });
 
-        navigate("/");
-    };
+        navigate(dest);
+    }
 
     // switchEnvironmentView: allows admin/PM users to preview how the UI
     // renders for other roles. Gated by server claims — localStorage cannot
@@ -163,7 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, role, serverClaims, isLoading, signInWithGoogle, signInWithEmail, signInWithOtp, logout, switchEnvironmentView }}>
+        <AuthContext.Provider value={{ user, session, role, serverClaims, reviewerAccess: reviewerAccessOf(user, serverClaims), isLoading, signInWithGoogle, signInWithEmail, signInWithOtp, logout, signOutTo, switchEnvironmentView }}>
             {children}
         </AuthContext.Provider>
     );

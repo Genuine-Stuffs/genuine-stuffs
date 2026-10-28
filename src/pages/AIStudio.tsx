@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
     Ruler,
+    LogOut,
     Calculator,
     BookOpen,
     Sparkles,
@@ -121,7 +122,9 @@ const sanitizeResultText = (raw: any): string | null => {
 };
 
 const AIStudio = () => {
-    const { user, role, serverClaims, switchEnvironmentView } = useAuth();
+    const { user, role, serverClaims, switchEnvironmentView, reviewerAccess, signOutTo } = useAuth();
+    // a reviewer-only account sees AI Studio and nothing else of the site (owner 2026-10-28)
+    const reviewerOnly = reviewerAccess === 'approved';
     const isPro = role === "professional";
     const [searchParams] = useSearchParams();
     const [selectedRole, setSelectedRole] = useState("Architect");
@@ -963,8 +966,8 @@ const AIStudio = () => {
                                 {/* Mobile Sidebar — mirrors Desktop layout exactly */}
                                 <div className="mb-6 flex items-center justify-between gap-1">
                                     <Button variant="ghost" asChild className="flex-1 justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 h-10 transition-all font-black text-[11px] uppercase tracking-widest hover:text-slate-900 dark:hover:text-white" onClick={() => setMobileSidebarOpen(false)}>
-                                        <Link to="/">
-                                            <Home className="w-4 h-4 text-slate-400" /> Home
+                                        <Link to={reviewerOnly ? "/reviewers/account" : "/"}>
+                                            <Home className="w-4 h-4 text-slate-400" /> {reviewerOnly ? "Account" : "Home"}
                                         </Link>
                                     </Button>
                                     <div className="flex items-center gap-1">
@@ -986,6 +989,13 @@ const AIStudio = () => {
                                     </div>
                                 </div>
 
+                                {reviewerOnly ? (
+                                    <div className="mb-6">
+                                        <Button variant="ghost" onClick={() => signOutTo('/reviewers/login')} className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest">
+                                            <LogOut className="w-4 h-4 text-slate-400" /> Sign out
+                                        </Button>
+                                    </div>
+                                ) : (
                                 <div className="mb-6">
                                     <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 px-2">Studio Hub</p>
                                     <div className="space-y-0.5">
@@ -1004,6 +1014,7 @@ const AIStudio = () => {
                                         </Button>
                                     </div>
                                 </div>
+                                )}
 
                                 <div className="flex items-center gap-2 px-2 mb-4">
                                     <Sparkles className="w-4 h-4 text-primary" />
@@ -1019,8 +1030,8 @@ const AIStudio = () => {
                                         <Menu className="w-5 h-5" />
                                     </Button>
                                     <Button variant="ghost" asChild className={`justify-start gap-4 rounded-xl hover:bg-white dark:hover:bg-white/5 transition-all font-black uppercase tracking-widest hover:text-slate-900 dark:hover:text-white ${sidebarOpen ? 'flex-1 h-10 text-[11px]' : 'w-10 h-10 p-0 flex items-center justify-center'}`}>
-                                        <Link to="/" title="Home">
-                                            <Home className={`text-slate-400 ${sidebarOpen ? 'w-4 h-4' : 'w-5 h-5'}`} /> {sidebarOpen && "Home"}
+                                        <Link to={reviewerOnly ? "/reviewers/account" : "/"} title={reviewerOnly ? "Account" : "Home"}>
+                                            <Home className={`text-slate-400 ${sidebarOpen ? 'w-4 h-4' : 'w-5 h-5'}`} /> {sidebarOpen && (reviewerOnly ? "Account" : "Home")}
                                         </Link>
                                     </Button>
                                 </div>
@@ -1038,6 +1049,13 @@ const AIStudio = () => {
                                     {/* Excluded redundant X toggle because Menu toggle exists. */}
                                 </div>
 
+                                {reviewerOnly ? (
+                                    <div className={`mb-4 ${sidebarOpen ? '' : 'flex flex-col items-center'}`}>
+                                        <Button variant="ghost" onClick={() => signOutTo('/reviewers/login')} title="Sign out" className={`rounded-xl text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest hover:text-slate-900 dark:hover:text-white ${sidebarOpen ? 'w-full justify-start gap-4 h-9 text-[10px]' : 'w-10 h-10 p-0 flex items-center justify-center'}`}>
+                                            <LogOut className={`text-slate-400 ${sidebarOpen ? 'w-4 h-4' : 'w-5 h-5'}`} /> {sidebarOpen && "Sign out"}
+                                        </Button>
+                                    </div>
+                                ) : (
                                 <div className={`mb-4 ${sidebarOpen ? '' : 'flex flex-col items-center'}`}>
                                     {sidebarOpen ? (
                                         <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-1 px-2 line-clamp-1">Studio Hub</p>
@@ -1060,6 +1078,7 @@ const AIStudio = () => {
                                         </Button>
                                     </div>
                                 </div>
+                                )}
 
                                 <div className={`flex items-center gap-2 mb-2 ${sidebarOpen ? 'px-2' : 'justify-center py-2'}`} title="AI Studio">
                                     <Sparkles className={`text-primary ${sidebarOpen ? 'w-4 h-4' : 'w-5 h-5'}`} />

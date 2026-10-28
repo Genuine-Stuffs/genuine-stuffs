@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "backend/supabaseClient";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { ReviewerShell } from "@/pages/ReviewerPortal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -73,10 +72,8 @@ export default function ReviewerApply() {
     const body = DISCIPLINES.find(d => d.key === form.discipline)?.body;
 
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-background flex flex-col">
-            <Navbar />
-            <main className="flex-grow pt-24 pb-20 px-4">
-                <div className="max-w-2xl mx-auto">
+        <ReviewerShell>
+                <div>
                     {!code ? (
                         <div className="bg-white dark:bg-white/5 p-8 rounded-2xl border border-slate-100 dark:border-white/10 text-center space-y-3">
                             <h1 className="text-2xl font-black text-slate-800 dark:text-white">Reviewer applications</h1>
@@ -90,7 +87,7 @@ export default function ReviewerApply() {
                                 Thank you. We will review your application and confirm in the reviewers' group when it is approved.
                                 Then sign in with your email and {done.existing ? 'the password you already use on Genuine Stuffs' : 'the password you just chose'}: you will go straight to AI Studio.
                             </p>
-                            <Button asChild variant="outline"><Link to="/login">Go to sign in</Link></Button>
+                            <Button asChild variant="outline"><Link to="/reviewers/login">Go to reviewer sign-in</Link></Button>
                         </div>
                     ) : (
                         <form onSubmit={submit} className="bg-white dark:bg-white/5 p-6 md:p-8 rounded-2xl border border-slate-100 dark:border-white/10 space-y-6">
@@ -136,11 +133,10 @@ export default function ReviewerApply() {
                             <Button type="submit" disabled={sending} className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs">
                                 {sending ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send application'}
                             </Button>
+                            <p className="text-xs text-center text-slate-500">Already approved? <Link to="/reviewers/login" className="text-primary font-bold">Sign in</Link></p>
                         </form>
                     )}
                 </div>
-            </main>
-            <Footer />
-        </div>
+        </ReviewerShell>
     );
 }

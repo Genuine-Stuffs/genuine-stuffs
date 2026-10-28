@@ -50,7 +50,7 @@ When you press **Approve** (or **Restore**), the server tells the reviewer at on
 2. A business can start a WhatsApp chat only with a template Meta has approved. In WhatsApp Manager → Message templates, create:
    - Name `reviewer_approved`, category **Utility**, language **English**
    - Body: `Hello {{1}}, your reviewer application for Genuine Stuffs AI Studio has been approved. Sign in at {{2}} with the email and password you used when you applied. Thank you for being one of our pioneer reviewers.`
-   - Sample values: `Ada` and `https://www.genuinestuffs.com/login`
+   - Sample values: `Ada` and `https://www.genuinestuffs.com/reviewers/login`
    Approval usually takes minutes to a day.
 3. Create a **permanent** access token (Business Settings → System users → add a system user with WhatsApp permissions → generate token). The 24-hour test token stops working.
 4. Set the secrets (the phone number ID is on the WhatsApp → API Setup page):

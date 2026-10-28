@@ -37,6 +37,7 @@ import BlogPost from "./pages/BlogPost";
 import BlogAdmin from "./pages/BlogAdmin";
 import DesignReviews from "./pages/DesignReviews";
 import ReviewerApply from "./pages/ReviewerApply";
+import { ReviewerGate, ReviewerLogin, ReviewerStatus, ReviewerAccount } from "./pages/ReviewerPortal";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { ThemeProvider } from "./components/ThemeProvider";
@@ -58,6 +59,8 @@ const App = () => (
             <CartProvider>
               <div className="flex flex-col min-h-screen">
                 <main className="flex-grow pb-20 md:pb-0">
+                  {/* a reviewer-only account stays on the reviewers' pages and AI Studio */}
+                  <ReviewerGate>
                   <Routes>
                     <Route path="/" element={<Index />} />
                     <Route path="/methodology" element={<Methodology />} />
@@ -97,10 +100,14 @@ const App = () => (
                     <Route path="/admin/blog" element={<BlogAdmin />} />
                     <Route path="/admin/reviews" element={<DesignReviews />} />
                     <Route path="/reviewers/apply" element={<ReviewerApply />} />
+                    <Route path="/reviewers/login" element={<ReviewerLogin />} />
+                    <Route path="/reviewers/status" element={<ReviewerStatus />} />
+                    <Route path="/reviewers/account" element={<ReviewerAccount />} />
 
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />
                   </Routes>
+                  </ReviewerGate>
                 </main>
                 <BottomNav />
               </div>
