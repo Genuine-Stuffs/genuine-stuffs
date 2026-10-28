@@ -51,7 +51,10 @@ serve(async (req: Request) => {
         if (text(body?.website)) return json({ submitted: true, existing: false });
 
         const email = text(body?.email, 200).toLowerCase();
-        const fullName = text(body?.full_name, 120);
+        // the name as surname and other names (the standard for every form that asks a name)
+        const surname = text(body?.surname, 60);
+        const otherNames = text(body?.other_names, 80);
+        const fullName = `${otherNames} ${surname}`.trim();
         const phone = text(body?.phone, 40);
         const discipline = text(body?.discipline, 40);
         const password = String(body?.password ?? '');
@@ -59,7 +62,8 @@ serve(async (req: Request) => {
 
         const missing: string[] = [];
         if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) missing.push('a valid email');
-        if (!fullName) missing.push('your full name');
+        if (!surname) missing.push('your surname');
+        if (!otherNames) missing.push('your other names');
         if (!phone) missing.push('a phone number');
         if (!DISCIPLINES.includes(discipline)) missing.push('your discipline');
         if (missing.length) return json({ error: `Please give ${missing.join(', ')}.` }, 400);
@@ -67,7 +71,6 @@ serve(async (req: Request) => {
         const db = createClient(Deno.env.get('SUPABASE_URL') ?? '', serviceRoleKey, { auth: { persistSession: false } });
 
         // The account: a new one with the chosen password, or the one this email already has
-        const [firstName, ...rest] = fullName.split(/\s+/);
         let userId: string;
         let existing = false;
         if (password.length < 8) {
@@ -78,7 +81,7 @@ serve(async (req: Request) => {
         } else {
             const { data, error } = await db.auth.admin.createUser({
                 email, password, email_confirm: true,
-                user_metadata: { full_name: fullName, first_name: firstName ?? '', last_name: rest.join(' '), role: 'client' },
+                user_metadata: { full_name: fullName, surname, other_names: otherNames, first_name: otherNames.split(/\s+/)[0] ?? '', last_name: surname, role: 'client' },
                 app_metadata: { reviewer_status: 'pending' },
             });
             if (data?.user) {
@@ -101,7 +104,7 @@ serve(async (req: Request) => {
 
         const { error: insertError } = await db.from('reviewer_applications').insert({
             user_id: userId,
-            email, full_name: fullName, phone, discipline,
+            email, full_name: fullName, surname, other_names: otherNames, phone, discipline,
             organisation: text(body?.organisation, 200) || null,
             professional_body: text(body?.professional_body, 100) || null,
             registration_number: text(body?.registration_number, 100) || null,

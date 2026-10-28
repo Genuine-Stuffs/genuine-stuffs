@@ -54,6 +54,9 @@ const download = (name: string, text: string, type: string) => {
     URL.revokeObjectURL(url);
 };
 
+// "SURNAME, Other names" when the application has both (applications before 2026-10-28 have full_name only)
+const displayName = (a: any) => a.surname ? `${String(a.surname).toUpperCase()}, ${a.other_names ?? ''}`.trim() : a.full_name;
+
 const csvCell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
 const copy = (text: string) => { navigator.clipboard.writeText(text); toast.success("Copied."); };
 
@@ -92,11 +95,11 @@ export default function DesignReviews() {
     const applyLink = inviteCode ? `${window.location.origin}/reviewers/apply?code=${encodeURIComponent(inviteCode)}` : null;
 
     const act = async (action: Action, app: any) => {
-        if (CONFIRM[action] && !window.confirm(`${app.full_name} (${app.email})\n\n${CONFIRM[action]}`)) return;
+        if (CONFIRM[action] && !window.confirm(`${displayName(app)} (${app.email})\n\n${CONFIRM[action]}`)) return;
         setBusy(app.id);
         try {
             const res = await manage({ action, id: app.id });
-            const first = String(app.full_name).split(/\s+/)[0];
+            const first = String(app.other_names || app.full_name).split(/\s+/)[0];
             if (action === 'reset_password') {
                 setHandover({
                     title: 'Send this to the reviewer now. The password is shown only once and is not stored anywhere.',
@@ -204,7 +207,7 @@ export default function DesignReviews() {
                                 {sortedApplications.map(app => (
                                     <div key={app.id} className="rounded-xl border border-slate-100 dark:border-white/10 p-4 space-y-2">
                                         <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-                                            <span className="font-black">{app.full_name}</span>
+                                            <span className="font-black">{displayName(app)}</span>
                                             <span className="text-sm">{disciplineLabel(app.discipline)}</span>
                                             <span className={`text-xs font-bold ${STATUS[app.status]?.className ?? ''}`}>{STATUS[app.status]?.label ?? app.status}</span>
                                             <span className="text-xs text-slate-400">applied {new Date(app.created_at).toLocaleString()}</span>

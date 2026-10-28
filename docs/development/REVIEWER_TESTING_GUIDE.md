@@ -5,7 +5,7 @@ Architects, structural engineers and other professionals apply through a link sh
 ## How it works
 
 1. **The link:** `https://www.genuinestuffs.com/reviewers/apply?code=<REVIEWER_INVITE_CODE>`. It opens the onboarding form. A link without the right code is refused. Changing the `REVIEWER_INVITE_CODE` secret closes the old link and needs a new one shared.
-2. **The form:** name, email, WhatsApp phone, discipline, professional body and registration number, years in practice, city, firm, portfolio link, a note, and a password the applicant chooses. They accept a confidentiality term.
+2. **The form:** surname and other names (two fields, the standard for every form that asks a name), email, WhatsApp phone, discipline, professional body and registration number, years in practice, city, firm, portfolio link, a note, and a password the applicant chooses. They accept a confidentiality term.
 3. **On submit:** a login is created with their password but **no AI Studio access**. If the email already has an account, it keeps its own password. The application waits on the admin page. If they sign in before approval, they are told it is still waiting.
 4. **The admin decides:** Admin home → **Design Reviewers** (the card shows how many applications are waiting) → **Approve** or **Reject**. Approving is the only thing that grants AI Studio (`app_metadata.is_reviewer`, which no user can set for themselves). The page then shows an approval message to copy and send.
 5. **Reviewing:** the reviewer signs in at `/login` and lands in AI Studio, with no credit limit and PDF/DXF downloads. Under each design's drawings is **Review this design**: 10 criteria scored 1–5 or N/A, an overall verdict, the most important fix, comments, and **Save review**.

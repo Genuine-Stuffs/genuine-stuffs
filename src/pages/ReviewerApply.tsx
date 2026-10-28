@@ -29,7 +29,7 @@ export const DISCIPLINES = [
 ];
 
 const EMPTY = {
-    full_name: '', email: '', phone: '', discipline: '', organisation: '',
+    surname: '', other_names: '', email: '', phone: '', discipline: '', organisation: '',
     professional_body: '', registration_number: '', years_experience: '',
     location: '', portfolio_url: '', note: '', password: '', confirm: '', website: '',
 };
@@ -47,7 +47,7 @@ export default function ReviewerApply() {
 
     const submit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!form.full_name.trim() || !form.email.trim() || !form.phone.trim() || !form.discipline) {
+        if (!form.surname.trim() || !form.other_names.trim() || !form.email.trim() || !form.phone.trim() || !form.discipline) {
             toast.error("Please fill in every field marked *."); return;
         }
         if (form.password.length < 8) { toast.error("Choose a password of at least 8 characters."); return; }
@@ -56,7 +56,8 @@ export default function ReviewerApply() {
         setSending(true);
         try {
             const { confirm, ...fields } = form;
-            const { data, error } = await supabase.functions.invoke('reviewer-apply', { body: { code, ...fields } });
+            // full_name too, for a server function deployed before surname / other names
+            const { data, error } = await supabase.functions.invoke('reviewer-apply', { body: { code, ...fields, full_name: `${fields.other_names.trim()} ${fields.surname.trim()}` } });
             if (error) {
                 const detail = await (error as any).context?.json?.().catch(() => null);
                 throw new Error(detail?.error || error.message);
@@ -102,7 +103,8 @@ export default function ReviewerApply() {
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div className="space-y-1.5 md:col-span-2"><Label>Full name *</Label><Input value={form.full_name} onChange={set('full_name')} autoComplete="name" /></div>
+                                <div className="space-y-1.5"><Label>Surname *</Label><Input value={form.surname} onChange={set('surname')} autoComplete="family-name" /></div>
+                                <div className="space-y-1.5"><Label>Other names *</Label><Input value={form.other_names} onChange={set('other_names')} autoComplete="given-name" placeholder="First and middle names" /></div>
                                 <div className="space-y-1.5"><Label>Email *</Label><Input type="email" value={form.email} onChange={set('email')} autoComplete="email" /></div>
                                 <div className="space-y-1.5"><Label>Phone (WhatsApp) *</Label><Input type="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" placeholder="+234 ..." /></div>
                                 <div className="space-y-1.5 md:col-span-2">
@@ -128,7 +130,7 @@ export default function ReviewerApply() {
 
                             <label className="flex items-start gap-3 text-sm text-slate-600 dark:text-slate-300">
                                 <input type="checkbox" checked={agreed} onChange={e => setAgreed(e.target.checked)} className="mt-1" />
-                                <span>I will keep the designs and the tool confidential, review honestly from my professional experience, and understand that AI Studio's drawings are test output, not drawings for construction.</span>
+                                <span>I will keep the designs and the tool confidential, review honestly from my professional experience, and understand that AI Studio's drawings are currently test outputs, and not approved drawings for construction yet.</span>
                             </label>
 
                             <Button type="submit" disabled={sending} className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs">
