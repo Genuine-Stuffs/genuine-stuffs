@@ -41,6 +41,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import { supabase } from "backend/supabaseClient";
 import CreditInfo from "@/components/CreditInfo";
+import DesignReviewPanel from "@/components/review/DesignReviewPanel";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
 import { newerBuildAvailable, reloadKeepingPrompt, takePendingPrompt } from "@/lib/appVersion";
@@ -341,7 +342,7 @@ const AIStudio = () => {
         if (!designPackage) return;
 
         // SaaS Gating: Unlock only for premium or active packages (admins bypass)
-        const isPremium = subscriptionStatus === 'active' || (credits !== null && credits > 10) || role === 'admin' || role === 'pm';
+        const isPremium = subscriptionStatus === 'active' || (credits !== null && credits > 10) || role === 'admin' || role === 'pm' || serverClaims.is_reviewer;
         if (!isPremium) {
             toast.error("To download documents, please buy a credit package first.");
             if (isPro) setShowRefillModal(true);
@@ -520,7 +521,7 @@ const AIStudio = () => {
         }
 
         // SaaS Gating: Unlock only for premium or active packages (admins bypass)
-        const isPremium = subscriptionStatus === 'active' || (credits !== null && credits > 10) || role === 'admin' || role === 'pm';
+        const isPremium = subscriptionStatus === 'active' || (credits !== null && credits > 10) || role === 'admin' || role === 'pm' || serverClaims.is_reviewer;
         if (!isPremium) {
             toast.error("To download CAD (Computer-Aided Design) files, please buy a credit package first.");
             if (isPro) setShowRefillModal(true);
@@ -572,8 +573,8 @@ const AIStudio = () => {
     };
 
     const handleGenerate = async () => {
-        // Bypass credit check for admin/pm users based on server-verified claims
-        if (!serverClaims.is_admin && !serverClaims.is_pm && (credits === null || credits < 2)) {
+        // Bypass credit check for admin/pm users and hired reviewers based on server-verified claims
+        if (!serverClaims.is_admin && !serverClaims.is_pm && !serverClaims.is_reviewer && (credits === null || credits < 2)) {
             toast.error("Not enough credits.");
             if (isPro) setShowRefillModal(true);
             return;
@@ -721,6 +722,8 @@ const AIStudio = () => {
                     // the same geometry as its entry in the options list.
                     const solverOptions = { floors_override: briefFloors, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting(), outbuildings_in_rear_setback: setback.plan.choice.outbuildingsInRear !== false };
                     const program = { ...finalDesignData };
+                    // kept so a reviewed plan can be redrawn exactly (seed included)
+                    finalDesignData.solveRequest = { envelope, options: solverOptions };
                     const solved = await solveLayoutInWorker(finalDesignData, envelope, solverOptions);
                     finalDesignData.solvedLayout = solved;
 
@@ -1425,6 +1428,18 @@ const AIStudio = () => {
                                                                 <AECMassingView layout={stableLayout} />
                                                                 <AECBillOfQuantities layout={stableLayout} materials={designPackage.material_schedule || []} />
                                                             </>
+                                                        )}
+
+                                                        {/* Hired reviewers (and the admin, to try it) score the plan shown */}
+                                                        {user && (serverClaims.is_reviewer || serverClaims.is_admin) && (
+                                                            <DesignReviewPanel
+                                                                userId={user.id}
+                                                                userEmail={user.email}
+                                                                discipline={serverClaims.reviewer_discipline}
+                                                                prompts={messages.filter(m => m.role === 'user').map(m => String(m.content ?? ''))}
+                                                                designPackage={designPackage}
+                                                                layout={stableLayout}
+                                                            />
                                                         )}
                                                         
                                                         {/* ── REAL COMPLIANCE BANNER — driven by compliance_engine.ts ── */}

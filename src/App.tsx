@@ -35,6 +35,8 @@ import HireExperts from "./pages/HireExperts";
 import BlogList from "./pages/BlogList";
 import BlogPost from "./pages/BlogPost";
 import BlogAdmin from "./pages/BlogAdmin";
+import DesignReviews from "./pages/DesignReviews";
+import ReviewerApply from "./pages/ReviewerApply";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { ThemeProvider } from "./components/ThemeProvider";
@@ -93,6 +95,8 @@ const App = () => (
                     <Route path="/blog" element={<BlogList />} />
                     <Route path="/blog/:slug" element={<BlogPost />} />
                     <Route path="/admin/blog" element={<BlogAdmin />} />
+                    <Route path="/admin/reviews" element={<DesignReviews />} />
+                    <Route path="/reviewers/apply" element={<ReviewerApply />} />
 
                     {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                     <Route path="*" element={<NotFound />} />

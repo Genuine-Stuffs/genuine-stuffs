@@ -69,6 +69,13 @@ const Login = () => {
                 } else if (is_pm) {
                     // Non-technical Owner: straight into PM dashboard, no overlay
                     navigate("/pm-dashboard");
+                } else if (appMeta.is_reviewer === true) {
+                    // An approved reviewer: straight into AI Studio
+                    navigate('/pro/ai-studio');
+                } else if (appMeta.reviewer_status === 'pending') {
+                    // Applied from the reviewer link, not approved yet: no AI Studio
+                    toast.info("Your reviewer application is waiting for approval. We'll confirm in the reviewers' group.");
+                    navigate('/');
                 } else {
                     // Everyone else: route by user_metadata role as today
                     const roleFromMeta = authData.user.user_metadata?.role;

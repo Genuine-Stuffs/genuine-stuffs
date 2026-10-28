@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
-import { User, HardHat, Store, ShieldCheck, Crown, LogOut } from 'lucide-react';
+import { User, HardHat, Store, ShieldCheck, Crown, LogOut, ClipboardCheck } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { supabase } from 'backend/supabaseClient';
@@ -26,6 +26,14 @@ const AdminHome = () => {
             }
         }
     }, [serverClaims.is_admin, serverClaims.is_pm, serverClaims.is_marketing, isLoading, navigate]);
+
+    // reviewer applications waiting for a decision, shown on the Design Reviewers card
+    const [pendingReviewers, setPendingReviewers] = useState(0);
+    useEffect(() => {
+        if (isLoading || !serverClaims.is_admin) return;
+        (supabase as any).from('reviewer_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+            .then(({ count }: { count: number | null }) => setPendingReviewers(count ?? 0));
+    }, [isLoading, serverClaims.is_admin]);
 
     // Always show a spinner while loading — never flash the guard redirect
     if (isLoading) {
@@ -88,6 +96,20 @@ const AdminHome = () => {
             textColor: 'text-emerald-600',
             hoverColor: 'hover:border-emerald-600',
             visible: serverClaims.is_pm || serverClaims.is_admin
+        },
+        {
+            id: 'reviews',
+            title: 'Design Reviewers',
+            description: pendingReviewers > 0
+                ? `${pendingReviewers} application${pendingReviewers === 1 ? '' : 's'} waiting for approval. Approve reviewers and read their reviews.`
+                : 'Approve architects and engineers who apply to test AI Studio, and read their reviews.',
+            icon: ClipboardCheck,
+            role: 'admin' as const,
+            route: '/admin/reviews',
+            color: 'bg-violet-600',
+            textColor: 'text-violet-600',
+            hoverColor: 'hover:border-violet-600',
+            visible: serverClaims.is_admin
         },
         {
             id: 'pro',
