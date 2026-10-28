@@ -1,12 +1,13 @@
 import type { SolvedLayout } from 'supabase/functions/ai-studio/schema';
 import { computeWalls, WALL_THICKNESS } from './walls';
 import { wallKind, roomName } from './section';
+import { planToIfc } from './ifcExport';
 
 // Download a drawing in the format the professional chooses (PDF, DXF, SVG, PNG) with "GS AI
 // Studio" watermarked on every copy (owner 2026-10-28). The on-screen drawing is never marked:
 // the mark goes on a copy of the SVG (PDF, SVG, PNG) or on its own layer of the DXF, which is
-// built from the plan itself. DWG and Revit's RVT are closed formats: AutoCAD saves the DXF as
-// DWG, and Revit takes IFC (next).
+// built from the plan itself, and IFC (ifcExport.ts), the whole building for Revit and ArchiCAD.
+// DWG and Revit's RVT are closed formats: AutoCAD saves the DXF as DWG; Revit opens the IFC.
 
 /** Presentation properties copied from the page's stylesheet onto the copy, so classes (Tailwind fills, label fonts) survive outside the page. */
 const STYLE_PROPS = ['fill', 'fill-opacity', 'stroke', 'stroke-width', 'stroke-opacity', 'stroke-dasharray', 'opacity',
@@ -94,12 +95,13 @@ function save(blob: Blob, name: string) {
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
-export type PlanFormat = 'png' | 'pdf' | 'svg' | 'dxf';
+export type PlanFormat = 'png' | 'pdf' | 'svg' | 'dxf' | 'ifc';
 
 /** The formats offered, with what each opens in (shown in the download menu). */
 export const PLAN_FORMATS: Array<{ format: PlanFormat; label: string; opensIn: string }> = [
   { format: 'pdf', label: 'PDF', opensIn: 'print, share, mark up' },
-  { format: 'dxf', label: 'DXF (CAD)', opensIn: 'AutoCAD (save as DWG), BricsCAD, ArchiCAD, Revit' },
+  { format: 'ifc', label: 'IFC (BIM model)', opensIn: 'Revit, ArchiCAD, Vectorworks, BIM viewers: the whole building' },
+  { format: 'dxf', label: 'DXF (CAD)', opensIn: 'AutoCAD (save as DWG), BricsCAD, LibreCAD' },
   { format: 'svg', label: 'SVG (vector)', opensIn: 'Illustrator, Inkscape, any browser' },
   { format: 'png', label: 'PNG (picture)', opensIn: 'any image viewer' },
 ];
@@ -111,6 +113,8 @@ export const PLAN_FORMATS: Array<{ format: PlanFormat; label: string; opensIn: s
  */
 export async function downloadPlan(format: PlanFormat, svg: SVGSVGElement, fileName: string, layout: SolvedLayout, floors: number[], label = 'GS AI Studio'): Promise<void> {
   if (format === 'dxf') { save(new Blob([planToDxf(layout, floors, label)], { type: 'application/dxf' }), `${fileName}.dxf`); return; }
+  // IFC: the whole building, every floor, whichever view is on screen
+  if (format === 'ifc') { save(new Blob([planToIfc(layout, label, `AI Studio design ${new Date().toISOString().slice(0, 10)}`)], { type: 'application/x-step' }), `${fileName.replace(/-floor-plans?|-(ground|upper)-floor-plan/, '-building')}.ifc`); return; }
   const { markup, width, height, canvas } = await markedCopy(svg, label, format === 'pdf' ? 3 : 2);
   if (format === 'svg') { save(new Blob([markup], { type: 'image/svg+xml;charset=utf-8' }), `${fileName}.svg`); return; }
   if (format === 'png') {

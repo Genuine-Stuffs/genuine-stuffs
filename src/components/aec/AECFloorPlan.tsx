@@ -1347,7 +1347,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
               ))}
               <DropdownMenuSeparator />
               <p className="px-2 py-1.5 text-[10px] text-slate-500 leading-snug">
-                DWG: open the DXF in AutoCAD and save it as DWG. Revit (RVT): open the DXF in Revit; a full building model for Revit (IFC) is coming.
+                DWG: open the DXF in AutoCAD and save it as DWG. Revit (RVT): open the IFC in Revit (File, Open, IFC) and save it as RVT.
               </p>
             </DropdownMenuContent>
           </DropdownMenu>
