@@ -209,7 +209,98 @@ async function mountThreeViewer(
 
 
 
-type RenderMode = 'loading' | 'three' | 'error';
+// ── The massing model without WebGL (owner 2026-10-28: Chrome with graphics acceleration off, or
+// a blocked GPU, has no WebGL at all since Chrome dropped its software fallback). Each room a
+// block in its colour, stacked storey by storey; drag across to turn the building, up and down to
+// tilt. Drawn as SVG, back to front, so it works in every browser.
+
+interface MassBox { x: number; y: number; w: number; d: number; z: number; h: number; colour: number; label: string }
+
+/** The same blocks the 3D viewer draws: each room inset by its wall, at its storey's height. */
+function massBoxes(layout: SolvedLayout): MassBox[] {
+  const sourceRooms: any[] = layout.program_reference?.rooms ?? [];
+  const rooms = [...layout.placed_rooms, ...(layout.outbuildings ?? []).flatMap(b => b.rooms)];
+  const FLOOR_H = 3.2, WALL_T = 0.12;
+  return rooms.filter(r => [r.x, r.y, r.width, r.depth].every(v => typeof v === 'number' && !isNaN(v)) && r.width > 0 && r.depth > 0
+      && !r.room_id.startsWith('stairwell_void') && !r.room_id.startsWith('atrium_'))
+    .map(r => {
+      const src = sourceRooms.find(q => q.room_id === r.room_id || q.id === r.room_id);
+      const id = r.room_id.toLowerCase();
+      const h = id.includes('garage') ? 4.0 : r.floor === 0 ? 3.2 : 3.0;
+      return { x: r.x + WALL_T / 2, y: r.y + WALL_T / 2, w: r.width - WALL_T, d: r.depth - WALL_T, z: r.floor * FLOOR_H, h: h - 0.1,
+        colour: getRoomColour(src?.type ?? ''), label: String(src?.name ?? r.room_id) };
+    });
+}
+
+const hex = (c: number, k = 1) => {
+  const r = Math.round(((c >> 16) & 255) * k), g = Math.round(((c >> 8) & 255) * k), b = Math.round((c & 255) * k);
+  return `rgb(${r},${g},${b})`;
+};
+
+function MassingSvg({ layout }: { layout: SolvedLayout }) {
+  const [az, setAz] = useState(-35);   // degrees round the building
+  const [el, setEl] = useState(32);    // degrees above the ground
+  const drag = useRef<{ x: number; y: number; az: number; el: number } | null>(null);
+  const boxes = React.useMemo(() => massBoxes(layout), [layout]);
+  const plotW = layout.plot_width || 15, plotD = layout.plot_depth || 30;
+  const off = layout.site_offset ?? { x: 0, y: 0 };
+  const cx = (layout.building_width ?? plotW) / 2, cy = (layout.building_depth ?? plotD) / 2;
+  const a = (az * Math.PI) / 180, e = (el * Math.PI) / 180;
+  const ca = Math.cos(a), sa = Math.sin(a), se = Math.sin(e), ce = Math.cos(e);
+  // plan (x, y) and height z to the sheet; `depth` grows towards the viewer
+  const P = (x: number, y: number, z: number) => {
+    const X = (x - cx) * ca - (y - cy) * sa, Y = (x - cx) * sa + (y - cy) * ca;
+    return { sx: X, sy: Y * se - z * ce, depth: Y };
+  };
+  const faces: Array<{ pts: string; fill: string; key: string }> = [];
+  // storey by storey from the ground up, each storey back to front
+  const order = [...boxes].sort((p, q) => p.z - q.z || P(p.x + p.w / 2, p.y + p.d / 2, 0).depth - P(q.x + q.w / 2, q.y + q.d / 2, 0).depth);
+  let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+  const pt = (x: number, y: number, z: number) => {
+    const q = P(x, y, z); minX = Math.min(minX, q.sx); maxX = Math.max(maxX, q.sx); minY = Math.min(minY, q.sy); maxY = Math.max(maxY, q.sy);
+    return `${q.sx.toFixed(3)},${q.sy.toFixed(3)}`;
+  };
+  // the plot, under everything (in the building's frame: the plot starts at -site_offset)
+  const px0 = -off.x, py0 = -off.y;
+  const plot = [pt(px0, py0, 0), pt(px0 + plotW, py0, 0), pt(px0 + plotW, py0 + plotD, 0), pt(px0, py0 + plotD, 0)].join(' ');
+  order.forEach((b, i) => {
+    const x0 = b.x, x1 = b.x + b.w, y0 = b.y, y1 = b.y + b.d, z0 = b.z, z1 = b.z + b.h;
+    // the four sides, each with its outward normal; a side faces the viewer when its normal's depth is positive
+    const sides: Array<[number, number, number, number, number, number]> = [
+      [x0, y1, x1, y1, 0, 1], [x1, y0, x0, y0, 0, -1], [x1, y1, x1, y0, 1, 0], [x0, y0, x0, y1, -1, 0],
+    ];
+    for (const [ax, ay, bx, by, nx, ny] of sides) {
+      const facing = nx * sa + ny * ca;
+      if (facing <= 0) continue;
+      faces.push({ key: `${i}s${nx}${ny}`, fill: hex(b.colour, 0.55 + 0.3 * facing), pts: [pt(ax, ay, z0), pt(bx, by, z0), pt(bx, by, z1), pt(ax, ay, z1)].join(' ') });
+    }
+    faces.push({ key: `${i}t`, fill: hex(b.colour, 1), pts: [pt(x0, y0, z1), pt(x1, y0, z1), pt(x1, y1, z1), pt(x0, y1, z1)].join(' ') });
+  });
+  const pad = Math.max(maxX - minX, maxY - minY) * 0.06;
+  const onDown = (ev: React.PointerEvent) => { (ev.target as Element).setPointerCapture?.(ev.pointerId); drag.current = { x: ev.clientX, y: ev.clientY, az, el }; };
+  const onMove = (ev: React.PointerEvent) => {
+    const d = drag.current; if (!d) return;
+    setAz(d.az + (ev.clientX - d.x) * 0.4);
+    setEl(Math.max(12, Math.min(75, d.el - (ev.clientY - d.y) * 0.25)));
+  };
+  return (
+    <div className="absolute inset-0 select-none touch-none cursor-grab active:cursor-grabbing"
+      onPointerDown={onDown} onPointerMove={onMove} onPointerUp={() => { drag.current = null; }} onPointerLeave={() => { drag.current = null; }}>
+      <svg viewBox={`${minX - pad} ${minY - pad} ${maxX - minX + 2 * pad} ${maxY - minY + 2 * pad}`} className="w-full h-full" preserveAspectRatio="xMidYMid meet">
+        <polygon points={plot} fill="#e2e8f0" stroke="#3B82F6" strokeOpacity={0.5} strokeWidth={0.06} />
+        {faces.map(f => <polygon key={f.key} points={f.pts} fill={f.fill} stroke="#ffffff" strokeOpacity={0.55} strokeWidth={0.03} />)}
+      </svg>
+      <div className="absolute top-4 right-4 flex gap-2">
+        <button onClick={() => setAz(v => v - 45)} className="px-3 py-1.5 rounded-lg bg-white/90 border border-slate-200 text-[10px] font-bold text-slate-700 hover:bg-white">⟲ Turn</button>
+        <button onClick={() => setAz(v => v + 45)} className="px-3 py-1.5 rounded-lg bg-white/90 border border-slate-200 text-[10px] font-bold text-slate-700 hover:bg-white">Turn ⟳</button>
+        <button onClick={() => { setAz(-35); setEl(32); }} className="px-3 py-1.5 rounded-lg bg-white/90 border border-slate-200 text-[10px] font-bold text-slate-700 hover:bg-white">Reset view</button>
+      </div>
+      <p className="absolute top-4 left-4 text-[10px] font-bold text-slate-500 bg-white/80 rounded-lg px-2 py-1 pointer-events-none">Drag to turn and tilt the building</p>
+    </div>
+  );
+}
+
+type RenderMode = 'loading' | 'three' | 'svg' | 'error';
 
 const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -240,8 +331,9 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
           cleanup();
         }
       } catch (err) {
-        console.error('[AECMassingView] Three.js render failed:', err);
-        if (!cancelled) { setNoWebGL(/webgl/i.test(String((err as Error)?.message ?? err))); setMode('error'); }
+        const noGL = /webgl/i.test(String((err as Error)?.message ?? err));
+        console.warn(`[AECMassingView] ${noGL ? 'no WebGL in this browser: drawing the massing model without it' : 'Three.js render failed'}:`, err);
+        if (!cancelled) { setNoWebGL(noGL); setMode(noGL ? 'svg' : 'error'); }
       }
     };
 
@@ -264,14 +356,14 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
               <CardTitle className="text-[13px] font-black uppercase tracking-[0.25em] text-white">Your 3D Massing Model</CardTitle>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-[9px] font-black text-primary uppercase tracking-widest">
-                  {mode === 'three' ? '3D MASSING VIEW' : mode === 'error' ? 'Not available in this browser' : 'Compiling Mesh...'}
+                  {mode === 'three' ? 'Drag to orbit, scroll to zoom' : mode === 'svg' ? 'Drag to turn and tilt' : mode === 'error' ? 'Could not be drawn' : 'Building the model...'}
                 </span>
               </div>
             </div>
           </div>
           <Badge variant="outline" className="text-[9px] font-black border-primary/40 text-primary bg-primary/10 px-4 py-1.5">
             <Sparkles className="w-3 h-3 mr-1.5" />
-            {mode === 'three' ? '3D MASSING MODE' : mode === 'error' ? 'UNAVAILABLE' : 'INITIALISING'}
+            {mode === 'three' || mode === 'svg' ? '3D MASSING' : mode === 'error' ? 'UNAVAILABLE' : 'LOADING'}
           </Badge>
         </div>
       </CardHeader>
@@ -281,7 +373,7 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
           <div className="absolute inset-0 flex items-center justify-center bg-[#f1f5f9] z-10">
             <div className="flex flex-col items-center gap-6">
               <div className="w-14 h-14 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
-              <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] animate-pulse">Compiling Massing Model...</p>
+              <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] animate-pulse">Building your massing model...</p>
             </div>
           </div>
         )}
@@ -299,8 +391,9 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
         )}
 
         <div ref={containerRef} className="w-full h-full" />
+        {mode === 'svg' && layout && <MassingSvg layout={layout} />}
 
-        {mode === 'three' && (
+        {(mode === 'three' || mode === 'svg') && (
           <>
             <div className="absolute bottom-4 left-4 flex flex-col gap-1.5 pointer-events-none">
               {[
@@ -312,9 +405,6 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
                   <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">{label}</span>
                 </div>
               ))}
-            </div>
-            <div className="absolute bottom-4 right-4 px-3 py-2 bg-black/60 border border-white/10 rounded-xl backdrop-blur-sm pointer-events-none">
-              <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Copy web-ifc.wasm to /public for full IFC mode</p>
             </div>
           </>
         )}
