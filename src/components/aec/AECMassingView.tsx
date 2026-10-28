@@ -3,6 +3,7 @@ import { SolvedLayout } from 'supabase/functions/ai-studio/schema';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Box as BoxIcon, Sparkles, AlertTriangle } from 'lucide-react';
+import { buildingModel, wallBlocks } from './buildingModel';
 
 interface AECMassingViewProps {
   layout?: SolvedLayout;
@@ -81,17 +82,24 @@ async function mountThreeViewer(
   const plotD  = typeof layout.plot_depth  === 'number' && !isNaN(layout.plot_depth)  ? layout.plot_depth  : 20;
   const maxDim = Math.max(plotW, plotD);
   const camDist   = maxDim * 1.3;
-  const camHeight = maxDim * 0.75;
+  // the building where the site plan puts it on the plot (inside the setbacks), and the camera on the building
+  const off = layout.site_offset ?? { x: 0, y: 0 };
+  const all = [...layout.placed_rooms, ...(layout.outbuildings ?? []).flatMap(b => b.rooms)].filter(r => r.width > 0 && r.depth > 0);
+  const bx0 = Math.min(...all.map(r => r.x)), bx1 = Math.max(...all.map(r => r.x + r.width));
+  const by0 = Math.min(...all.map(r => r.y)), by1 = Math.max(...all.map(r => r.y + r.depth));
+  const storeys = Math.max(1, ...layout.placed_rooms.map(r => r.floor + 1));
+  const focus = new THREE.Vector3((bx0 + bx1) / 2 + off.x - plotW / 2, storeys * 1.6, (by0 + by1) / 2 + off.y - plotD / 2);
+  const span = Math.max(bx1 - bx0, by1 - by0, storeys * 3.2, 6);
 
   const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, camDist * 12);
-  camera.position.set(camDist, camHeight, camDist);
-  camera.lookAt(0, 0, 0);
+  camera.position.set(focus.x + span * 1.15, focus.y + span * 0.8, focus.z + span * 1.35);
+  camera.lookAt(focus);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.06;
   controls.maxPolarAngle = Math.PI / 2.05;
-  controls.target.set(0, 0, 0);
+  controls.target.copy(focus);
   controls.update();
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.7));
@@ -122,58 +130,53 @@ async function mountThreeViewer(
   gridHelper.position.y = -0.04;
   scene.add(gridHelper);
 
-  // the house and its outbuildings (BQ, generator house) behind it
-  const placed_rooms = [...layout.placed_rooms, ...(layout.outbuildings ?? []).flatMap(b => b.rooms)];
   const sourceRooms: any[] = layout.program_reference?.rooms ?? [];
-  const FLOOR_H = 3.2;
-  const WALL_T  = 0.12;
   const cx = plotW / 2;
   const cz = plotD / 2;
 
-  let roomsRendered = 0;
-
-  placed_rooms.forEach(room => {
-    if (
-      typeof room.x     !== 'number' || isNaN(room.x)    ||
-      typeof room.y     !== 'number' || isNaN(room.y)    ||
-      typeof room.width !== 'number' || isNaN(room.width) || room.width  <= 0 ||
-      typeof room.depth !== 'number' || isNaN(room.depth) || room.depth  <= 0
-    ) return;
-
-    const sourceRoom = sourceRooms.find(r => r.room_id === room.room_id || r.id === room.room_id);
-    const roomType   = sourceRoom?.type ?? '';
-    const isVoid     = room.room_id.startsWith('stairwell_void') || room.room_id.startsWith('atrium_'); // open to below: see-through
-    const floorBase  = room.floor * FLOOR_H;
-
-    const roomId = room.room_id.toLowerCase();
-    const roomH = roomId.includes('garage') ? 4.0
-                : (roomId.includes('foyer') || roomId.includes('living') || roomId.includes('lounge')) && room.floor === 0 ? 4.2
-                : room.floor === 0 ? 3.5
-                : 3.0;
-    const geo = new THREE.BoxGeometry(room.width - WALL_T, roomH - 0.1, room.depth - WALL_T);
-    const mat = new THREE.MeshLambertMaterial({
-      color: isVoid ? 0x1e293b : getRoomColour(roomType),
-      transparent: isVoid,
-      opacity: isVoid ? 0.25 : 0.9,
-    });
-
+  // The building itself, from the plan (buildingModel.ts): every wall at its thickness with the
+  // plan's doors and windows cut through it, glass in the windows, and a slab under every room
+  // tinted by what the room is. No roof yet (step 2): the rooms read from above.
+  const model = buildingModel(layout);
+  const plaster = new THREE.MeshStandardMaterial({ color: 0xf4efe6, roughness: 0.92, metalness: 0 });
+  const partition = new THREE.MeshStandardMaterial({ color: 0xfbfaf7, roughness: 0.95, metalness: 0 });
+  const railMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.4, metalness: 0.6 });
+  const glass = new THREE.MeshStandardMaterial({ color: 0x9cc9e8, roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.38 });
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0x64748b, transparent: true, opacity: 0.35 });
+  const typeOf = (id: string) => (sourceRooms.find(r => r.room_id === id || r.id === id)?.type ?? '') as string;
+  const tint = (c: number) => { const k = 0.55; const r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255; return ((r + (255 - r) * k) << 16) | ((g + (255 - g) * k) << 8) | (b + (255 - b) * k); };
+  const floorMats = new Map<number, InstanceType<typeof THREE.MeshStandardMaterial>>();
+  const floorMat = (c: number) => { let m = floorMats.get(c); if (!m) { m = new THREE.MeshStandardMaterial({ color: tint(c), roughness: 0.8 }); floorMats.set(c, m); } return m; };
+  const box = (w: number, h: number, d: number, x: number, y: number, z: number, mat: any, edges = true) => {
+    const geo = new THREE.BoxGeometry(w, h, d);
     const mesh = new THREE.Mesh(geo, mat);
-    mesh.position.set(
-      room.x + room.width / 2 - cx,
-      floorBase + (roomH - 0.1) / 2,
-      room.y + room.depth / 2 - cz
-    );
+    mesh.position.set(x + off.x - cx, y, z + off.y - cz);
     mesh.castShadow = mesh.receiveShadow = true;
     scene.add(mesh);
+    if (edges) { const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat); e.position.copy(mesh.position); scene.add(e); }
+  };
 
-    const edges = new THREE.LineSegments(
-      new THREE.EdgesGeometry(geo),
-      new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.1 })
-    );
-    edges.position.copy(mesh.position);
-    scene.add(edges);
-    roomsRendered++;
-  });
+  for (const s of model.slabs) box(s.w, s.t, s.d, s.x + s.w / 2, s.z + (s.floor === 0 ? s.t / 2 : -s.t / 2), s.y + s.d / 2, floorMat(getRoomColour(typeOf(s.room_id))), false);
+  let blocks = 0;
+  for (const w of model.walls) {
+    const horizontal = w.y0 === w.y1, t = w.thickness;
+    const mat = w.kind === 'rail' ? railMat : w.kind === 'ext' ? plaster : partition;
+    for (const k of wallBlocks(w)) {
+      const len = k.b - k.a, h = k.z1 - k.z0, mid = (k.a + k.b) / 2;
+      if (horizontal) box(len, h, t, w.x0 + mid, k.z0 + h / 2, w.y0, mat);
+      else box(t, h, len, w.x0, k.z0 + h / 2, w.y0 + mid, mat);
+      blocks++;
+    }
+    for (const o of w.openings) {
+      if (o.kind !== 'window') continue;
+      const h = o.z1 - o.z0, mid = o.at + o.width / 2;
+      if (horizontal) box(o.width, h, 0.03, w.x0 + mid, o.z0 + h / 2, w.y0, glass, false);
+      else box(0.03, h, o.width, w.x0, o.z0 + h / 2, w.y0 + mid, glass, false);
+    }
+  }
+  const roomsRendered = model.slabs.length;
+  if (model.unplaced.length) console.warn('[AECMassingView] openings not in a wall:', model.unplaced);
+  console.log(`[AECMassingView] building model: ${model.walls.length} walls (${blocks} blocks), ${model.counts.reduce((t, c) => t + c.placed, 0)} of ${model.counts.reduce((t, c) => t + c.planned, 0)} doors and windows, ${model.slabs.length} slabs.`);
 
   console.log(`[AECMassingView] Three.js rendered ${roomsRendered} rooms on a ${plotW.toFixed(1)}m x ${plotD.toFixed(1)}m plot.`);
 
