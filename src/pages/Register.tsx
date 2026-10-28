@@ -106,8 +106,9 @@ const Register = () => {
         proType: "",
         registrationType: "individual",
         // Vendor specific
-        firstName: "",
-        lastName: "",
+        // a person's name as surname and other names (the standard for every form, owner 2026-10-28)
+        surname: "",
+        otherNames: "",
         companyName: "",
         bizRegNumber: "",
         phone: "",
@@ -289,7 +290,7 @@ const Register = () => {
 
         // Validation
         const requiredFields = [
-            'firstName', 'lastName', 'proType', 'email', 'password',
+            'surname', 'otherNames', 'proType', 'email', 'password',
             'streetAddress', 'city', 'state', 'country', 'nationality'
         ];
         const missingFields = requiredFields.filter(f => !formData[f as keyof typeof formData]);
@@ -309,8 +310,11 @@ const Register = () => {
                 password: formData.password,
                 options: {
                     data: {
-                        first_name: formData.firstName,
-                        last_name: formData.lastName,
+                        surname: formData.surname.trim(),
+                        other_names: formData.otherNames.trim(),
+                        full_name: `${formData.otherNames.trim()} ${formData.surname.trim()}`.trim(),
+                        first_name: formData.otherNames.trim().split(/\s+/)[0] ?? '',
+                        last_name: formData.surname.trim(),
                         role: 'professional'
                     }
                 }
@@ -321,7 +325,7 @@ const Register = () => {
             if (authData.user) {
                 const { error: profileError } = await supabase.from('professionals').insert({
                     id: authData.user.id,
-                    full_name: `${formData.firstName} ${formData.lastName}`.trim(),
+                    full_name: `${formData.otherNames.trim()} ${formData.surname.trim()}`.trim(),
                     specialty: formData.proType,
                     street_address: formData.streetAddress,
                     city: formData.city,
@@ -355,8 +359,11 @@ const Register = () => {
                 password: formData.password,
                 options: {
                     data: {
-                        first_name: formData.firstName,
-                        last_name: formData.lastName,
+                        surname: formData.surname.trim(),
+                        other_names: formData.otherNames.trim(),
+                        full_name: `${formData.otherNames.trim()} ${formData.surname.trim()}`.trim(),
+                        first_name: formData.otherNames.trim().split(/\s+/)[0] ?? '',
+                        last_name: formData.surname.trim(),
                         role: 'vendor'
                     }
                 }
@@ -410,7 +417,7 @@ const Register = () => {
         } else {
             // Vendor Validation by Step
             if (step === 1) {
-                const step1Fields = ['firstName', 'lastName', 'email', 'password', 'nationality', 'country', 'state', 'city', 'streetAddress'];
+                const step1Fields = ['surname', 'otherNames', 'email', 'password', 'nationality', 'country', 'state', 'city', 'streetAddress'];
                 const missing = step1Fields.filter(f => !formData[f as keyof typeof formData]);
                 if (missing.length > 0) {
                     const newErrors: Record<string, boolean> = {};
@@ -555,12 +562,12 @@ const Register = () => {
                                     <div className="space-y-1.5 md:space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                             <div className="space-y-1.5">
-                                                <Label htmlFor="pro-first-name" className="text-[10px] font-black uppercase tracking-widest text-slate-400">First Name *</Label>
-                                                <Input id="pro-first-name" placeholder="John" value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.firstName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Label htmlFor="pro-surname" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Surname *</Label>
+                                                <Input id="pro-surname" autoComplete="family-name" value={formData.surname} onChange={(e) => handleInputChange('surname', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.surname ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                             <div className="space-y-1.5">
-                                                <Label htmlFor="pro-last-name" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Surname *</Label>
-                                                <Input id="pro-last-name" placeholder="Doe" value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                <Label htmlFor="pro-other-names" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Other Names *</Label>
+                                                <Input id="pro-other-names" autoComplete="given-name" placeholder="First and middle names" value={formData.otherNames} onChange={(e) => handleInputChange('otherNames', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.otherNames ? "border-red-500 ring-offset-red-500" : ""}`} />
                                             </div>
                                             <div className="space-y-1.5">
                                                 <Label htmlFor="pro-type" className="text-[10px] font-black uppercase tracking-widest text-slate-400">Your Profession *</Label>
@@ -656,12 +663,12 @@ const Register = () => {
                                             <div className="space-y-1.5 md:space-y-4 animate-in fade-in slide-in-from-right-4 duration-500">
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
                                                     <div className="space-y-1.5">
-                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">First Name *</Label>
-                                                        <Input value={formData.firstName} onChange={(e) => handleInputChange('firstName', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.firstName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Surname *</Label>
+                                                        <Input autoComplete="family-name" value={formData.surname} onChange={(e) => handleInputChange('surname', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.surname ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                     <div className="space-y-1.5">
-                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Last Name *</Label>
-                                                        <Input value={formData.lastName} onChange={(e) => handleInputChange('lastName', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.lastName ? "border-red-500 ring-offset-red-500" : ""}`} />
+                                                        <Label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Other Names *</Label>
+                                                        <Input autoComplete="given-name" placeholder="First and middle names" value={formData.otherNames} onChange={(e) => handleInputChange('otherNames', e.target.value)} className={`h-12 rounded-xl bg-white text-slate-900 ${errors.otherNames ? "border-red-500 ring-offset-red-500" : ""}`} />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1.5">
