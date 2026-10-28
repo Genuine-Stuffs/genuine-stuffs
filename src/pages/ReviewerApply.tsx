@@ -96,7 +96,7 @@ export default function ReviewerApply() {
                         <form onSubmit={submit} className="bg-white dark:bg-white/5 p-6 md:p-8 rounded-2xl border border-slate-100 dark:border-white/10 space-y-6">
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2 text-primary"><ClipboardCheck className="w-5 h-5" /><span className="text-xs font-black uppercase tracking-widest">Design reviewers</span></div>
-                                <h1 className="text-2xl font-black text-slate-800 dark:text-white">Apply to review AI Studio designs</h1>
+                                <h1 className="text-2xl font-black text-slate-800 dark:text-white">Become one of our pioneer reviewers/users</h1>
                                 <p className="text-sm text-slate-500">
                                     AI Studio draws floor plans, elevations, sections, 3D views and bills of quantities from a written brief. As a reviewer you try it with real briefs and score each design against what you would accept in practice. Your access starts once we approve this application.
                                 </p>
