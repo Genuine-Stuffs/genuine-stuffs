@@ -35,6 +35,32 @@ Architects, structural engineers and other professionals apply through a link sh
 5. **Test it yourself:** open the link in a private window, apply with a second email, approve it on Design Reviewers, sign in as that person, and save a review. Your admin account also sees the review panel.
 6. **Share the link** in the WhatsApp group. The Design Reviewers page always shows the current link with a **Copy link** button.
 
+## Approval notices (email and WhatsApp)
+
+When you press **Approve** (or **Restore**), the server tells the reviewer at once by email and by WhatsApp, in the same words. Each channel works only once its keys are set as Supabase secrets. A notice that can't be sent never undoes the approval: the page says what was and wasn't sent and offers **Send on WhatsApp** (it opens WhatsApp with the message ready, to send from your phone) and **Copy message**.
+
+**Email: Resend** (free for up to 3,000 emails a month)
+1. Create an account at resend.com, add the domain `genuinestuffs.com` and add the DNS records it shows (at your domain registrar). Wait until Resend shows the domain as verified.
+2. Create an API key.
+3. Set the secrets:
+   `npx supabase secrets set RESEND_API_KEY=<the key> REVIEWER_EMAIL_FROM="Genuine Stuffs <reviews@genuinestuffs.com>" --project-ref pxcgatrgtlvxkjwhjcfr`
+
+**WhatsApp: Meta WhatsApp Business Cloud API** (the official API; Meta charges per business-started conversation, a few naira each in Nigeria)
+1. At developers.facebook.com create an app of type **Business**, add **WhatsApp**, and connect a phone number the business owns (not one already on the WhatsApp app). Verify the business in Meta Business Manager when asked.
+2. A business can start a WhatsApp chat only with a template Meta has approved. In WhatsApp Manager → Message templates, create:
+   - Name `reviewer_approved`, category **Utility**, language **English**
+   - Body: `Hello {{1}}, your reviewer application for Genuine Stuffs AI Studio has been approved. Sign in at {{2}} with the email and password you used when you applied. Thank you for being one of our pioneer reviewers.`
+   - Sample values: `Ada` and `https://www.genuinestuffs.com/login`
+   Approval usually takes minutes to a day.
+3. Create a **permanent** access token (Business Settings → System users → add a system user with WhatsApp permissions → generate token). The 24-hour test token stops working.
+4. Set the secrets (the phone number ID is on the WhatsApp → API Setup page):
+   `npx supabase secrets set WHATSAPP_TOKEN=<token> WHATSAPP_PHONE_NUMBER_ID=<id> WHATSAPP_APPROVAL_TEMPLATE=reviewer_approved --project-ref pxcgatrgtlvxkjwhjcfr`
+   If the template's language is not `en` (e.g. `en_US`), also set `WHATSAPP_TEMPLATE_LANGUAGE=en_US`.
+
+After setting secrets, redeploy the function: `npx supabase functions deploy manage-reviewers --project-ref pxcgatrgtlvxkjwhjcfr`.
+
+Phone numbers are read as Nigerian when they have no country code (`0803 123 4567` → `+234 803 123 4567`); numbers with a country code are kept.
+
 ## Before you approve
 
 Anyone with the link can apply, and the form doesn't prove that the applicant owns the email they typed. Check each applicant before approving: their registration number with ARCON, COREN, QSRBN, TOPREC or CORBON, and a quick WhatsApp message to the number they gave.

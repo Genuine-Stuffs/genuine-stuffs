@@ -57,6 +57,15 @@ const download = (name: string, text: string, type: string) => {
 // "SURNAME, Other names" when the application has both (applications before 2026-10-28 have full_name only)
 const displayName = (a: any) => a.surname ? `${String(a.surname).toUpperCase()}, ${a.other_names ?? ''}`.trim() : a.full_name;
 
+// a phone number as wa.me wants it: digits with the country code (0803... -> 234803...), as manage-reviewers does
+const waNumber = (phone: string): string | null => {
+    let d = String(phone ?? '').replace(/\D/g, '');
+    if (d.startsWith('00')) d = d.slice(2);
+    if (d.length === 11 && d.startsWith('0')) d = '234' + d.slice(1);
+    if (d.length === 10 && /^[789]/.test(d)) d = '234' + d;
+    return d.length >= 10 && d.length <= 15 ? d : null;
+};
+
 const csvCell = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
 const copy = (text: string) => { navigator.clipboard.writeText(text); toast.success("Copied."); };
 
@@ -69,7 +78,8 @@ export default function DesignReviews() {
     const [reviews, setReviews] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [busy, setBusy] = useState<string | null>(null);
-    const [handover, setHandover] = useState<{ title: string; message: string } | null>(null);
+    // `whatsapp`: a wa.me link with the message, when it still has to be sent by hand
+    const [handover, setHandover] = useState<{ title: string; message: string; whatsapp?: string; notices?: string[] } | null>(null);
     const [open, setOpen] = useState<string | null>(null);
 
     const load = async () => {
@@ -106,9 +116,17 @@ export default function DesignReviews() {
                     message: `Hello ${first},\n\nYour Genuine Stuffs password has been reset.\n\nSign in at: ${loginUrl}\nEmail: ${app.email}\nPassword: ${res.password}\n\nPlease change it under Settings after you sign in.`,
                 });
             } else if (action === 'approve' || action === 'restore') {
-                setHandover({
-                    title: 'Approved. You can send this to the reviewer (or announce it in the group).',
-                    message: `Hello ${first},\n\nYour reviewer application for Genuine Stuffs AI Studio is approved.\n\nSign in at ${loginUrl} with ${app.email} and the password you chose when you applied (if you were already signed in, sign out and in again). You will go straight to AI Studio.\n\nUnder each design's drawings there is a "Review this design" panel: score it, name the most important fix, and press "Save review".\n\nThank you.`,
+                // the server tells the reviewer by email and WhatsApp; anything it couldn't send is offered here
+                const n = res.notices as { email: { sent: boolean; detail: string }; whatsapp: { sent: boolean; detail: string } } | null;
+                const message = `Hello ${first},\n\nYour reviewer application for Genuine Stuffs AI Studio is approved.\n\nSign in at ${loginUrl} with ${app.email} and the password you chose when you applied (if you were already signed in, sign out and in again). You will go straight to AI Studio.\n\nUnder each design's drawings there is a "Review this design" panel: score it, name the most important fix, and press "Save review".\n\nThank you for being one of our pioneer reviewers.`;
+                const phone = waNumber(app.phone);
+                const allSent = !!n?.email.sent && !!n?.whatsapp.sent;
+                if (allSent) toast.success(`Approved. ${first} was told by email and WhatsApp.`);
+                setHandover(allSent ? null : {
+                    title: 'Approved. Not every notice could be sent automatically: send the rest from here.',
+                    message,
+                    notices: n ? [n.email.detail, n.whatsapp.detail] : ['The server sent no notices.'],
+                    whatsapp: !n?.whatsapp.sent && phone ? `https://wa.me/${phone}?text=${encodeURIComponent(message)}` : undefined,
                 });
             } else {
                 toast.success(action === 'reject' ? 'Application rejected.' : 'Access ended.');
@@ -187,8 +205,14 @@ export default function DesignReviews() {
                     {handover && (
                         <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950 border border-amber-200 dark:border-amber-800 space-y-2">
                             <p className="text-xs font-bold text-amber-900 dark:text-amber-100">{handover.title}</p>
+                            {handover.notices?.map((d, i) => <p key={i} className="text-xs text-amber-900 dark:text-amber-100">• {d}</p>)}
                             <pre className="text-xs whitespace-pre-wrap bg-white dark:bg-black/30 p-3 rounded-lg">{handover.message}</pre>
                             <div className="flex gap-2">
+                                {handover.whatsapp && (
+                                    <Button size="sm" asChild className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                                        <a href={handover.whatsapp} target="_blank" rel="noopener noreferrer">Send on WhatsApp</a>
+                                    </Button>
+                                )}
                                 <Button size="sm" variant="outline" onClick={() => copy(handover.message)}><Copy className="w-3 h-3 mr-2" />Copy message</Button>
                                 <Button size="sm" variant="ghost" onClick={() => setHandover(null)}>Done</Button>
                             </div>

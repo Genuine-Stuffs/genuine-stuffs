@@ -18,7 +18,10 @@ declare const Deno: any;
  *
  * Approving (or restoring) sets app_metadata.is_reviewer and
  * reviewer_discipline, which the user cannot change; that is the only thing
- * that gives a reviewer AI Studio.
+ * that gives a reviewer AI Studio. The reviewer is then told by email
+ * (Resend: RESEND_API_KEY, REVIEWER_EMAIL_FROM) and WhatsApp (Meta Cloud API:
+ * WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_APPROVAL_TEMPLATE), each
+ * only when its secrets are set; a failed notice never undoes the approval.
  * -------------------------------------------------------
  */
 
@@ -36,6 +39,72 @@ function oneTimePassword(): string {
     const alphabet = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
     const bytes = crypto.getRandomValues(new Uint8Array(14));
     return Array.from(bytes, b => alphabet[b % alphabet.length]).join('');
+}
+
+const SITE_URL = () => (Deno.env.get('SITE_URL') ?? 'https://www.genuinestuffs.com').replace(/\/$/, '');
+
+/** A Nigerian or international number as WhatsApp wants it: digits only, with the country code (0803... -> 234803...). */
+function whatsappNumber(phone: string): string | null {
+    let d = String(phone ?? '').replace(/\D/g, '');
+    if (d.startsWith('00')) d = d.slice(2);
+    if (d.length === 11 && d.startsWith('0')) d = '234' + d.slice(1);
+    if (d.length === 10 && /^[789]/.test(d)) d = '234' + d;
+    return d.length >= 10 && d.length <= 15 ? d : null;
+}
+
+/** The approval message, the same words on every channel. */
+function approvalText(firstName: string, email: string) {
+    const login = `${SITE_URL()}/login`;
+    return {
+        subject: 'Your Genuine Stuffs reviewer application is approved',
+        text: `Hello ${firstName},\n\nYour reviewer application for Genuine Stuffs AI Studio is approved.\n\nSign in at ${login} with ${email} and the password you chose when you applied (if you were already signed in, sign out and in again). You will go straight to AI Studio.\n\nUnder each design's drawings there is a "Review this design" panel: score it, name the most important fix, and press "Save review".\n\nThank you for being one of our pioneer reviewers.\nGenuine Stuffs`,
+        login,
+    };
+}
+
+type Notice = { sent: boolean; detail: string };
+
+async function emailApproval(to: string, firstName: string): Promise<Notice> {
+    const key = Deno.env.get('RESEND_API_KEY'), from = Deno.env.get('REVIEWER_EMAIL_FROM');
+    if (!key || !from) return { sent: false, detail: 'email not set up (RESEND_API_KEY, REVIEWER_EMAIL_FROM)' };
+    const m = approvalText(firstName, to);
+    const esc = (t: string) => t.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const html = esc(m.text).split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br>').replace(esc(m.login), `<a href="${m.login}">${esc(m.login)}</a>`)}</p>`).join('');
+    try {
+        const res = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ from, to: [to], subject: m.subject, text: m.text, html }),
+        });
+        return res.ok ? { sent: true, detail: `email sent to ${to}` } : { sent: false, detail: `email failed: ${(await res.text()).slice(0, 200)}` };
+    } catch (e: any) {
+        return { sent: false, detail: `email failed: ${e.message}` };
+    }
+}
+
+async function whatsappApproval(phone: string, firstName: string): Promise<Notice> {
+    const token = Deno.env.get('WHATSAPP_TOKEN'), phoneId = Deno.env.get('WHATSAPP_PHONE_NUMBER_ID');
+    const template = Deno.env.get('WHATSAPP_APPROVAL_TEMPLATE'), lang = Deno.env.get('WHATSAPP_TEMPLATE_LANGUAGE') ?? 'en';
+    if (!token || !phoneId || !template) return { sent: false, detail: 'WhatsApp not set up (WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_APPROVAL_TEMPLATE)' };
+    const to = whatsappNumber(phone);
+    if (!to) return { sent: false, detail: `WhatsApp: "${phone}" is not a phone number` };
+    try {
+        // a business may open a WhatsApp conversation only with a template Meta has approved:
+        // its body takes {{1}} the first name and {{2}} the sign-in link
+        const res = await fetch(`https://graph.facebook.com/v21.0/${phoneId}/messages`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                messaging_product: 'whatsapp', to, type: 'template',
+                template: { name: template, language: { code: lang }, components: [{ type: 'body', parameters: [
+                    { type: 'text', text: firstName }, { type: 'text', text: approvalText(firstName, '').login },
+                ] }] },
+            }),
+        });
+        return res.ok ? { sent: true, detail: `WhatsApp sent to +${to}` } : { sent: false, detail: `WhatsApp failed: ${(await res.text()).slice(0, 200)}` };
+    } catch (e: any) {
+        return { sent: false, detail: `WhatsApp failed: ${e.message}` };
+    }
 }
 
 // what each decision does: the application's new status, and the account's reviewer mark
@@ -115,7 +184,14 @@ serve(async (req: Request) => {
             .eq('id', app.id);
         if (updateAppError) throw updateAppError;
 
-        return json({ id: app.id, status: decision.status });
+        // an approved (or restored) reviewer is told at once, by email and WhatsApp
+        let notices: { email: Notice; whatsapp: Notice } | null = null;
+        if (decision.isReviewer) {
+            const first = String(app.other_names || app.full_name || '').trim().split(/\s+/)[0] || 'there';
+            const [email, whatsapp] = await Promise.all([emailApproval(app.email, first), whatsappApproval(app.phone, first)]);
+            notices = { email, whatsapp };
+        }
+        return json({ id: app.id, status: decision.status, notices });
     } catch (err: any) {
         return json({ error: err.message }, 500);
     }
