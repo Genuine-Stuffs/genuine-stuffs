@@ -10,7 +10,8 @@ import type { WallSide } from '@/lib/aec/solver/engine_v2/doors';
 import { computeWalls, WALL_THICKNESS, type WallKind } from './walls';
 import { planOpenings, type OpeningType } from './openings';
 import { wallKind, SLAB_T } from './section';
-import { STOREY_H } from './elevations';
+import { STOREY_H, PARAPET_H } from './elevations';
+import { roomTypeOf } from './openings';
 
 /** Window heads at 2.1 m, as on the elevations and the section. */
 const HEAD_H = 2.1;
@@ -23,8 +24,8 @@ export type OpeningKind = 'door' | 'window' | 'vehicle' | 'open';
 /** An opening in a wall: `at` metres along the wall from its start (x0, y0), `width` wide, from `z0` to `z1` above the ground. */
 export interface ModelOpening { kind: OpeningKind; at: number; width: number; z0: number; z1: number; room_id: string; type: OpeningType }
 
-/** A wall from (x0, y0) to (x1, y1) on the plan (metres, y down the sheet), centred on that line, `thickness` thick, from `z0` to `z1`. */
-export interface ModelWall { floor: number; x0: number; y0: number; x1: number; y1: number; thickness: number; kind: WallKind; z0: number; z1: number; openings: ModelOpening[] }
+/** A wall from (x0, y0) to (x1, y1) on the plan (metres, y down the sheet), centred on that line, `thickness` thick, from `z0` to `z1`. `parapet`: the low wall round a roof's edge. */
+export interface ModelWall { floor: number; x0: number; y0: number; x1: number; y1: number; thickness: number; kind: WallKind; z0: number; z1: number; openings: ModelOpening[]; parapet?: boolean }
 
 /** A floor slab under a room: its top at `z`. */
 export interface ModelSlab { floor: number; room_id: string; x: number; y: number; w: number; d: number; z: number; t: number }
@@ -32,6 +33,8 @@ export interface ModelSlab { floor: number; room_id: string; x: number; y: numbe
 export interface BuildingModel {
   walls: ModelWall[];
   slabs: ModelSlab[];
+  /** The roof: a slab over every part of a floor's enclosed rooms with no room of the floor above on it (as the elevations draw the roof edge); its underside at `z`. */
+  roofs: Array<{ floor: number; x: number; y: number; w: number; d: number; z: number; t: number }>;
   /** Openings the plan lists that no wall on their line can hold: the check that the model is the plan (expected none). */
   unplaced: Array<{ floor: number; room_id: string; kind: OpeningKind; detail: string }>;
   /** Openings on the plan and in the model, per floor, for the check. */
@@ -53,6 +56,7 @@ export function buildingModel(layout: SolvedLayout): BuildingModel {
   const rooms = layout.placed_rooms.filter(valid);
   const floors = [...new Set(rooms.map(r => r.floor))].sort((a, b) => a - b);
   const walls: ModelWall[] = [], slabs: ModelSlab[] = [], unplaced: BuildingModel['unplaced'] = [], counts: BuildingModel['counts'] = [];
+  const roofs: BuildingModel['roofs'] = [];
 
   for (const f of floors) {
     const here = rooms.filter(r => r.floor === f);
@@ -117,15 +121,63 @@ export function buildingModel(layout: SolvedLayout): BuildingModel {
     }
   }
 
+  // the roof: over each floor's enclosed rooms, less what the floor above covers (balconies,
+  // terraces, verandas and courtyards are open to the sky, as on the elevations); a parapet
+  // round each roof's edge
+  const enclosed = (r: PlacedRoom) => !r.room_id.startsWith('terrace_f') && !OPEN_AIR.test(roomTypeOf(layout, r.room_id));
+  for (const f of floors) {
+    const above = rooms.filter(r => r.floor === f + 1);
+    const pieces = rooms.filter(r => r.floor === f && enclosed(r)).flatMap(r => minus({ x: r.x, y: r.y, w: r.width, d: r.depth }, above.map(q => ({ x: q.x, y: q.y, w: q.width, d: q.depth }))));
+    const z = (f + 1) * STOREY_H;
+    for (const q of pieces) roofs.push({ floor: f, ...q, z, t: SLAB_T });
+    addParapets(pieces, f, z + SLAB_T, PARAPET_H, above);
+  }
+
   // the outbuildings (boys' quarters, generator house): their walls on the ground
   for (const b of layout.outbuildings ?? []) {
     const rs = b.rooms.filter(valid);
     for (const w of computeWalls(rs.map(r => ({ x: r.x, y: r.y, width: r.width, depth: r.depth, kind: 'room' as const }))))
       walls.push({ floor: 0, x0: w.x0, y0: w.y0, x1: w.x1, y1: w.y1, thickness: WALL_THICKNESS[w.kind], kind: w.kind, z0: 0, z1: 3.0, openings: [] });
     for (const r of rs) slabs.push({ floor: 0, room_id: r.room_id, x: r.x, y: r.y, w: r.width, d: r.depth, z: 0, t: 0.1 });
+    const rects = rs.map(r => ({ x: r.x, y: r.y, w: r.width, d: r.depth }));
+    for (const q of rects) roofs.push({ floor: 0, ...q, z: 3.0, t: SLAB_T });
+    addParapets(rects, 0, 3.0 + SLAB_T, 0.3);
   }
 
-  return { walls, slabs, unplaced, counts, storeyH: STOREY_H };
+  /** The low wall round the outside edge of a roof made of `pieces`, its top `height` above `z`;
+   * none where the edge runs against a room of the floor above (that room's wall stands there). */
+  function addParapets(pieces: Rect[], floor: number, z: number, height = PARAPET_H, above: PlacedRoom[] = []) {
+    if (!pieces.length) return;
+    const inAbove = (x: number, y: number) => above.some(q => x > q.x + E && x < q.x + q.width - E && y > q.y + E && y < q.y + q.depth - E);
+    for (const w of computeWalls(pieces.map(q => ({ x: q.x, y: q.y, width: q.w, depth: q.d, kind: 'room' as const }))))
+      if (w.kind === 'ext' && !(() => { const mx = (w.x0 + w.x1) / 2, my = (w.y0 + w.y1) / 2, h = w.y0 === w.y1;
+        return inAbove(h ? mx : mx - 0.05, h ? my - 0.05 : my) || inAbove(h ? mx : mx + 0.05, h ? my + 0.05 : my); })()) walls.push({ floor, x0: w.x0, y0: w.y0, x1: w.x1, y1: w.y1, thickness: WALL_T_EXT, kind: 'ext', z0: z, z1: z + height, openings: [], parapet: true });
+  }
+
+  return { walls, slabs, roofs, unplaced, counts, storeyH: STOREY_H };
+}
+
+const OPEN_AIR = /^(balcony|terrace|veranda|courtyard)$/;
+const WALL_T_EXT = WALL_THICKNESS.ext;
+type Rect = { x: number; y: number; w: number; d: number };
+
+/** `a` less the rectangles `cut`: the parts of `a` none of them covers, as rectangles. */
+export function minus(a: Rect, cut: Rect[]): Rect[] {
+  let parts: Rect[] = [a];
+  for (const c of cut) {
+    const next: Rect[] = [];
+    for (const p of parts) {
+      const x0 = Math.max(p.x, c.x), x1 = Math.min(p.x + p.w, c.x + c.w), y0 = Math.max(p.y, c.y), y1 = Math.min(p.y + p.d, c.y + c.d);
+      if (x1 <= x0 + E || y1 <= y0 + E) { next.push(p); continue; }
+      // the strips of p above, below, left and right of the overlap
+      if (y0 > p.y + E) next.push({ x: p.x, y: p.y, w: p.w, d: y0 - p.y });
+      if (p.y + p.d > y1 + E) next.push({ x: p.x, y: y1, w: p.w, d: p.y + p.d - y1 });
+      if (x0 > p.x + E) next.push({ x: p.x, y: y0, w: x0 - p.x, d: y1 - y0 });
+      if (p.x + p.w > x1 + E) next.push({ x: x1, y: y0, w: p.x + p.w - x1, d: y1 - y0 });
+    }
+    parts = next;
+  }
+  return parts;
 }
 
 /** A wall as solid blocks around its openings: the full-height parts between openings, and the

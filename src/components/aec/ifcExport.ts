@@ -86,7 +86,7 @@ export function planToIfc(layout: SolvedLayout, label = 'GS AI Studio', projectN
       const shape = boxShape(L, w.thickness, w.z1 - w.z0);
       const wall = w.kind === 'rail'
         ? add(`IFCRAILING('${guid()}',$,'Rail',$,$,${wp},${shape},$,.GUARDRAIL.)`)
-        : add(`IFCWALL('${guid()}',$,${str(w.kind === 'ext' ? 'Outside wall' : 'Partition')},$,$,${wp},${shape},$,${w.kind === 'ext' ? '.STANDARD.' : '.PARTITIONING.'})`);
+        : add(`IFCWALL('${guid()}',$,${str(w.parapet ? 'Parapet' : w.kind === 'ext' ? 'Outside wall' : 'Partition')},$,$,${wp},${shape},$,${w.parapet ? '.PARAPET.' : w.kind === 'ext' ? '.STANDARD.' : '.PARTITIONING.'})`);
       contained.push(wall);
       for (const o of w.openings) {
         const op = place(wp, o.at, 0, o.z0 - w.z0);
@@ -115,6 +115,9 @@ export function planToIfc(layout: SolvedLayout, label = 'GS AI Studio', projectN
       const space = add(`IFCSPACE('${guid()}',$,${str(name)},${str(`${(s.w * s.d).toFixed(1)} m2`)},$,${place(sp, s.x, -(s.y + s.d / 2), top)},${boxShape(s.w, s.d, model.storeyH - top - 0.15)},${str(name)},.ELEMENT.,.INTERNAL.,$)`);
       spaces.push(space);
     }
+    // the roof over this floor's rooms (its parapets are walls above)
+    for (const r of model.roofs.filter(q => q.floor === f))
+      contained.push(add(`IFCSLAB('${guid()}',$,'Roof',$,$,${place(sp, r.x, -(r.y + r.d / 2), r.z - elev)},${boxShape(r.w, r.d, r.t)},$,.ROOF.)`));
     if (contained.length) add(`IFCRELCONTAINEDINSPATIALSTRUCTURE('${guid()}',$,$,$,(${contained.join(',')}),${storey})`);
     if (spaces.length) add(`IFCRELAGGREGATES('${guid()}',$,$,$,${storey},(${spaces.join(',')}))`);
   }

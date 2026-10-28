@@ -142,6 +142,14 @@ async function mountThreeViewer(
   const partition = new THREE.MeshStandardMaterial({ color: 0xfbfaf7, roughness: 0.95, metalness: 0 });
   const railMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.4, metalness: 0.6 });
   const glass = new THREE.MeshStandardMaterial({ color: 0x9cc9e8, roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.38 });
+  // step 2: the roof (concrete), its parapet (plaster, a darker coping), timber doors, metal
+  // vehicle doors, aluminium window frames, and paving under the plot
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0xb8b4ad, roughness: 0.95 });
+  const coping = new THREE.MeshStandardMaterial({ color: 0xd6cfc2, roughness: 0.85 });
+  const timber = new THREE.MeshStandardMaterial({ color: 0x8a5a33, roughness: 0.6 });
+  const metal = new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.35, metalness: 0.7 });
+  const frame = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4, metalness: 0.6 });
+  const paving = new THREE.MeshStandardMaterial({ color: 0xd9d6cf, roughness: 1 });
   const edgeMat = new THREE.LineBasicMaterial({ color: 0x64748b, transparent: true, opacity: 0.35 });
   const typeOf = (id: string) => (sourceRooms.find(r => r.room_id === id || r.id === id)?.type ?? '') as string;
   const tint = (c: number) => { const k = 0.55; const r = (c >> 16) & 255, g = (c >> 8) & 255, b = c & 255; return ((r + (255 - r) * k) << 16) | ((g + (255 - g) * k) << 8) | (b + (255 - b) * k); };
@@ -156,6 +164,10 @@ async function mountThreeViewer(
     if (edges) { const e = new THREE.LineSegments(new THREE.EdgesGeometry(geo), edgeMat); e.position.copy(mesh.position); scene.add(e); }
   };
 
+  // the plot, paved, under the building
+  const plotPaving = new THREE.Mesh(new THREE.BoxGeometry(plotW, 0.02, plotD), paving);
+  plotPaving.position.set(0, 0.0, 0); plotPaving.receiveShadow = true; scene.add(plotPaving);
+  for (const r of model.roofs) box(r.w, r.t, r.d, r.x + r.w / 2, r.z + r.t / 2, r.y + r.d / 2, roofMat, false);
   for (const s of model.slabs) box(s.w, s.t, s.d, s.x + s.w / 2, s.z + (s.floor === 0 ? s.t / 2 : -s.t / 2), s.y + s.d / 2, floorMat(getRoomColour(typeOf(s.room_id))), false);
   let blocks = 0;
   for (const w of model.walls) {
@@ -167,11 +179,27 @@ async function mountThreeViewer(
       else box(t, h, len, w.x0, k.z0 + h / 2, w.y0 + mid, mat);
       blocks++;
     }
+    // a parapet's coping: a slightly wider cap on its top
+    if (w.parapet) {
+      const L = Math.hypot(w.x1 - w.x0, w.y1 - w.y0), c = 0.06;
+      if (horizontal) box(L + t, c, t + 0.06, w.x0 + L / 2, w.z1 + c / 2, w.y0, coping, false);
+      else box(t + 0.06, c, L + t, w.x0, w.z1 + c / 2, w.y0 + L / 2, coping, false);
+    }
+    // a panel along the wall at `a`..`b`, `z0`..`z1`, `d` thick
+    const panel = (a: number, b: number, z0: number, z1: number, d: number, m: any) => {
+      const h = z1 - z0, mid = (a + b) / 2;
+      if (horizontal) box(b - a, h, d, w.x0 + mid, z0 + h / 2, w.y0, m, false);
+      else box(d, h, b - a, w.x0, z0 + h / 2, w.y0 + mid, m, false);
+    };
     for (const o of w.openings) {
-      if (o.kind !== 'window') continue;
-      const h = o.z1 - o.z0, mid = o.at + o.width / 2;
-      if (horizontal) box(o.width, h, 0.03, w.x0 + mid, o.z0 + h / 2, w.y0, glass, false);
-      else box(0.03, h, o.width, w.x0, o.z0 + h / 2, w.y0 + mid, glass, false);
+      const a = o.at, b = o.at + o.width, f = 0.05;
+      if (o.kind === 'window') {
+        panel(a, b, o.z0, o.z1, 0.03, glass);
+        // the frame: head, sill and both jambs
+        panel(a, b, o.z1 - f, o.z1, t * 0.6, frame); panel(a, b, o.z0, o.z0 + f, t * 0.6, frame);
+        panel(a, a + f, o.z0, o.z1, t * 0.6, frame); panel(b - f, b, o.z0, o.z1, t * 0.6, frame);
+      } else if (o.kind === 'door') panel(a + 0.02, b - 0.02, o.z0, o.z1 - 0.02, 0.045, timber);
+      else if (o.kind === 'vehicle') panel(a, b, o.z0, o.z1, 0.06, metal);
     }
   }
   const roomsRendered = model.slabs.length;
@@ -396,7 +424,7 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
         <div ref={containerRef} className="w-full h-full" />
         {mode === 'svg' && layout && <MassingSvg layout={layout} />}
 
-        {(mode === 'three' || mode === 'svg') && (
+        {mode === 'svg' && (
           <>
             <div className="absolute bottom-4 left-4 flex flex-col gap-1.5 pointer-events-none">
               {[
