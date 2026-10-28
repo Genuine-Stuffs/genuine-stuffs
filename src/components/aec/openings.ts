@@ -383,6 +383,19 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
   // the foyer, else the hall (the vestry's lobby behind the stage had none, 2026-10-28)
   if (assembly) {
     const publicRooms = rooms.filter(q => /^(foyer|auditorium)$/.test(norm(typeOf(q.room_id))));
+    // the hall's doors are from the foyer, centred on it and as wide as the main entrance (half
+    // the load comes through them, NBC 2006 §7.8.4); a general door rule moved them into a lobby
+    const hallRoom = publicRooms.find(q => norm(typeOf(q.room_id)) === 'auditorium');
+    const foyerRoom = publicRooms.find(q => norm(typeOf(q.room_id)) === 'foyer');
+    const main = assembly.exits?.find(e => e.main);
+    const fw = hallRoom && foyerRoom ? sharedWall(hallRoom, foyerRoom) : null;
+    if (hallRoom && foyerRoom && fw && main) {
+      const type = exitType(main.width);
+      const lo = fw === 'top' || fw === 'bottom' ? Math.max(hallRoom.x, foyerRoom.x) : Math.max(hallRoom.y, foyerRoom.y);
+      const hi = fw === 'top' || fw === 'bottom' ? Math.min(hallRoom.x + hallRoom.width, foyerRoom.x + foyerRoom.width) : Math.min(hallRoom.y + hallRoom.depth, foyerRoom.y + foyerRoom.depth);
+      const start = fw === 'top' || fw === 'bottom' ? hallRoom.x : hallRoom.y;
+      if (hi - lo >= type.w + DOOR_CLEAR) doors.set(hallRoom.room_id, { room_id: hallRoom.room_id, wall: fw, type, at: (lo + hi) / 2 - type.w / 2 - start });
+    }
     for (const l of rooms.filter(q => q.room_id.startsWith('corridor_floor'))) {
       const reached = publicRooms.some(q => { const d = doors.get(q.room_id); return !!d && sharedWall(q, l) === d.wall; });
       const target = reached ? undefined : publicRooms.find(q => norm(typeOf(q.room_id)) === 'foyer' && sharedWall(l, q)) ?? publicRooms.find(q => sharedWall(l, q));
