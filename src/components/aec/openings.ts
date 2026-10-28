@@ -379,6 +379,18 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
   // entrance on the foyer's street wall, the others in the hall's side walls
   const assembly = (layout as any).assembly as { exits: Array<{ wall: WallSide; at: number; width: number; main?: boolean }> } | undefined;
   let mainEntrance = entrance;
+  // an assembly lobby the foyer's or hall's own door doesn't open into has a door of its own into
+  // the foyer, else the hall (the vestry's lobby behind the stage had none, 2026-10-28)
+  if (assembly) {
+    const publicRooms = rooms.filter(q => /^(foyer|auditorium)$/.test(norm(typeOf(q.room_id))));
+    for (const l of rooms.filter(q => q.room_id.startsWith('corridor_floor'))) {
+      const reached = publicRooms.some(q => { const d = doors.get(q.room_id); return !!d && sharedWall(q, l) === d.wall; });
+      const target = reached ? undefined : publicRooms.find(q => norm(typeOf(q.room_id)) === 'foyer' && sharedWall(l, q)) ?? publicRooms.find(q => sharedWall(l, q));
+      if (!target) continue;
+      const wall = sharedWall(l, target)!;
+      doors.set(l.room_id, { room_id: l.room_id, wall, type: DOOR_ROOM, ...doorStretch(l, wall, DOOR_ROOM, rooms, typeOf, target) });
+    }
+  }
   if (floor === 0 && assembly?.exits?.length) {
     const hall = rooms.find(r => roomTypeOf(layout, r.room_id) === 'auditorium' || /auditorium|sanctuary|nave/i.test(String((program?.rooms ?? []).find((q: any) => (q.room_id ?? q.id) === r.room_id)?.name ?? '')));
     for (const e of assembly.exits) {
