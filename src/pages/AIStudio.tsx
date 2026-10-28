@@ -214,7 +214,8 @@ const AIStudio = () => {
                     .from('professionals')
                     .select('credits, subscription_status')
                     .eq('id', user.id)
-                    .single();
+                    // an account with no professional record (admin, PM, a reviewer) has no row: no credits, not an error (406 with single())
+                    .maybeSingle();
 
                 if (error) throw error;
 
@@ -229,7 +230,7 @@ const AIStudio = () => {
                         .from('professionals')
                         .select('credits')
                         .eq('id', user.id)
-                        .single();
+                        .maybeSingle();
                     if (fallback) setCredits(fallback.credits ?? 0);
                     console.warn("subscription_status column missing from DB — run migration: add_subscription_status_to_professionals.sql");
                 }
