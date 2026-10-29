@@ -154,6 +154,47 @@ const dxfText = (layer: string, x: number, y: number, h: number, text: string, r
 const rectLines = (layer: string, x: number, y: number, w: number, h: number) =>
   dxfLine(layer, x, y, x + w, y) + dxfLine(layer, x + w, y, x + w, y + h) + dxfLine(layer, x + w, y + h, x, y + h) + dxfLine(layer, x, y + h, x, y);
 
+// A capital letter's width as a share of the text height, a little over most CAD and sans fonts
+// (AutoCAD's txt about 0.67, Arial capitals about 0.7), so a label fitted with it stays inside.
+export const CAP_WIDTH = 0.72;
+const LINE_GAP = 1.3;  // line pitch, in text heights
+const MIN_TEXT = 0.12; // the smallest readable name, in metres (1.2 mm at 1:100)
+
+/** A room's name split in two at the space nearest its middle (or kept whole when it has none). */
+function splitName(name: string): string[] {
+  const spaces = [...name.matchAll(/ /g)].map(m => m.index!);
+  if (!spaces.length) return [name];
+  const at = spaces.reduce((b, i) => Math.abs(i - name.length / 2) < Math.abs(b - name.length / 2) ? i : b);
+  return [name.slice(0, at), name.slice(at + 1)];
+}
+
+export interface RoomLabel { rotate: 0 | 90; lines: string[]; h: number; areaLines: string[]; ha: number }
+
+/**
+ * The room's name and area, as large as fits inside the room and no larger than `cap`: each on one
+ * line or two, across the room or turned along it when it is narrow and deep (owner 2026-10-29: names
+ * ran over the next room in the DXF). The area line is at most 0.7 of the name, smaller on its own
+ * when it is the longer.
+ */
+export function fitRoomLabel(name: string, area: string, w: number, d: number, cap: number): RoomLabel {
+  const pad = 0.15, options: Array<RoomLabel & { score: number }> = [];
+  const areaSplit = area.split(/\s{2,}/);
+  for (const rotate of [0, 90] as const) for (const lines of [[name], splitName(name)]) for (const areaLines of [[area], areaSplit]) {
+    const along = (rotate ? d : w) - 2 * pad, across = (rotate ? w : d) - 2 * pad;
+    const longest = (ls: string[]) => Math.max(...ls.map(l => l.length));
+    const h = Math.max(0, Math.min(cap, along / (longest(lines) * CAP_WIDTH), across / ((lines.length + 0.7 * areaLines.length) * LINE_GAP)));
+    const ha = Math.max(0, Math.min(h * 0.7, along / (longest(areaLines) * CAP_WIDTH)));
+    // the label is as readable as its smaller part: the name, or the area against its 0.7 share
+    options.push({ rotate, lines, h, areaLines, ha, score: Math.min(h, ha / 0.7) });
+  }
+  const top = (os: typeof options) => os.reduce((p, q) => q.score > p.score + 1e-6 ? q : p);
+  // across the room, as plans are read; turned along it only when the text across would be below
+  // the smallest readable size and turning makes it larger
+  const flat = top(options.filter(o => !o.rotate)), turned = top(options.filter(o => o.rotate));
+  const { score: _, ...label } = flat.score < MIN_TEXT && turned.score > flat.score ? turned : flat;
+  return label;
+}
+
 /** The plan's DXF, every floor side by side, as the floor plan's Download menu makes it. */
 export function downloadPlanDxf(layout: SolvedLayout, fileName: string, label = 'GS AI Studio'): void {
   const floors = [...new Set(layout.placed_rooms.map(r => r.floor))].sort((a, b) => a - b);
@@ -177,9 +218,18 @@ export function planToDxf(layout: SolvedLayout, floors: number[], label = 'GS AI
     }
     for (const r of rooms) {
       out += rectLines('A-ROOM', offset + r.x, r.y, r.width, r.depth);
-      const cx = offset + r.x + r.width / 2, cy = r.y + r.depth / 2, h = Math.min(0.3, Math.max(0.12, Math.min(r.width, r.depth) / 8));
-      out += dxfText('A-TEXT', cx, cy - h * 0.7, h, roomName(layout, r).toUpperCase());
-      out += dxfText('A-TEXT', cx, cy + h * 0.9, h * 0.7, `${(r.width * r.depth).toFixed(1)} m2  (${r.width.toFixed(2)} x ${r.depth.toFixed(2)} m)`);
+      const cx = offset + r.x + r.width / 2, cy = r.y + r.depth / 2, cap = Math.min(0.3, Math.max(0.12, Math.min(r.width, r.depth) / 8));
+      const label = fitRoomLabel(roomName(layout, r).toUpperCase(), `${(r.width * r.depth).toFixed(1)} m2  (${r.width.toFixed(2)} x ${r.depth.toFixed(2)} m)`, r.width, r.depth, cap);
+      // the block of lines centred on the room: each line's baseline `k` pitches from the block's top
+      // (down the sheet, or across it when turned: a turned line reads upwards, so the next one is to its right)
+      const rows = [...label.lines.map(t => ({ t, h: label.h })), ...label.areaLines.map(t => ({ t, h: label.ha }))];
+      const total = rows.reduce((sum, row) => sum + row.h * LINE_GAP, 0);
+      let k = -total / 2;
+      for (const row of rows) {
+        k += row.h * LINE_GAP;
+        const base = k - row.h * (LINE_GAP - 1) / 2;
+        out += label.rotate ? dxfText('A-TEXT', cx + base, cy, row.h, row.t, 90) : dxfText('A-TEXT', cx, cy + base, row.h, row.t);
+      }
     }
     out += dxfText('A-TEXT', offset + W / 2, D + 1.5, 0.45, f === 0 ? 'GROUND FLOOR PLAN' : f === 1 ? 'FIRST FLOOR PLAN' : `FLOOR ${f} PLAN`);
     offset += W + 5;
