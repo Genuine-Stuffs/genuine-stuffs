@@ -137,6 +137,7 @@ export interface Violation { rule: string; leaf: number; other?: number; amount:
 export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
     const v: Violation[] = [];
     const DOOR = 2; // cells: 1.0 m shared wall (D5)
+    const DOOR_FIT = 3; // cells: 1.5 m, a 0.9 m door with 0.1 m either side and the walls' half-thickness
     const hallI = spec.leaves.findIndex(l => l.hall);
     spec.leaves.forEach((l, i) => {
         const r = rects[i], w_m = r.w * CELL, h_m = r.h * CELL, a = w_m * h_m;
@@ -188,7 +189,10 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
         if ((!l.connector || l.onHall) && !l.hall) {
             const via = l.onHall ? hallI : l.reachVia !== undefined ? spec.leaves.findIndex(x => x.id === l.reachVia) : -1;
             const alt = l.reachAlt !== undefined ? spec.leaves.findIndex(x => x.id === l.reachAlt) : -1;
-            const ok = via >= 0 ? shared(r, rects[via]) >= DOOR || (alt >= 0 && shared(r, rects[alt]) >= DOOR)
+            // a flat's bedroom or bathroom needs the length of its door on the room it opens into: on 1.0 m the
+            // door didn't fit, and it opened through the kitchen, the balcony or another bedroom (2026-10-29)
+            const need = l.reachAlt !== undefined ? DOOR_FIT : DOOR;
+            const ok = via >= 0 ? shared(r, rects[via]) >= need || (alt >= 0 && shared(r, rects[alt]) >= need)
                 : spec.leaves.some((m, j) => j !== i && (m.connector || m.hall) && shared(r, rects[j]) >= DOOR);
             if (!ok) {
                 const d = via >= 0 ? Math.min(gap(r, rects[via]), alt >= 0 ? gap(r, rects[alt]) : 1e9) : Math.min(...spec.leaves.map((m, j) => j !== i && (m.connector || m.hall) ? gap(r, rects[j]) : 1e9));

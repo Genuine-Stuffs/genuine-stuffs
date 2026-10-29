@@ -4,7 +4,7 @@
 import { FloorSpec, Rect, violations, WEIGHT, outside, ATRIUM_RULE, placeStair, hallPieces, unsupportedWall, ENTRANCE, servedLink, wetStackCost, quietCost } from "./slice";
 import { FOYER_VIA_HALL, TERRACE_LIGHT, LANDING_VIA_HALL, ENTRY_W } from "./config";
 
-const DOOR = 2, PASSAGE = 3;
+const DOOR = 2, DOOR_FIT = 3, PASSAGE = 3;
 
 export interface Ctx {
     spec: FloorSpec; n: number; W: number; D: number;
@@ -140,7 +140,8 @@ export function fastCost(c: Ctx, stackW: number): number {
             let ok = false, d = 1e9;
             if (via >= 0) {
                 const alt = c.reachAlt[i];
-                ok = sharedC(c, i, via) >= DOOR || (alt >= 0 && sharedC(c, i, alt) >= DOOR);
+                const need = alt >= 0 ? DOOR_FIT : DOOR; // as slice.ts: a flat's bedroom needs its door's length
+                ok = sharedC(c, i, via) >= need || (alt >= 0 && sharedC(c, i, alt) >= need);
                 if (!ok) d = Math.min(gapC(c, i, via), alt >= 0 ? gapC(c, i, alt) : 1e9);
             }
             else {
