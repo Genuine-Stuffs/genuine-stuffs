@@ -5,7 +5,7 @@
 
 ---
 
-## 0. Progress against the feasibility study (reviewed 2026-10-06)
+## 0. Progress against the feasibility study (reviewed 2026-10-29)
 
 Source: `AI-Floor-Plan-Platform-Feasibility.pdf`. Status words: **Done**, **Partial**, **Not started**. Update this table whenever an item moves.
 
@@ -13,34 +13,34 @@ Source: `AI-Floor-Plan-Platform-Feasibility.pdf`. Status words: **Done**, **Part
 
 | # | Step | Status | Evidence / gap |
 |---|---|---|---|
-| 1 | Prompt understanding (LLM → spec + adjacency graph) | **Done** | `ai-studio` edge function emits the Hive room JSON; `graph.ts` normalizes it (D6) |
-| 2 | Constraint layer (plot, setbacks, min sizes, corridors, stairs, structural grid) | **Partial** | Setbacks, min width/aspect per type, outside walls, front entrance + garage, reachability. **No structural grid**; stair is a box |
-| 3 | Layout generation | **Partial** | Our own deterministic solver (D1: LLM never draws geometry, matching study problem 2). Small/medium houses 20/20; **villas always fall back** to scattered compromise plans |
-| 4 | Vectorisation + dimensioning + door/window schedule | **Partial** | Overall dimensions only. No per-bay chains, no D1/W1 tags or schedule (study deliverable #2) |
-| 5 | Multi-floor coordination (walls stack, stairs land) | **Partial** | Stair void mirrored (I7). **Upper walls don't stack on lower ones.** The study calls this "where most tools cheat" |
-| 6 | 3D + render consistent with the plan | **Partial** | `AECMassingView` massing + an image render call. 2026-10-16: render restored (OpenRouter `/api/v1/images`), states the plan's storeys, size, balconies, outbuildings, set on a city street (owner); massing redraws on a new plan, frees its WebGL context, retries lighter, and explains a browser that refuses WebGL (the owner's "3D viewer unavailable" reproduces exactly with WebGL off). Owner wants the massing view itself ultra-realistic and rotatable (walls, openings, roof, materials, urban context): not started. |
-| 7 | Edit loop: a new prompt mutates the stored spec, re-renders only what changed | **Not started** | A follow-up regenerates from scratch with a new random seed (`AIStudio.tsx:671`), the "slot machine" the study warns against |
-| 8 | Export: DXF/DWG, IFC, PDF | **Partial** | PDF (jsPDF) and a basic DXF from SVG paths; `ifc/authoring.ts` exists; DWG none |
+| 1 | Prompt understanding (LLM → spec + adjacency graph) | **Done** | `ai-studio` edge function emits the Hive room JSON; `graph.ts` normalizes it (D6); plot, setbacks, minimums, facades, quiet side and parking read from the user's words |
+| 2 | Constraint layer (plot, setbacks, min sizes, corridors, stairs, structural grid) | **Done** | Lagos 2019 / NBC 2006 setbacks by the user's choice; min sizes; one structural grid per building (`structural_grid.ts`, bays 3–6 m); stair with treads; hotel and church engines to the codes |
+| 3 | Layout generation | **Done** for houses, flats, hotels, churches; **Partial** for large villas | Our own deterministic solver (D1). Large villa briefs still fall back to flagged compromise plans |
+| 4 | Vectorisation + dimensioning + door/window schedule | **Done** | Per-bay dimension chains, grid bubbles, D/W tags and schedule, both floors on one sheet |
+| 5 | Multi-floor coordination (walls stack, stairs land) | **Partial** | Stairs land (I7); 44 % of upper walls on structure, 2.8 columns inside rooms per plan (template: 83 %, 0) |
+| 6 | 3D + render consistent with the plan | **Done** | `AECMassingView`: walls with the plan's openings, slabs, roof and parapet, materials, sun and sky, street context; drawn fallback without WebGL; image render from the plan's facts |
+| 7 | Edit loop: a new prompt mutates the stored spec, re-renders only what changed | **Partial** (2026-10-29) | A follow-up sends the current brief to change (`ai-studio` `currentBrief`, owner deploys); room ids kept (`editLoop.ts`); the planner starts from the previous plan (`warm_start`, `warmFrom` in `slice.ts`) and says what changed and how many rooms stayed. Rooms staying put after an edit, duplex/flats seeds 1–3: resize 77 % (was 11 %), remove 93 % (was 0 %), add a room 26 %, enlarge every flat's bedrooms 7 % (redrawn: the warm plan can't make room on a tight flats floor) |
+| 8 | Export: DXF/DWG, IFC, PDF | **Partial** | PDF; DXF of every floor with fitted labels; IFC from the 3D model; DWG none; the site (wall, gate, street) not yet in DXF/IFC |
 
 **The 5 hard problems (study §5)**
 
 | Problem | Status |
 |---|---|
-| 1. Nigerian floor-plan dataset (the moat) | **Not started**: no collection or annotation of real drawings, prompts or edits as training data |
-| 2. Metric accuracy and buildability | **Partial**: valid geometry on a 0.5 m grid, hard invariants on every plan; no structural grid / wall stacking |
-| 3. Edit experience (surgical, not slot-machine) | **Not started**: see pipeline step 7 |
-| 4. Code compliance (NBC, setbacks, coverage) | **Partial**: deterministic `compliance_engine.ts` over `compliance_rules.json` (NBC 2006); per-element remediation messages for solver failures |
-| 5. 2D → consistent 3D | **Partial**: see pipeline step 6 |
+| 1. Nigerian floor-plan dataset (the moat) | **Partial** (2026-10-29): every plan drawn is saved with its prompts, edits, re-plans, options picked and downloads (`design_events`, migration `create_design_events_table.sql` for the owner to run; admin downloads on Design Reviews); reviewers' scored reviews (`design_reviews`). No real drawings collected or annotated yet |
+| 2. Metric accuracy and buildability | **Partial**: valid geometry on a 0.5 m grid, hard invariants on every plan, structural grid; wall stacking 44 % |
+| 3. Edit experience (surgical, not slot-machine) | **Partial**: see pipeline step 7 |
+| 4. Code compliance (NBC, setbacks, coverage) | **Partial**: `compliance_engine.ts` on the drawn plan (spans from the grid, one grouped warning); setbacks, coverage, parking, egress and seating rules for hotels and churches cited in `regulations/` |
+| 5. 2D → consistent 3D | **Done**: see pipeline step 6 |
 
 **Recommended path (study §9)**
 
 | Step | Status |
 |---|---|
-| 1. Lane 1: ship prompt → plan + render, capture real prompts/edits as data | **Partial**: shipped and live; prompts/edits are not yet captured as a dataset |
-| 2. Material takeoff on every plan, wired to the supplier network | **Partial**: `AECBillOfQuantities` exists but uses **hardcoded unit prices**, not the verified-supplier marketplace |
-| 3. Build the Nigerian dataset in parallel | **Not started** |
-| 4. Lane 2: fine-tune + persistent-spec edit loop | **Not started** |
-| 5. Architect in the loop; compliance as a checking layer | **Partial**: compliance layer exists; no architect sign-off flow |
+| 1. Lane 1: ship prompt → plan + render, capture real prompts/edits as data | **Done** (2026-10-29): live, and every prompt and edit is captured once the owner runs the migration |
+| 2. Material takeoff on every plan, wired to the supplier network | **Done** (2026-10-29): `takeoff.ts` measures the drawn plan; each line priced from the cheapest verified marketplace listing with a link to it; unlisted items said so, out of the total |
+| 3. Build the Nigerian dataset in parallel | **Partial**: capture in place (above); sourcing real drawings from suppliers and projects not started |
+| 4. Lane 2: fine-tune + persistent-spec edit loop | **Partial**: persistent-spec edit loop in (step 7); no fine-tuning (needs the dataset) |
+| 5. Architect in the loop; compliance as a checking layer | **Partial**: compliance layer; hired reviewers score plans (`design_reviews`); no sign-off flow on a project |
 
 **Divergence to keep in view:** the study recommends *wrapping* existing generators (Lane 1) and says the defensible product is **data + compliance + the supplier layer, not the generator**. We chose to build our own deterministic generator (rebuild plan, D1–D8) for metric accuracy and trust, and most effort since July has gone into it. That choice stands, but the generator should be brought to "good enough on villas" and then effort should shift to steps 7 (edit loop) and §9.2 (takeoff → suppliers), and to capturing data.
 
