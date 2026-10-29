@@ -111,11 +111,15 @@ export function planSpans(layout: SolvedLayout): Map<string, { span: number; hal
     const halls = new Set(longSpanRooms(layout).map(r => `${r.room_id}@${r.floor}`));
     const cars = new Set(clearSpaces(layout, grid).map(r => `${r.room_id}@${r.floor}`));
     for (const r of layout.placed_rooms) {
-        if (/^(corridor|stair)/.test(r.room_id)) continue;
+        if (/^stair/.test(r.room_id)) continue;
         const k = `${r.room_id}@${r.floor}`, hall = halls.has(k);
         const span = hall || cars.has(k) ? Math.min(r.width, r.depth) : Math.min(bay(grid.xs, r.x, r.x + r.width), bay(grid.ys, r.y, r.y + r.depth));
-        const had = out.get(r.room_id);
-        if (!had || span > had.span) out.set(r.room_id, { span, hall });
+        // the brief's corridors are drawn as each floor's one hall (corridor_floorN_*): its pieces
+        // go under `corridor@N`, the floor's corridor as drawn (the AI's own span was its area's
+        // square root, 7.1 m for a 1.8 m hotel corridor, 2026-10-29)
+        const id = /^corridor_floor/.test(r.room_id) ? `corridor@${r.floor}` : r.room_id;
+        const had = out.get(id);
+        if (!had || span > had.span) out.set(id, { span, hall });
     }
     return out;
 }

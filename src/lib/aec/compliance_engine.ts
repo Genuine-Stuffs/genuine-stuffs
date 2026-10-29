@@ -258,6 +258,11 @@ export function runComplianceCheck(program: SpatialProgram): ComplianceReport {
   const region = program.region || 'lagos_residential';
   const useType = program.use_type || 'residential';
   const spans = program.solved ? planSpans(program.solved) : null;
+  // a room's span on the plan; a brief corridor is drawn as its floor's one hall (a stair's
+  // void, typed a corridor by the AI, is open: no slab to span)
+  const planSpanOf = (room: Room) => spans?.get(room.room_id)
+    ?? (/^(corridor|hallway|circulation|passage)$/.test(resolveRoomType(room.type)) && !/stair|void/i.test(room.name)
+      ? spans?.get(`corridor@${room.floor}`) : undefined);
 
   // 1. Spatial checks — every room
   for (const room of program.rooms) {
@@ -267,7 +272,7 @@ export function runComplianceCheck(program: SpatialProgram): ComplianceReport {
     const widthResult = checkMinimumWidth(room);
     if (widthResult) results.push(widthResult);
 
-    const spanResult = checkStructuralSpan(room, useType, spans?.get(room.room_id));
+    const spanResult = checkStructuralSpan(room, useType, planSpanOf(room));
     if (spanResult) results.push(spanResult);
 
     const stairResults = checkStaircase(room);
@@ -279,7 +284,7 @@ export function runComplianceCheck(program: SpatialProgram): ComplianceReport {
   const spanWarns = results.filter(r => r.rule === 'MAX_SPAN' && r.status === 'WARN');
   if (spanWarns.length > 1) {
     const maxSpan = rules.structural_parameters.beam_design.max_span_m.typical_residential;
-    const onPlan = spanWarns.map(r => spans?.get(r.room_id!)?.span).filter((v): v is number => v !== undefined);
+    const onPlan = spanWarns.map(r => program.rooms.find(q => q.room_id === r.room_id)).map(q => q && planSpanOf(q)?.span).filter((v): v is number => v !== undefined);
     const depths = [...new Set(onPlan.map(v => beamDepthMm(+v.toFixed(2))))].sort((x, y) => x - y);
     const merged: RuleResult = {
       rule: 'MAX_SPAN',
