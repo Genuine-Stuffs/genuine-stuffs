@@ -26,6 +26,8 @@ export interface SitePlan {
     coverage: number;
 }
 
+/** the access road's width in front of the plot, in the site plan and the 3D street */
+export const ROAD_M = 5;
 const VEHICLE_GATE = 3.6, PEDESTRIAN_GATE = 1.2;
 const CAR = /garage|carport/;
 const CAR_NAME = /\bcars?\b|garage|carport/i;

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { SolvedLayout } from 'supabase/functions/ai-studio/schema';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Map as MapIcon } from 'lucide-react';
-import { sitePlan, type Setbacks, type SiteRect } from './sitePlan';
+import { sitePlan, ROAD_M, type Setbacks, type SiteRect } from './sitePlan';
 
 /**
  * The site plan (owner 2026-10-20): the whole compound at one scale — the
@@ -12,7 +12,6 @@ import { sitePlan, type Setbacks, type SiteRect } from './sitePlan';
  * site plan shows it.
  */
 const INK = '#1e293b', MUTED = '#64748b', SETBACK = '#dc2626';
-const ROAD_M = 5;              // the road band drawn in front of the plot
 const MARGIN = 46, TOP = 40;   // room for the dimension lines and labels
 
 const m = (v: number) => `${+v.toFixed(1)} m`;

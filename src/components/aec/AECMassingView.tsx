@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Box as BoxIcon, Sparkles, AlertTriangle } from 'lucide-react';
 import { buildingModel, wallBlocks } from './buildingModel';
+import { siteContext, type ContextKind } from './siteContext';
 
 interface AECMassingViewProps {
   layout?: SolvedLayout;
@@ -237,12 +238,39 @@ async function mountThreeViewer(
 
   console.log(`[AECMassingView] Three.js rendered ${roomsRendered} rooms on a ${plotW.toFixed(1)}m x ${plotD.toFixed(1)}m plot.`);
 
-  // Plot boundary
-  const plotBoundary = new THREE.LineSegments(
-    new THREE.EdgesGeometry(new THREE.BoxGeometry(plotW, 0.02, plotD)),
-    new THREE.LineBasicMaterial({ color: 0x3B82F6, transparent: true, opacity: 0.4 })
-  );
-  scene.add(plotBoundary);
+  // step 4, the street: the boundary wall, gate and driveway from the site plan; the footways, kerbs,
+  // road and faint neighbouring blocks to give the building its scale. Neighbours cast no shadow:
+  // the sun's shadow box covers this plot only, and a shadow cut off at its edge would read as an error.
+  const context = siteContext(layout);
+  if (context) {
+    const asphalt = new THREE.MeshStandardMaterial({ color: 0x4a4e54, roughness: 0.95 });
+    const footway = new THREE.MeshStandardMaterial({ color: 0xbfbab0, roughness: 0.95 });
+    const kerb = new THREE.MeshStandardMaterial({ color: 0xd9d5cc, roughness: 0.9 });
+    const marking = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.8 });
+    const pavers = new THREE.MeshStandardMaterial({ color: 0xa89f92, roughness: 0.95 });
+    const gateMat = new THREE.MeshStandardMaterial({ color: 0x2f3a46, roughness: 0.5, metalness: 0.3 });
+    // the neighbours are faint shapes: they give the street its scale but never hide the building as it turns
+    const neighbour = new THREE.MeshStandardMaterial({ color: 0xe6e1d8, roughness: 0.95, transparent: true, opacity: 0.4, depthWrite: false });
+    const mats: Record<ContextKind, any> = { wall: plaster, coping, pier: plaster, gate: gateMat, driveway: pavers, footway, kerb, road: asphalt, marking, neighbour };
+    for (const k of context.boxes) {
+      const w = k.x1 - k.x0, d = k.y1 - k.y0, hh = k.z1 - k.z0;
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, hh, d), mats[k.kind]);
+      mesh.position.set((k.x0 + k.x1) / 2 - cx, (k.z0 + k.z1) / 2, (k.y0 + k.y1) / 2 - cz);
+      mesh.receiveShadow = true;
+      mesh.castShadow = k.kind === 'wall' || k.kind === 'pier' || k.kind === 'gate' || k.kind === 'coping';
+      scene.add(mesh);
+      if (k.kind === 'neighbour') { const e = new THREE.LineSegments(new THREE.EdgesGeometry(mesh.geometry), edgeMat); e.position.copy(mesh.position); scene.add(e); }
+    }
+  }
+
+  // the plot's outline, where there is no boundary wall to show it
+  if (!context) {
+    const plotBoundary = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(plotW, 0.02, plotD)),
+      new THREE.LineBasicMaterial({ color: 0x3B82F6, transparent: true, opacity: 0.4 })
+    );
+    scene.add(plotBoundary);
+  }
 
   // one slow turn round the building when it first shows; the first touch stops it, and a
   // browser set to reduce motion never starts it
@@ -451,6 +479,11 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
       </CardHeader>
 
       <CardContent className="p-0 relative h-[650px] bg-[#f1f5f9]">
+        {mode === 'three' && (
+          <p className="absolute left-4 bottom-3 z-10 text-[10px] text-slate-600 bg-white/70 rounded px-2 py-1 pointer-events-none">
+            The boundary wall, gate and driveway are from the site plan. The road and the neighbouring buildings are only there to show scale.
+          </p>
+        )}
         {mode === 'loading' && (
           <div className="absolute inset-0 flex items-center justify-center bg-[#f1f5f9] z-10">
             <div className="flex flex-col items-center gap-6">
