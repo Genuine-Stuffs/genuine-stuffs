@@ -3,6 +3,7 @@ import { supabase } from "backend/supabaseClient";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { runningBundle } from "@/lib/appVersion";
+import { planRecord } from "@/lib/aec/designData";
 import { toast } from "sonner";
 import { ClipboardCheck, Loader2 } from "lucide-react";
 
@@ -69,14 +70,7 @@ const DesignReviewPanel = ({ userId, userEmail, discipline, prompts, designPacka
                 prompts,
                 building_type: designPackage?.brief_reference?.use_type ?? designPackage?.unsupported?.kind ?? null,
                 solver_status: layout?.solver_status ?? null,
-                plan: {
-                    brief_reference: designPackage?.brief_reference ?? null,
-                    rooms: designPackage?.rooms ?? null,
-                    setback: designPackage?.setback ?? null,
-                    solve_request: designPackage?.solveRequest ?? null,
-                    unsupported: designPackage?.unsupported ?? null,
-                    solved_layout: layout ?? null,
-                },
+                plan: planRecord(designPackage, layout),
                 app_build: runningBundle(),
             });
             if (error) throw error;
