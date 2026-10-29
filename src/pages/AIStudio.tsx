@@ -1468,7 +1468,7 @@ const AIStudio = () => {
                                                                 <AECElevations layout={stableLayout} />
                                                                 <AECSection layout={stableLayout} />
                                                                 <AECMassingView layout={stableLayout} setbacks={designPackage?.setback?.plan?.setbacks} />
-                                                                <AECBillOfQuantities layout={stableLayout} materials={designPackage.material_schedule || []} />
+                                                                <AECBillOfQuantities layout={stableLayout} />
                                                             </>
                                                         )}
 

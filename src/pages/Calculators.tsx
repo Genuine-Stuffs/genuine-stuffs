@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { supabase } from "backend/supabaseClient";
 import { useAuth } from "@/context/AuthContext";
-import AECBillOfQuantities from "@/components/aec/AECBillOfQuantities";
+import AECMaterialList from "@/components/aec/AECMaterialList";
 
 // ─────────────────────────────────────────────────────────────
 // LegacyModule (unchanged)
@@ -621,7 +621,7 @@ const Calculators = () => {
                                             </Button>
                                         </div>
                                     </div>
-                                    <AECBillOfQuantities materials={extractedMaterials} />
+                                    <AECMaterialList materials={extractedMaterials} />
                                 </div>
                             )}
                         </div>
