@@ -40,7 +40,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { useAuth } from "@/context/AuthContext";
 import { Link, useSearchParams } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "backend/supabaseClient";
 import CreditInfo from "@/components/CreditInfo";
 import DesignReviewPanel from "@/components/review/DesignReviewPanel";
@@ -71,6 +71,7 @@ import AECFloorPlan from '@/components/aec/AECFloorPlan';
 import { AECSitePlan } from '@/components/aec/AECSitePlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import { downloadPlanDxf } from '@/components/aec/exportPlan';
+import { recordDesignEvent, newDesignSession, type DesignEventKind } from '@/lib/aec/designData';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { AECElevations } from '@/components/aec/AECElevations';
 import { AECSection } from '@/components/aec/AECSection';
@@ -162,6 +163,8 @@ const AIStudio = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
     const [checklistOpen, setChecklistOpen] = useState(false);
+    // this conversation's id in the design data (design_events): a follow-up edit is read against its design
+    const designSession = useRef(newDesignSession());
     const [ultraMode, setUltraMode] = useState(false);
     const [messages, setMessages] = useState<any[]>([]);
     const [chatSessions, setChatSessions] = useState<any[]>([]);
@@ -532,8 +535,16 @@ const AIStudio = () => {
             }
         }
 
+        recordDesign('export', 'pdf');
         doc.save(`GenuineStuffs_Drawing_${selectedRole.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`);
         toast.success("Drawing downloaded!");
+    };
+
+    // a plan drawn or used, saved with the words that asked for it (feasibility study §9.1, §9.3)
+    const recordDesign = (kind: DesignEventKind, detail?: string, pkg: any = designPackage, layout?: any, prompts?: string[]) => {
+        if (!user || !pkg) return;
+        recordDesignEvent({ userId: user.id, sessionId: designSession.current, kind, detail, designPackage: pkg, layout,
+            prompts: prompts ?? messages.filter(m => m.role === 'user').map(m => String(m.content ?? '')) });
     };
 
     const handleExportDXF = () => {
@@ -553,6 +564,7 @@ const AIStudio = () => {
         }
 
         downloadPlanDxf(layout, `GS-AI-Studio-floor-plans-${new Date().toISOString().slice(0, 10)}`);
+        recordDesign('export', 'dxf');
         toast.success("CAD file (.DXF, opens in AutoCAD) downloaded!");
     };
 
@@ -754,6 +766,10 @@ const AIStudio = () => {
             // Batch all state updates together to prevent race-condition render flashes
             setGeneratedImage(cleanText);
             setDesignPackage(hasDesignData ? finalDesignData : null);
+            if (hasDesignData) {
+                const asked = updatedMessages.filter(m => m.role === 'user').map(m => String(m.content ?? ''));
+                recordDesign(asked.length > 1 ? 'edit' : 'design', undefined, finalDesignData, undefined, asked);
+            }
             // Remove promptText clear from here since we now clear it immediately on submit
             // Add assistant response to history BEFORE clearing isGenerating so the view never flashes back to idle
             setMessages(prev => [...prev, { role: 'assistant', content: data.result || 'Analysis complete.' }]);
@@ -812,7 +828,8 @@ const AIStudio = () => {
                     title: sessionTitle, 
                     date: new Date().toLocaleTimeString(),
                     messages: [...messages],
-                    design: designPackage
+                    design: designPackage,
+                    designSession: designSession.current,
                 }, 
                 ...prev
             ]);
@@ -820,6 +837,7 @@ const AIStudio = () => {
         
         // 100% Clean Slate — reset the session latch so idle screen returns
         layoutOptions.cancel();
+        designSession.current = newDesignSession();
         setHasActiveSession(false);
         setMessages([]);
         setDesignPackage(null);
@@ -849,6 +867,7 @@ const AIStudio = () => {
                 designPackage, envelope,
                 { floors_override: study.storeys, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting(), outbuildings_in_rear_setback: choice.outbuildingsInRear !== false });
             setDesignPackage((prev: any) => prev ? { ...prev, setback, solvedLayout: solved, solvedLayoutOptions: undefined } : prev);
+            recordDesign('replan', setback.plan.label, { ...designPackage, setback }, solved);
             toast.success(`Re-planned under ${setback.plan.label}`);
         } catch (err) {
             console.error('Re-plan under new setbacks failed:', err);
@@ -1113,6 +1132,7 @@ const AIStudio = () => {
                                                     className="group flex items-center justify-between p-3 rounded-xl bg-slate-50/50 dark:bg-white/5 border border-slate-100 dark:border-white/5 hover:border-primary/30 transition-all cursor-pointer mb-2"
                                                     onClick={() => {
                                                         setMessages(session.messages);
+                                                        designSession.current = session.designSession ?? newDesignSession();
                                                         layoutOptions.cancel();
                                                         setDesignPackage(session.design);
                                                         setSidebarOpen(false);
@@ -1295,6 +1315,8 @@ const AIStudio = () => {
                                         <span className="text-[10px] font-bold text-slate-500 tracking-wider">Super Agent</span>
                                     </div>
                                 </div>
+                                {/* the design data notice (design_events): users are told their briefs are kept */}
+                                <p className="mt-3 text-center text-[11px] text-slate-400">Your briefs and the plans drawn from them are saved to improve AI Studio's designs for Nigeria. They are never shown to other users.</p>
 
                                 <div className="flex flex-wrap justify-center gap-3 mt-10">
                                     {professionalRoles.find(r => r.name === selectedRole)?.recipes.map((r, i) => (
@@ -1400,7 +1422,7 @@ const AIStudio = () => {
                                                                     return (
                                                                         <button
                                                                             key={i}
-                                                                            onClick={() => setDesignPackage((prev: any) => prev ? { ...prev, solvedLayout: opt } : prev)}
+                                                                            onClick={() => { setDesignPackage((prev: any) => prev ? { ...prev, solvedLayout: opt } : prev); recordDesign('option', `Option ${i + 1}`, designPackage, opt); }}
                                                                             title={s ? `Score ${s.total}/100 — area fit ${s.area}, adjacency ${s.adjacency}, compactness ${s.compactness}, windows ${s.window}, circulation ${s.circulation}` : undefined}
                                                                             className={`px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all ${
                                                                                 active

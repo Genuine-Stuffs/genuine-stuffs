@@ -101,6 +101,33 @@ export default function DesignReviews() {
     };
     useEffect(() => { if (allowed) load(); }, [allowed]);
 
+    // the design data (design_events): every plan drawn and the words that asked for it, loaded on
+    // its own so the page still works before the table exists
+    const EVENT_COLS = 'id, created_at, session_id, kind, detail, prompts, building_type, solver_status, app_build';
+    const [events, setEvents] = useState<any[] | null>(null);
+    const [eventsError, setEventsError] = useState<string | null>(null);
+    useEffect(() => {
+        if (!allowed) return;
+        (supabase as any).from('design_events').select(EVENT_COLS).order('created_at', { ascending: false }).limit(5000)
+            .then(({ data, error }: any) => { if (error) setEventsError(error.message); else setEvents(data ?? []); });
+    }, [allowed]);
+    const eventCounts = useMemo(() => {
+        const by: Record<string, number> = {};
+        for (const e of events ?? []) by[e.kind] = (by[e.kind] ?? 0) + 1;
+        return { by, sessions: new Set((events ?? []).map(e => e.session_id)).size };
+    }, [events]);
+    const exportEventsCsv = () => {
+        const head = ['created_at', 'session_id', 'kind', 'detail', 'building_type', 'solver_status', 'prompt_count', 'last_prompt', 'all_prompts'];
+        const lines = (events ?? []).map(e => [e.created_at, e.session_id, e.kind, e.detail, e.building_type, e.solver_status,
+            (e.prompts ?? []).length, (e.prompts ?? []).slice(-1)[0], (e.prompts ?? []).join(' || ')].map(csvCell).join(','));
+        download(`design-data-${new Date().toISOString().slice(0, 10)}.csv`, [head.join(','), ...lines].join('\n'), 'text/csv');
+    };
+    const exportEventsJson = async () => {
+        const { data, error } = await (supabase as any).from('design_events').select('*').order('created_at', { ascending: true }).limit(5000);
+        if (error) { toast.error(error.message); return; }
+        download(`design-data-${new Date().toISOString().slice(0, 10)}.json`, JSON.stringify(data ?? [], null, 2), 'application/json');
+    };
+
     const loginUrl = `${window.location.origin}/reviewers/login`; // the reviewers' own sign-in, straight to AI Studio
     const applyLink = inviteCode ? `${window.location.origin}/reviewers/apply?code=${encodeURIComponent(inviteCode)}` : null;
 
@@ -257,6 +284,28 @@ export default function DesignReviews() {
                                             </>}
                                         </div>
                                     </div>
+                                ))}
+                            </div>
+                        )}
+                    </section>
+
+                    {/* Design data */}
+                    <section className="bg-white dark:bg-white/5 p-6 rounded-2xl border border-slate-100 dark:border-white/10 space-y-4">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                            <h2 className="text-lg font-black text-slate-800 dark:text-white">Design data ({events?.length ?? 0})</h2>
+                            <div className="flex gap-2">
+                                <Button size="sm" variant="outline" disabled={!events?.length} onClick={exportEventsCsv}><Download className="w-3 h-3 mr-2" />Prompts (.csv)</Button>
+                                <Button size="sm" variant="outline" disabled={!events?.length} onClick={exportEventsJson}><Download className="w-3 h-3 mr-2" />With plans (.json)</Button>
+                            </div>
+                        </div>
+                        <p className="text-sm text-slate-600 dark:text-slate-300">Every plan AI Studio draws, saved with the words that asked for it: new designs, follow-up edits, re-plans, layout options picked and drawings downloaded. This is the start of the Nigerian floor-plan dataset.</p>
+                        {eventsError ? (
+                            <p className="text-sm text-amber-700 dark:text-amber-400">Not collecting yet: {eventsError}. Create the table by running <code>supabase/migrations/create_design_events_table.sql</code> in the Supabase SQL Editor.</p>
+                        ) : events && (
+                            <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+                                <span><b>{eventCounts.sessions}</b> conversations</span>
+                                {(['design', 'edit', 'replan', 'option', 'export'] as const).map(k => (
+                                    <span key={k}><b>{eventCounts.by[k] ?? 0}</b> {({ design: 'new designs', edit: 'edits', replan: 're-plans', option: 'options picked', export: 'downloads' } as const)[k]}</span>
                                 ))}
                             </div>
                         )}
