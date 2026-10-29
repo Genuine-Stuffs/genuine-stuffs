@@ -1528,7 +1528,7 @@ const AIStudio = () => {
                                                                         </div>
                                                                     </div>
                                                                     <div className="flex gap-2">
-                                                                        <Button onClick={handleExportDXF} size="sm" variant="outline" className="text-white border-white/10 hover:bg-white/5 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
+                                                                        <Button onClick={handleExportDXF} size="sm" variant="outline" className="bg-transparent text-white border-white/30 hover:bg-white/10 hover:text-white rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
                                                                             Export .DXF
                                                                         </Button>
                                                                         <Button onClick={handleDownloadBlueprint} size="sm" className="bg-primary text-white hover:bg-primary/90 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
@@ -1682,7 +1682,7 @@ const AIStudio = () => {
                                                                     </div>
                                                                 </div>
                                                                 <div className="flex gap-2">
-                                                                    <Button onClick={handleExportDXF} size="sm" variant="outline" className="text-white border-white/10 hover:bg-white/5 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
+                                                                    <Button onClick={handleExportDXF} size="sm" variant="outline" className="bg-transparent text-white border-white/30 hover:bg-white/10 hover:text-white rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
                                                                         Export .DXF
                                                                     </Button>
                                                                     <Button onClick={handleDownloadBlueprint} size="sm" className="bg-primary text-white hover:bg-primary/90 rounded-xl font-black uppercase tracking-widest text-[9px] px-6 h-9">
