@@ -154,6 +154,12 @@ const dxfText = (layer: string, x: number, y: number, h: number, text: string, r
 const rectLines = (layer: string, x: number, y: number, w: number, h: number) =>
   dxfLine(layer, x, y, x + w, y) + dxfLine(layer, x + w, y, x + w, y + h) + dxfLine(layer, x + w, y + h, x, y + h) + dxfLine(layer, x, y + h, x, y);
 
+/** The plan's DXF, every floor side by side, as the floor plan's Download menu makes it. */
+export function downloadPlanDxf(layout: SolvedLayout, fileName: string, label = 'GS AI Studio'): void {
+  const floors = [...new Set(layout.placed_rooms.map(r => r.floor))].sort((a, b) => a - b);
+  save(new Blob([planToDxf(layout, floors, label)], { type: 'application/dxf' }), `${fileName}.dxf`);
+}
+
 export function planToDxf(layout: SolvedLayout, floors: number[], label = 'GS AI Studio'): string {
   let out = '';
   let offset = 0, maxD = 0;

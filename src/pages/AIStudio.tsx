@@ -68,6 +68,7 @@ import autoTable from 'jspdf-autotable';
 import AECFloorPlan from '@/components/aec/AECFloorPlan';
 import { AECSitePlan } from '@/components/aec/AECSitePlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
+import { downloadPlanDxf } from '@/components/aec/exportPlan';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { AECElevations } from '@/components/aec/AECElevations';
 import { AECSection } from '@/components/aec/AECSection';
@@ -532,8 +533,10 @@ const AIStudio = () => {
     };
 
     const handleExportDXF = () => {
-        if (!designPackage || !designPackage.architectural_layout) {
-            toast.error("There is no design yet to save as a CAD (Computer-Aided Design) file.");
+        // the floor plan itself (walls, doors, windows, room names), not the AI's first sketch of it
+        const layout = designPackage?.solvedLayout;
+        if (!isPlan(layout)) {
+            toast.error("There is no floor plan yet to save as a CAD (Computer-Aided Design) file.");
             return;
         }
 
@@ -545,47 +548,7 @@ const AIStudio = () => {
             return;
         }
 
-        // DXF Minimum Header
-        let dxfContent = "0\nSECTION\n2\nHEADER\n9\n$ACADVER\n1\nAC1015\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n";
-
-        designPackage.architectural_layout.forEach((element: any) => {
-            if (element.svg_path) {
-                // Parse SVG path to DXF LINE entities
-                const commands = element.svg_path.split(/(?=[MLZ])/);
-                let startPoint = { x: 0, y: 0 };
-                let currentPoint = { x: 0, y: 0 };
-
-                commands.forEach((cmd: string) => {
-                    const type = cmd[0];
-                    const rawCoords = cmd.slice(1).split(',').filter(p => p.trim() !== "");
-                    const coords = rawCoords.map(Number);
-
-                    if (type === 'M' && coords.length >= 2) {
-                        startPoint = { x: coords[0], y: coords[1] };
-                        currentPoint = { ...startPoint };
-                    } else if (type === 'L' && coords.length >= 2) {
-                        const nextPoint = { x: coords[0], y: coords[1] };
-                        dxfContent += `0\nLINE\n8\n${element.type.toUpperCase()}\n10\n${currentPoint.x}\n20\n${currentPoint.y}\n30\n0.0\n11\n${nextPoint.x}\n21\n${nextPoint.y}\n31\n0.0\n`;
-                        currentPoint = { ...nextPoint };
-                    } else if (type === 'Z') {
-                        dxfContent += `0\nLINE\n8\n${element.type.toUpperCase()}\n10\n${currentPoint.x}\n20\n${currentPoint.y}\n30\n0.0\n11\n${startPoint.x}\n21\n${startPoint.y}\n31\n0.0\n`;
-                    }
-                });
-            }
-        });
-
-        dxfContent += "0\nENDSEC\n0\nEOF";
-
-        const blob = new Blob([dxfContent], { type: 'application/dxf' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `GenuineStuffs_CAD_${designPackage.project_id || 'Design'}.dxf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        
+        downloadPlanDxf(layout, `GS-AI-Studio-floor-plans-${new Date().toISOString().slice(0, 10)}`);
         toast.success("CAD file (.DXF, opens in AutoCAD) downloaded!");
     };
 
