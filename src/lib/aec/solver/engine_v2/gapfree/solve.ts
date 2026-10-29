@@ -297,6 +297,16 @@ function* houseDriver(program: SpatialProgram, envelope: PlotEnvelope, options?:
  * (the rear setback counts when the user allows it). When they don't fit,
  * the house keeps them inside, as before, and the plan says why. */
 export function* planDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
+    const L = yield* planBody(program, envelope, options);
+    if (L.solver_status === "UNSAT" || L.site_offset) return L;
+    // a house with no outbuildings: where it stands on the plot all the same, the front on the front
+    // setback line, centred across the buildable width (as the site plan draws it), so the 3D view
+    // and the IFC put it there and not in the plot's corner
+    const s = envelope.setbacks, be = prepare(program, envelope, options).be;
+    return { ...L, site_offset: { x: s.left + (be.width - (L.building_width ?? 0)) / 2, y: envelope.depth - s.front - (L.building_depth ?? 0) } };
+}
+
+function* planBody(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions): Generator<RestartBatch, SolvedLayout, AnnealResult> {
     // a hotel: guest floors along a central corridor, stacked (hotel.ts)
     if (buildingSupport(program).kind === 'hotel') return hotelLayout(program, envelope, options);
     // a place of worship / assembly hall: three bands about a clear-span hall, to the codes (assembly.ts)
