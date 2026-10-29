@@ -15,6 +15,8 @@ export interface DesignBrief {
     budget_band: 'low' | 'mid' | 'high' | 'luxury';
     style_preference: string;
     target_occupancy: number;
+    /** parking in the compound the user asked for (src/lib/aec/parking.ts); `bays` null when no number was given */
+    parking?: { bays: number | null };
 }
 
 // ---------------------------------------------------------------------------

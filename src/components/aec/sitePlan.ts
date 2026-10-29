@@ -60,11 +60,12 @@ export function sitePlan(layout: SolvedLayout, setbacks?: Setbacks): SitePlan | 
     const storeys = Math.max(...layout.placed_rooms.map(r => r.floor)) + 1;
 
     // the gate: beside a gatehouse; else before the garage or car porch; else before the front door's room.
-    // Cars use it when the plan has a car room or its use needs parking on the plot
+    // Cars use it when the plan has a car room, its use needs parking on the plot, or the brief asks for parking
     const names = new Map((layout.program_reference?.rooms ?? []).map((r: any) => [r.room_id ?? r.id, String(r.name ?? '')]));
     const car = ground.find(r => CAR.test(roomTypeOf(layout, r.room_id).toLowerCase()) || CAR_NAME.test(names.get(r.room_id) ?? ''));
     const gatehouse = outbuildings.find(b => b.kind === 'gatehouse');
-    const vehicles = !!car || PARKING_USES.test(String((layout.program_reference as any)?.brief_reference?.use_type ?? ''));
+    const brief = (layout.program_reference as any)?.brief_reference;
+    const vehicles = !!car || PARKING_USES.test(String(brief?.use_type ?? '')) || !!brief?.parking;
     const gw = vehicles ? VEHICLE_GATE : PEDESTRIAN_GATE;
     const centre = car ? off.x + car.x + car.width / 2
         : gatehouse ? gatehouse.x + gatehouse.w + 0.5 + gw / 2

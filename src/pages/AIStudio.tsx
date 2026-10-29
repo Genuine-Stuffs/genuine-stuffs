@@ -80,6 +80,7 @@ import { withMinimums } from '@/lib/aec/solver/engine_v2/minimums';
 import { withFacades } from '@/lib/aec/solver/engine_v2/facades';
 import { withAtrium } from '@/lib/aec/solver/engine_v2/atrium';
 import { withQuietBedrooms } from '@/lib/aec/solver/engine_v2/quiet';
+import { readParkingIntent } from '@/lib/aec/parking';
 import { readSetbackIntent, defaultChoice, setbackStudy, setbackAlternatives, SetbackChoice, SetbackStudy } from '@/lib/aec/setbacks';
 import { renderPrompt } from '@/lib/aec/render_prompt';
 import { ADVISORY_RULES } from '@/lib/aec/solver/engine_v2/placement_validator';
@@ -697,6 +698,9 @@ const AIStudio = () => {
                     const setback = setbackStudy(defaultChoice(setbackIntent), { width: plotWidth, depth: plotDepth },
                         setbackIntent.stated, finalDesignData, briefFloors);
                     finalDesignData.setback = setback;
+                    // parking asked for in the compound: open ground, no room of the plan, but cars come in by the gate
+                    const parking = readParkingIntent(userTexts);
+                    if (parking) finalDesignData.brief_reference = { ...finalDesignData.brief_reference, parking };
                     const envelope = { width: plotWidth, depth: plotDepth, setbacks: setback.plan.setbacks };
                     // One seed for both runs, so the plan shown first is
                     // the same geometry as its entry in the options list.
