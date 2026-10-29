@@ -11,6 +11,7 @@ import type { SolvedLayout, PlacedRoom } from 'supabase/functions/ai-studio/sche
 import { computePlacement, type WallSide } from '@/lib/aec/solver/engine_v2/doors';
 import { buildGraph, deriveSuites, unitEntrances, carsIn, VEHICLE_BAY, VEHICLE_END, normalizeRoomType } from '@/lib/aec/solver/engine_v2/graph';
 import { hiveRooms } from '@/lib/aec/solver/engine_v2/gapfree/need';
+import { catalogueEntry } from '@/lib/aec/solver/engine_v2/room_catalogue';
 
 export interface OpeningType { kind: 'D' | 'W'; w: number; h: number }
 
@@ -47,6 +48,21 @@ const EDGE_TOLERANCE = 0.5; // metres
 const norm = (t: string) => t.toLowerCase().replace(/[\s-]+/g, '_');
 
 /** The room's type: synthetic solver rooms by id, the rest from the brief. */
+const fronts = new WeakMap<object, Map<string, string>>();
+/** room_id -> 'stage' | 'choir' for a place of worship's front rooms; empty for any other building. */
+function worshipFront(layout: SolvedLayout): Map<string, string> {
+  const rooms: any[] = layout.program_reference?.rooms ?? [];
+  let m = fronts.get(rooms);
+  if (!m) {
+    // a store keeps its door, whatever its name borrows from its host ("Store (off Choir and Instrument Area)")
+    const entry = rooms.map(r => [r, /stor(e|age)/.test(norm(String(r.type ?? ''))) ? undefined : catalogueEntry(r)?.type] as const);
+    m = new Map(entry.some(([, t]) => t === 'auditorium')
+      ? entry.filter(([, t]) => t === 'stage' || t === 'choir').map(([r, t]) => [r.room_id ?? r.id, t!]) : []);
+    fronts.set(rooms, m);
+  }
+  return m;
+}
+
 export function roomTypeOf(layout: SolvedLayout, room_id: string): string {
   if (/^stairwell(_void)?(_\d+)?$/.test(room_id)) return 'stairwell'; // a hotel's second stair: stairwell_2 / stairwell_void_2
   if (room_id.startsWith('corridor_floor')) return 'circulation';
@@ -56,6 +72,10 @@ export function roomTypeOf(layout: SolvedLayout, room_id: string): string {
   // the open-to-below void over a double-volume room: open to the landing, no door or window
   if (room_id.startsWith('atrium_')) return 'void';
   const rooms: any[] = layout.program_reference?.rooms ?? [];
+  // a place of worship's front by the catalogue, whatever the AI called it ("altar", "band_area",
+  // "Praise Team"): the stage and choir platform open to the hall (owner 2026-10-22)
+  const front = worshipFront(layout).get(room_id);
+  if (front) return front;
   // the planner's own names ("living" -> living_room, "master bedroom" -> master_bedroom):
   // the door rules key on them, so a raw type left the lounge scored as a plain room (2026-10-20)
   return normalizeRoomType(rooms.find(r => r.room_id === room_id || r.id === room_id)?.type) ?? 'unknown';
