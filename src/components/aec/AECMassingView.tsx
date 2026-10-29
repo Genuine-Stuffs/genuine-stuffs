@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Box as BoxIcon, Sparkles, AlertTriangle } from 'lucide-react';
 import { buildingModel, wallBlocks } from './buildingModel';
 import { siteContext, type ContextKind } from './siteContext';
+import { fallbackBoxes, paintOrder, FALLBACK_COLOURS } from './fallbackModel';
 import { withSiteOffset, type Setbacks } from './sitePlan';
 
 interface AECMassingViewProps {
@@ -322,28 +323,11 @@ async function mountThreeViewer(
 
 
 
-// ── The massing model without WebGL (owner 2026-10-28: Chrome with graphics acceleration off, or
-// a blocked GPU, has no WebGL at all since Chrome dropped its software fallback). Each room a
-// block in its colour, stacked storey by storey; drag across to turn the building, up and down to
-// tilt. Drawn as SVG, back to front, so it works in every browser.
-
-interface MassBox { x: number; y: number; w: number; d: number; z: number; h: number; colour: number; label: string }
-
-/** The same blocks the 3D viewer draws: each room inset by its wall, at its storey's height. */
-function massBoxes(layout: SolvedLayout): MassBox[] {
-  const sourceRooms: any[] = layout.program_reference?.rooms ?? [];
-  const rooms = [...layout.placed_rooms, ...(layout.outbuildings ?? []).flatMap(b => b.rooms)];
-  const FLOOR_H = 3.2, WALL_T = 0.12;
-  return rooms.filter(r => [r.x, r.y, r.width, r.depth].every(v => typeof v === 'number' && !isNaN(v)) && r.width > 0 && r.depth > 0
-      && !r.room_id.startsWith('stairwell_void') && !r.room_id.startsWith('atrium_'))
-    .map(r => {
-      const src = sourceRooms.find(q => q.room_id === r.room_id || q.id === r.room_id);
-      const id = r.room_id.toLowerCase();
-      const h = id.includes('garage') ? 4.0 : r.floor === 0 ? 3.2 : 3.0;
-      return { x: r.x + WALL_T / 2, y: r.y + WALL_T / 2, w: r.width - WALL_T, d: r.depth - WALL_T, z: r.floor * FLOOR_H, h: h - 0.1,
-        colour: getRoomColour(src?.type ?? ''), label: String(src?.name ?? r.room_id) };
-    });
-}
+// ── The building without WebGL (owner 2026-10-28: Chrome with graphics acceleration off, or a
+// blocked GPU, has no WebGL at all since Chrome dropped its software fallback). The same building
+// the 3D view draws (fallbackModel.ts): outside walls with their doors and windows, the roof and
+// parapets, the boundary wall, gate and street, lit from the same sun. Drag across to turn it, up
+// and down to tilt; drawn as SVG, back to front, so it works in every browser.
 
 const hex = (c: number, k = 1) => {
   const r = Math.round(((c >> 16) & 255) * k), g = Math.round(((c >> 8) & 255) * k), b = Math.round((c & 255) * k);
@@ -354,9 +338,10 @@ function MassingSvg({ layout }: { layout: SolvedLayout }) {
   const [az, setAz] = useState(-35);   // degrees round the building
   const [el, setEl] = useState(32);    // degrees above the ground
   const drag = useRef<{ x: number; y: number; az: number; el: number } | null>(null);
-  const boxes = React.useMemo(() => massBoxes(layout), [layout]);
+  const boxes = React.useMemo(() => fallbackBoxes(layout), [layout]);
   const plotW = layout.plot_width || 15, plotD = layout.plot_depth || 30;
   const off = layout.site_offset ?? { x: 0, y: 0 };
+  const roadEnd = React.useMemo(() => siteContext(layout)?.roadEnd ?? plotD, [layout, plotD]);
   const cx = (layout.building_width ?? plotW) / 2, cy = (layout.building_depth ?? plotD) / 2;
   const a = (az * Math.PI) / 180, e = (el * Math.PI) / 180;
   const ca = Math.cos(a), sa = Math.sin(a), se = Math.sin(e), ce = Math.cos(e);
@@ -365,30 +350,43 @@ function MassingSvg({ layout }: { layout: SolvedLayout }) {
     const X = (x - cx) * ca - (y - cy) * sa, Y = (x - cx) * sa + (y - cy) * ca;
     return { sx: X, sy: Y * se - z * ce, depth: Y };
   };
-  const faces: Array<{ pts: string; fill: string; key: string }> = [];
-  // storey by storey from the ground up, each storey back to front
-  const order = [...boxes].sort((p, q) => p.z - q.z || P(p.x + p.w / 2, p.y + p.d / 2, 0).depth - P(q.x + q.w / 2, q.y + q.d / 2, 0).depth);
+  // the sun of the 3D view, in the plan's axes (x east, y south, z up), for each face's light
+  const sun = sunDirection(), L = { x: sun.x, y: sun.z, z: sun.y };
+  const shade = (c: number, nx: number, ny: number, nz: number) => hex(c, 0.6 + 0.4 * Math.max(0, nx * L.x + ny * L.y + nz * L.z));
   let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
   const pt = (x: number, y: number, z: number) => {
     const q = P(x, y, z); minX = Math.min(minX, q.sx); maxX = Math.max(maxX, q.sx); minY = Math.min(minY, q.sy); maxY = Math.max(maxY, q.sy);
     return `${q.sx.toFixed(3)},${q.sy.toFixed(3)}`;
   };
-  // the plot, under everything (in the building's frame: the plot starts at -site_offset)
+  const rect = (x0: number, y0: number, x1: number, y1: number) => [pt(x0, y0, 0), pt(x1, y0, 0), pt(x1, y1, 0), pt(x0, y1, 0)].join(' ');
+  // grass round the plot and out past the road; the plot paved (the plot starts at -site_offset)
   const px0 = -off.x, py0 = -off.y;
-  const plot = [pt(px0, py0, 0), pt(px0 + plotW, py0, 0), pt(px0 + plotW, py0 + plotD, 0), pt(px0, py0 + plotD, 0)].join(' ');
-  order.forEach((b, i) => {
-    const x0 = b.x, x1 = b.x + b.w, y0 = b.y, y1 = b.y + b.d, z0 = b.z, z1 = b.z + b.h;
-    // the four sides, each with its outward normal; a side faces the viewer when its normal's depth is positive
+  const grass = rect(px0 - 4, py0 - 4, px0 + plotW + 4, py0 + roadEnd + 4);
+  const plot = rect(px0, py0, px0 + plotW, py0 + plotD);
+  // each box's extent on the sheet, the order to paint them, then each box's top and the sides facing the viewer
+  const screen = boxes.map(b => {
+    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+    for (const x of [b.x0, b.x1]) for (const y of [b.y0, b.y1]) for (const z of [b.z0, b.z1]) {
+      const q = P(x, y, z); x0 = Math.min(x0, q.sx); x1 = Math.max(x1, q.sx); y0 = Math.min(y0, q.sy); y1 = Math.max(y1, q.sy);
+    }
+    return { x0, y0, x1, y1 };
+  });
+  const order = paintOrder(boxes, screen, sa, ca);
+  const faces: Array<{ pts: string; fill: string; key: string; line: number }> = [];
+  // roofs, slabs and paving are drawn in pieces: no outline, so the joins don't show as seams
+  const LINE: Partial<Record<string, number>> = { glass: 0.5, plaster: 0.18, wall: 0.18, coping: 0.18, timber: 0.3, metal: 0.3, gate: 0.3, rail: 0.3 };
+  for (const i of order) {
+    const b = boxes[i], c = FALLBACK_COLOURS[b.mat], line = LINE[b.mat] ?? 0;
+    const { x0, x1, y0, y1, z0, z1 } = b;
     const sides: Array<[number, number, number, number, number, number]> = [
       [x0, y1, x1, y1, 0, 1], [x1, y0, x0, y0, 0, -1], [x1, y1, x1, y0, 1, 0], [x0, y0, x0, y1, -1, 0],
     ];
     for (const [ax, ay, bx, by, nx, ny] of sides) {
-      const facing = nx * sa + ny * ca;
-      if (facing <= 0) continue;
-      faces.push({ key: `${i}s${nx}${ny}`, fill: hex(b.colour, 0.55 + 0.3 * facing), pts: [pt(ax, ay, z0), pt(bx, by, z0), pt(bx, by, z1), pt(ax, ay, z1)].join(' ') });
+      if (nx * sa + ny * ca <= 0) continue;
+      faces.push({ key: `${i}s${nx}${ny}`, line, fill: shade(c, nx, ny, 0), pts: [pt(ax, ay, z0), pt(bx, by, z0), pt(bx, by, z1), pt(ax, ay, z1)].join(' ') });
     }
-    faces.push({ key: `${i}t`, fill: hex(b.colour, 1), pts: [pt(x0, y0, z1), pt(x1, y0, z1), pt(x1, y1, z1), pt(x0, y1, z1)].join(' ') });
-  });
+    faces.push({ key: `${i}t`, line, fill: shade(c, 0, 0, 1), pts: [pt(x0, y0, z1), pt(x1, y0, z1), pt(x1, y1, z1), pt(x0, y1, z1)].join(' ') });
+  }
   const pad = Math.max(maxX - minX, maxY - minY) * 0.06;
   const onDown = (ev: React.PointerEvent) => { (ev.target as Element).setPointerCapture?.(ev.pointerId); drag.current = { x: ev.clientX, y: ev.clientY, az, el }; };
   const onMove = (ev: React.PointerEvent) => {
@@ -400,8 +398,9 @@ function MassingSvg({ layout }: { layout: SolvedLayout }) {
     <div className="absolute inset-0 select-none touch-none cursor-grab active:cursor-grabbing"
       onPointerDown={onDown} onPointerMove={onMove} onPointerUp={() => { drag.current = null; }} onPointerLeave={() => { drag.current = null; }}>
       <svg viewBox={`${minX - pad} ${minY - pad} ${maxX - minX + 2 * pad} ${maxY - minY + 2 * pad}`} className="w-full h-full" preserveAspectRatio="xMidYMid meet">
-        <polygon points={plot} fill="#e2e8f0" stroke="#3B82F6" strokeOpacity={0.5} strokeWidth={0.06} />
-        {faces.map(f => <polygon key={f.key} points={f.pts} fill={f.fill} stroke="#ffffff" strokeOpacity={0.55} strokeWidth={0.03} />)}
+        <polygon points={grass} fill="#7f9a5c" />
+        <polygon points={plot} fill="#d9d6cf" />
+        {faces.map(f => <polygon key={f.key} points={f.pts} fill={f.fill} stroke={f.line ? "#334155" : f.fill} strokeOpacity={f.line || 1} strokeWidth={0.02} strokeLinejoin="round" />)}
       </svg>
       <div className="absolute top-4 right-4 flex gap-2">
         <button onClick={() => setAz(v => v - 45)} className="px-3 py-1.5 rounded-lg bg-white/90 border border-slate-200 text-[10px] font-bold text-slate-700 hover:bg-white">⟲ Turn</button>
@@ -512,21 +511,6 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout: given, setbacks
         <div ref={containerRef} className="w-full h-full" />
         {mode === 'svg' && layout && <MassingSvg layout={layout} />}
 
-        {mode === 'svg' && (
-          <>
-            <div className="absolute bottom-4 left-4 flex flex-col gap-1.5 pointer-events-none">
-              {[
-                ['#3B82F6','Living / Lounge'],['#8B5CF6','Bedrooms'],['#F59E0B','Kitchen'],
-                ['#F97316','Dining'],['#10B981','Foyer / Entrance'],['#6B7280','Garage / Service'],['#6366F1','Family Lounge'],
-              ].map(([colour, label]) => (
-                <div key={label} className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-sm opacity-80" style={{ backgroundColor: colour }} />
-                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-wider">{label}</span>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
       </CardContent>
     </Card>
   );
