@@ -92,7 +92,10 @@ const TOLERANCE = 0.3; // metres — shared wall detection threshold
 /** The renderer's own door wall when the solver gives none (the garage):
  * the internal wall with the best neighbour (corridor > bath's bedroom >
  * living > any room > service room). */
-function heuristicDoorWall(room: PlacedRoom, rooms: PlacedRoom[], typeOf: (id: string) => string, ext: Record<WallSide, boolean>): WallSide {
+/** `exclude`: walls the door may not take; then null when no other inside wall leads anywhere (scores above 0). */
+function heuristicDoorWall(room: PlacedRoom, rooms: PlacedRoom[], typeOf: (id: string) => string, ext: Record<WallSide, boolean>): WallSide;
+function heuristicDoorWall(room: PlacedRoom, rooms: PlacedRoom[], typeOf: (id: string) => string, ext: Record<WallSide, boolean>, exclude: WallSide[]): WallSide | null;
+function heuristicDoorWall(room: PlacedRoom, rooms: PlacedRoom[], typeOf: (id: string) => string, ext: Record<WallSide, boolean>, exclude?: WallSide[]): WallSide | null {
   const roomRight = room.x + room.width, roomBottom = room.y + room.depth;
   const scores: Record<WallSide, number> = { top: 0, bottom: 0, left: 0, right: 0 };
   const currentType = typeOf(room.room_id);
@@ -100,7 +103,10 @@ function heuristicDoorWall(room: PlacedRoom, rooms: PlacedRoom[], typeOf: (id: s
     if (n.room_id === room.room_id) continue;
     const nRight = n.x + n.width, nBottom = n.y + n.depth;
     const nType = typeOf(n.room_id);
+    // a door moved off a shared wall (dedupeDoors) never goes into the open air or a car space
+    const outside = !!exclude && (isOpen(norm(nType)) || /^(carport|car_porch|parking|garage)$/.test(norm(nType)));
     const score = nType === 'void' ? -100 // a drop to the floor below
+      : outside ? 0
       : ['circulation', 'hall', 'landing', 'stairwell'].includes(nType) ? 10
       : (currentType === 'bathroom' && ['bedroom', 'master_bedroom'].includes(nType)) ? 9
       : ['living_room', 'dining_room', 'family_room'].includes(nType) ? 8
@@ -114,6 +120,7 @@ function heuristicDoorWall(room: PlacedRoom, rooms: PlacedRoom[], typeOf: (id: s
     if (Math.abs(room.x - nRight) < TOLERANCE && yOver) scores.left += score;
   }
   const ranked = (['bottom', 'right', 'top', 'left'] as WallSide[]).filter(w => !ext[w]).sort((a, b) => scores[b] - scores[a]);
+  if (exclude) return ranked.find(w => !exclude.includes(w) && scores[w] > 0) ?? null;
   return ranked[0] ?? 'bottom';
 }
 
@@ -290,6 +297,43 @@ function vehicleDoor(layout: SolvedLayout, r: PlacedRoom, W: number, D: number, 
 
 /** One floor's doors (one per room, where it fits) and windows (one per
  * external wall of a room, the largest of its sizes that fits). */
+/** Where a planned door stands: the wall line it is on, and the stretch of that line it takes. */
+function doorSpan(r: PlacedRoom, d: PlannedDoor) {
+  const horizontal = d.wall === 'top' || d.wall === 'bottom';
+  const lo = horizontal ? r.x : r.y, len = horizontal ? r.width : r.depth;
+  const at = d.at ?? Math.max(0, Math.min(len * 0.25, len - d.type.w));
+  const line = d.wall === 'top' ? r.y : d.wall === 'bottom' ? r.y + r.depth : d.wall === 'left' ? r.x : r.x + r.width;
+  return { horizontal, line, a: lo + at, b: lo + at + d.type.w };
+}
+
+const CIRCULATION = /^(foyer|entrance|lobby|hall|hallway|corridor|passage|landing|circulation)$/;
+
+/**
+ * Two rooms that each open into the other through the same stretch of their shared wall had two
+ * doors in one place (the porch into the sitting room and the sitting room into the porch; a flat's
+ * bedroom into its own en-suite, 2026-10-29). One door joins them: the aimed one stays (an en-suite's
+ * into its bedroom), else the hall's or porch's, else the first; the other room's door moves to its
+ * next best inside wall, or goes when it has none (the kept door still joins the two rooms).
+ */
+function dedupeDoors(doors: Map<string, PlannedDoor>, aimed: Set<string>, rooms: PlacedRoom[], typeOf: (id: string) => string, W: number, D: number) {
+  const byId = new Map(rooms.map(r => [r.room_id, r]));
+  const ids = [...doors.keys()];
+  for (let i = 0; i < ids.length; i++) for (let j = i + 1; j < ids.length; j++) {
+    const da = doors.get(ids[i]), db = doors.get(ids[j]);
+    const ra = byId.get(ids[i]), rb = byId.get(ids[j]);
+    if (!da || !db || !ra || !rb) continue;
+    const p = doorSpan(ra, da), q = doorSpan(rb, db);
+    if (p.horizontal !== q.horizontal || Math.abs(p.line - q.line) > TOLERANCE || Math.min(p.b, q.b) - Math.max(p.a, q.a) <= 0.02) continue;
+    const keepA = aimed.has(ids[i]) !== aimed.has(ids[j]) ? aimed.has(ids[i])
+      : CIRCULATION.test(norm(typeOf(ids[i]))) !== CIRCULATION.test(norm(typeOf(ids[j]))) ? CIRCULATION.test(norm(typeOf(ids[i]))) : true;
+    const [moved, d] = keepA ? [rb, db] : [ra, da];
+    const ext = externalEdges(moved, W, D, rooms);
+    const wall = heuristicDoorWall(moved, rooms, typeOf, ext, [d.wall]);
+    if (wall && wallLength(moved, wall) >= d.type.w + DOOR_CLEAR) doors.set(moved.room_id, { ...d, wall, at: undefined, ...doorStretch(moved, wall, d.type, rooms, typeOf) });
+    else doors.delete(moved.room_id);
+  }
+}
+
 export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings {
   const rooms = layout.placed_rooms.filter(r => r.floor === floor
     && !isNaN(r.x) && !isNaN(r.y) && r.width > 0 && r.depth > 0);
@@ -331,6 +375,8 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
     return null;
   };
   const doors = new Map<string, PlannedDoor>();
+  // the doors aimed at a given room (an en-suite's into its bedroom, a flat's rooms into its entrance)
+  const aimed = new Set<string>();
   const windows: PlannedWindow[] = [];
   for (const r of rooms) {
     const t = norm(typeOf(r.room_id));
@@ -344,10 +390,17 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
       const entryRoom = entry ? rooms.find(q => q.room_id === entry) : undefined;
       const passage = entry && !r.room_id.startsWith('passage_') ? rooms.find(q => q.room_id === `passage_${entry}`) : undefined;
       const bedroom = rooms.find(q => q.room_id === ownBedroom.get(r.room_id));
-      const wall = (bedroom && sharedWall(r, bedroom)) || (entryRoom && sharedWall(r, entryRoom)) || (passage && sharedWall(r, passage)) || spec?.wall || heuristicDoorWall(r, rooms, typeOf, ext);
+      // the room it opens into: the first of these it shares a wall with; the door aims at that room on that
+      // wall (a flat's bedroom chose the wall for its passage, then aimed at the living room it doesn't touch,
+      // and its door fell into its own en-suite, 2026-10-29)
+      const aimAt = [bedroom, entryRoom, passage].find(q => q && sharedWall(r, q));
+      const wall = (aimAt && sharedWall(r, aimAt)) || spec?.wall || heuristicDoorWall(r, rooms, typeOf, ext);
       // a store, pantry or meter room takes the 0.8 m service door too (a 1.0 m wide meter room fits it; owner 2026-10-21)
       const type = spec?.interior || SERVICE_ROOMS.test(t) || /^(store|storage|pantry)$/.test(t) ? DOOR_SERVICE : DOOR_ROOM;
-      if (wallLength(r, wall) >= type.w + DOOR_CLEAR) doors.set(r.room_id, { room_id: r.room_id, wall, type, ...doorStretch(r, wall, type, rooms, typeOf, bedroom ?? entryRoom ?? passage) });
+      if (wallLength(r, wall) >= type.w + DOOR_CLEAR) {
+        doors.set(r.room_id, { room_id: r.room_id, wall, type, ...doorStretch(r, wall, type, rooms, typeOf, aimAt ?? bedroom ?? entryRoom ?? passage) });
+        if (aimAt) aimed.add(r.room_id);
+      }
     }
     if (t === 'stairwell' || t === 'passage' || isOutside(t)) continue;
     const sizes = LARGE_ROOMS.test(t) ? [WIN_LARGE, WIN_ROOM, WIN_SMALL]
@@ -358,6 +411,7 @@ export function planOpenings(layout: SolvedLayout, floor: number): FloorOpenings
       if (type) windows.push({ room_id: r.room_id, wall, type });
     }
   }
+  dedupeDoors(doors, aimed, rooms, typeOf, W, D);
   // The front door takes the place of the window on its wall.
   const entrance = floor === 0 ? frontEntrance(layout, rooms, D, typeOf) : null;
   // A garage's vehicle door, on its street wall where it has one, else another
