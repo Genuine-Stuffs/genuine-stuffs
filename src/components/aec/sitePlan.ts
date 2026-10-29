@@ -35,6 +35,14 @@ const CAR_NAME = /\bcars?\b|garage|carport/i;
 // regulations/hotel.ts hotelParking): cars come in through the gate though no room of the plan is a garage
 const PARKING_USES = /^(assembly|hospitality)$/;
 
+/** The layout with its place on the plot: a saved plan from before every plan carried
+ * site_offset gets the site plan's placement, not the plot's corner. */
+export function withSiteOffset(layout: SolvedLayout, setbacks?: Setbacks): SolvedLayout {
+    if (layout.site_offset) return layout;
+    const site = sitePlan(layout, setbacks);
+    return site ? { ...layout, site_offset: { x: site.house.x, y: site.house.y } } : layout;
+}
+
 export function sitePlan(layout: SolvedLayout, setbacks?: Setbacks): SitePlan | null {
     const ground = layout.placed_rooms.filter(r => r.floor === 0);
     if (!ground.length || !(layout.plot_width > 0) || !(layout.plot_depth > 0)) return null;

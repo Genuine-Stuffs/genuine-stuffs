@@ -7,6 +7,7 @@
 // not for construction" in the project's description and in a property set on the building.
 // Plain IFC-SPF text, written directly: no library, works offline.
 
+import { withSiteOffset } from './sitePlan';
 import type { SolvedLayout } from 'supabase/functions/ai-studio/schema';
 import { buildingModel } from './buildingModel';
 import { roomName } from './section';
@@ -53,7 +54,7 @@ export function planToIfc(layout: SolvedLayout, label = 'GS AI Studio', projectN
   };
 
   // the plot and the building on it, where the site plan puts it (plan y runs down the sheet: IFC y = -plan y)
-  const off = layout.site_offset ?? { x: 0, y: 0 };
+  const off = withSiteOffset(layout).site_offset ?? { x: 0, y: 0 };
   const sitePlace = place(null, 0, 0, 0);
   const site = add(`IFCSITE('${guid()}',$,'Site',$,$,${sitePlace},$,$,.ELEMENT.,$,$,$,$,$)`);
   const buildingPlace = place(sitePlace, off.x, -off.y, 0);

@@ -5,9 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Box as BoxIcon, Sparkles, AlertTriangle } from 'lucide-react';
 import { buildingModel, wallBlocks } from './buildingModel';
 import { siteContext, type ContextKind } from './siteContext';
+import { withSiteOffset, type Setbacks } from './sitePlan';
 
 interface AECMassingViewProps {
   layout?: SolvedLayout;
+  /** the plan's setbacks, so a saved plan without its place on the plot stands where the site plan draws it */
+  setbacks?: Setbacks;
 }
 
 const ROOM_COLOURS: Record<string, number> = {
@@ -412,7 +415,8 @@ function MassingSvg({ layout }: { layout: SolvedLayout }) {
 
 type RenderMode = 'loading' | 'three' | 'svg' | 'error';
 
-const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
+const AECMassingView: React.FC<AECMassingViewProps> = ({ layout: given, setbacks }) => {
+  const layout = React.useMemo(() => given && withSiteOffset(given, setbacks), [given, setbacks]);
   const containerRef = useRef<HTMLDivElement>(null);
   const [mode, setMode] = useState<RenderMode>('loading');
   const [noWebGL, setNoWebGL] = useState(false);
@@ -421,7 +425,7 @@ const AECMassingView: React.FC<AECMassingViewProps> = ({ layout }) => {
   // Redraw only when the geometry changes. (A guard that skipped a remount
   // when plot size and room count matched left the panel blank: the cleanup
   // had already removed the previous drawing.)
-  const geometryKey = layout ? JSON.stringify([layout.plot_width, layout.plot_depth,
+  const geometryKey = layout ? JSON.stringify([layout.plot_width, layout.plot_depth, layout.site_offset,
     (layout.placed_rooms ?? []).map(r => [r.room_id, r.floor, r.x, r.y, r.width, r.depth]),
     (layout.outbuildings ?? []).map(b => b.rooms.map(r => [r.room_id, r.x, r.y, r.width, r.depth]))]) : null;
 
