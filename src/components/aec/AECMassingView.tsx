@@ -40,6 +40,20 @@ function getRoomColour(type: string): number {
   return ROOM_COLOURS.default;
 }
 
+// Step 3: the sun where it really is. Lagos (6.5° N) at 09:30 on 21 December, the dry season:
+// low in the south-east, so the shadows are long enough to read the massing. A unit vector in
+// the scene's axes: x east, y up, z south (the plan's north arrow points up, which is -z).
+const SITE_LATITUDE = 6.5, SUN_DAY = 355, SUN_HOUR = 9.5;
+function sunDirection(latDeg = SITE_LATITUDE, day = SUN_DAY, hour = SUN_HOUR) {
+  const rad = Math.PI / 180, lat = latDeg * rad;
+  const decl = -23.44 * rad * Math.cos((2 * Math.PI / 365) * (day + 10));
+  const H = 15 * (hour - 12) * rad;
+  const east = -Math.cos(decl) * Math.sin(H);
+  const north = Math.sin(decl) * Math.cos(lat) - Math.cos(decl) * Math.cos(H) * Math.sin(lat);
+  const up = Math.sin(decl) * Math.sin(lat) + Math.cos(decl) * Math.cos(H) * Math.cos(lat);
+  return { x: east, y: up, z: -north };
+}
+
 async function mountThreeViewer(
   container: HTMLDivElement,
   layout: SolvedLayout
@@ -54,14 +68,17 @@ async function mountThreeViewer(
     const mod = await import('three/examples/jsm/controls/OrbitControls.js' as any);
     OrbitControls = mod.OrbitControls;
   }
+  let Sky: any;
+  try { Sky = (await import('three/addons/objects/Sky.js' as any)).Sky; }
+  catch { Sky = (await import('three/examples/jsm/objects/Sky.js' as any)).Sky; }
 
   const W = container.clientWidth  || 900;
   const H = container.clientHeight || 650;
 
   const scene = new THREE.Scene();
-  // Beautiful architectural sky gradient alternative: solid light architectural blue
-  scene.background = new THREE.Color(0xf1f5f9);
-  scene.fog = new THREE.FogExp2(0xf1f5f9, 0.008);
+  // the horizon's haze; the sky itself is the Sky dome below
+  scene.background = new THREE.Color(0xdbe7f1);
+  scene.fog = new THREE.FogExp2(0xdbe7f1, 0.004);
 
   // A browser that refuses the full settings (weak or busy GPU) gets a lighter
   // context; one that refuses WebGL entirely gets an explained message.
@@ -74,7 +91,10 @@ async function mountThreeViewer(
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.setSize(W, H);
   renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  // the Sky shader is physically scaled: filmic tone mapping brings it, and the sunlit walls, into range
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.0;
   container.appendChild(renderer.domElement);
 
   // Dynamic camera — scale to actual plot size
@@ -102,33 +122,42 @@ async function mountThreeViewer(
   controls.target.copy(focus);
   controls.update();
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+  // the sky, with the sun in it. Its light in the shade is a hemisphere light, not an environment map
+  // made from the sky: some browsers (software WebGL, older GPUs) render that map black, and the model with it
+  const sunDir = sunDirection();
+  const sky = new Sky();
+  sky.scale.setScalar(camDist * 10);
+  sky.material.uniforms.turbidity.value = 6;
+  sky.material.uniforms.rayleigh.value = 1.6;
+  sky.material.uniforms.mieCoefficient.value = 0.005;
+  sky.material.uniforms.mieDirectionalG.value = 0.8;
+  sky.material.uniforms.sunPosition.value.set(sunDir.x, sunDir.y, sunDir.z);
+  scene.add(sky);
+  scene.add(new THREE.HemisphereLight(0xcfe3f5, 0x8a7f6a, 0.9));
 
-  const sun = new THREE.DirectionalLight(0xffffff, 1.2);
-  sun.position.set(maxDim, maxDim * 2, maxDim);
+  // the sun: its shadow box fitted to the plot and the tallest storey, so the shadows stay sharp
+  const sun = new THREE.DirectionalLight(0xfff1dc, 2.6);
+  const reach = Math.hypot(plotW, plotD) / 2 + storeys * 3.2 + 2;
+  sun.position.set(sunDir.x * reach * 2, sunDir.y * reach * 2, sunDir.z * reach * 2);
+  sun.target.position.set(0, 0, 0);
+  scene.add(sun.target);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  sun.shadow.bias = -0.0005;
-  const sc = maxDim * 1.5;
-  Object.assign(sun.shadow.camera, { left: -sc, right: sc, top: sc, bottom: -sc, near: 0.1, far: camDist * 4 });
+  sun.shadow.bias = -0.0003;
+  sun.shadow.normalBias = 0.02;
+  sun.shadow.radius = 3;
+  Object.assign(sun.shadow.camera, { left: -reach, right: reach, top: reach, bottom: -reach, near: 0.1, far: reach * 4 });
   scene.add(sun);
 
-  const fill = new THREE.DirectionalLight(0xe0f2fe, 0.6);
-  fill.position.set(-maxDim, maxDim * 0.5, -maxDim);
-  scene.add(fill);
-
+  // grass round the plot, out to the haze
   const ground = new THREE.Mesh(
     new THREE.PlaneGeometry(maxDim * 10, maxDim * 10),
-    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 })
+    new THREE.MeshStandardMaterial({ color: 0x7f9a5c, roughness: 1, metalness: 0 })
   );
   ground.rotation.x = -Math.PI / 2;
   ground.position.y = -0.05;
   ground.receiveShadow = true;
   scene.add(ground);
-  
-  const gridHelper = new THREE.GridHelper(maxDim * 4, Math.floor(maxDim * 4), 0xe2e8f0, 0xf1f5f9);
-  gridHelper.position.y = -0.04;
-  scene.add(gridHelper);
 
   const sourceRooms: any[] = layout.program_reference?.rooms ?? [];
   const cx = plotW / 2;
@@ -136,19 +165,19 @@ async function mountThreeViewer(
 
   // The building itself, from the plan (buildingModel.ts): every wall at its thickness with the
   // plan's doors and windows cut through it, glass in the windows, and a slab under every room
-  // tinted by what the room is. No roof yet (step 2): the rooms read from above.
+  // tinted by what the room is, under the roof and parapets of step 2.
   const model = buildingModel(layout);
   const plaster = new THREE.MeshStandardMaterial({ color: 0xf4efe6, roughness: 0.92, metalness: 0 });
   const partition = new THREE.MeshStandardMaterial({ color: 0xfbfaf7, roughness: 0.95, metalness: 0 });
-  const railMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.4, metalness: 0.6 });
+  const railMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.5, metalness: 0.25 });
   const glass = new THREE.MeshStandardMaterial({ color: 0x9cc9e8, roughness: 0.05, metalness: 0.1, transparent: true, opacity: 0.38 });
   // step 2: the roof (concrete), its parapet (plaster, a darker coping), timber doors, metal
   // vehicle doors, aluminium window frames, and paving under the plot
   const roofMat = new THREE.MeshStandardMaterial({ color: 0xb8b4ad, roughness: 0.95 });
   const coping = new THREE.MeshStandardMaterial({ color: 0xd6cfc2, roughness: 0.85 });
   const timber = new THREE.MeshStandardMaterial({ color: 0x8a5a33, roughness: 0.6 });
-  const metal = new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.35, metalness: 0.7 });
-  const frame = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.4, metalness: 0.6 });
+  const metal = new THREE.MeshStandardMaterial({ color: 0x6b7280, roughness: 0.45, metalness: 0.3 });
+  const frame = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5, metalness: 0.25 });
   const paving = new THREE.MeshStandardMaterial({ color: 0xd9d6cf, roughness: 1 });
   const edgeMat = new THREE.LineBasicMaterial({ color: 0x64748b, transparent: true, opacity: 0.35 });
   const typeOf = (id: string) => (sourceRooms.find(r => r.room_id === id || r.id === id)?.type ?? '') as string;
@@ -215,8 +244,29 @@ async function mountThreeViewer(
   );
   scene.add(plotBoundary);
 
+  // one slow turn round the building when it first shows; the first touch stops it, and a
+  // browser set to reduce motion never starts it
+  const still = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  controls.autoRotate = !still;
+  controls.autoRotateSpeed = 3; // a turn in about 20 s
+  let turned = 0, lastAz = controls.getAzimuthalAngle();
+  const stopTurn = () => { controls.autoRotate = false; };
+  controls.addEventListener('start', stopTurn);
+
+  // the turn is timed by the clock, not by frames, so a slow GPU still finishes it in 20 s
+  const clock = new THREE.Clock();
   let animId: number;
-  const animate = () => { animId = requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); };
+  const animate = () => {
+    animId = requestAnimationFrame(animate);
+    controls.update(Math.min(clock.getDelta(), 0.25));
+    if (controls.autoRotate) {
+      const az = controls.getAzimuthalAngle();
+      let d = Math.abs(az - lastAz); if (d > Math.PI) d = 2 * Math.PI - d;
+      turned += d; lastAz = az;
+      if (turned >= 2 * Math.PI) stopTurn();
+    }
+    renderer.render(scene, camera);
+  };
   animate();
 
   const onResize = () => {
@@ -228,6 +278,7 @@ async function mountThreeViewer(
   return () => {
     cancelAnimationFrame(animId);
     window.removeEventListener('resize', onResize);
+    controls.removeEventListener('start', stopTurn);
     controls.dispose();
     scene.traverse((o: any) => { o.geometry?.dispose?.(); o.material?.dispose?.(); });
     renderer.dispose();
