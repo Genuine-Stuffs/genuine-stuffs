@@ -274,6 +274,27 @@ export function runComplianceCheck(program: SpatialProgram): ComplianceReport {
     results.push(...stairResults);
   }
 
+  // One span warning for the plan, naming each room (owner 2026-10-29): a room per warning
+  // repeated the same sentence a dozen times over a duplex.
+  const spanWarns = results.filter(r => r.rule === 'MAX_SPAN' && r.status === 'WARN');
+  if (spanWarns.length > 1) {
+    const maxSpan = rules.structural_parameters.beam_design.max_span_m.typical_residential;
+    const onPlan = spanWarns.map(r => spans?.get(r.room_id!)?.span).filter((v): v is number => v !== undefined);
+    const depths = [...new Set(onPlan.map(v => beamDepthMm(+v.toFixed(2))))].sort((x, y) => x - y);
+    const merged: RuleResult = {
+      rule: 'MAX_SPAN',
+      status: 'WARN',
+      required: `≤ ${maxSpan}m`,
+      actual: `${spanWarns.length} rooms`,
+      message: `${spanWarns.length} rooms span ${onPlan.length === spanWarns.length ? 'over' : 'over or close to'} the ${maxSpan}m residential limit: `
+        + spanWarns.map(r => `${r.room_name} ${r.actual}`).join(', ') + '. '
+        + (depths.length ? `The plan carries them on ${depths.join('–')}mm deep beams between grid columns. ` : '')
+        + 'Structural engineer to verify.',
+    };
+    const at = results.indexOf(spanWarns[0]);
+    results.splice(0, results.length, ...results.slice(0, at), merged, ...results.slice(at).filter(r => !spanWarns.includes(r)));
+  }
+
   // 2. Setback reference (informational — we don't have plot dimensions to check against here)
   const setbacks = rules.spatial_compliance.setbacks.lagos_residential;
   const loadSpec = useType === 'commercial'

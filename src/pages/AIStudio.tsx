@@ -1506,7 +1506,7 @@ const AIStudio = () => {
                                                                                 NBC 2006 Pre-Screen: {complianceReport.overall_status.replace('_', ' ')}
                                                                             </h4>
                                                                             <p className="text-[9px] text-slate-400">
-                                                                                {complianceReport.pass_count} passed · {complianceReport.fail_count} failed · {complianceReport.warn_count} warnings · {complianceReport.checked_against}
+                                                                                {complianceReport.pass_count} passed · {complianceReport.fail_count} failed · {complianceReport.warn_count} warning{complianceReport.warn_count === 1 ? '' : 's'} · {complianceReport.checked_against}
                                                                             </p>
                                                                         </div>
                                                                     </div>
