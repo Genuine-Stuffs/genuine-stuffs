@@ -240,7 +240,7 @@ serve(async (req: Request) => {
         const isAdmin = user?.app_metadata?.is_admin === true;
         const isPM = user?.app_metadata?.is_pm === true || isAdmin;
 
-        const { prompt, messages: history = [], type = 'text', selectedRole = 'Architect', fileData = '', fileName = '', fileType = '', mimeType = '' } = await req.json();
+        const { prompt, messages: history = [], type = 'text', selectedRole = 'Architect', fileData = '', fileName = '', fileType = '', mimeType = '', currentBrief = null } = await req.json();
 
         // ── BOQ ANALYZER PATH ──────────────────────────────────────────────────
         if (type === 'analyze_boq') {
@@ -399,9 +399,22 @@ RULES:
         // history contains the prior conversation turns (role: user/assistant).
         // The current prompt is added as the final user message so the model
         // sees the full context PLUS the new request.
+        // The edit loop (feasibility study §4 step 7): a follow-up on a design changes that design's
+        // brief, not a fresh one, so the planner can keep the plan and change only what was asked.
+        // The page sends the brief on screen; older pages send none and get a fresh brief, as before.
+        const editing = currentBrief && Array.isArray(currentBrief.rooms) && currentBrief.rooms.length
+            ? [{ role: "system", content:
+                "EDITING AN EXISTING DESIGN. The user's latest message asks for a change to the design below. " +
+                "Return the COMPLETE updated design in the same JSON schema. Keep every room's room_id, name, type, floor, area_m2 and " +
+                "adjacencies exactly as they are unless the user asked to change that room. Add, remove or change only what the user asked " +
+                "for; give an added room a new room_id that is not used below, and link it to the rooms it belongs next to. " +
+                "In \"narrative\", say in one or two sentences what you changed.\n\nCURRENT DESIGN BRIEF:\n" +
+                JSON.stringify({ brief_reference: currentBrief.brief_reference ?? null, rooms: currentBrief.rooms }).slice(0, 60000) }]
+            : [];
         const messagesForModel = [
             { role: "system", content: HIVE_SYSTEM_PROMPT },
             ...history.filter((m: any) => m.role === 'user' || m.role === 'assistant'),
+            ...editing,
             { role: "user", content: `[${selectedRole} Mode] ${prompt}` }
         ];
 

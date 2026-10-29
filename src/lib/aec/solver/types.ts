@@ -1,7 +1,7 @@
 /**
  * Genuine Stuffs AI Studio - Solver Internal Types
  */
-import { SpatialProgram, SolvedLayout, PlacedRoom } from "../../../../supabase/functions/ai-studio/schema";
+import { SpatialProgram, SolvedLayout, PlacedRoom, SearchState } from "../../../../supabase/functions/ai-studio/schema";
 
 export interface PlotEnvelope {
     width: number;
@@ -27,6 +27,8 @@ export interface SolverOptions {
     /** The user allows outbuildings (BQ, generator house) in the rear
      * setback when they don't fit inside the setbacks (owner, 2026-10-13). */
     outbuildings_in_rear_setback?: boolean;
+    /** The edit loop: the previous plan's search, to refine it for an edited brief. */
+    warm_start?: SearchState;
 }
 
 export interface InternalRoomNode {

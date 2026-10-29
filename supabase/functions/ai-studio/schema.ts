@@ -120,6 +120,19 @@ export interface SolvedLayout {
         compactness: number; window: number; circulation: number;
     };
     placement_issues?: ValidationIssue[];
+    // The edit loop: how the gap-free search found this plan (footprint, each floor's slicing
+    // expression over its rooms), so a follow-up edit starts from it instead of a new house.
+    search_state?: SearchState;
+    // The edit loop: the plan started from the previous one; false when the warm start
+    // couldn't keep a plan as good and the full search ran instead.
+    warm_started?: boolean;
+}
+
+export interface SearchState {
+    path: 'slicing';
+    W: number; D: number;              // footprint, cells
+    cost: number;                      // the search's own total, to compare an edit's plan against
+    floors: Array<{ floor: number; ids: string[]; areas?: number[]; expr: number[]; offs: number[]; rects: Array<{ x: number; y: number; w: number; h: number }> }>;
 }
 
 // ---------------------------------------------------------------------------

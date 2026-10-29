@@ -300,14 +300,121 @@ export function cost(expr: number[], offs: number[], spec: FloorSpec, stackW: nu
         + quietCost(spec, rects.map(r => r.y), rects.map(r => r.h));
 }
 
+/** An edit's start (the edit loop, feasibility study §4 step 7): the previous plan's expression
+ * mapped onto the edited brief, the rooms' previous rects (null for a new room), how much each
+ * cell a kept room moves costs, and a low starting temperature, so the search refines that plan
+ * instead of drawing a new one. */
+export interface WarmStart {
+    expr: number[]; offs: number[]; prev: Array<Rect | null>; stayW: number; T0: number;
+    /** A room the edit resized: its new size in cells, pulled towards as hard as a kept room is held (null: not resized). */
+    target: Array<number | null>;
+}
+
+type Tree = number | { op: number; a: Tree; b: Tree; off: number };
+
+/** The previous plan of a floor (its rooms by id, expression and rects) mapped onto the edited
+ * floor's leaves: a kept room keeps its place in the tree (a resized one re-flows there), a
+ * removed one is cut out (its sibling takes the space), a new one is split off a room it must
+ * be next to (else the hall), across that room's longer side. Null when nothing is kept. */
+export function warmFrom(prev: { ids: string[]; expr: number[]; offs: number[]; rects: Rect[]; areas?: number[] }, spec: FloorSpec, stayW: number, T0: number): WarmStart | null {
+    const idx = new Map(spec.leaves.map((l, i) => [l.id, i]));
+    const st: Tree[] = [];
+    for (let k = 0; k < prev.expr.length; k++) {
+        const t = prev.expr[k];
+        if (t >= 0) st.push(idx.get(prev.ids[t]) ?? -1);
+        else { const b = st.pop()!, a = st.pop()!; st.push({ op: t, a, b, off: prev.offs[k] ?? 0 }); }
+    }
+    const prune = (t: Tree): Tree | null => {
+        if (typeof t === "number") return t >= 0 ? t : null;
+        const a = prune(t.a), b = prune(t.b);
+        return a === null ? b : b === null ? a : { ...t, a, b };
+    };
+    let root = st.length === 1 ? prune(st[0]) : null;
+    if (root === null) return null;
+    const prevRect = new Map<number, Rect>();
+    prev.ids.forEach((id, t) => { const i = idx.get(id); if (i !== undefined && prev.rects[t]) prevRect.set(i, prev.rects[t]); });
+    const has = new Set<number>(); const walk = (t: Tree) => { if (typeof t === "number") has.add(t); else { walk(t.a); walk(t.b); } }; walk(root);
+    const zoneOf = new Map<number, number>(); spec.zones?.forEach((z, k) => z.forEach(i => zoneOf.set(i, k)));
+    const hall = spec.leaves.findIndex(l => l.hall);
+    const serial = (t: Tree) => {
+        const expr: number[] = [], offs: number[] = [];
+        const emit = (q: Tree) => { if (typeof q === "number") { expr.push(q); offs.push(0); } else { emit(q.a); emit(q.b); expr.push(q.op); offs.push(q.off); } };
+        emit(t); return { expr, offs };
+    };
+    // a new room goes beside a room it must be next to, or the hall: every such room, cut across
+    // or along, the new room either side; the graft that breaks fewest rules (the rooms not yet
+    // grafted are left out of that count: they have no place yet)
+    const added = spec.leaves.map((_, j) => j).filter(j => !has.has(j));
+    for (const j of added) {
+        const linked = spec.pairs.flatMap(([x, y]) => x === j ? [y] : y === j ? [x] : []).filter(i => has.has(i) && zoneOf.get(i) === zoneOf.get(j));
+        const anchors = [...new Set([...linked, ...(has.has(hall) && zoneOf.get(hall) === zoneOf.get(j) ? [hall] : [])])];
+        if (!anchors.length) { const any = [...has].find(i => zoneOf.get(i) === zoneOf.get(j)); if (any === undefined) return null; anchors.push(any); }
+        let bestT: Tree | null = null, bestC = Infinity;
+        for (const anchor of anchors) for (const op of [V, H]) for (const first of [true, false]) {
+            const graft = (t: Tree): Tree => typeof t === "number" ? (t === anchor ? { op, a: first ? t : j, b: first ? j : t, off: 0 } : t) : { ...t, a: graft(t.a), b: graft(t.b) };
+            const cand = graft(root!);
+            const { expr, offs } = serial(cand);
+            // score with the leaves placed so far (a partial floor: the others get no area)
+            const n = expr.filter(t => t >= 0).length;
+            const c = n === spec.leaves.length ? cost(expr, offs, spec, 0) : (() => { const r = layout(expr, { ...spec, leaves: spec.leaves.map((l, i) => expr.includes(i) ? l : { ...l, area: 0 }) }, offs); return r ? 0 : 1e9; })();
+            if (c < bestC) { bestC = c; bestT = cand; }
+        }
+        if (!bestT) return null;
+        root = bestT; has.add(j);
+    }
+    const { expr, offs } = serial(root);
+    if (expr.filter(t => t >= 0).length !== spec.leaves.length) return null;
+    // the edit's own changes: a room whose size changed by more than 5 % is pulled to its new size, not held
+    const was = new Map<number, number>(); prev.ids.forEach((id, t) => { const i = idx.get(id); if (i !== undefined && prev.areas) was.set(i, prev.areas[t]); });
+    const resized = (i: number) => was.has(i) && Math.abs(spec.leaves[i].area - was.get(i)!) > 0.05 * was.get(i)!;
+    // the hall takes the remainder, so its shape isn't held; every other kept room is
+    const keep = spec.leaves.map((l, i) => l.hall || resized(i) ? null : prevRect.get(i) ?? null);
+    const target = spec.leaves.map((l, i) => resized(i) ? l.area / (CELL * CELL) : null);
+    return { expr, offs, prev: keep, stayW, T0, target };
+}
+
+/** Cells the kept rooms moved or resized from their previous rects, plus each resized room's cells short of (or over) its new size. */
+function moved(w: WarmStart, X: ArrayLike<number>, Y: ArrayLike<number>, Wd: ArrayLike<number>, Ht: ArrayLike<number>): number {
+    let d = 0;
+    for (let i = 0; i < w.prev.length; i++) {
+        const q = w.prev[i], t = w.target[i];
+        if (q) d += Math.abs(X[i] - q.x) + Math.abs(Y[i] - q.y) + Math.abs(Wd[i] - q.w) + Math.abs(Ht[i] - q.h);
+        else if (t !== null) d += Math.abs(Wd[i] * Ht[i] - t);
+    }
+    return d;
+}
+
+/** ZONES: each position's strip (-1 for the cuts joining strips) and where its strip ends, read
+ * off an expression; null when a strip isn't one run of positions. */
+function zoneSegments(expr: number[], zones: number[][]): { segOf: Int32Array; segEnd: Int32Array } | null {
+    const zoneOf = new Map<number, number>(); zones.forEach((z, k) => z.forEach(i => zoneOf.set(i, k)));
+    const seg = new Int32Array(expr.length), st: number[] = [];
+    for (let k = 0; k < expr.length; k++) {
+        if (expr[k] >= 0) { seg[k] = zoneOf.get(expr[k]) ?? -1; st.push(seg[k]); }
+        else { const b = st.pop()!, a = st.pop()!; seg[k] = a === b ? a : -1; st.push(seg[k]); }
+    }
+    const segEnd = new Int32Array(expr.length);
+    for (let k = 0; k < expr.length;) {
+        let e = k; while (e + 1 < expr.length && seg[e + 1] === seg[k]) e++;
+        for (let q = k; q <= e; q++) segEnd[q] = e + 1;
+        k = e + 1;
+    }
+    for (let z = 0; z < zones.length; z++) { const at = [...seg.keys()].filter(k => seg[k] === z); if (at.length && at[at.length - 1] - at[0] + 1 !== at.length) return null; }
+    return { segOf: seg, segEnd };
+}
+
 /** Simulated annealing over normalized Polish expressions. */
-export function anneal(spec: FloorSpec, seed: number, iters: number, stackW = 0): { expr: number[]; offs: number[]; cost: number } {
+export function anneal(spec: FloorSpec, seed: number, iters: number, stackW = 0, warm?: WarmStart): { expr: number[]; offs: number[]; cost: number } {
     const R = rng(seed), n = spec.leaves.length;
     let cur: number[];
     // ZONES: each strip its own sub-expression, joined side by side; moves stay inside a strip
     // (segOf: the strip of each position, -1 for the joining cuts, which only shift by a cell)
     let segOf: Int32Array | null = null, segEnd: Int32Array | null = null;
-    if (spec.zones) {
+    const warmZones = warm && spec.zones ? zoneSegments(warm.expr, spec.zones) : null;
+    if (warm && (!spec.zones || warmZones)) {
+        cur = warm.expr.slice();
+        if (warmZones) { segOf = warmZones.segOf; segEnd = warmZones.segEnd; }
+    } else if (spec.zones) {
         cur = []; const seg: number[] = [], ends: number[] = [];
         spec.zones.forEach((z, k) => {
             const o = [...z].sort(() => R() - 0.5);
@@ -329,14 +436,23 @@ export function anneal(spec: FloorSpec, seed: number, iters: number, stackW = 0)
     // copied from the current plan, and buffers are swapped on acceptance.
     // Same random draws and decisions as before, so the same plans.
     const L = cur.length;
-    let cE = Int32Array.from(cur), cO = new Int32Array(L), nx = new Int32Array(L), no = new Int32Array(L);
+    const useWarm = !!warm && (!spec.zones || !!warmZones);
+    let cE = Int32Array.from(cur), cO = useWarm ? Int32Array.from(warm!.offs) : new Int32Array(L), nx = new Int32Array(L), no = new Int32Array(L);
     const bestE = cE.slice(), bestO = cO.slice(), opsB = new Int32Array(L);
     const ctx = FAST && !spec.fixed ? makeCtx(spec) : null;
-    const costF = ctx ? (e: ArrayLike<number>, o: ArrayLike<number>) => fastLayout(ctx, e as any, o as any) ? fastCost(ctx, stackW) : 1e9 : (e: ArrayLike<number>, o: ArrayLike<number>) => cost(e as any, o as any, spec, stackW);
+    const baseF = ctx ? (e: ArrayLike<number>, o: ArrayLike<number>) => fastLayout(ctx, e as any, o as any) ? fastCost(ctx, stackW) : 1e9 : (e: ArrayLike<number>, o: ArrayLike<number>) => cost(e as any, o as any, spec, stackW);
+    // an edit: what the plan costs plus how far the kept rooms moved from where they were
+    const costF = !useWarm ? baseF : (e: ArrayLike<number>, o: ArrayLike<number>) => {
+        const c = baseF(e, o);
+        if (c >= 1e9) return c;
+        if (ctx) return c + warm!.stayW * moved(warm!, ctx.X, ctx.Y, ctx.Wd, ctx.Ht);
+        const r = layout(e as any, spec, o as any);
+        return r ? c + warm!.stayW * moved(warm!, r.map(q => q.x), r.map(q => q.y), r.map(q => q.w), r.map(q => q.h)) : 1e9;
+    };
     let cc = costF(cE, cO), bc = cc;
     const viols = (e: ArrayLike<number>, o: ArrayLike<number>) => { if (!REPAIR_P) return []; const r = layout(e as any, spec, o as any); return r ? violations(r, spec).filter(v => v.rule !== "AREA_RELAXED") : []; };
     let curV = viols(cE, cO);
-    let T = 50;
+    let T = useWarm ? warm!.T0 : 50;
     const cool = Math.pow(0.05 / T, 1 / iters);
     for (let it = 0; it < iters && bc > 0; it++, T *= cool) {
         nx.set(cE); no.set(cO);

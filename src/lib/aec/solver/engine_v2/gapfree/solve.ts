@@ -25,7 +25,7 @@ import type { PlotEnvelope, SolverOptions } from "../../types";
 import { buildGraph, deriveSuites, HiveRoom, RoomGraph } from "../graph";
 import { hiveRooms, graphNeed } from "./need";
 import { validatePlacement } from "../placement_validator";
-import { anneal, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf, isBathType } from "./slice";
+import { anneal, warmFrom, type WarmStart, layout, violations, shared, floorLeaves, unsupportedWall, placeStair, hallPieces, STAIR_IN_HALL, ENTRANCE, servedLink, FloorSpec, Rect, Leaf, isBathType } from "./slice";
 import { TERRACE_LIGHT, FOYER_VIA_HALL, LANDING_VIA_HALL, SPINE_FIRST, SPINE_BUDGET, HALL_CAP, OUTBUILDINGS, SQUEEZE, TYPICAL_FLOOR, ZONES, FLAT_BOTTOM_UP, ATRIUM_UP, WET_STACK, HALL_NARROW } from "./config";
 import { splitOutbuildings, outbuildingDepth, placeOutbuildings, OB_GAP, splitGatehouses, placeGatehouses, isGenerator, withoutUnits } from "./outbuildings";
 import { hotelLayout } from "./hotel";
@@ -55,11 +55,17 @@ const SPINE_RESTARTS = 32, SPINE_ITERS = ITERS * SPINE_BUDGET;
 export type AnnealResult = { expr: number[]; offs: number[]; cost: number; spine?: SpineState };
 /** One floor's restarts: anneal(spec, seeds[k], iters, sw) for every k, or
  * annealSpine(spec, spineA, seeds[k], iters) for a bay-and-spine floor. */
-export interface RestartBatch { spec: FloorSpec; seeds: number[]; iters: number; sw: number; spineA?: number }
+export interface RestartBatch { spec: FloorSpec; seeds: number[]; iters: number; sw: number; spineA?: number; warm?: WarmStart }
+
+/** The edit loop's search: 16 restarts from the previous plan (a quarter of a full search each
+ * try). First cool and holding the kept rooms firmly (each cell moved costs 2; an adjacency miss
+ * costs 50); when that leaves a hard miss, hotter and holding them loosely (an added room needs
+ * its neighbours to give way); then the full search. */
+const WARM_RESTARTS = 16, WARM_LADDER = [{ T0: 3, stay: 2 }, { T0: 15, stay: 0.5 }];
 
 /** One restart of a batch (sequential search, or a pool worker). */
-export function runRestart(spec: FloorSpec, seed: number, iters: number, sw: number, spineA?: number): AnnealResult {
-    if (spineA === undefined) return anneal(spec, seed, iters, sw);
+export function runRestart(spec: FloorSpec, seed: number, iters: number, sw: number, spineA?: number, warm?: WarmStart): AnnealResult {
+    if (spineA === undefined) return anneal(spec, seed, iters, sw, warm);
     const r = annealSpine(spec, spineA, seed, iters);
     return { expr: [], offs: [], cost: r.cost, spine: r.spine };
 }
@@ -74,9 +80,9 @@ export function pickWinner(results: AnnealResult[]): AnnealResult {
 
 /** Sequential restarts, stopping once one is perfect (same winner as pickWinner over all). */
 function runBatch(b: RestartBatch): AnnealResult {
-    let res = runRestart(b.spec, b.seeds[0], b.iters, b.sw, b.spineA);
+    let res = runRestart(b.spec, b.seeds[0], b.iters, b.sw, b.spineA, b.warm);
     for (let k = 1; k < b.seeds.length && res.cost > 0; k++) {
-        const r2 = runRestart(b.spec, b.seeds[k], b.iters, b.sw, b.spineA);
+        const r2 = runRestart(b.spec, b.seeds[k], b.iters, b.sw, b.spineA, b.warm);
         if (r2.cost < res.cost) res = r2;
     }
     return res;
@@ -181,12 +187,17 @@ function sameFloor(a: FloorSpec, b: FloorSpec): boolean {
     return ok && key(a) === key(b);
 }
 
-type Fp = { cost: number; rects: Map<number, Rect[]>; specs: Map<number, FloorSpec>; W: number; D: number; iters?: number };
+type Fp = { cost: number; rects: Map<number, Rect[]>; specs: Map<number, FloorSpec>; W: number; D: number; iters?: number; states?: Map<number, { expr: number[]; offs: number[] }>; warm?: boolean };
 
 /** The whole search. Yields each floor's restart batch; returns the layout. */
-export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions, squeeze = SQUEEZE): Generator<RestartBatch, SolvedLayout, AnnealResult> {
+export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions, squeeze = SQUEEZE, rung = 0): Generator<RestartBatch, SolvedLayout, AnnealResult> {
     const p = prepare(program, envelope, options);
-    const fps = footprints(p, squeeze);
+    // the edit loop: an edited brief starts from the previous plan, on its footprint when the
+    // rooms still fit it; otherwise (or with no previous plan) the full search
+    const ws = options?.warm_start;
+    const maxW = Math.floor(p.be.width / CELL + 1e-9), maxD = Math.floor(p.be.height / CELL + 1e-9);
+    const warmOk = !!ws && ws.path === 'slicing' && ws.W <= maxW && ws.D <= maxD && ws.W * ws.D * CELL * CELL >= p.need * 1.02;
+    const fps: Array<[number, number, boolean?]> = warmOk ? [[ws!.W, ws!.D]] : footprints(p, squeeze);
     if (!fps.length) return unsat(p);
     const iters = ITERS * Math.min(MAX_ITERS_SCALE, Math.max(1, FULL_FOOTPRINTS / fps.length));
     let best: Fp | null = null;
@@ -200,7 +211,8 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
         // One full attempt on a W × D footprint: the upper floor first (it
         // chooses the stair's place), then each floor below must contain it.
         const specs = new Map<number, FloorSpec>(), rects = new Map<number, Rect[]>();
-        let total = 0, prev: number | undefined, ok = true;
+        const states = new Map<number, { expr: number[]; offs: number[] }>();
+        let total = 0, prev: number | undefined, ok = true, editMissed = false;
         for (const fl of up ? p.floorIds : [...p.floorIds].reverse()) {
             const spec = specFor(p.graph, fl, W, D, p.duplex, squeeze);
             if (!spec) { ok = false; break; }
@@ -224,15 +236,26 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
             }
             // TYPICAL_FLOOR: the same rooms as the floor above repeat its plan
             let r: Rect[];
-            if (TYPICAL_FLOOR && prev !== undefined && sameFloor(spec, specs.get(prev)!)) r = rects.get(prev)!.map(q => ({ ...q }));
+            if (TYPICAL_FLOOR && prev !== undefined && sameFloor(spec, specs.get(prev)!)) { r = rects.get(prev)!.map(q => ({ ...q })); states.set(fl, states.get(prev)!); }
             else {
                 const base = p.seed * 7919 + fl * 104729 + W * 31 + D;
+                const was = warmOk ? ws!.floors.find(f => f.floor === fl) : undefined;
+                const warm = was ? warmFrom(was, spec, WARM_LADDER[rung].stay, WARM_LADDER[rung].T0) ?? undefined : undefined;
                 const res: AnnealResult = yield {
-                    spec, seeds: [...Array(RESTARTS).keys()].map(k => base + k * SEED_STRIDE),
+                    spec, seeds: [...Array(warm ? WARM_RESTARTS : RESTARTS).keys()].map(k => base + k * SEED_STRIDE),
                     // flats planned upwards keep the downward plan's scoring: no wall-stacking term (as before)
-                    iters: iters / RESTARTS, sw: spec.below && !up ? STACK_W : 0,
+                    iters: iters / RESTARTS, sw: spec.below && !up ? STACK_W : 0, ...(warm ? { warm } : {}),
                 };
                 r = layout(res.expr, spec, res.offs)!;
+                states.set(fl, { expr: res.expr, offs: res.offs });
+                // a kept plan must carry the edit out: each resized room makes at least half the change asked
+                if (warm && was) warm.target.forEach((t, i) => {
+                    if (t === null) return;
+                    const k = was.ids.indexOf(spec.leaves[i].id), q = k >= 0 ? was.rects[k] : undefined;
+                    if (!q) return;
+                    const asked = t - q.w * q.h, got = r[i].w * r[i].h - q.w * q.h;
+                    if (Math.abs(asked) >= 1 && got / asked < 0.5) editMissed = true;
+                });
             }
             specs.set(fl, spec); rects.set(fl, r);
             const vs = violations(r, spec);
@@ -244,8 +267,18 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
             if (vs.some(v => (v.rule === "REACH" && spec.leaves[v.leaf].reachVia !== undefined) || v.rule === "STAIR_ALIGN" || v.rule === "STAIR_FIT")) total += 1e6;
             prev = fl;
         }
-        if (ok && (!best || total < best.cost)) best = { cost: total, rects, specs, W, D, iters };
+        if (editMissed) total += 1e7; // ranks below any plan that carries the edit out
+        if (ok && (!best || total < best.cost)) best = { cost: total, rects, specs, W, D, iters, states, warm: warmOk };
         if (best && best.cost < 1) break;
+    }
+    // an edit's plan that misses a hard rule the previous plan met: the next rung, then the full
+    // search, keeping whichever plan scores better (the edit's, on a tie: it keeps the user's plan;
+    // an edited brief can be harder than the old one, so the full search may miss rules too)
+    if (warmOk && (!best || best.cost >= 1e7 || (best.cost >= 100 && best.cost > ws!.cost))) {
+        if (rung + 1 < WARM_LADDER.length) return yield* gapfreeDriver(program, envelope, options, squeeze, rung + 1);
+        const L = yield* gapfreeDriver(program, envelope, { ...options, warm_start: undefined }, squeeze);
+        const full = L.search_state?.cost ?? Infinity;
+        if (!best || full < best.cost) return { ...L, warm_started: false };
     }
     if (!best) return unsat(p);
     return toLayout(p, best);
@@ -285,7 +318,8 @@ export function* spineDriver(p: Prepared): Generator<RestartBatch, SolvedLayout 
 
 /** The house: bay-and-spine first (multi-storey), else the gap-free search. */
 function* houseDriver(program: SpatialProgram, envelope: PlotEnvelope, options?: SolverOptions, squeeze = SQUEEZE): Generator<RestartBatch, SolvedLayout, AnnealResult> {
-    if (SPINE_FIRST) {
+    // an edit of a gap-free plan stays on the gap-free search (it starts from that plan)
+    if (SPINE_FIRST && !options?.warm_start) {
         const L = yield* spineDriver(prepare(program, envelope, options));
         if (L) return L;
     }
@@ -429,6 +463,12 @@ function toLayout(p: Prepared, best: Fp): SolvedLayout {
             solver_failure: { floor: Math.min(...hard.map(v => v.fl)), reasons: [{ code: "S-002", detail: `best plan misses ${hard.length} rule(s): ${[...new Set(hard.map(v => v.rule))].join(", ")}` }] },
         }),
         placement_issues: issues,
+        ...(best.states ? { search_state: {
+            path: 'slicing' as const, W: best.W, D: best.D, cost: best.cost,
+            floors: [...best.specs.entries()].filter(([fl]) => best.states!.has(fl)).map(([fl, sp]) => ({
+                floor: fl, ids: sp.leaves.map(l => l.id), areas: sp.leaves.map(l => l.area), ...best.states!.get(fl)!, rects: best.rects.get(fl)!.map(q => ({ ...q })) })),
+        } } : {}),
+        ...(best.warm ? { warm_started: true } : {}),
     };
 }
 

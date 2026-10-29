@@ -72,6 +72,7 @@ import { AECSitePlan } from '@/components/aec/AECSitePlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import { downloadPlanDxf } from '@/components/aec/exportPlan';
 import { recordDesignEvent, newDesignSession, type DesignEventKind } from '@/lib/aec/designData';
+import { briefForEdit, alignToPrevious, briefChanges, roomsKept } from '@/lib/aec/editLoop';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { AECElevations } from '@/components/aec/AECElevations';
 import { AECSection } from '@/components/aec/AECSection';
@@ -592,6 +593,8 @@ const AIStudio = () => {
         
         // Capture prompt BEFORE clearing the input field
         const submittedPrompt = promptText;
+        // the edit loop: a follow-up changes the design on screen, not a new house
+        const previousPackage = messages.length > 0 && designPackage?.rooms && !designPackage.unsupported ? designPackage : null;
 
         // Add user message to history for continuity
         const newUserMessage = { role: 'user', content: submittedPrompt };
@@ -605,6 +608,7 @@ const AIStudio = () => {
                 body: { 
                     prompt: submittedPrompt,  // ← use captured value, NOT promptText (which is now "")
                     messages: updatedMessages,
+                    ...(previousPackage ? { currentBrief: briefForEdit(previousPackage) } : {}),
                     type: 'text',
                     selectedRole: selectedRole 
                 }
@@ -689,6 +693,8 @@ const AIStudio = () => {
                     // The plot's width x depth from the user's words ("a 15m × 30m plot");
                     // else the square of the stated area; else a standard 15x30m plot.
                     const userTexts = updatedMessages.filter(m => m.role === 'user').map(m => String(m.content ?? ''));
+                    // an edit keeps the previous rooms' ids, so the plan can keep them where they were
+                    if (previousPackage) finalDesignData.rooms = alignToPrevious(previousPackage.rooms, finalDesignData.rooms);
                     const { width: plotWidth, depth: plotDepth } = plotSize(userTexts, finalDesignData.brief_reference?.plot_size_sqm);
                     // "Sunken Living Lounge (min 40 sqm)": the plan never makes that room smaller
                     finalDesignData.rooms = withMinimums(finalDesignData, userTexts).rooms;
@@ -719,12 +725,23 @@ const AIStudio = () => {
                     const envelope = { width: plotWidth, depth: plotDepth, setbacks: setback.plan.setbacks };
                     // One seed for both runs, so the plan shown first is
                     // the same geometry as its entry in the options list.
-                    const solverOptions = { floors_override: briefFloors, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting(), outbuildings_in_rear_setback: setback.plan.choice.outbuildingsInRear !== false };
+                    // an edit starts from the previous plan (its search and seed); a new design from a new seed
+                    const warmFrom = previousPackage?.solvedLayout?.search_state;
+                    const solverOptions = {
+                        floors_override: briefFloors, seed: (warmFrom && previousPackage?.solveRequest?.options?.seed) || Math.floor(Math.random() * 2 ** 31),
+                        layoutMode: layoutModeSetting(), outbuildings_in_rear_setback: setback.plan.choice.outbuildingsInRear !== false,
+                        ...(warmFrom ? { warm_start: warmFrom } : {}),
+                    };
                     const program = { ...finalDesignData };
                     // kept so a reviewed plan can be redrawn exactly (seed included)
                     finalDesignData.solveRequest = { envelope, options: solverOptions };
                     const solved = await solveLayoutInWorker(finalDesignData, envelope, solverOptions);
                     finalDesignData.solvedLayout = solved;
+                    if (previousPackage) {
+                        const changes = briefChanges(previousPackage.rooms, finalDesignData.rooms);
+                        const changed = new Set<string>(finalDesignData.rooms.filter((r: any) => changes.some(c => c.name === String(r.name ?? r.room_id))).map((r: any) => String(r.room_id)));
+                        finalDesignData.edit = { changes, kept: roomsKept(previousPackage.solvedLayout, solved, changed), warm: solved.warm_started === true };
+                    }
 
                     // Show this plan now; alternatives are computed off the
                     // main thread and offered once they arrive — only if the
@@ -1410,6 +1427,25 @@ const AIStudio = () => {
                                                     </div>
                                                 ) : (
                                                     <>
+                                                        {/* the edit loop: what the follow-up changed, and how much of the plan stayed */}
+                                                        {designPackage?.edit && (
+                                                            <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 space-y-1">
+                                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Your edit</p>
+                                                                <p className="text-sm text-slate-700 dark:text-slate-200">
+                                                                    {designPackage.edit.changes.length
+                                                                        ? designPackage.edit.changes.map((c: any) => c.kind === 'added' ? `Added ${c.name} (${c.detail})` : c.kind === 'removed' ? `Removed ${c.name}` : c.kind === 'moved' ? `${c.name} moved from the ${c.detail}` : `${c.name}: ${c.detail}`).join(' · ')
+                                                                        : 'No rooms changed in the brief.'}
+                                                                </p>
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400">
+                                                                    {designPackage.edit.warm && designPackage.edit.kept
+                                                                        ? `The plan was kept: ${designPackage.edit.kept.kept} of ${designPackage.edit.kept.of} rooms are where they were.`
+                                                                        : designPackage.edit.kept
+                                                                            ? `The change didn't fit the previous layout, so the plan was redrawn (${designPackage.edit.kept.kept} of ${designPackage.edit.kept.of} rooms are where they were).`
+                                                                            : 'The plan was redrawn.'}
+                                                                    {' '}To start again from nothing, press New Project.
+                                                                </p>
+                                                            </div>
+                                                        )}
                                                         {(layoutChoices.length > 1 || layoutOptions.loading) && (
                                                             <div className="flex flex-wrap items-center gap-2">
                                                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Layout options</span>
