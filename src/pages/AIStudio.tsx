@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import {
     Ruler,
     LogOut,
+    ListChecks,
     Calculator,
     BookOpen,
     Sparkles,
@@ -43,6 +44,7 @@ import { useState, useEffect, useMemo } from "react";
 import { supabase } from "backend/supabaseClient";
 import CreditInfo from "@/components/CreditInfo";
 import DesignReviewPanel from "@/components/review/DesignReviewPanel";
+import PromptChecklist from "@/components/prompt/PromptChecklist";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
 import { newerBuildAvailable, reloadKeepingPrompt, takePendingPrompt } from "@/lib/appVersion";
@@ -159,6 +161,7 @@ const AIStudio = () => {
     }, []);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+    const [checklistOpen, setChecklistOpen] = useState(false);
     const [ultraMode, setUltraMode] = useState(false);
     const [messages, setMessages] = useState<any[]>([]);
     const [chatSessions, setChatSessions] = useState<any[]>([]);
@@ -1014,6 +1017,12 @@ const AIStudio = () => {
                                 </div>
                                 )}
 
+                                <div className="mb-6">
+                                    <Button variant="ghost" onClick={() => { setChecklistOpen(true); setMobileSidebarOpen(false); }} className="w-full justify-start gap-4 h-9 rounded-xl text-slate-600 dark:text-slate-300 font-black text-[10px] uppercase tracking-widest">
+                                        <ListChecks className="w-4 h-4 text-slate-400" /> Prompt Checklist
+                                    </Button>
+                                </div>
+
                                 <div className="flex items-center gap-2 px-2 mb-4">
                                     <Sparkles className="w-4 h-4 text-primary" />
                                     <span className="text-[11px] font-black uppercase tracking-widest text-slate-900 dark:text-white">AI Studio</span>
@@ -1077,6 +1086,12 @@ const AIStudio = () => {
                                     </div>
                                 </div>
                                 )}
+
+                                <div className={`mb-4 ${sidebarOpen ? '' : 'flex flex-col items-center'}`}>
+                                    <Button variant="ghost" onClick={() => setChecklistOpen(true)} title="Prompt Checklist" className={`rounded-xl text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest hover:text-slate-900 dark:hover:text-white ${sidebarOpen ? 'w-full justify-start gap-4 h-9 text-[10px]' : 'w-10 h-10 p-0 flex items-center justify-center'}`}>
+                                        <ListChecks className={`text-slate-400 ${sidebarOpen ? 'w-4 h-4' : 'w-5 h-5'}`} /> {sidebarOpen && "Prompt Checklist"}
+                                    </Button>
+                                </div>
 
                                 <div className={`flex items-center gap-2 mb-2 ${sidebarOpen ? 'px-2' : 'justify-center py-2'}`} title="AI Studio">
                                     <Sparkles className={`text-primary ${sidebarOpen ? 'w-4 h-4' : 'w-5 h-5'}`} />
@@ -1156,6 +1171,7 @@ const AIStudio = () => {
                         </div>
                     </div>
                 </aside>
+                <PromptChecklist open={checklistOpen} onOpenChange={setChecklistOpen} />
 
                 {/* Main Content Area - fills remaining space, centers content independently */}
                 <main className="flex-1 flex flex-col relative overflow-hidden">
