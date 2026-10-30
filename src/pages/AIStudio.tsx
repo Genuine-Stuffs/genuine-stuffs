@@ -73,6 +73,7 @@ import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import { downloadPlanDxf } from '@/components/aec/exportPlan';
 import { recordDesignEvent, newDesignSession, briefOnly, type DesignEventKind } from '@/lib/aec/designData';
 import { briefForEdit, alignToPrevious, briefChanges, roomsKept, newLinks, linksMissed } from '@/lib/aec/editLoop';
+import { swapRooms, swappable } from '@/lib/aec/swapRooms';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { AECElevations } from '@/components/aec/AECElevations';
 import { AECSection } from '@/components/aec/AECSection';
@@ -557,6 +558,26 @@ const AIStudio = () => {
             prompts: prompts ?? messages.filter(m => m.role === 'user').map(m => String(m.content ?? '')) });
     };
 
+    // Swapping two rooms on the drawn plan (lib/aec/swapRooms.ts): exact and instant, no AI; each swap
+    // can be undone, back to the plan before it
+    const [swapUndo, setSwapUndo] = useState<any[]>([]);
+    const handleSwap = (a: string, b: string, floor: number) => {
+        const cur = designPackage?.solvedLayout;
+        if (!cur) return;
+        const r = swapRooms(cur, a, b, floor);
+        if (r.ok === false) { toast.error(r.reason); return; }
+        setSwapUndo(prev => [...prev, cur]);
+        const pkg = { ...designPackage, solvedLayout: r.layout, edit: { swap: { said: r.said, notes: r.notes } } };
+        setDesignPackage(pkg);
+        recordDesign('edit', `swap: ${r.said}`, pkg, r.layout);
+    };
+    const undoSwap = () => {
+        const last = swapUndo[swapUndo.length - 1];
+        if (!last) return;
+        setSwapUndo(prev => prev.slice(0, -1));
+        setDesignPackage((prev: any) => prev ? { ...prev, solvedLayout: last, edit: swapUndo.length > 1 ? { swap: { said: 'The last swap was undone.', notes: [] } } : undefined } : prev);
+    };
+
     const handleExportDXF = () => {
         // the floor plan itself (walls, doors, windows, room names), not the AI's first sketch of it
         const layout = designPackage?.solvedLayout;
@@ -600,6 +621,7 @@ const AIStudio = () => {
         // IMMEDIATELY latch the session open — this is the single gate for the view switch
         setHasActiveSession(true);
         setIsGenerating(true);
+        setSwapUndo([]); // a new plan: the swaps before it can't be undone onto it
         setGeneratedImage(null);
         setVisualUrl(null); // Clear previous vision state
         setComplianceInput(null); // a new design's check, or none: never the last design's
@@ -874,6 +896,7 @@ const AIStudio = () => {
         setHasActiveSession(false);
         setMessages([]);
         setDesignPackage(null);
+        setSwapUndo([]);
         setComplianceInput(null);
         setGeneratedImage(null);
         setVisualUrl(null);
@@ -899,7 +922,8 @@ const AIStudio = () => {
             const solved = await solveLayoutInWorker(
                 designPackage, envelope,
                 { floors_override: study.storeys, seed: Math.floor(Math.random() * 2 ** 31), layoutMode: layoutModeSetting(), outbuildings_in_rear_setback: choice.outbuildingsInRear !== false });
-            setDesignPackage((prev: any) => prev ? { ...prev, setback, solvedLayout: solved, solvedLayoutOptions: undefined } : prev);
+            setSwapUndo([]);
+            setDesignPackage((prev: any) => prev ? { ...prev, setback, solvedLayout: solved, solvedLayoutOptions: undefined, edit: prev.edit?.swap ? undefined : prev.edit } : prev);
             recordDesign('replan', setback.plan.label, { ...designPackage, setback }, solved);
             toast.success(`Re-planned under ${setback.plan.label}`);
         } catch (err) {
@@ -1444,7 +1468,22 @@ const AIStudio = () => {
                                                 ) : (
                                                     <>
                                                         {/* the edit loop: what the follow-up changed, and how much of the plan stayed */}
-                                                        {designPackage?.edit && (
+                                                        {designPackage?.edit?.swap && (
+                                                            <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 space-y-1">
+                                                                <div className="flex items-center justify-between gap-3">
+                                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Your edit</p>
+                                                                    {swapUndo.length > 0 && (
+                                                                        <button onClick={undoSwap} className="text-[10px] font-bold uppercase tracking-widest text-primary hover:underline">Undo swap</button>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-sm text-slate-700 dark:text-slate-200">{designPackage.edit.swap.said}.</p>
+                                                                {designPackage.edit.swap.notes.length > 0 && (
+                                                                    <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Check: {designPackage.edit.swap.notes.join('; ')}.</p>
+                                                                )}
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400">Every other room stayed where it was. Doors, windows, the column grid and the code check follow the new plan.</p>
+                                                            </div>
+                                                        )}
+                                                        {designPackage?.edit && !designPackage.edit.swap && (
                                                             <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 space-y-1">
                                                                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Your edit</p>
                                                                 <p className="text-sm text-slate-700 dark:text-slate-200">
@@ -1479,7 +1518,7 @@ const AIStudio = () => {
                                                                     return (
                                                                         <button
                                                                             key={i}
-                                                                            onClick={() => { setDesignPackage((prev: any) => prev ? { ...prev, solvedLayout: opt } : prev); recordDesign('option', `Option ${i + 1}`, designPackage, opt); }}
+                                                                            onClick={() => { setSwapUndo([]); setDesignPackage((prev: any) => prev ? { ...prev, solvedLayout: opt, edit: prev.edit?.swap ? undefined : prev.edit } : prev); recordDesign('option', `Option ${i + 1}`, designPackage, opt); }}
                                                                             title={s ? `Score ${s.total}/100 — area fit ${s.area}, adjacency ${s.adjacency}, compactness ${s.compactness}, windows ${s.window}, circulation ${s.circulation}` : undefined}
                                                                             className={`px-3 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-wider transition-all ${
                                                                                 active
@@ -1543,7 +1582,7 @@ const AIStudio = () => {
                                                                     </div>
                                                                 )}
                                                                 <AECSitePlan layout={stableLayout} setbacks={designPackage?.setback?.plan?.setbacks} />
-                                                                <AECFloorPlan layout={stableLayout} />
+                                                                <AECFloorPlan layout={stableLayout} onSwap={handleSwap} canSwap={id => !!stableLayout && swappable(stableLayout, id)} />
                                                                 <AECElevations layout={stableLayout} />
                                                                 <AECSection layout={stableLayout} />
                                                                 <AECMassingView layout={stableLayout} setbacks={designPackage?.setback?.plan?.setbacks} />

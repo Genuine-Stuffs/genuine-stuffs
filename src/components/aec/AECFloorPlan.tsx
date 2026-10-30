@@ -8,7 +8,7 @@ import { stairPlan, STAIR_STOREY_H } from './stair';
 import { roomKey, keyNumber, type FloorKey } from './roomKey';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Ruler, ShieldAlert, Layers, Download, Loader2 } from 'lucide-react';
+import { CheckCircle2, Ruler, ShieldAlert, Layers, Download, Loader2, ArrowLeftRight } from 'lucide-react';
 import { downloadPlan as savePlan, PLAN_FORMATS, type PlanFormat } from './exportPlan';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -57,7 +57,14 @@ const getRoomFill = (room_id: string, type: string = 'unknown') => {
 
 interface AECFloorPlanProps {
   layout?: SolvedLayout;
+  /** Swap two rooms on the plan (lib/aec/swapRooms.ts): offered when the page can take the new plan. */
+  onSwap?: (a: string, b: string, floor: number) => void;
+  /** Rooms that can't be swapped (stairs, halls, landings). */
+  canSwap?: (room_id: string) => boolean;
 }
+
+/** Picking rooms on the drawing: the room picked first, and what a click does. */
+interface RoomPick { picked: { id: string; floor: number } | null; can: (room_id: string) => boolean; onPick: (room_id: string, floor: number) => void }
 
 /** A floor's building extent in metres (the plot when it has no rooms). */
 const floorBounds = (layout: SolvedLayout, floor: number, plot_width: number, plot_depth: number) => {
@@ -114,6 +121,8 @@ interface FloorDrawingProps {
   tagOf: (t: OpeningType) => string;
   /** The numbered room key (roomKey.ts): each room's number shows above its name. */
   roomKeys: FloorKey[];
+  /** Swapping rooms: each room is a click target, the one picked first outlined. */
+  pick?: RoomPick;
 }
 
 /** Metres with feet and inches in brackets, as the templates dimension (T1–T10): 4.5m (14'-9"). */
@@ -123,7 +132,7 @@ const dimLabel = (m: number, px: number) => { const both = `${+m.toFixed(2)}m ($
 
 const FloorDrawing: React.FC<FloorDrawingProps> = ({
   layout, floor: activeFloor, scale, xOffset, yOffset, showStructure, skeleton,
-  plot_width, plot_depth, showPlot, captionY, tagOf, roomKeys,
+  plot_width, plot_depth, showPlot, captionY, tagOf, roomKeys, pick,
 }) => {
   const { placed_rooms } = layout;
   const activeRooms = placed_rooms.filter(r => r.floor === activeFloor);
@@ -940,6 +949,20 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
                 width={col.width_m * scale} height={col.depth_m * scale} fill="#0f172a" />
             ))}
             {activeRooms.map((room, idx) => renderRoom(room, idx, 'over'))}
+            {/* swapping rooms: every room a click target over its drawing, the first one picked outlined */}
+            {pick && activeRooms.map(room => {
+              const ok = pick.can(room.room_id), sel = pick.picked?.id === room.room_id && pick.picked.floor === activeFloor;
+              return (
+                <rect key={`pick-${room.room_id}`} data-pick={room.room_id} x={xOffset + room.x * scale} y={yOffset + room.y * scale}
+                  width={room.width * scale} height={room.depth * scale}
+                  fill={sel ? 'rgba(220,38,38,0.16)' : 'rgba(0,0,0,0)'} stroke={sel ? '#DC2626' : ok ? 'rgba(220,38,38,0.45)' : 'none'}
+                  strokeWidth={sel ? 3 : 1} strokeDasharray={sel ? undefined : '6 4'}
+                  style={{ cursor: ok ? 'pointer' : 'not-allowed' }}
+                  onClick={() => ok && pick.onPick(room.room_id, activeFloor)}>
+                  <title>{ok ? (sel ? 'Picked: click another room on this floor to swap them' : 'Click to swap this room') : 'Stairs, halls and landings stay where they are'}</title>
+                </rect>
+              );
+            })}
 
             {/* An assembly hall's seating (gapfree/assembly.ts, regulations/assembly.ts): straight rows in blocks of
                 at most 14 seats, a 1.5 m centre aisle and 1.1 m aisles between blocks and at the walls, from 2.2 m
@@ -1167,8 +1190,19 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
 const PANEL_W = 720;
 const SHEET_W = 1080, MAX_SCALE = 30, GUTTER = 80;
 
-const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
+const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout, onSwap, canSwap }) => {
   const [showStructure, setShowStructure] = useState(false);
+  // swapping two rooms: on, and the room picked first
+  const [swapping, setSwapping] = useState(false);
+  const [picked, setPicked] = useState<{ id: string; floor: number } | null>(null);
+  const pick: RoomPick | undefined = swapping && onSwap ? {
+    picked, can: id => canSwap ? canSwap(id) : true,
+    onPick: (id, floor) => {
+      if (!picked || picked.floor !== floor) { setPicked({ id, floor }); return; }
+      if (picked.id === id) { setPicked(null); return; }
+      onSwap(picked.id, id, floor); setPicked(null); setSwapping(false);
+    },
+  } : undefined;
   // the drawing, for its watermarked download (exportPlan.ts)
   const svgRef = useRef<SVGSVGElement>(null);
   const [downloading, setDownloading] = useState(false);
@@ -1326,6 +1360,18 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
             <Layers className="w-3 h-3" />
             COLUMNS & BEAMS
           </button>
+          {onSwap && (
+            <button
+              onClick={() => { setSwapping(!swapping); setPicked(null); }}
+              title={swapping ? 'Stop swapping rooms' : 'Swap two rooms: click one room, then another on the same floor'}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold tracking-widest whitespace-nowrap transition-all ${
+                swapping ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white/10 text-slate-400 hover:bg-white/20'
+              }`}
+            >
+              <ArrowLeftRight className="w-3 h-3" />
+              {swapping ? 'CANCEL SWAP' : 'SWAP ROOMS'}
+            </button>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button
@@ -1416,7 +1462,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout }) => {
               <FloorDrawing key={f} layout={layout} floor={f} scale={scale}
                 xOffset={xOffsetOf(k)} yOffset={yOffset} showStructure={showStructure}
                 skeleton={skeleton} plot_width={plot_width} plot_depth={plot_depth}
-                showPlot={!sheet} captionY={sheet ? bottom + 96 : undefined} tagOf={schedule.tagOf} roomKeys={keys} />
+                showPlot={!sheet} captionY={sheet ? bottom + 96 : undefined} tagOf={schedule.tagOf} roomKeys={keys} pick={pick} />
             ))}
 
             {/* North arrow — bottom-left */}
