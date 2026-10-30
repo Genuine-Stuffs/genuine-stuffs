@@ -586,6 +586,13 @@ const AIStudio = () => {
                 toast.error("The sizes couldn't be fitted on this plan, so the swap stays as it is.");
                 return;
             }
+            // the floor redrawn as it was: fitting the sizes broke more of the plan's rules than it mended
+            const floors = new Set<number>(pinned.map((f: any) => f.floor));
+            const same = (r: any) => cur.placed_rooms.some((q: any) => q.room_id === r.room_id && q.floor === r.floor && q.x === r.x && q.y === r.y && q.width === r.width && q.depth === r.depth);
+            if (solved.placed_rooms.filter((r: any) => floors.has(r.floor)).every(same)) {
+                toast.error("The sizes can't be fitted here without breaking more of the plan's rules, so the swap stays as it is.");
+                return;
+            }
             const moved = new Set<string>(pinned.flatMap((f: any) => f.pinned));
             const kept = roomsKept(cur, solved, moved);
             const notes = editNotes(cur, solved, pinned.map((f: any) => f.floor));
@@ -1515,7 +1522,7 @@ const AIStudio = () => {
                                                                 {designPackage.edit.swap.notes.length > 0 && (
                                                                     <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Check: {designPackage.edit.swap.notes.join('; ')}.</p>
                                                                 )}
-                                                                <p className="text-xs text-slate-500 dark:text-slate-400">{designPackage.edit.swap.fitted ? 'The swapped rooms kept their new places.' : 'Every other room stayed where it was; the two rooms traded sizes too (Fit sizes gives them their own).'} Doors, windows, the column grid and the code check follow the new plan.</p>
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400">{designPackage.edit.swap.fitted ? 'The swapped rooms kept their new places.' : 'Every other room stayed where it was; the swapped rooms traded sizes too (Fit sizes gives them their own).'} Doors, windows, the column grid and the code check follow the new plan.</p>
                                                             </div>
                                                         )}
                                                         {designPackage?.edit && !designPackage.edit.swap && (
