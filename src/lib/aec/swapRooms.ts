@@ -44,7 +44,7 @@ function suiteOf(layout: SolvedLayout, id: string, floor: number): string | null
 }
 
 type Box = { x: number; y: number; width: number; depth: number };
-const E = 1e-6;
+export const E = 1e-6;
 /** The shared wall of two rooms, m (0 when they don't touch). */
 function wallOf(p: Box, q: Box): number {
     const ov = (a1: number, a2: number, b1: number, b2: number) => Math.min(a2, b2) - Math.max(a1, b1);
@@ -161,27 +161,41 @@ function moveSuite(layout: SolvedLayout, x: string, e: string, y: string, floor:
     }
     if (!best) return null;
     const grown = best.grown.map(i => layout.placed_rooms[i].room_id).filter(id => id !== x && id !== y);
-    const moved = [x, e, y, ...grown];
-    const ss = layout.search_state;
-    if (!ss) return { layout: best.L, grown };
+    return { layout: restate(layout, best.L, floor, [x, e, y, ...grown], true), grown };
+}
+
+/** The plan `next` (rooms on `floor` moved by hand from `layout`) with its search following: the
+ * floor's tree redrawn from the rectangles, so Fit sizes and a typed edit carry on from here, the
+ * moved rooms pinned when `pin` (held where they stand, their sizes free) or else kept as drawn,
+ * those in `sized` asked at that size (m²) from here on.
+ * The search is left as it was when the floor's rooms aren't all in it or don't make a slicing plan. */
+export function restate(layout: SolvedLayout, next: SolvedLayout, floor: number, moved: string[], pin: boolean, sized?: Map<string, number>): SolvedLayout {
+    const ss = layout.search_state, CELL = 0.5;
+    if (!ss) return next;
+    const idx = (L: SolvedLayout, id: string) => L.placed_rooms.findIndex(r => r.room_id === id && r.floor === floor);
     const search_state = {
-        ...ss, floors: ss.floors.map(f => {
+        // edited by hand: a typed edit afterwards refines this plan, never redrawn from scratch for scoring
+        // worse than the plan before the edit (a moved wall that broke a rule: 0 of 20 rooms kept, 2026-10-30)
+        ...ss, hand_edited: true as const,
+        floors: ss.floors.map(f => {
             if (f.floor !== floor || !moved.every(id => f.ids.includes(id))) return f;
             // each leaf's rect in cells, from where its room now stands (the floor's origin read off a room that didn't move)
-            const t0 = f.ids.findIndex(id => !moved.includes(id) && idx(id) >= 0);
+            const t0 = f.ids.findIndex(id => !moved.includes(id) && idx(layout, id) >= 0);
             if (t0 < 0) return f;
-            const R0 = layout.placed_rooms[idx(f.ids[t0])], ox = R0.x - f.rects[t0].x * CELL, oy = R0.y - f.rects[t0].y * CELL;
+            const R0 = layout.placed_rooms[idx(layout, f.ids[t0])], ox = R0.x - f.rects[t0].x * CELL, oy = R0.y - f.rects[t0].y * CELL;
             const rects = f.ids.map((id, t) => {
                 if (!moved.includes(id)) return f.rects[t];
-                const r = best!.L.placed_rooms[idx(id)];
+                const r = next.placed_rooms[idx(next, id)];
                 return { x: Math.round((r.x - ox) / CELL), y: Math.round((r.y - oy) / CELL), w: Math.round(r.width / CELL), h: Math.round(r.depth / CELL) };
             });
-            const tree = treeOf(rects, f.areas ?? rects.map(q => q.w * q.h));
+            // a room the user sized by hand (a moved wall) is asked at that size from here on
+            const areas = (f.areas ?? rects.map(q => q.w * q.h * CELL * CELL)).map((a, t) => sized?.get(f.ids[t]) ?? a);
+            const tree = treeOf(rects, areas);
             if (!tree) return f;
-            return { ...f, ...tree, rects, pinned: [...new Set([...(f.pinned ?? []), ...moved])] };
+            return { ...f, ...tree, rects, ...(f.areas || sized ? { areas } : {}), ...(pin ? { pinned: [...new Set([...(f.pinned ?? []), ...moved])] } : {}) };
         }),
     };
-    return { layout: { ...best.L, search_state }, grown };
+    return { ...next, search_state };
 }
 
 /** A slicing tree (postfix, H -1 stacked, V -2 side by side, as gapfree/slice.ts) for leaf rects
@@ -211,9 +225,9 @@ function treeOf(rects: Array<{ x: number; y: number; w: number; h: number }>, ar
 }
 
 /** What a hand edit (a swap, Fit sizes) cost on the given floors, plan before against plan after: a room
- * whose size changed and is now more than 15 % off the brief, a link of the brief that had a shared
+ * whose size changed and is now more than 15 % off the brief (not one sized by hand), a link of the brief that had a shared
  * wall and lost it (an en-suite away from its bedroom), a room that lost its window or its door. */
-export function editNotes(before: SolvedLayout, after: SolvedLayout, floors: number[]): string[] {
+export function editNotes(before: SolvedLayout, after: SolvedLayout, floors: number[], sizedByHand?: Set<string>): string[] {
     const notes: string[] = [];
     const brief: any[] = (before.program_reference?.rooms as any[]) ?? [];
     const asked = (id: string) => Number(brief.find(r => r.room_id === id)?.area_m2) || 0;
@@ -221,7 +235,7 @@ export function editNotes(before: SolvedLayout, after: SolvedLayout, floors: num
     for (const f of floors) {
         for (const r of after.placed_rooms.filter(r => r.floor === f)) {
             const was = at(before, r.room_id, f), want = asked(r.room_id), got = m2(r);
-            if (was && Math.abs(m2(was) - got) > 0.05 && want && Math.abs(got - want) > 0.15 * want) notes.push(`${nameOf(before, r.room_id)} is now ${got} m² (the brief asks ${want} m²)`);
+            if (was && !sizedByHand?.has(r.room_id) && Math.abs(m2(was) - got) > 0.05 && want && Math.abs(got - want) > 0.15 * want) notes.push(`${nameOf(before, r.room_id)} is now ${got} m² (the brief asks ${want} m²)`);
         }
         const said = new Set<string>();
         for (const r of brief) for (const o of r.adjacencies ?? []) {

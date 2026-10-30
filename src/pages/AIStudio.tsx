@@ -74,6 +74,7 @@ import { downloadPlanDxf } from '@/components/aec/exportPlan';
 import { recordDesignEvent, newDesignSession, briefOnly, type DesignEventKind } from '@/lib/aec/designData';
 import { briefForEdit, alignToPrevious, briefChanges, roomsKept, newLinks, linksMissed } from '@/lib/aec/editLoop';
 import { swapRooms, swappable, editNotes } from '@/lib/aec/swapRooms';
+import { moveWall, resized, type MovableWall } from '@/lib/aec/moveWall';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { AECElevations } from '@/components/aec/AECElevations';
 import { AECSection } from '@/components/aec/AECSection';
@@ -559,17 +560,29 @@ const AIStudio = () => {
     };
 
     // Swapping two rooms on the drawn plan (lib/aec/swapRooms.ts): exact and instant, no AI; each swap
-    // can be undone, back to the plan before it
-    const [swapUndo, setSwapUndo] = useState<any[]>([]);
+    // can be undone, back to the plan (and the brief: a moved wall resizes its rooms) before it
+    const [swapUndo, setSwapUndo] = useState<Array<{ layout: any; rooms: any }>>([]);
     const handleSwap = (a: string, b: string, floor: number) => {
         const cur = designPackage?.solvedLayout;
         if (!cur) return;
         const r = swapRooms(cur, a, b, floor);
         if (r.ok === false) { toast.error(r.reason); return; }
-        setSwapUndo(prev => [...prev, cur]);
+        setSwapUndo(prev => [...prev, { layout: cur, rooms: designPackage.rooms }]);
         const pkg = { ...designPackage, solvedLayout: r.layout, edit: { swap: { said: r.said, notes: r.notes } } };
         setDesignPackage(pkg);
         recordDesign('edit', `swap: ${r.said}`, pkg, r.layout);
+    };
+    // Moving a wall on the drawn plan (lib/aec/moveWall.ts): exact and instant, no AI; the rooms on it
+    // take their new sizes in the brief, so a typed edit afterwards keeps the wall where it was put
+    const handleMoveWall = (wall: MovableWall, by: number) => {
+        const cur = designPackage?.solvedLayout;
+        if (!cur) return;
+        const r = moveWall(cur, wall, by);
+        if (r.ok === false) { toast.error(r.reason); return; }
+        setSwapUndo(prev => [...prev, { layout: cur, rooms: designPackage.rooms }]);
+        const pkg = { ...designPackage, rooms: resized(designPackage.rooms, r.sized), solvedLayout: r.layout, edit: { swap: { said: r.said, notes: r.notes, wall: true } } };
+        setDesignPackage(pkg);
+        recordDesign('edit', `wall: ${r.said}`, pkg, r.layout);
     };
     // Fit sizes after swaps: the swapped rooms back to the brief's sizes in the places they were given,
     // their floor redrawn from its own tree (SolverOptions.refit), no new search
@@ -596,7 +609,7 @@ const AIStudio = () => {
             const moved = new Set<string>(pinned.flatMap((f: any) => f.pinned));
             const kept = roomsKept(cur, solved, moved);
             const notes = editNotes(cur, solved, pinned.map((f: any) => f.floor));
-            setSwapUndo(prev => [...prev, cur]);
+            setSwapUndo(prev => [...prev, { layout: cur, rooms: designPackage.rooms }]);
             const pkg = { ...designPackage, solvedLayout: solved, edit: { swap: { said: `Sizes fitted to the brief${kept ? `: ${kept.kept} of ${kept.of} other rooms stayed where they were` : ''}`, notes, fitted: true } } };
             setDesignPackage(pkg);
             recordDesign('edit', 'fit sizes after a swap', pkg, solved);
@@ -611,7 +624,7 @@ const AIStudio = () => {
         const last = swapUndo[swapUndo.length - 1];
         if (!last) return;
         setSwapUndo(prev => prev.slice(0, -1));
-        setDesignPackage((prev: any) => prev ? { ...prev, solvedLayout: last, edit: swapUndo.length > 1 ? { swap: { said: 'Your last change was undone', notes: [], fitted: !last.search_state?.floors?.some((f: any) => f.pinned?.length) } } : undefined } : prev);
+        setDesignPackage((prev: any) => prev ? { ...prev, solvedLayout: last.layout, rooms: last.rooms, edit: swapUndo.length > 1 ? { swap: { said: 'Your last change was undone', notes: [], fitted: !last.layout.search_state?.floors?.some((f: any) => f.pinned?.length) } } : undefined } : prev);
     };
 
     const handleExportDXF = () => {
@@ -1522,7 +1535,7 @@ const AIStudio = () => {
                                                                 {designPackage.edit.swap.notes.length > 0 && (
                                                                     <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Check: {designPackage.edit.swap.notes.join('; ')}.</p>
                                                                 )}
-                                                                <p className="text-xs text-slate-500 dark:text-slate-400">{designPackage.edit.swap.fitted ? 'The swapped rooms kept their new places.' : 'Every other room stayed where it was; the swapped rooms traded sizes too (Fit sizes gives them their own).'} Doors, windows, the column grid and the code check follow the new plan.</p>
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400">{designPackage.edit.swap.wall ? 'Every other room stayed where it was; the brief now asks these sizes, so a typed edit keeps the wall here.' : designPackage.edit.swap.fitted ? 'The swapped rooms kept their new places.' : 'Every other room stayed where it was; the swapped rooms traded sizes too (Fit sizes gives them their own).'} Doors, windows, the column grid and the code check follow the new plan.</p>
                                                             </div>
                                                         )}
                                                         {designPackage?.edit && !designPackage.edit.swap && (
@@ -1624,7 +1637,7 @@ const AIStudio = () => {
                                                                     </div>
                                                                 )}
                                                                 <AECSitePlan layout={stableLayout} setbacks={designPackage?.setback?.plan?.setbacks} />
-                                                                <AECFloorPlan layout={stableLayout} onSwap={handleSwap} canSwap={id => !!stableLayout && swappable(stableLayout, id)} />
+                                                                <AECFloorPlan layout={stableLayout} onSwap={handleSwap} canSwap={id => !!stableLayout && swappable(stableLayout, id)} onMoveWall={handleMoveWall} />
                                                                 <AECElevations layout={stableLayout} />
                                                                 <AECSection layout={stableLayout} />
                                                                 <AECMassingView layout={stableLayout} setbacks={designPackage?.setback?.plan?.setbacks} />

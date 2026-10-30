@@ -8,7 +8,8 @@ import { stairPlan, STAIR_STOREY_H } from './stair';
 import { roomKey, keyNumber, type FloorKey } from './roomKey';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle2, Ruler, ShieldAlert, Layers, Download, Loader2, ArrowLeftRight } from 'lucide-react';
+import { CheckCircle2, Ruler, ShieldAlert, Layers, Download, Loader2, ArrowLeftRight, MoveHorizontal } from 'lucide-react';
+import { movableWalls, type MovableWall } from '@/lib/aec/moveWall';
 import { downloadPlan as savePlan, PLAN_FORMATS, type PlanFormat } from './exportPlan';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -61,9 +62,13 @@ interface AECFloorPlanProps {
   onSwap?: (a: string, b: string, floor: number) => void;
   /** Rooms that can't be swapped (stairs, halls, landings). */
   canSwap?: (room_id: string) => boolean;
+  /** Move a wall on the plan (lib/aec/moveWall.ts) by `by` m: offered when the page can take the new plan. */
+  onMoveWall?: (wall: MovableWall, by: number) => void;
 }
 
 /** Picking rooms on the drawing: the room picked first, and what a click does. */
+/** Moving walls: each wall that can move a drag handle; released, the move (m) goes to `onMove`. */
+interface WallDrag { onMove: (wall: MovableWall, by: number) => void }
 interface RoomPick { picked: { id: string; floor: number } | null; can: (room_id: string) => boolean; onPick: (room_id: string, floor: number) => void }
 
 /** A floor's building extent in metres (the plot when it has no rooms). */
@@ -123,6 +128,8 @@ interface FloorDrawingProps {
   roomKeys: FloorKey[];
   /** Swapping rooms: each room is a click target, the one picked first outlined. */
   pick?: RoomPick;
+  /** Moving walls: each wall that can move is a drag handle. */
+  walls?: WallDrag;
 }
 
 /** Metres with feet and inches in brackets, as the templates dimension (T1–T10): 4.5m (14'-9"). */
@@ -132,8 +139,17 @@ const dimLabel = (m: number, px: number) => { const both = `${+m.toFixed(2)}m ($
 
 const FloorDrawing: React.FC<FloorDrawingProps> = ({
   layout, floor: activeFloor, scale, xOffset, yOffset, showStructure, skeleton,
-  plot_width, plot_depth, showPlot, captionY, tagOf, roomKeys, pick,
+  plot_width, plot_depth, showPlot, captionY, tagOf, roomKeys, pick, walls,
 }) => {
+  // moving walls: the walls that can move, and the one being dragged (by: m, snapped)
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- walls is a new object each render; only on/off matters
+  const movable = useMemo(() => walls ? movableWalls(layout, activeFloor) : [], [!!walls, layout, activeFloor]);
+  const [drag, setDrag] = useState<{ key: string; start: number; by: number } | null>(null);
+  const svgMetres = (e: React.PointerEvent, horizontal: boolean) => {
+    const svg = (e.target as SVGGraphicsElement).ownerSVGElement!, m = svg.getScreenCTM()!.inverse();
+    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(m);
+    return horizontal ? (p.y - yOffset) / scale : (p.x - xOffset) / scale;
+  };
   const { placed_rooms } = layout;
   const activeRooms = placed_rooms.filter(r => r.floor === activeFloor);
   // Outbuildings (BQ, generator house) stand behind the house on the ground
@@ -964,6 +980,28 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
               );
             })}
 
+            {/* moving walls: a handle along each wall that can move; dragged, the wall's new line (snapped
+                to 0.5 m, within its reach) shows in red and the move is made on release */}
+            {walls && movable.map(w => {
+              const on = drag?.key === w.key, X = (m: number) => xOffset + m * scale, Y = (m: number) => yOffset + m * scale;
+              const at = w.at + (on ? drag!.by : 0), HIT = 12;
+              const line = w.horizontal ? { x1: X(w.from), y1: Y(at), x2: X(w.to), y2: Y(at) } : { x1: X(at), y1: Y(w.from), x2: X(at), y2: Y(w.to) };
+              return (
+                <g key={`wall-${w.key}`}>
+                  <line {...line} stroke="#DC2626" strokeWidth={on ? 3 : 1.5} strokeDasharray={on ? undefined : '6 4'} opacity={on ? 1 : 0.6} pointerEvents="none" />
+                  {on && drag!.by !== 0 && <text x={(line.x1 + line.x2) / 2 + (w.horizontal ? 0 : 8)} y={(line.y1 + line.y2) / 2 - (w.horizontal ? 6 : 0)} style={{ fontSize: '11px', fontWeight: 700, fill: '#DC2626' }}>{drag!.by > 0 ? '+' : ''}{drag!.by} m</text>}
+                  <rect data-wall={w.key} x={w.horizontal ? X(w.from) : X(w.at) - HIT / 2} y={w.horizontal ? Y(w.at) - HIT / 2 : Y(w.from)}
+                    width={w.horizontal ? (w.to - w.from) * scale : HIT} height={w.horizontal ? HIT : (w.to - w.from) * scale}
+                    fill="rgba(0,0,0,0)" style={{ cursor: w.horizontal ? 'row-resize' : 'col-resize', touchAction: 'none' }}
+                    onPointerDown={e => { (e.target as Element).setPointerCapture(e.pointerId); setDrag({ key: w.key, start: svgMetres(e, w.horizontal), by: 0 }); }}
+                    onPointerMove={e => { if (!on) return; const raw = svgMetres(e, w.horizontal) - drag!.start; setDrag({ ...drag!, by: Math.max(w.min, Math.min(w.max, Math.round(raw / 0.5) * 0.5)) }); }}
+                    onPointerUp={() => { if (!on) return; const by = drag!.by; setDrag(null); if (by !== 0) walls.onMove(w, by); }}>
+                    <title>Drag to move this wall: {w.low.length + w.high.length} rooms change, up to {-w.min} m one way and {w.max} m the other</title>
+                  </rect>
+                </g>
+              );
+            })}
+
             {/* An assembly hall's seating (gapfree/assembly.ts, regulations/assembly.ts): straight rows in blocks of
                 at most 14 seats, a 1.5 m centre aisle and 1.1 m aisles between blocks and at the walls, from 2.2 m
                 in front of the stage */}
@@ -1190,7 +1228,7 @@ const FloorDrawing: React.FC<FloorDrawingProps> = ({
 const PANEL_W = 720;
 const SHEET_W = 1080, MAX_SCALE = 30, GUTTER = 80;
 
-const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout, onSwap, canSwap }) => {
+const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout, onSwap, canSwap, onMoveWall }) => {
   const [showStructure, setShowStructure] = useState(false);
   // swapping two rooms: on, and the room picked first
   const [swapping, setSwapping] = useState(false);
@@ -1203,6 +1241,9 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout, onSwap, canSwap }) 
       onSwap(picked.id, id, floor); setPicked(null); setSwapping(false);
     },
   } : undefined;
+  // moving walls: on, each wall that can move a drag handle; one move, then off
+  const [walling, setWalling] = useState(false);
+  const wallDrag: WallDrag | undefined = walling && onMoveWall ? { onMove: (w, by) => { onMoveWall(w, by); setWalling(false); } } : undefined;
   // the drawing, for its watermarked download (exportPlan.ts)
   const svgRef = useRef<SVGSVGElement>(null);
   const [downloading, setDownloading] = useState(false);
@@ -1362,7 +1403,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout, onSwap, canSwap }) 
           </button>
           {onSwap && (
             <button
-              onClick={() => { setSwapping(!swapping); setPicked(null); }}
+              onClick={() => { setSwapping(!swapping); setPicked(null); setWalling(false); }}
               title={swapping ? 'Stop swapping rooms' : 'Swap two rooms: click one room, then another on the same floor'}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold tracking-widest whitespace-nowrap transition-all ${
                 swapping ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white/10 text-slate-400 hover:bg-white/20'
@@ -1370,6 +1411,18 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout, onSwap, canSwap }) 
             >
               <ArrowLeftRight className="w-3 h-3" />
               {swapping ? 'CANCEL SWAP' : 'SWAP ROOMS'}
+            </button>
+          )}
+          {onMoveWall && (
+            <button
+              onClick={() => { setWalling(!walling); setSwapping(false); setPicked(null); }}
+              title={walling ? 'Stop moving walls' : 'Move a wall: drag one of the dashed walls; the rooms either side change size'}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold tracking-widest whitespace-nowrap transition-all ${
+                walling ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-white/10 text-slate-400 hover:bg-white/20'
+              }`}
+            >
+              <MoveHorizontal className="w-3 h-3" />
+              {walling ? 'CANCEL MOVE' : 'MOVE WALL'}
             </button>
           )}
           <DropdownMenu>
@@ -1462,7 +1515,7 @@ const AECFloorPlan: React.FC<AECFloorPlanProps> = ({ layout, onSwap, canSwap }) 
               <FloorDrawing key={f} layout={layout} floor={f} scale={scale}
                 xOffset={xOffsetOf(k)} yOffset={yOffset} showStructure={showStructure}
                 skeleton={skeleton} plot_width={plot_width} plot_depth={plot_depth}
-                showPlot={!sheet} captionY={sheet ? bottom + 96 : undefined} tagOf={schedule.tagOf} roomKeys={keys} pick={pick} />
+                showPlot={!sheet} captionY={sheet ? bottom + 96 : undefined} tagOf={schedule.tagOf} roomKeys={keys} pick={pick} walls={wallDrag} />
             ))}
 
             {/* North arrow — bottom-left */}

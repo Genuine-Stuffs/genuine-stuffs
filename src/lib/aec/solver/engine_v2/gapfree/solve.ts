@@ -284,8 +284,9 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
     }
     // an edit's plan that misses a hard rule the previous plan met: the next rung, then the full
     // search, keeping whichever plan scores better (the edit's, on a tie: it keeps the user's plan;
-    // an edited brief can be harder than the old one, so the full search may miss rules too)
-    if (warmOk && !options?.refit && (!best || best.cost >= 1e7 || (best.cost >= 100 && best.cost > ws!.cost))) {
+    // an edited brief can be harder than the old one, so the full search may miss rules too). A plan
+    // edited by hand (rooms swapped, a wall moved) is the user's: refined, redrawn only when there's no plan
+    if (warmOk && !options?.refit && (!best || (!ws!.hand_edited && (best.cost >= 1e7 || (best.cost >= 100 && best.cost > ws!.cost))))) {
         if (rung + 1 < WARM_LADDER.length) return yield* gapfreeDriver(program, envelope, options, squeeze, rung + 1);
         const L = yield* gapfreeDriver(program, envelope, { ...options, warm_start: undefined }, squeeze);
         const full = L.search_state?.cost ?? Infinity;
