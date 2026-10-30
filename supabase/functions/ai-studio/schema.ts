@@ -135,7 +135,8 @@ export interface SearchState {
     path: 'slicing';
     W: number; D: number;              // footprint, cells
     cost: number;                      // the search's own total, to compare an edit's plan against
-    floors: Array<{ floor: number; ids: string[]; areas?: number[]; expr: number[]; offs: number[]; rects: Array<{ x: number; y: number; w: number; h: number }> }>;
+    // pinned: rooms the user placed by hand (swapped on the plan): a warm start holds where they stand, not their size
+    floors: Array<{ floor: number; ids: string[]; areas?: number[]; expr: number[]; offs: number[]; rects: Array<{ x: number; y: number; w: number; h: number }>; pinned?: string[] }>;
 }
 
 // ---------------------------------------------------------------------------

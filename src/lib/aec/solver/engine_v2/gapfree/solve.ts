@@ -243,7 +243,14 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
                 const base = p.seed * 7919 + fl * 104729 + W * 31 + D;
                 const was = warmOk ? ws!.floors.find(f => f.floor === fl) : undefined;
                 const warm = was ? warmFrom(was, spec, WARM_LADDER[rung].stay, WARM_LADDER[rung].T0) ?? undefined : undefined;
-                const res: AnnealResult = yield {
+                // Fit sizes: the hand-edited floor redrawn from its tree, its nudges kept or its cuts that now split
+                // their rooms wrongly re-flowed at the brief's areas, whichever breaks fewer rules (neither wins
+                // everywhere: re-flowing fits the sizes closer, keeping can break fewer rules, 2026-10-30)
+                const score = (q: Rect[] | null) => { if (!q) return Infinity; const vs = violations(q, spec); return vs.filter(v => v.rule !== "AREA_RELAXED" && v.rule !== "ADJ_SOFT" && v.rule !== "ATRIUM_SOFT").length * 100 + vs.length; };
+                const fitOffs = options?.refit && warm && was ? [warm.offs, refitOffs(warm, spec, was)].map(o => ({ o, q: layout(warm.expr, spec, o) }))
+                    .reduce((x, y) => score(y.q) < score(x.q) ? y : x).o : null;
+                const refit = fitOffs ? layout(warm!.expr, spec, fitOffs) : null;
+                const res: AnnealResult = refit ? { expr: warm!.expr, offs: fitOffs!, cost: 0 } as AnnealResult : yield {
                     spec, seeds: [...Array(warm ? WARM_RESTARTS : RESTARTS).keys()].map(k => base + k * SEED_STRIDE),
                     // flats planned upwards keep the downward plan's scoring: no wall-stacking term (as before)
                     iters: iters / RESTARTS, sw: spec.below && !up ? STACK_W : 0, ...(warm ? { warm } : {}),
@@ -278,7 +285,7 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
     // an edit's plan that misses a hard rule the previous plan met: the next rung, then the full
     // search, keeping whichever plan scores better (the edit's, on a tie: it keeps the user's plan;
     // an edited brief can be harder than the old one, so the full search may miss rules too)
-    if (warmOk && (!best || best.cost >= 1e7 || (best.cost >= 100 && best.cost > ws!.cost))) {
+    if (warmOk && !options?.refit && (!best || best.cost >= 1e7 || (best.cost >= 100 && best.cost > ws!.cost))) {
         if (rung + 1 < WARM_LADDER.length) return yield* gapfreeDriver(program, envelope, options, squeeze, rung + 1);
         const L = yield* gapfreeDriver(program, envelope, { ...options, warm_start: undefined }, squeeze);
         const full = L.search_state?.cost ?? Infinity;
@@ -286,6 +293,29 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
     }
     if (!best) return unsat(p);
     return toLayout(p, best);
+}
+
+/** Fit sizes after a swap: the floor's nudges (offs) with each cut zeroed (cut at its sides' brief
+ * areas) where it stands over a pinned room and its sides' areas as drawn are more than 5 % off the
+ * brief's share; every other cut keeps its nudge, so the rooms away from the swap stay put. */
+function refitOffs(warm: WarmStart, spec: FloorSpec, was: { ids: string[]; rects: Rect[]; pinned?: string[] }): number[] {
+    const offs = [...warm.offs];
+    if (!was.pinned?.length) return offs;
+    const rectOf = new Map(was.ids.map((id, t) => [id, was.rects[t]]));
+    const pinned = new Set(was.pinned);
+    const st: Array<{ brief: number; drawn: number; pin: boolean }> = [];
+    warm.expr.forEach((t, k) => {
+        if (t >= 0) {
+            const l = spec.leaves[t], q = rectOf.get(l.id);
+            st.push({ brief: l.area, drawn: q ? q.w * q.h * CELL * CELL : l.area, pin: pinned.has(l.id) });
+            return;
+        }
+        const b = st.pop()!, a = st.pop()!;
+        const share = a.brief / (a.brief + b.brief), drawn = a.drawn / (a.drawn + b.drawn);
+        if ((a.pin || b.pin) && Math.abs(drawn - share) > 0.05 * share) offs[k] = 0;
+        st.push({ brief: a.brief + b.brief, drawn: a.drawn + b.drawn, pin: a.pin || b.pin });
+    });
+    return offs;
 }
 
 /** A shared wall a door fits in, cells (slice.ts DOOR: 1.0 m). */

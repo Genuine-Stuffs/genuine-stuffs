@@ -43,41 +43,52 @@ export function swapRooms(layout: SolvedLayout, a: string, b: string, floor: num
             if (ka < 0 || kb < 0) return f;
             const ids = [...f.ids], areas = f.areas ? [...f.areas] : undefined;
             [ids[ka], ids[kb]] = [ids[kb], ids[ka]];
-            if (areas) [areas[ka], areas[kb]] = [areas[kb], areas[ka]];
-            return { ...f, ids, ...(areas ? { areas } : {}) };
+            // each room's size is the place it took (m²), so a warm start sees both as resized and pulls
+            // them back to the brief's sizes ("Fit sizes", and a typed edit after the swap)
+            if (areas) for (const k of [ka, kb]) areas[k] = f.rects[k].w * f.rects[k].h * 0.25;
+            // both held where the user put them when the plan is refined (Fit sizes, a typed edit)
+            const pinned = [...new Set([...(f.pinned ?? []), a, b])];
+            return { ...f, ids, ...(areas ? { areas } : {}), pinned };
         }),
     };
     const next: SolvedLayout = { ...layout, placed_rooms: placed, ...(search_state ? { search_state } : {}) };
 
+    return { ok: true, layout: next, said: `${nameOf(layout, a)} and ${nameOf(layout, b)} swapped places`, notes: editNotes(layout, next, [floor]) };
+}
+
+/** What a hand edit (a swap, Fit sizes) cost on the given floors, plan before against plan after: a room
+ * whose size changed and is now more than 15 % off the brief, a link of the brief that had a shared
+ * wall and lost it (an en-suite away from its bedroom), a room that lost its window or its door. */
+export function editNotes(before: SolvedLayout, after: SolvedLayout, floors: number[]): string[] {
     const notes: string[] = [];
-    // sizes: each room now has the other's
-    const asked = (id: string) => Number((layout.program_reference?.rooms?.find((r: any) => r.room_id === id) as any)?.area_m2) || 0;
-    for (const [id, now] of [[a, B], [b, A]] as const) {
-        const want = asked(id), got = m2(now);
-        if (want && Math.abs(got - want) > 0.15 * want) notes.push(`${nameOf(layout, id)} is now ${got} m² (the brief asks ${want} m²)`);
-    }
-    // the brief's links the swap broke (an en-suite now away from its bedroom, the kitchen from the dining)
+    const brief: any[] = (before.program_reference?.rooms as any[]) ?? [];
+    const asked = (id: string) => Number(brief.find(r => r.room_id === id)?.area_m2) || 0;
+    const at = (L: SolvedLayout, id: string, f: number) => L.placed_rooms.find(r => r.room_id === id && r.floor === f);
     const wall = (p: { x: number; y: number; width: number; depth: number }, q: typeof p) => {
         const ov = (a1: number, a2: number, b1: number, b2: number) => Math.min(a2, b2) - Math.max(a1, b1), e = 1e-6;
         if (Math.abs(p.x + p.width - q.x) < e || Math.abs(q.x + q.width - p.x) < e) return ov(p.y, p.y + p.depth, q.y, q.y + q.depth);
         if (Math.abs(p.y + p.depth - q.y) < e || Math.abs(q.y + q.depth - p.y) < e) return ov(p.x, p.x + p.width, q.x, q.x + q.width);
         return 0;
     };
-    const at = (rs: typeof placed, id: string) => rs.find(r => r.room_id === id && r.floor === floor);
-    const said = new Set<string>();
-    for (const r of layout.program_reference?.rooms ?? []) for (const o of (r as any).adjacencies ?? []) {
-        const x = String((r as any).room_id), y = String(o), key = [x, y].sort().join('|');
-        if (said.has(key) || ![a, b].some(id => id === x || id === y)) continue;
-        const p0 = at(layout.placed_rooms, x), q0 = at(layout.placed_rooms, y), p1 = at(placed, x), q1 = at(placed, y);
-        if (!p0 || !q0 || !p1 || !q1 || wall(p0, q0) < 1 - 1e-6 || wall(p1, q1) >= 1 - 1e-6) continue;
-        said.add(key); notes.push(`${nameOf(layout, x)} is no longer next to ${nameOf(layout, y)}`);
+    for (const f of floors) {
+        for (const r of after.placed_rooms.filter(r => r.floor === f)) {
+            const was = at(before, r.room_id, f), want = asked(r.room_id), got = m2(r);
+            if (was && Math.abs(m2(was) - got) > 0.05 && want && Math.abs(got - want) > 0.15 * want) notes.push(`${nameOf(before, r.room_id)} is now ${got} m² (the brief asks ${want} m²)`);
+        }
+        const said = new Set<string>();
+        for (const r of brief) for (const o of r.adjacencies ?? []) {
+            const x = String(r.room_id), y = String(o), key = [x, y].sort().join('|');
+            if (said.has(key)) continue;
+            const p0 = at(before, x, f), q0 = at(before, y, f), p1 = at(after, x, f), q1 = at(after, y, f);
+            if (!p0 || !q0 || !p1 || !q1 || wall(p0, q0) < 1 - 1e-6 || wall(p1, q1) >= 1 - 1e-6) continue;
+            said.add(key); notes.push(`${nameOf(before, x)} is no longer next to ${nameOf(before, y)}`);
+        }
+        const o0 = planOpenings(before, f), o1 = planOpenings(after, f);
+        const lit = (o: typeof o0, id: string) => o.windows.some(w => w.room_id === id);
+        for (const r of after.placed_rooms.filter(r => r.floor === f)) {
+            if (lit(o0, r.room_id) && !lit(o1, r.room_id)) notes.push(`${nameOf(before, r.room_id)} no longer has an outside wall for a window`);
+            if (o0.doors.has(r.room_id) && !o1.doors.has(r.room_id)) notes.push(`${nameOf(before, r.room_id)} no longer has a door`);
+        }
     }
-    // windows and doors the swap took away
-    const before = planOpenings(layout, floor), after = planOpenings(next, floor);
-    const lit = (o: typeof before, id: string) => o.windows.some(w => w.room_id === id);
-    for (const r of placed.filter(r => r.floor === floor)) {
-        if (lit(before, r.room_id) && !lit(after, r.room_id)) notes.push(`${nameOf(layout, r.room_id)} no longer has an outside wall for a window`);
-        if (before.doors.has(r.room_id) && !after.doors.has(r.room_id)) notes.push(`${nameOf(layout, r.room_id)} no longer has a door`);
-    }
-    return { ok: true, layout: next, said: `${nameOf(layout, a)} and ${nameOf(layout, b)} swapped places`, notes };
+    return notes;
 }

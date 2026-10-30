@@ -310,6 +310,8 @@ export interface WarmStart {
     expr: number[]; offs: number[]; prev: Array<Rect | null>; stayW: number; T0: number;
     /** A room the edit resized: its new size in cells, pulled towards as hard as a kept room is held (null: not resized). */
     target: Array<number | null>;
+    /** A room the user placed by hand (swapped on the plan): its centre held where it stands, its size free (null: not pinned). */
+    pin?: Array<Rect | null>;
 }
 
 type Tree = number | { op: number; a: Tree; b: Tree; off: number };
@@ -318,7 +320,7 @@ type Tree = number | { op: number; a: Tree; b: Tree; off: number };
  * floor's leaves: a kept room keeps its place in the tree (a resized one re-flows there), a
  * removed one is cut out (its sibling takes the space), a new one is split off a room it must
  * be next to (else the hall), across that room's longer side. Null when nothing is kept. */
-export function warmFrom(prev: { ids: string[]; expr: number[]; offs: number[]; rects: Rect[]; areas?: number[] }, spec: FloorSpec, stayW: number, T0: number): WarmStart | null {
+export function warmFrom(prev: { ids: string[]; expr: number[]; offs: number[]; rects: Rect[]; areas?: number[]; pinned?: string[] }, spec: FloorSpec, stayW: number, T0: number): WarmStart | null {
     const idx = new Map(spec.leaves.map((l, i) => [l.id, i]));
     const st: Tree[] = [];
     for (let k = 0; k < prev.expr.length; k++) {
@@ -368,12 +370,17 @@ export function warmFrom(prev: { ids: string[]; expr: number[]; offs: number[]; 
     if (expr.filter(t => t >= 0).length !== spec.leaves.length) return null;
     // the edit's own changes: a room whose size changed by more than 5 % is pulled to its new size, not held
     const was = new Map<number, number>(); prev.ids.forEach((id, t) => { const i = idx.get(id); if (i !== undefined && prev.areas) was.set(i, prev.areas[t]); });
-    const resized = (i: number) => was.has(i) && Math.abs(spec.leaves[i].area - was.get(i)!) > 0.05 * was.get(i)!;
+    // a pinned room (swapped by hand) re-flows to its own size where it now stands
+    const pinned = new Set((prev.pinned ?? []).map(id => idx.get(id)).filter((i): i is number => i !== undefined));
+    const resized = (i: number) => pinned.has(i) || (was.has(i) && Math.abs(spec.leaves[i].area - was.get(i)!) > 0.05 * was.get(i)!);
     // the hall takes the remainder, so its shape isn't held; every other kept room is
     const keep = spec.leaves.map((l, i) => l.hall || resized(i) ? null : prevRect.get(i) ?? null);
     const target = spec.leaves.map((l, i) => resized(i) ? l.area / (CELL * CELL) : null);
-    return { expr, offs, prev: keep, stayW, T0, target };
+    const pin = spec.leaves.map((_, i) => pinned.has(i) ? prevRect.get(i) ?? null : null);
+    return { expr, offs, prev: keep, stayW, T0, target, ...(pinned.size ? { pin } : {}) };
 }
+
+const PIN_W = 5;
 
 /** Cells the kept rooms moved or resized from their previous rects, plus each resized room's cells short of (or over) its new size. */
 function moved(w: WarmStart, X: ArrayLike<number>, Y: ArrayLike<number>, Wd: ArrayLike<number>, Ht: ArrayLike<number>): number {
@@ -382,6 +389,10 @@ function moved(w: WarmStart, X: ArrayLike<number>, Y: ArrayLike<number>, Wd: Arr
         const q = w.prev[i], t = w.target[i];
         if (q) d += Math.abs(X[i] - q.x) + Math.abs(Y[i] - q.y) + Math.abs(Wd[i] - q.w) + Math.abs(Ht[i] - q.h);
         else if (t !== null) d += Math.abs(Wd[i] * Ht[i] - t);
+        // a pinned room's centre (twice its offset, in cells), held five times as hard as a kept room's
+        // walls: held as hard as them, the search swapped the two rooms straight back (2026-10-30)
+        const pq = w.pin?.[i];
+        if (pq) d += PIN_W * (Math.abs(2 * X[i] + Wd[i] - 2 * pq.x - pq.w) + Math.abs(2 * Y[i] + Ht[i] - 2 * pq.y - pq.h));
     }
     return d;
 }

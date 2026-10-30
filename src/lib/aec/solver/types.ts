@@ -33,6 +33,10 @@ export interface SolverOptions {
      * between the lounge and the master suite"). They must share a wall: not met through the
      * landing, never relaxed, and a plan that misses one ranks below any plan that meets it. */
     edit_links?: Array<[string, string]>;
+    /** Fit the sizes after rooms were swapped on the plan: each floor with a room placed by hand
+     * (search_state pinned) is redrawn from its own slicing tree at the brief's areas, every other
+     * floor exactly as it was; no search, so every room stays in its place in the tree. */
+    refit?: boolean;
 }
 
 export interface InternalRoomNode {

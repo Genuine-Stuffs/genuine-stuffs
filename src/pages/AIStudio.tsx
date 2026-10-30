@@ -73,7 +73,7 @@ import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import { downloadPlanDxf } from '@/components/aec/exportPlan';
 import { recordDesignEvent, newDesignSession, briefOnly, type DesignEventKind } from '@/lib/aec/designData';
 import { briefForEdit, alignToPrevious, briefChanges, roomsKept, newLinks, linksMissed } from '@/lib/aec/editLoop';
-import { swapRooms, swappable } from '@/lib/aec/swapRooms';
+import { swapRooms, swappable, editNotes } from '@/lib/aec/swapRooms';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { AECElevations } from '@/components/aec/AECElevations';
 import { AECSection } from '@/components/aec/AECSection';
@@ -571,11 +571,40 @@ const AIStudio = () => {
         setDesignPackage(pkg);
         recordDesign('edit', `swap: ${r.said}`, pkg, r.layout);
     };
+    // Fit sizes after swaps: the swapped rooms back to the brief's sizes in the places they were given,
+    // their floor redrawn from its own tree (SolverOptions.refit), no new search
+    const [fitting, setFitting] = useState(false);
+    const fitSwapSizes = async () => {
+        const cur = designPackage?.solvedLayout, req = designPackage?.solveRequest;
+        const pinned = (cur?.search_state?.floors ?? []).filter((f: any) => f.pinned?.length);
+        if (!cur || !req || !pinned.length) { toast.error("This plan can't be refitted: swap two rooms first."); return; }
+        setFitting(true);
+        try {
+            const program = { ...designPackage, solvedLayout: undefined, solvedLayoutOptions: undefined, edit: undefined };
+            const solved = await solveLayoutInWorker(program, req.envelope, { ...req.options, warm_start: cur.search_state, refit: true, edit_links: undefined });
+            if (!solved?.placed_rooms?.length || solved.solver_status === 'UNSAT' || solved.solver_status === 'TIMEOUT') {
+                toast.error("The sizes couldn't be fitted on this plan, so the swap stays as it is.");
+                return;
+            }
+            const moved = new Set<string>(pinned.flatMap((f: any) => f.pinned));
+            const kept = roomsKept(cur, solved, moved);
+            const notes = editNotes(cur, solved, pinned.map((f: any) => f.floor));
+            setSwapUndo(prev => [...prev, cur]);
+            const pkg = { ...designPackage, solvedLayout: solved, edit: { swap: { said: `Sizes fitted to the brief${kept ? `: ${kept.kept} of ${kept.of} other rooms stayed where they were` : ''}`, notes, fitted: true } } };
+            setDesignPackage(pkg);
+            recordDesign('edit', 'fit sizes after a swap', pkg, solved);
+        } catch (err) {
+            console.warn('Fit sizes failed:', err);
+            toast.error("The sizes couldn't be fitted, so the swap stays as it is.");
+        } finally {
+            setFitting(false);
+        }
+    };
     const undoSwap = () => {
         const last = swapUndo[swapUndo.length - 1];
         if (!last) return;
         setSwapUndo(prev => prev.slice(0, -1));
-        setDesignPackage((prev: any) => prev ? { ...prev, solvedLayout: last, edit: swapUndo.length > 1 ? { swap: { said: 'The last swap was undone.', notes: [] } } : undefined } : prev);
+        setDesignPackage((prev: any) => prev ? { ...prev, solvedLayout: last, edit: swapUndo.length > 1 ? { swap: { said: 'Your last change was undone', notes: [], fitted: !last.search_state?.floors?.some((f: any) => f.pinned?.length) } } : undefined } : prev);
     };
 
     const handleExportDXF = () => {
@@ -1472,15 +1501,21 @@ const AIStudio = () => {
                                                             <div className="rounded-2xl border border-primary/20 bg-primary/5 px-4 py-3 space-y-1">
                                                                 <div className="flex items-center justify-between gap-3">
                                                                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Your edit</p>
-                                                                    {swapUndo.length > 0 && (
-                                                                        <button onClick={undoSwap} className="text-[10px] font-bold uppercase tracking-widest text-primary hover:underline">Undo swap</button>
-                                                                    )}
+                                                                    <div className="flex items-center gap-4">
+                                                                        {!designPackage.edit.swap.fitted && designPackage.solvedLayout?.search_state?.floors?.some((f: any) => f.pinned?.length) && (
+                                                                            <button onClick={fitSwapSizes} disabled={fitting} title="Give the swapped rooms the brief's sizes in their new places; the rooms around them give or take the space"
+                                                                                className="text-[10px] font-bold uppercase tracking-widest text-primary hover:underline disabled:opacity-60">{fitting ? 'Fitting…' : 'Fit sizes'}</button>
+                                                                        )}
+                                                                        {swapUndo.length > 0 && (
+                                                                            <button onClick={undoSwap} className="text-[10px] font-bold uppercase tracking-widest text-primary hover:underline">Undo</button>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                                 <p className="text-sm text-slate-700 dark:text-slate-200">{designPackage.edit.swap.said}.</p>
                                                                 {designPackage.edit.swap.notes.length > 0 && (
                                                                     <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">Check: {designPackage.edit.swap.notes.join('; ')}.</p>
                                                                 )}
-                                                                <p className="text-xs text-slate-500 dark:text-slate-400">Every other room stayed where it was. Doors, windows, the column grid and the code check follow the new plan.</p>
+                                                                <p className="text-xs text-slate-500 dark:text-slate-400">{designPackage.edit.swap.fitted ? 'The swapped rooms kept their new places.' : 'Every other room stayed where it was; the two rooms traded sizes too (Fit sizes gives them their own).'} Doors, windows, the column grid and the code check follow the new plan.</p>
                                                             </div>
                                                         )}
                                                         {designPackage?.edit && !designPackage.edit.swap && (
