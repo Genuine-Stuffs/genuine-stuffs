@@ -93,13 +93,15 @@ export function planGuestFloor(rooms: FloorRoom[], BW: number, BD: number, short
     };
     const lenA = (s1 ? w.get(s1.room_id)! : 0) + mid.reduce((s, r) => s + w.get(r.room_id)!, 0) + A.reduce((s, r) => s + w.get(r.room_id)!, 0);
     const lenB = (s2 ? w.get(s2.room_id)! : 0) + B.reduce((s, r) => s + w.get(r.room_id)!, 0);
+    const unpadded = new Map(w);
     pad(A.length ? A : mid.filter(r => r.kind === 'service'), lenA);
     pad(B, lenB);
     // row A: the first stair at its start, half its guest rooms, the lifts and housekeeping in the middle, the rest;
     // row B: its guest rooms, the second stair at the far end
-    const half = Math.ceil(A.length / 2);
-    const rowA = [...(s1 ? [s1] : []), ...A.slice(0, half), ...mid, ...A.slice(half)];
-    const rowB = [...B, ...(s2 ? [s2] : [])];
+    let half = Math.ceil(A.length / 2);
+    const rowsOf = () => [[...(s1 ? [s1] : []), ...A.slice(0, half), ...mid, ...A.slice(half)], [...B, ...(s2 ? [s2] : [])]];
+    half = lineUpWalls(A, B, w, unpadded, rowsOf, half, h => { half = h; });
+    const [rowA, rowB] = rowsOf();
     const rects = new Map<string, { x: number; y: number; w: number; h: number }>();
     const put = (row: FloorRoom[], across: number) => {
         let at = 0;
@@ -127,6 +129,45 @@ export function planGuestFloor(rooms: FloorRoom[], BW: number, BD: number, short
 }
 
 type Rect = { x: number; y: number; w: number; h: number };
+
+/** Party walls opposite each other across the corridor: how many of row B's walls between
+ * rooms stand where row A has one. */
+function wallsOpposite(rows: FloorRoom[][], w: Map<string, number>): number {
+    const walls = (row: FloorRoom[]) => { let at = 0; return row.slice(0, -1).map(r => Math.round((at += w.get(r.room_id)!) / CELL)); };
+    const a = new Set(walls(rows[0]));
+    return walls(rows[1]).filter(p => a.has(p)).length;
+}
+
+/** The two rows with their party walls lined up across the corridor, so the structural grid can put
+ * a column line on both and every guest room spans its own width, with no column inside it (2026-10-30;
+ * filled independently, the rows' walls met by chance and 6 m bays spanned 7 m deep rooms). Searched:
+ * the order of the guest rooms in each row, the core one room either way along row A, and the rows'
+ * spare half-metres moved between their rooms (never below the width the area asked). The rooms, their
+ * rows, the stairs at the ends and the floor's length stay as planned. Returns the core's place. */
+function lineUpWalls(A: FloorRoom[], B: FloorRoom[], w: Map<string, number>, base: Map<string, number>,
+    rowsOf: () => FloorRoom[][], half: number, setHalf: (h: number) => void): number {
+    let best = wallsOpposite(rowsOf(), w);
+    const keep = () => { const v = wallsOpposite(rowsOf(), w); if (v > best) { best = v; return true; } return false; };
+    const swap = (xs: FloorRoom[], i: number, j: number) => { const t = xs[i]; xs[i] = xs[j]; xs[j] = t; };
+    const mid0 = half;
+    for (let improved = true, pass = 0; improved && pass < 20; pass++) {
+        improved = false;
+        for (const row of [A, B]) for (let i = 0; i < row.length; i++) for (let j = i + 1; j < row.length; j++) {
+            if (w.get(row[i].room_id) === w.get(row[j].room_id)) continue;
+            swap(row, i, j); if (keep()) improved = true; else swap(row, i, j);
+        }
+        for (const row of [A, B]) for (const from of row) for (const to of row) {
+            if (from === to || w.get(from.room_id)! - CELL < base.get(from.room_id)! - 1e-9) continue;
+            w.set(from.room_id, w.get(from.room_id)! - CELL); w.set(to.room_id, w.get(to.room_id)! + CELL);
+            if (keep()) improved = true; else { w.set(from.room_id, w.get(from.room_id)! + CELL); w.set(to.room_id, w.get(to.room_id)! - CELL); }
+        }
+        for (const h of [mid0 - 1, mid0 + 1]) if (h >= 0 && h <= A.length && h !== half) {
+            const was = half; half = h; setHalf(h);
+            if (keep()) improved = true; else { half = was; setHalf(was); }
+        }
+    }
+    return half;
+}
 
 /** An L-shaped guest floor, for when one straight corridor is too short: a
  * wing along the long side and a wing across the rear, each with rooms both
