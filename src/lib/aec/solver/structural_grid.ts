@@ -196,20 +196,25 @@ export interface StructuralGrid extends Omit<GridFit, "xs" | "ys"> {
 }
 
 /** Corridor bays: strips one corridor bay wide where every floor has a hall
- * (or stair) rect exactly that wide on the strip; cells, from the origin. */
+ * (or stair) rect exactly that wide on the strip; cells, from the origin. At
+ * the building's two ends only a stair's strip counts (a hotel's fire stairs
+ * close its corridor: the 3 m bay kept a line off the stair's wall, and the
+ * rooms beside it spanned 6 m, 2026-10-30). */
 export function corridorStrips(layout: SolvedLayout, W: number, D: number): { x: number[]; y: number[] } {
     const circ = (id: string) => id.startsWith("corridor") || id.startsWith("stairwell");
     const top = Math.max(0, ...layout.placed_rooms.map(r => r.floor ?? 0));
     const on = (axis: "x" | "y") => {
-        let keep: Set<number> | null = null;
+        const strip = (f: number, is: (id: string) => boolean) => new Set(layout.placed_rooms.filter(r => (r.floor ?? 0) === f && is(r.room_id))
+            .filter(r => Math.round((axis === "x" ? r.width : r.depth) / CELL) === CORRIDOR)
+            .map(r => Math.round((axis === "x" ? r.x : r.y) / CELL)));
+        let keep: Set<number> | null = null, stairs: Set<number> | null = null;
         for (let f = 0; f <= top; f++) {
-            const here = new Set(layout.placed_rooms.filter(r => (r.floor ?? 0) === f && circ(r.room_id))
-                .filter(r => Math.round((axis === "x" ? r.width : r.depth) / CELL) === CORRIDOR)
-                .map(r => Math.round((axis === "x" ? r.x : r.y) / CELL)));
+            const here = strip(f, circ), st = strip(f, id => id.startsWith("stairwell"));
             keep = keep ? new Set([...keep].filter(p => here.has(p))) : here;
+            stairs = stairs ? new Set([...stairs].filter(p => st.has(p))) : st;
         }
         const len = axis === "x" ? W : D;
-        return [...(keep ?? [])].filter(p => p > 0 && p + CORRIDOR < len).sort((a, b) => a - b);
+        return [...(keep ?? [])].filter(p => (p > 0 && p + CORRIDOR < len) || (stairs!.has(p) && p >= 0 && p + CORRIDOR <= len)).sort((a, b) => a - b);
     };
     return { x: on("x"), y: on("y") };
 }
