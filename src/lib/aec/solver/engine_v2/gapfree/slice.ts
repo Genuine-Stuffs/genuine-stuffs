@@ -30,6 +30,7 @@ export interface Rect { x: number; y: number; w: number; h: number } // cells
 export interface FloorSpec {
     leaves: Leaf[]; W: number; D: number; pairs: Array<[number, number]>; floor: number;
     soft?: Set<string>; // "a|b" pairs the relaxation ladder may drop (no hub endpoint)
+    direct?: Set<string>; // "a|b" pairs an edit asked for: a shared wall, never through the hall or relaxed
     fixed?: Map<number, Rect>; // leaf -> required rect (stair void)
     stairCells?: [number, number]; // stair module (w, h cells) set into a corner of the hall (ground)
     voidRect?: Rect;               // the stair below: the hall above must contain it
@@ -208,14 +209,15 @@ export function violations(rects: Rect[], spec: FloorSpec): Violation[] {
     for (const [a, b] of spec.pairs) {
         let s = shared(rects[a], rects[b]);
         // FOYER_VIA_HALL (experiment): a foyer link is met through the hall the foyer opens onto
-        if (FOYER_VIA_HALL && s < DOOR && hallI >= 0 && (isFoyer(a) || isFoyer(b)) && !servedLink(spec.leaves[a].type, spec.leaves[b].type)) {
+        const direct = spec.direct?.has(`${a}|${b}`) || spec.direct?.has(`${b}|${a}`);
+        if (FOYER_VIA_HALL && !direct && s < DOOR && hallI >= 0 && (isFoyer(a) || isFoyer(b)) && !servedLink(spec.leaves[a].type, spec.leaves[b].type)) {
             const f = isFoyer(a) ? a : b, o = f === a ? b : a;
             if (shared(rects[f], rects[hallI]) >= DOOR && shared(rects[o], rects[hallI]) >= DOOR) {
                 v.push({ rule: "ADJ_SOFT", leaf: a, other: b, amount: 1 }); // met through the hall: allowed, direct preferred
                 continue;
             }
         }
-        if (s < DOOR) v.push({ rule: spec.soft?.has(`${a}|${b}`) ? "ADJ_SOFT" : "ADJACENCY", leaf: a, other: b, amount: 1 + (DOOR - s) / DOOR + gap(rects[a], rects[b]) / 4 });
+        if (s < DOOR) v.push({ rule: spec.soft?.has(`${a}|${b}`) && !direct ? "ADJ_SOFT" : "ADJACENCY", leaf: a, other: b, amount: 1 + (DOOR - s) / DOOR + gap(rects[a], rects[b]) / 4 });
     }
     // Circulation is one network: the hall (with the stair in it) and every
     // room people walk through connect by doorway-width walls, so the stair

@@ -216,6 +216,8 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
         for (const fl of up ? p.floorIds : [...p.floorIds].reverse()) {
             const spec = specFor(p.graph, fl, W, D, p.duplex, squeeze);
             if (!spec) { ok = false; break; }
+            const direct = editPairs(spec, options.edit_links);
+            if (direct.length) spec.direct = new Set(direct.map(([a, b]) => `${a}|${b}`));
             // HALL_NARROW (trial): a one-storey house has no stair in its hall
             if (HALL_NARROW && p.floorIds.length === 1) spec.narrowHall = true;
             if (prev === undefined) { if (STAIR_IN_HALL && p.duplex) spec.stairCells = [5, 8]; }
@@ -257,6 +259,8 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
                     if (Math.abs(asked) >= 1 && got / asked < 0.5) editMissed = true;
                 });
             }
+            // a room the edit asked to stand next to another must share a wall with it
+            if (direct.some(([a, b]) => shared(r[a], r[b]) < DOOR_CELLS)) editMissed = true;
             specs.set(fl, spec); rects.set(fl, r);
             const vs = violations(r, spec);
             total += vs.filter(v => v.rule !== "AREA_RELAXED" && v.rule !== "ADJ_SOFT" && v.rule !== "ATRIUM_SOFT").length * 100 + vs.length + (spec.below ? unsupportedWall(r, spec) : 0);
@@ -282,6 +286,24 @@ export function* gapfreeDriver(program: SpatialProgram, envelope: PlotEnvelope, 
     }
     if (!best) return unsat(p);
     return toLayout(p, best);
+}
+
+/** A shared wall a door fits in, cells (slice.ts DOOR: 1.0 m). */
+const DOOR_CELLS = 2;
+
+/** The edit's links on this floor as leaf pairs (both rooms on it), each one also a link of the
+ * floor (the AI may write it on one room only), so the search works towards it. */
+function editPairs(spec: FloorSpec, links: SolverOptions["edit_links"]): Array<[number, number]> {
+    if (!links?.length) return [];
+    const at = new Map(spec.leaves.map((l, i) => [l.id, i]));
+    const out: Array<[number, number]> = [];
+    for (const [x, y] of links) {
+        const a = at.get(x), b = at.get(y);
+        if (a === undefined || b === undefined || a === b) continue;
+        out.push([a, b]);
+        if (!spec.pairs.some(([u, v]) => (u === a && v === b) || (u === b && v === a))) spec.pairs.push([a, b]);
+    }
+    return out;
 }
 
 /** Bay-and-spine plans (spine.ts) for a multi-storey brief: the best over

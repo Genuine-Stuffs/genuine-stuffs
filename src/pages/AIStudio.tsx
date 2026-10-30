@@ -47,7 +47,7 @@ import DesignReviewPanel from "@/components/review/DesignReviewPanel";
 import PromptChecklist from "@/components/prompt/PromptChecklist";
 import Navbar from "@/components/Navbar";
 import { toast } from "sonner";
-import { newerBuildAvailable, reloadKeepingPrompt, takePendingPrompt } from "@/lib/appVersion";
+import { newerBuildAvailable, reloadKeepingPrompt, reloadKeepingSession, takePendingPrompt, takePendingSession } from "@/lib/appVersion";
 import { Badge } from "@/components/ui/badge";
 import {
     Dialog,
@@ -71,8 +71,8 @@ import AECFloorPlan from '@/components/aec/AECFloorPlan';
 import { AECSitePlan } from '@/components/aec/AECSitePlan';
 import AECBillOfQuantities from '@/components/aec/AECBillOfQuantities';
 import { downloadPlanDxf } from '@/components/aec/exportPlan';
-import { recordDesignEvent, newDesignSession, type DesignEventKind } from '@/lib/aec/designData';
-import { briefForEdit, alignToPrevious, briefChanges, roomsKept } from '@/lib/aec/editLoop';
+import { recordDesignEvent, newDesignSession, briefOnly, type DesignEventKind } from '@/lib/aec/designData';
+import { briefForEdit, alignToPrevious, briefChanges, roomsKept, newLinks, linksMissed } from '@/lib/aec/editLoop';
 import AECMassingView from '@/components/aec/AECMassingView';
 import { AECElevations } from '@/components/aec/AECElevations';
 import { AECSection } from '@/components/aec/AECSection';
@@ -155,10 +155,19 @@ const AIStudio = () => {
     const [promptText, setPromptText] = useState("");
     // the prompt kept across a reload onto the newer build (lib/appVersion)
     useEffect(() => {
+        const session = takePendingSession<{ messages: any[]; design: any; designSession?: string }>();
+        if (session?.messages?.length) {
+            setMessages(session.messages);
+            setDesignPackage(session.design ?? null);
+            if (session.designSession) designSession.current = session.designSession;
+            setHasActiveSession(true);
+        }
         const pending = takePendingPrompt();
         if (pending) {
             setPromptText(pending);
-            toast.info("AI Studio was updated, so the page reloaded. Your prompt is back in the box: press send.");
+            toast.info(session?.messages?.length
+                ? "AI Studio was updated, so the page reloaded. Your design and your prompt are back: press send."
+                : "AI Studio was updated, so the page reloaded. Your prompt is back in the box: press send.");
         }
     }, []);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -579,9 +588,13 @@ const AIStudio = () => {
 
         // A tab older than the live site can't load the planner's workers: reload before a
         // first prompt (nothing on screen to lose), keeping the prompt
-        if (messages.length === 0 && await newerBuildAvailable()) {
-            reloadKeepingPrompt(promptText);
-            return;
+        if (await newerBuildAvailable()) {
+            if (messages.length === 0) { reloadKeepingPrompt(promptText); return; }
+            // a follow-up: the conversation and the design come back after the reload (the plan's
+            // loop back to its brief cut, as a saved review does; the other layouts are worked out again)
+            const pkg = designPackage && { ...designPackage, solvedLayoutOptions: undefined,
+                solvedLayout: designPackage.solvedLayout && { ...designPackage.solvedLayout, program_reference: briefOnly(designPackage.solvedLayout.program_reference) } };
+            if (reloadKeepingSession(promptText, { messages, design: pkg, designSession: designSession.current })) return;
         }
 
         // IMMEDIATELY latch the session open — this is the single gate for the view switch
@@ -727,10 +740,13 @@ const AIStudio = () => {
                     // the same geometry as its entry in the options list.
                     // an edit starts from the previous plan (its search and seed); a new design from a new seed
                     const warmFrom = previousPackage?.solvedLayout?.search_state;
+                    // a move ("put the terrace between the lounge and the master suite"): the rooms it asked to touch
+                    const editLinks = previousPackage ? newLinks(previousPackage.rooms, finalDesignData.rooms) : [];
                     const solverOptions = {
                         floors_override: briefFloors, seed: (warmFrom && previousPackage?.solveRequest?.options?.seed) || Math.floor(Math.random() * 2 ** 31),
                         layoutMode: layoutModeSetting(), outbuildings_in_rear_setback: setback.plan.choice.outbuildingsInRear !== false,
                         ...(warmFrom ? { warm_start: warmFrom } : {}),
+                        ...(editLinks.length ? { edit_links: editLinks } : {}),
                     };
                     const program = { ...finalDesignData };
                     // kept so a reviewed plan can be redrawn exactly (seed included)
@@ -740,7 +756,7 @@ const AIStudio = () => {
                     if (previousPackage) {
                         const changes = briefChanges(previousPackage.rooms, finalDesignData.rooms);
                         const changed = new Set<string>(finalDesignData.rooms.filter((r: any) => changes.some(c => c.name === String(r.name ?? r.room_id))).map((r: any) => String(r.room_id)));
-                        finalDesignData.edit = { changes, kept: roomsKept(previousPackage.solvedLayout, solved, changed), warm: solved.warm_started === true };
+                        finalDesignData.edit = { changes, kept: roomsKept(previousPackage.solvedLayout, solved, changed), warm: solved.warm_started === true, missed: linksMissed(solved, editLinks, finalDesignData.rooms) };
                     }
 
                     // Show this plan now; alternatives are computed off the
@@ -1436,6 +1452,11 @@ const AIStudio = () => {
                                                                         ? designPackage.edit.changes.map((c: any) => c.kind === 'added' ? `Added ${c.name} (${c.detail})` : c.kind === 'removed' ? `Removed ${c.name}` : c.kind === 'moved' ? `${c.name} moved from the ${c.detail}` : `${c.name}: ${c.detail}`).join(' · ')
                                                                         : 'No rooms changed in the brief.'}
                                                                 </p>
+                                                                {designPackage.edit.missed?.length > 0 && (
+                                                                    <p className="text-sm font-semibold text-amber-700 dark:text-amber-400">
+                                                                        Not done: {designPackage.edit.missed.join('; ')}. The planner couldn't fit {designPackage.edit.missed.length > 1 ? 'these' : 'it'} on this plot with the other rooms where the brief puts them. Try another spot for it, or press Re-plan for other layouts.
+                                                                    </p>
+                                                                )}
                                                                 <p className="text-xs text-slate-500 dark:text-slate-400">
                                                                     {designPackage.edit.warm && designPackage.edit.kept
                                                                         ? `The plan was kept: ${designPackage.edit.kept.kept} of ${designPackage.edit.kept.of} rooms are where they were.`

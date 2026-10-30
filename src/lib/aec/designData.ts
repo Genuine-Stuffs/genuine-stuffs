@@ -24,7 +24,7 @@ let warned = false;
 /** The brief a plan was solved from, without the plans AI Studio keeps on it: the solver hands back
  * the design package itself as the plan's program_reference, and the package holds that plan, so
  * the record would loop (JSON.stringify threw "Converting circular structure", 2026-10-29). */
-const briefOnly = (program: any) => {
+export const briefOnly = (program: any) => {
     if (!program || typeof program !== 'object') return program ?? null;
     const { solvedLayout, solvedLayoutOptions, ...rest } = program;
     return rest;

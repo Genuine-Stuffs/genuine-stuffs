@@ -29,6 +29,10 @@ export interface SolverOptions {
     outbuildings_in_rear_setback?: boolean;
     /** The edit loop: the previous plan's search, to refine it for an edited brief. */
     warm_start?: SearchState;
+    /** The edit loop: pairs of room ids the edit asked to be next to each other ("put the terrace
+     * between the lounge and the master suite"). They must share a wall: not met through the
+     * landing, never relaxed, and a plan that misses one ranks below any plan that meets it. */
+    edit_links?: Array<[string, string]>;
 }
 
 export interface InternalRoomNode {

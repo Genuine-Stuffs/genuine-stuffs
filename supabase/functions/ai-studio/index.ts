@@ -408,6 +408,8 @@ RULES:
                 "Return the COMPLETE updated design in the same JSON schema. Keep every room's room_id, name, type, floor, area_m2 and " +
                 "adjacencies exactly as they are unless the user asked to change that room. Add, remove or change only what the user asked " +
                 "for; give an added room a new room_id that is not used below, and link it to the rooms it belongs next to. " +
+                "To move a room (\"put the terrace between the family lounge and the master suite\"), keep its room_id, set its " +
+                "adjacencies to the rooms it should now be next to, add its room_id to theirs, and remove it from the rooms it leaves. " +
                 "In \"narrative\", say in one or two sentences what you changed.\n\nCURRENT DESIGN BRIEF:\n" +
                 JSON.stringify({ brief_reference: currentBrief.brief_reference ?? null, rooms: currentBrief.rooms }).slice(0, 60000) }]
             : [];
