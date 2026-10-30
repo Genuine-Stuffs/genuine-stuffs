@@ -381,7 +381,17 @@ export function hotelLayout(program: SpatialProgram, envelope: PlotEnvelope, opt
         ...base, placed_rooms: placed, building_width: plan.width, building_depth: plan.depth,
         site_offset: { x: s.left + (BW - plan.width) / 2, y: envelope.depth - s.front - plan.depth },
         solver_status: 'SOLVED', placement_issues: issues,
+        // 4.5 m bays across the guest rooms: a room is 7 m deep and the two rows' party walls don't
+        // line up, so 6 m bays left 16 rooms spanning 5.5–6 m, over the 4.5 m limit (2026-10-30);
+        // along a corridor the bays stay up to 6 m, so fewer columns stand inside rooms
+        grid_bay_max_m: gridAcross(plan),
     };
+}
+
+/** The axes that cross the guest rooms: across the corridor, both for an L's two wings. */
+function gridAcross(plan: GuestFloor): { x?: number; y?: number } {
+    const corrs = [plan.rects.get('corridor'), plan.rects.get('corridor2')].filter((q): q is Rect => !!q);
+    return { x: corrs.some(q => q.h > q.w) ? 4.5 : undefined, y: corrs.some(q => q.w >= q.h) ? 4.5 : undefined };
 }
 
 /** The guest floor and the site against the hotel rules (regulations/hotel.ts). */

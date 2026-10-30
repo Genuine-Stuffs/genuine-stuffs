@@ -29,10 +29,11 @@ export const CELL = 0.5;
 export const MIN_BAY_M = 3, MAX_BAY_M = 6, CORRIDOR_BAY_M = 2.5;
 const MIN_BAY = MIN_BAY_M / CELL, MAX_BAY = MAX_BAY_M / CELL, CORRIDOR = CORRIDOR_BAY_M / CELL;
 
-/** Where a bay may start at p: a 3–6 m room bay, or a corridor bay where one runs. */
-const steps = (p: number, corr: Set<number>) => corr.has(p) ? [CORRIDOR, ...range()] : range();
-const RANGE = Array.from({ length: MAX_BAY - MIN_BAY + 1 }, (_, i) => MIN_BAY + i);
-const range = () => RANGE;
+/** Where a bay may start at p: a 3 m to `max` room bay (6 m unless the plan asks for less),
+ * or a corridor bay where one runs. */
+const steps = (p: number, corr: Set<number>, max: number) => corr.has(p) ? [CORRIDOR, ...range(max)] : range(max);
+const RANGES = new Map<number, number[]>();
+const range = (max: number) => RANGES.get(max) ?? (RANGES.set(max, Array.from({ length: max - MIN_BAY + 1 }, (_, i) => MIN_BAY + i)), RANGES.get(max)!);
 const NONE = new Set<number>();
 
 export interface GridFit {
@@ -64,12 +65,12 @@ function walls(rs: Rect[], W: number, D: number) {
 
 /** Every set of lines 0..len with gaps in [MIN_BAY, MAX_BAY] (or a corridor bay where one runs). */
 const splitCache = new Map<string, number[][]>();
-function allLines(len: number, corr: Set<number> = NONE): number[][] {
-    const key = `${len}|${[...corr].join(",")}`, hit = splitCache.get(key); if (hit) return hit;
+function allLines(len: number, corr: Set<number> = NONE, max = MAX_BAY): number[][] {
+    const key = `${len}|${[...corr].join(",")}|${max}`, hit = splitCache.get(key); if (hit) return hit;
     const out: number[][] = [];
     const walk = (p: number, acc: number[]) => {
         if (p === len) { out.push([...acc]); return; }
-        for (const b of steps(p, corr)) if (p + b <= len) { acc.push(p + b); walk(p + b, acc); acc.pop(); }
+        for (const b of steps(p, corr, max)) if (p + b <= len) { acc.push(p + b); walk(p + b, acc); acc.pop(); }
     };
     walk(0, [0]);
     if (!out.length) out.push([0, len]); // narrower than one bay
@@ -78,11 +79,11 @@ function allLines(len: number, corr: Set<number> = NONE): number[][] {
 
 /** How many line sets allLines(len, corr) has. */
 const countCache = new Map<string, number>();
-function countLines(len: number, corr: Set<number> = NONE): number {
-    const key = `${len}|${[...corr].join(",")}`, hit = countCache.get(key); if (hit !== undefined) return hit;
+function countLines(len: number, corr: Set<number> = NONE, max = MAX_BAY): number {
+    const key = `${len}|${[...corr].join(",")}|${max}`, hit = countCache.get(key); if (hit !== undefined) return hit;
     if (len < MIN_BAY && !corr.size) return 1;
     const n = new Float64Array(len + 1); n[0] = 1;
-    for (let p = 0; p < len; p++) if (n[p]) for (const b of steps(p, corr)) if (p + b <= len) n[p + b] += n[p];
+    for (let p = 0; p < len; p++) if (n[p]) for (const b of steps(p, corr, max)) if (p + b <= len) n[p + b] += n[p];
     const v = Math.max(1, n[len]);
     countCache.set(key, v); return v;
 }
@@ -90,7 +91,7 @@ function countLines(len: number, corr: Set<number> = NONE): number {
 /** The cheapest lines 0..len with gaps in [MIN_BAY, MAX_BAY] (or a corridor
  * bay where one runs); cost(p) is a line's own cost, so the sum is
  * minimised exactly by dynamic programming. */
-function cheapestLines(len: number, cost: (p: number) => number, corr: Set<number> = NONE): { lines: number[]; score: number } {
+function cheapestLines(len: number, cost: (p: number) => number, corr: Set<number> = NONE, max = MAX_BAY): { lines: number[]; score: number } {
     if (len < MIN_BAY && !corr.size) return { lines: [0, len], score: cost(0) + cost(len) };
     // reach[q]: the cheapest total of lines before q; ties go to the nearest
     // predecessor (as the backward search did), hence <=
@@ -99,7 +100,7 @@ function cheapestLines(len: number, cost: (p: number) => number, corr: Set<numbe
     for (let p = 0; p <= len; p++) {
         if (p > 0 && prev[p] >= 0) best[p] = reach[p] + cost(p);
         if (best[p] === Infinity || p === len) continue;
-        for (const b of steps(p, corr)) { const q = p + b; if (q <= len && best[p] <= reach[q]) { reach[q] = best[p]; prev[q] = p; } }
+        for (const b of steps(p, corr, max)) { const q = p + b; if (q <= len && best[p] <= reach[q]) { reach[q] = best[p]; prev[q] = p; } }
     }
     const lines = [len];
     for (let p = len; p > 0; p = prev[p]) lines.push(prev[p]);
@@ -111,7 +112,7 @@ function cheapestLines(len: number, cost: (p: number) => number, corr: Set<numbe
 const EXACT_LIMIT = 20000;
 
 /** The best-fitting grid for a building W × D cells; floors[0] is the ground. */
-export function fitGrid(floors: Rect[][], W: number, D: number, corridors: { x: number[]; y: number[] } = { x: [], y: [] }): GridFit {
+export function fitGrid(floors: Rect[][], W: number, D: number, corridors: { x: number[]; y: number[] } = { x: [], y: [] }, maxBay: { x: number; y: number } = { x: MAX_BAY, y: MAX_BAY }): GridFit {
     const cx = new Set(corridors.x), cy = new Set(corridors.y);
     const S = D + 1, F = floors.map(f => walls(f, W, D));
     // unsupported interior upper wall cells on each line, and all wall per line
@@ -138,21 +139,21 @@ export function fitGrid(floors: Rect[][], W: number, D: number, corridors: { x: 
     const K2 = all + 1, K1 = K2 * (tot + 1);
     const xTerm = (x: number) => -gx[x] * K2 - wx[x], yTerm = (y: number) => -gy[y] * K2 - wy[y];
     const inner = (ls: number[]) => ls.slice(1, -1);
-    const givenX = (xs: number[]) => { const ix = inner(xs); return cheapestLines(D, y => yTerm(y) + (y > 0 && y < D ? K1 * ix.reduce((s, x) => s + colCost[x * S + y], 0) : 0), cy); };
-    const givenY = (ys: number[]) => { const iy = inner(ys); return cheapestLines(W, x => xTerm(x) + (x > 0 && x < W ? K1 * iy.reduce((s, y) => s + colCost[x * S + y], 0) : 0), cx); };
+    const givenX = (xs: number[]) => { const ix = inner(xs); return cheapestLines(D, y => yTerm(y) + (y > 0 && y < D ? K1 * ix.reduce((s, x) => s + colCost[x * S + y], 0) : 0), cy, maxBay.y); };
+    const givenY = (ys: number[]) => { const iy = inner(ys); return cheapestLines(W, x => xTerm(x) + (x > 0 && x < W ? K1 * iy.reduce((s, y) => s + colCost[x * S + y], 0) : 0), cx, maxBay.x); };
     const sum = (ls: number[], t: (p: number) => number) => ls.reduce((s, p) => s + t(p), 0);
 
     let xs: number[], ys: number[];
-    if (Math.min(countLines(W, cx), countLines(D, cy)) <= EXACT_LIMIT) {
+    if (Math.min(countLines(W, cx, maxBay.x), countLines(D, cy, maxBay.y)) <= EXACT_LIMIT) {
         // enumerate the side with fewer line sets, the other side exactly by DP
         let best = Infinity; xs = [0, W]; ys = [0, D];
-        if (countLines(W, cx) <= countLines(D, cy)) {
-            for (const lx of allLines(W, cx)) { const r = givenX(lx), v = sum(lx, xTerm) + r.score; if (v < best) { best = v; xs = lx; ys = r.lines; } }
+        if (countLines(W, cx, maxBay.x) <= countLines(D, cy, maxBay.y)) {
+            for (const lx of allLines(W, cx, maxBay.x)) { const r = givenX(lx), v = sum(lx, xTerm) + r.score; if (v < best) { best = v; xs = lx; ys = r.lines; } }
         } else {
-            for (const ly of allLines(D, cy)) { const r = givenY(ly), v = sum(ly, yTerm) + r.score; if (v < best) { best = v; xs = r.lines; ys = ly; } }
+            for (const ly of allLines(D, cy, maxBay.y)) { const r = givenY(ly), v = sum(ly, yTerm) + r.score; if (v < best) { best = v; xs = r.lines; ys = ly; } }
         }
     } else {
-        ys = cheapestLines(D, yTerm, cy).lines; xs = givenY(ys).lines;
+        ys = cheapestLines(D, yTerm, cy, maxBay.y).lines; xs = givenY(ys).lines;
         for (let best = Infinity, i = 0; i < 20; i++) {
             const ny = givenX(xs), v = sum(xs, xTerm) + ny.score;
             if (v >= best) break;
@@ -232,7 +233,16 @@ export function structuralGridOf(layout: SolvedLayout): StructuralGrid | null {
     const { floors, W, D } = floorCells(layout);
     let g: StructuralGrid | null = null;
     if (W && D && floors.some(f => f.length)) {
-        const fit = fitGrid(floors, W, D, corridorStrips(layout, W, D));
+        const corr = corridorStrips(layout, W, D);
+        let fit = fitGrid(floors, W, D, corr);
+        // smaller bays where the plan asks (a hotel's 4.5 m across its rooms), unless they stand
+        // more columns inside rooms than the 6 m grid: a column in a guest room is worse than a
+        // 6 m span the engineer verifies (owner, 2026-10-30)
+        if (layout.grid_bay_max_m) {
+            const cap = (m?: number) => m ? Math.max(MIN_BAY, Math.min(MAX_BAY, Math.round(m / CELL))) : MAX_BAY;
+            const small = fitGrid(floors, W, D, corr, { x: cap(layout.grid_bay_max_m.x), y: cap(layout.grid_bay_max_m.y) });
+            if (small.columnsInRooms <= fit.columnsInRooms) fit = small;
+        }
         const secondary = secondarySpans(floors, W, D, fit.xs, fit.ys).map(b => b.vertical
             ? { floor: b.floor, x1: b.at * CELL, y1: b.from * CELL, x2: b.at * CELL, y2: b.to * CELL }
             : { floor: b.floor, x1: b.from * CELL, y1: b.at * CELL, x2: b.to * CELL, y2: b.at * CELL });

@@ -126,6 +126,9 @@ export interface SolvedLayout {
     // The edit loop: the plan started from the previous one; false when the warm start
     // couldn't keep a plan as good and the full search ran instead.
     warm_started?: boolean;
+    // The structural grid's largest bay on each axis when the planner asks for less than 6 m
+    // (a hotel's 4.5 m bays across its guest rooms, so they span within the 4.5 m limit).
+    grid_bay_max_m?: { x?: number; y?: number };
 }
 
 export interface SearchState {
